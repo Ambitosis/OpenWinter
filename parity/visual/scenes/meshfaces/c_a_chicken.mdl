@@ -1,0 +1,106 @@
+newmodel c_a_chicken
+setsupermodel c_a_chicken NULL
+classification Character
+setanimationscale 1
+beginmodelgeom c_a_chicken
+node dummy c_a_chicken
+ parent NULL
+endnode
+node trimesh plane0
+ parent c_a_chicken
+ position -2.4 0 1.5
+ render 1
+ shadow 0
+ bitmap vis_facegray
+ diffuse 1 1 1
+ ambient 1 1 1
+ specular 0 0 0
+ selfillumcolor 1 1 1
+ verts 4
+ -.5 -.5 0
+ .5 -.5 0
+ .5 .5 0
+ -.5 .5 0
+ tverts 4
+ 0 0 0
+ 1 0 0
+ 1 1 0
+ 0 1 0
+ faces 2
+ 0 1 2 0 0 1 2 0
+ 0 2 3 0 0 2 3 0
+endnode
+node trimesh plane1
+ parent c_a_chicken
+ position -0.8 0 1.5
+ render 1
+ shadow 0
+ bitmap vis_facegray
+ diffuse 1 1 1
+ ambient 1 1 1
+ specular 0 0 0
+ selfillumcolor 1 1 1
+ verts 4
+ -.5 -.5 0
+ .5 -.5 0
+ .5 .5 0
+ -.5 .5 0
+ tverts 4
+ 0 0 0
+ 1 0 0
+ 1 1 0
+ 0 1 0
+ faces 2
+ 2 1 0 0 2 1 0 0
+ 3 2 0 0 3 2 0 0
+endnode
+node trimesh plane2
+ parent c_a_chicken
+ position 0.8 0 1.5
+ render 1
+ shadow 0
+ bitmap vis_faceadd
+ diffuse 1 1 1
+ ambient 1 1 1
+ specular 0 0 0
+ selfillumcolor 1 1 1
+ verts 4
+ -.5 -.5 0
+ .5 -.5 0
+ .5 .5 0
+ -.5 .5 0
+ tverts 4
+ 0 0 0
+ 1 0 0
+ 1 1 0
+ 0 1 0
+ faces 2
+ 0 1 2 0 0 1 2 0
+ 0 2 3 0 0 2 3 0
+endnode
+node trimesh plane3
+ parent c_a_chicken
+ position 2.4 0 1.5
+ render 1
+ shadow 0
+ bitmap vis_faceadd
+ diffuse 1 1 1
+ ambient 1 1 1
+ specular 0 0 0
+ selfillumcolor 1 1 1
+ verts 4
+ -.5 -.5 0
+ .5 -.5 0
+ .5 .5 0
+ -.5 .5 0
+ tverts 4
+ 0 0 0
+ 1 0 0
+ 1 1 0
+ 0 1 0
+ faces 2
+ 2 1 0 0 2 1 0 0
+ 3 2 0 0 3 2 0 0
+endnode
+endmodelgeom c_a_chicken
+donemodel c_a_chicken

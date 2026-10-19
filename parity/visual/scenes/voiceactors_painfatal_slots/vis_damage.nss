@@ -1,0 +1,1 @@
+void main(){WriteTimestampedLogEntry("VISUAL|note|fatal.damage."+IntToString(GetLocalInt(OBJECT_SELF,"trial"))+".amount."+IntToString(GetTotalDamageDealt())+".hp."+IntToString(GetCurrentHitPoints(OBJECT_SELF)));}

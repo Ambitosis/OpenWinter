@@ -1,0 +1,33 @@
+{
+  "seconds": 30,
+  "tile": 4,
+  "templates": {
+    "p_actor": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "Tag": "P_ACTOR",
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": ""
+      }
+    },
+    "p_plc": {
+      "from": "plc_chair",
+      "type": "utp",
+      "set": {
+        "Tag": "P_PLC"
+      }
+    }
+  }
+}

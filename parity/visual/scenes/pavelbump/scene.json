@@ -1,0 +1,16 @@
+{
+  "source": {
+    "module": "Prelude",
+    "area": "m0q1a",
+    "keepCreatures": true
+  },
+  "pc": [
+    14.5,
+    8.886529,
+    0
+  ],
+  "facing": 0,
+  "seconds": 52,
+  "gui": true,
+  "factions": "Prelude"
+}

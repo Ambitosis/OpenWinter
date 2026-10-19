@@ -1,0 +1,8 @@
+{
+  "seconds": 30, "tile": 4,
+  "templates": {
+    "sv_git": { "from": "nw_it_mring001", "type": "uti", "set": { "Tag": "SV_GIT" } },
+    "sv_bandit": { "from": "nw_bandit001", "type": "utc", "set": { "ScriptSpawn": "" } }
+  },
+  "instances": [ { "type": "uti", "from": "sv_git", "x": 12, "y": 12 } ]
+}

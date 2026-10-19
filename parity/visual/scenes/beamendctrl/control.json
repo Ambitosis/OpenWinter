@@ -1,0 +1,27 @@
+{
+  "purpose": "Repeat proven width baseline; isolate stock/custom endpoint references. Previous beamends entire baseline absent and excluded.",
+  "unchangedCase0": "Exact beamwidth bw_0 source and tables/script preserved",
+  "cases": [
+    {
+      "model": "bw_0",
+      "reference": "fx_ref",
+      "z": 1
+    },
+    {
+      "model": "bw_1",
+      "reference": "fx_ref_cold",
+      "z": 1
+    },
+    {
+      "model": "bw_2",
+      "reference": "be_tip",
+      "z": 1
+    },
+    {
+      "model": "bw_3",
+      "reference": "be_tip",
+      "z": 2
+    }
+  ],
+  "limits": "Widths vary exactly as prior proven width fixture; custom marker now explicit grid1. No inference about cause of failed beamends."
+}

@@ -1,0 +1,44 @@
+{
+  "scope": "Final client checks against the native controls documented in REST_BEHAVIOR.md.",
+  "runs": {
+    "classic_sequence": {
+      "folder": "out/visual/shots/vis_restpresentation_final/openwinter",
+      "sha256": {
+        "notes.txt": "8c4398675aae6a97a2cec17f916aa2da2ab44e2439b35e711c6fff7ee209a8d7",
+        "state.jsonl": "2d7b80dd1eaa08b06831108b9e584363ed440d5a932fa2d856e618728b523123",
+        "shots.txt": "745ef67fca1ce7d0ac0bba9101c77c27b021d4f03f2d153ca848f6e2858bd830",
+        "a_before.png": "bb0d6525026bebe1adfb4e7a94147cb4678ddcc3eb2f4c13dfc64742384d59e7",
+        "b_entry.png": "149fff61104eda2d0447c38a6190f28ff975f3a70da22f265584f79b199adc39",
+        "c_entry.png": "811cb0a8d91b78a95d23933584085eaefb8b99c1abcb7e2ee61511e135e40a69",
+        "d_loop.png": "ca904af783928ba90a5ab6a648857aafa5f8b43e450b9ba65b233bd6bcb09013",
+        "e_loop.png": "33d5c5b1e10f269f9ad69c8649e645f01e8b7cc38dd9c43fb34fa5bbb6b498d3",
+        "f_late.png": "7d4fd3949dceececd5dd2a35907c33978e6f33cb4bdd68b4862505a919dfea06",
+        "g_exit.png": "ffc19aa8716c890010d7e3efc244e7105c8bf8bd774f75651edda79ff4265890",
+        "h_exit.png": "7f4a365b4c79cfbc3352e959a03425385484bcdb0bf8758e12c4c31ba4e34efb",
+        "i_finished.png": "bb5c114534372924247377a8dcfcabf2e7e06b9a3f17dd568f013fb2511fcb9a"
+      }
+    },
+    "classic_panel": {
+      "folder": "out/visual/shots/vis_restpanel_classic/openwinter",
+      "sha256": {
+        "checks.json": "a00950366eddce374d6fcc52b9864234ac4041e5fcdeb6cbc479e8caa887e6a3",
+        "01_started.png": "7ea4bf032b7c50d7c6f2ddf18d466629adcb3a44551f2a68a51c2c6b55037bc3",
+        "02_paused.png": "4b3273d172ec6124b9d57e5acf5c333403692de90449522eed48ff47966bc3ae",
+        "03_cancelled.png": "ea1aa097cf059b8588957a07260f4e1d6b92ddcbfe22ba44ca520491c4782ae0",
+        "04_finished.png": "617c86f0df39dcc1ae764e18c820bc95af0e1c0153e4189f26f35efb92ea865b"
+      }
+    },
+    "modern_stock_effects": {
+      "folder": "out/visual/shots/vis_reststockduration_fixed/openwinter",
+      "sha256": {
+        "notes.txt": "c2d24642f740777eb5079b84d2d24ec0c65e6c6e2579141b03f2310ec92c60da",
+        "state.jsonl": "c1465e2c4e4ff36850038ceb1b8d4fccb65cc1a15bb8a97479df08e1352f194a",
+        "shots.txt": "7ef9affae98b12bff6820090628fa1a18737372caed8dbded47d00c4d4e4e721",
+        "a_buffed.png": "7c7e726c71f7805ac70d8af22a2fb0e894193f632d581c5903da6718a24e5bc8",
+        "b_rest_start.png": "c69d1a8158637a2708c4f298246ab4062c25f9b8ed8dfa439233e842847f029f",
+        "c_during_rest.png": "27cb0682c74e65388c95525540799314b9d2905b1dc918b4dda3b6f6d56e3c3a",
+        "d_cancelled.png": "40c887e17e703997145088aa00864e56f3ef34a455b4a603b938de24e2621189"
+      }
+    }
+  }
+}

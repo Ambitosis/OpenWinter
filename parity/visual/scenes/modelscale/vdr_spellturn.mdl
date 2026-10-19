@@ -1,0 +1,92 @@
+# Wholly authored uniform node scale fixture. No game geometry.
+newmodel vdr_spellturn
+setsupermodel vdr_spellturn NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vdr_spellturn
+node dummy vdr_spellturn
+ parent NULL
+endnode
+node dummy grow
+ parent vdr_spellturn
+ position 2 0 1
+endnode
+node trimesh reference
+ parent vdr_spellturn
+ position -2 0 2
+ diffuse 1 1 1
+ ambient 1 1 1
+ bitmap NULL
+ render 1
+ shadow 0
+ verts 8
+  -0.5 -0.5 -0.5
+  0.5 -0.5 -0.5
+  0.5 0.5 -0.5
+  -0.5 0.5 -0.5
+  -0.5 -0.5 0.5
+  0.5 -0.5 0.5
+  0.5 0.5 0.5
+  -0.5 0.5 0.5
+ faces 12
+  0 2 1 1 0 0 0 0
+  0 3 2 1 0 0 0 0
+  4 5 6 1 0 0 0 0
+  4 6 7 1 0 0 0 0
+  0 1 5 1 0 0 0 0
+  0 5 4 1 0 0 0 0
+  1 2 6 1 0 0 0 0
+  1 6 5 1 0 0 0 0
+  2 3 7 1 0 0 0 0
+  2 7 6 1 0 0 0 0
+  3 0 4 1 0 0 0 0
+  3 4 7 1 0 0 0 0
+endnode
+node trimesh moving
+ parent grow
+ position 0 0 1
+ diffuse 1 0.7 0.1
+ ambient 1 0.7 0.1
+ bitmap NULL
+ render 1
+ shadow 0
+ verts 8
+  -0.5 -0.5 -0.5
+  0.5 -0.5 -0.5
+  0.5 0.5 -0.5
+  -0.5 0.5 -0.5
+  -0.5 -0.5 0.5
+  0.5 -0.5 0.5
+  0.5 0.5 0.5
+  -0.5 0.5 0.5
+ faces 12
+  0 2 1 1 0 0 0 0
+  0 3 2 1 0 0 0 0
+  4 5 6 1 0 0 0 0
+  4 6 7 1 0 0 0 0
+  0 1 5 1 0 0 0 0
+  0 5 4 1 0 0 0 0
+  1 2 6 1 0 0 0 0
+  1 6 5 1 0 0 0 0
+  2 3 7 1 0 0 0 0
+  2 7 6 1 0 0 0 0
+  3 0 4 1 0 0 0 0
+  3 4 7 1 0 0 0 0
+endnode
+endmodelgeom vdr_spellturn
+newanim impact vdr_spellturn
+ length 6
+ transtime 0
+ animroot vdr_spellturn
+ node dummy grow
+  parent vdr_spellturn
+  scalekey 6
+   0 0.5
+   1 0.5
+   2 2
+   3 2
+   4 0.5
+   6 0.5
+ endnode
+doneanim impact vdr_spellturn
+donemodel vdr_spellturn

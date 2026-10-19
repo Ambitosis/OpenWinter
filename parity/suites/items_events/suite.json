@@ -1,0 +1,11 @@
+{
+  "seconds": 50, "tile": 4,
+  "events": { "OnAcquirItem": "pe_acq", "OnUnAqreItem": "pe_unacq", "OnPlrEqItm": "pe_eq", "OnPlrUnEqItm": "pe_uneq", "OnActvtItem": "pe_act" },
+  "areaEvents": { "OnEnter": "pe_enter" },
+  "templates": {
+    "pe_lin": { "from": "nw_hen_lin_07", "type": "utc", "set": { "Tag": "LIN_T", "ScriptSpawn": "pe_spawn", "ScriptDamaged": "", "ScriptOnBlocked": "",
+      "ScriptDialogue": "", "ScriptSpellAt": "", "ScriptHeartbeat": "", "ScriptAttacked": "", "ScriptRested": "", "ScriptOnNotice": "",
+      "ScriptUserDefine": "", "ScriptEndRound": "", "ScriptDisturbed": "", "ScriptDeath": "" } }
+  },
+  "instances": [ { "type": "utc", "from": "pe_lin", "x": 8, "y": 8, "set": { "Tag": "LIN_G" } } ]
+}

@@ -1,0 +1,66 @@
+{
+ "seconds": 95,
+ "tile": 4,
+ "size": 12,
+ "factions": "Prelude",
+ "areas": [
+  {
+   "resref": "sc_a0",
+   "tag": "SC_A0"
+  },
+  {
+   "resref": "sc_a1",
+   "tag": "SC_A1"
+  },
+  {
+   "resref": "sc_a2",
+   "tag": "SC_A2"
+  },
+  {
+   "resref": "sc_a3",
+   "tag": "SC_A3"
+  },
+  {
+   "resref": "sc_a4",
+   "tag": "SC_A4"
+  },
+  {
+   "resref": "sc_a5",
+   "tag": "SC_A5",
+   "are": {
+    "ModSpotCheck": -10
+   }
+  }
+ ],
+ "templates": {
+  "sc_obs": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "Tag": "SC_OBS",
+    "PerceptionRange": 8,
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "sc_percept",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": ""
+   }
+  },
+  "sc_hid": {
+   "from": "sc_obs",
+   "type": "utc",
+   "set": {
+    "Tag": "SC_HID",
+    "ScriptOnNotice": ""
+   }
+  }
+ }
+}

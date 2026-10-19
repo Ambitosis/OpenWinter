@@ -1,0 +1,26 @@
+{
+  "template": "nw_drowmage020",
+  "classLevels": [
+    {
+      "class": 3,
+      "level": 10
+    },
+    {
+      "class": 7,
+      "level": 6
+    }
+  ],
+  "abilities": {
+    "intelligence": 20,
+    "wisdom": 20,
+    "charisma": 20
+  },
+  "feats": [
+    199
+  ],
+  "equipment": [],
+  "companion": {
+    "type": 1,
+    "name": "Audit d10r6"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "scene": "chantmale",
+  "gender": 0,
+  "rows": [
+    {
+      "id": 0,
+      "label": "Acid_Fog",
+      "start": 4,
+      "span": 6,
+      "expected": "vs_chant_conj_hm"
+    },
+    {
+      "id": 1,
+      "label": "Aid",
+      "start": 10,
+      "span": 6,
+      "expected": "vs_chant_ench_lm"
+    },
+    {
+      "id": 2,
+      "label": "Animate_Dead",
+      "start": 16,
+      "span": 6,
+      "expected": "vs_chant_necr_lm"
+    },
+    {
+      "id": 5,
+      "label": "Blade_Barrier",
+      "start": 22,
+      "span": 6,
+      "expected": "vs_chant_evoc_hm"
+    },
+    {
+      "id": 11,
+      "label": "Call_Lightning",
+      "start": 28,
+      "span": 6,
+      "expected": "vs_chant_evoc_lm"
+    },
+    {
+      "id": 18,
+      "label": "Circle_of_Death",
+      "start": 34,
+      "span": 6,
+      "expected": "vs_chant_necr_hm"
+    },
+    {
+      "id": 20,
+      "label": "Clairaudience_and_Clairvoyance",
+      "start": 40,
+      "span": 6,
+      "expected": "vs_chant_illu_lm"
+    },
+    {
+      "id": 32,
+      "label": "Cure_Light_Wounds",
+      "start": 46,
+      "span": 6,
+      "expected": "vs_chant_conj_lm"
+    },
+    {
+      "id": 44,
+      "label": "Dominate_Monster",
+      "start": 52,
+      "span": 6,
+      "expected": "vs_chant_ench_hm"
+    },
+    {
+      "id": 55,
+      "label": "Feeblemind",
+      "start": 58,
+      "span": 6,
+      "expected": "vs_chant_illu_hm"
+    }
+  ]
+}

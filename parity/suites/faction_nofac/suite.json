@@ -1,0 +1,56 @@
+{
+ "seconds": 20,
+ "size": 4,
+ "tile": 4,
+ "templates": {
+  "fa_f0": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 0
+   }
+  },
+  "fa_f1": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 1
+   }
+  },
+  "fa_f2": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 2
+   }
+  },
+  "fa_f3": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 3
+   }
+  },
+  "fa_f4": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 4
+   }
+  },
+  "fa_f5": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 5
+   }
+  },
+  "fa_f6": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 6
+   }
+  }
+ }
+}

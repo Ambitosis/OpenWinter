@@ -1,0 +1,10 @@
+#include "parity_inc"
+#include "parity_time"
+void Finished(object c,int n){string k=GetTag(c)+".done"+IntToString(n);PLogF(k,PNow()-GetLocalFloat(c,"start"),0.20);PLogI(k+".stack",GetItemStackSize(GetLocalObject(c,"potion")));SetLocalInt(c,"finishes",GetLocalInt(c,"finishes")+1);}
+void Use(object c,int n){object p=GetLocalObject(c,"potion");AssignCommand(c,ActionUseItemOnObject(p,GetFirstItemProperty(p),c));AssignCommand(c,ActionDoCommand(Finished(c,n)));}
+void Clear(object c){AssignCommand(c,ClearAllActions(TRUE));Use(c,9);}
+void Poll(object c,int prior,int n){object p=GetLocalObject(c,"potion");int stack=GetItemStackSize(p);if(stack!=prior){PLogF(GetTag(c)+".spent"+IntToString(3-stack),PNow()-GetLocalFloat(c,"start"),0.15);PLogI(GetTag(c)+".healed"+IntToString(3-stack),GetCurrentHitPoints(c)==GetMaxHitPoints(c));}if(n<440)DelayCommand(0.05,Poll(c,stack,n+1));}
+void Start(object c,int mode){SetLocalFloat(c,"start",PNow());Poll(c,3,0);Use(c,1);Use(c,2);Use(c,3);if(mode>0)DelayCommand(0.7+IntToFloat(mode)*0.1,Clear(c));}
+
+void Read(object c){string k=GetTag(c);PLogI(k+".impacts",GetLocalInt(c,"impacts"));PLogI(k+".finishes",GetLocalInt(c,"finishes"));PLogI(k+".remaining",GetItemStackSize(GetLocalObject(c,"potion")));PLogI(k+".action",GetCurrentAction(c));}
+void main(){int i;for(i=0;i<7;i++){object c=CreateObject(OBJECT_TYPE_CREATURE,"nw_bandit001",PCentre(IntToFloat(i)*5.0-8.0,0.0));SetTag(c,"case"+IntToString(i));SetAILevel(c,AI_LEVEL_NORMAL);int e;for(e=5000;e<=5012;e++)SetEventScript(c,e,"");object p=CreateItemOnObject("nw_it_mpotion001",c,3);SetLocalObject(c,"potion",p);PLogI(GetTag(c)+".base",GetBaseItemType(p));PLogI(GetTag(c)+".subtype",GetItemPropertySubType(GetFirstItemProperty(p)));PLogI(GetTag(c)+".initial",GetItemStackSize(p));ApplyEffectToObject(DURATION_TYPE_INSTANT,EffectDamage(1,DAMAGE_TYPE_MAGICAL),c);DelayCommand(2.0,Start(c,i));DelayCommand(25.0,Read(c));}DelayCommand(26.0,PDone());}

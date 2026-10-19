@@ -1,0 +1,2 @@
+{"tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 170,
+  "are": {"FogClipDist": 60, "SunShadows": 0, "MoonShadows": 0, "SunFogAmount": 0, "MoonFogAmount": 0, "SunAmbientColor": 8421504, "MoonAmbientColor": 8421504, "SunDiffuseColor": 16777215, "MoonDiffuseColor": 16777215}}

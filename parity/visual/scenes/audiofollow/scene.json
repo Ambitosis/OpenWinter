@@ -1,0 +1,14 @@
+{"tileset": "tde01", "tile": 4, "size": 8, "pc": [40, 40, 0], "facing": 180, "seconds": 175, "chatLog": true,
+ "are": {"DayNightCycle": 1}, "hour": 13,
+ "areaProperties": {"MusicDay": 4, "MusicNight": 3, "MusicBattle": 34, "MusicDelay": 3000,
+                    "AmbientSndDay": 1, "AmbientSndNight": 2, "AmbientSndDayVol": 100, "AmbientSndNitVol": 60},
+ "sounds": [
+   {"tag": "S_FALL", "sound": "ow_fall", "position": [20, 40, 0], "positional": true,
+    "set": {"Looping": 1, "Continuous": 1, "MinDistance": 1.0, "MaxDistance": 10.0}},
+   {"tag": "S_PITCHPOS", "sound": "ow_pitchpos", "position": [40, 41, 0], "positional": true,
+    "set": {"Continuous": 1, "Random": 1, "Interval": 300, "PitchVariation": 0.3, "MinDistance": 5.0, "MaxDistance": 30.0}},
+   {"tag": "S_PITCHFLAT", "sound": "ow_pitchflat", "position": [40, 40, 0],
+    "set": {"Continuous": 1, "Random": 1, "Interval": 300, "PitchVariation": 0.3}},
+   {"tag": "S_DAY", "sound": "ow_day", "position": [40, 40, 0], "set": {"Active": 1, "Looping": 1, "Continuous": 1, "Times": 1, "Volume": 64}},
+   {"tag": "S_NIGHT", "sound": "ow_night", "position": [40, 40, 0], "set": {"Active": 1, "Looping": 1, "Continuous": 1, "Times": 2, "Volume": 64}}
+ ]}

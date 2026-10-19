@@ -1,0 +1,5 @@
+{ "preventZoomIn": true, "starts": [0], "entries": [
+  { "text": "Pavel, animation 0 (his own lines all use it).", "replies": [0] },
+  { "text": "Pavel, animation 38 (talk normal).", "animation": 38, "replies": [1] },
+  { "text": "Pavel, animation 40 (talk forceful).", "animation": 40, "replies": [2] } ],
+  "replies": [ { "text": "", "entries": [1] }, { "text": "", "entries": [2] }, { "text": "Goodbye." } ] }

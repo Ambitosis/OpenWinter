@@ -1,0 +1,31 @@
+{
+  "scene": "restplayercontrols",
+  "source_sha256": {
+    "rc_inc.nss": "67480fe3912de484bc8eac9d3da66354ea828f317c192e26486d762cbfb7e4c0",
+    "rc_rest.nss": "d24654a2aee399eb95aa46054e64930aadd357c09715a806e2eff33588ffaf06",
+    "scene.json": "f0a38a5db197a9afb4eb6e72c39899d8427551ca02eb1948277a7569dc50b275",
+    "vis_main.nss": "5efa3454f307a6c1ea889a59ebc810e88bcfd1b71bfc0763677a1568aeef350e"
+  },
+  "native_folder": "out/visual/shots/vis_restplayercontrols_reference/nwn",
+  "artifact_sha256": {
+    "notes.txt": "046788159b641b456bf96ecb378d7e50529d520abbad8b9574d2047afd226ad6",
+    "shots.txt": "f78f88554bda57ba6bce898363d7ed2f2672a5e69ee4758aefa454fa7a074ae2",
+    "native-framebuffer.jsonl": "54b48c41193837b500275920f6588cc84dcf7c9eb35e0354e9c243b556849867"
+  },
+  "frames": [
+    "a_intro_replaced",
+    "b_intro_replaced_loop",
+    "c_intro_replaced_exit",
+    "d_intro_replaced_exit",
+    "e_finished",
+    "f_loop_replaced_intro",
+    "g_loop_replaced",
+    "h_loop_replaced_exit",
+    "i_finished",
+    "j_hook_cancel",
+    "k_before_cancel_click",
+    "l_after_cancel_click",
+    "m_cancel_settled"
+  ],
+  "scope": "Actual-PC visual/state observations; limitations and rejected contexts in README.md. No complete rest-rules parity claim."
+}

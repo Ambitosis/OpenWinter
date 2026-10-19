@@ -1,0 +1,19 @@
+{
+ "seconds": 40,
+ "tile": 4,
+ "areas": [
+  {
+   "resref": "parity",
+   "tag": "PARITY_AREA",
+   "size": 6,
+   "instances": []
+  },
+  {
+   "resref": "tsfar",
+   "tag": "TS_FAR",
+   "size": 3,
+   "instances": []
+  }
+ ],
+ "factions": "Prelude"
+}

@@ -1,0 +1,12 @@
+{
+  "seconds": 60, "tile": 4, "size": 6,
+  "templates": {
+    "pe_crt": { "from": "nw_bandit001", "type": "utc", "set": { "Tag": "PE_CRT", "ScriptSpawn": "", "ScriptHeartbeat": "", "ScriptOnNotice": "", "ScriptEndRound": "", "ScriptUserDefine": "" } },
+    "pe_door": { "from": "nw_door_metal", "type": "utd", "set": { "Tag": "PE_DOOR" } },
+    "pe_trig": { "from": "newtransition", "type": "utt", "set": { "Tag": "PE_TRIG" } }
+  },
+  "instances": [
+    { "type": "utd", "from": "pe_door", "x": 30, "y": 30, "facing": 0 },
+    { "type": "utt", "from": "pe_trig", "x": 10, "y": 30, "w": 4, "h": 4 }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "purpose": "Establish direct native model positives before interpreting absent custom beam references",
+  "directModels": [
+    "be_tip",
+    "fx_ref_cold"
+  ],
+  "referenceModel": "be_tip",
+  "directDurationType": "instant",
+  "beamDurationSeconds": 3,
+  "claims": "Prepared only; no native result yet. Explicit grid1 is unchanged from endpoint fixture."
+}

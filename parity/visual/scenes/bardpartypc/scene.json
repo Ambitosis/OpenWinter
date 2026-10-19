@@ -1,0 +1,13 @@
+{
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 8,
+  "pc": [
+    30,
+    30,
+    0
+  ],
+  "facing": 90,
+  "seconds": 64,
+  "gui": true
+}

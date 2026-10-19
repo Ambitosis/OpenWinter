@@ -1,0 +1,51 @@
+<Project>
+  <!-- One identity shared by the server and client through OpenWinter.Net. Hash source rather than
+       binaries (which differ by configuration/platform), including uncommitted runtime changes. -->
+  <UsingTask TaskName="OpenWinterNetworkBuild" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Root ParameterType="System.String" Required="true" />
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Fingerprint ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="System.Security.Cryptography" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var root = Path.GetFullPath(Root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var inputs = Files.Select(f => Path.GetFullPath(f.ItemSpec)).Distinct()
+            .Select(p => new { Path = p, Name = p.Substring(root.Length).Replace('\\', '/') })
+            .OrderBy(f => f.Name, StringComparer.Ordinal);
+        using (var sha = SHA256.Create())
+        using (var stream = new MemoryStream())
+        using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
+        {
+            foreach (var file in inputs)
+            {
+                writer.Write(file.Name);
+                // All inputs are text; checkout line endings must not change compatibility.
+                writer.Write(File.ReadAllText(file.Path, Encoding.UTF8).Replace("\r\n", "\n"));
+            }
+            writer.Flush();
+            Fingerprint = BitConverter.ToString(sha.ComputeHash(stream.ToArray())).Replace("-", "").ToLowerInvariant();
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+  <Target Name="GenerateNetworkBuild" BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <_NetworkSource Include="$(MSBuildThisFileDirectory)../src/OpenWinter.Aurora/**/*.cs;$(MSBuildThisFileDirectory)../src/OpenWinter.Content/**/*.cs;$(MSBuildThisFileDirectory)../src/OpenWinter.Game/**/*.cs;$(MSBuildThisFileDirectory)../src/OpenWinter.Net/**/*.cs;$(MSBuildThisFileDirectory)../src/OpenWinter.Server/**/*.cs;$(MSBuildThisFileDirectory)../client/**/*.cs"
+                      Exclude="$(MSBuildThisFileDirectory)../src/**/obj/**/*.cs;$(MSBuildThisFileDirectory)../src/**/bin/**/*.cs;$(MSBuildThisFileDirectory)../client/obj/**/*.cs;$(MSBuildThisFileDirectory)../client/bin/**/*.cs;$(MSBuildThisFileDirectory)../client/.godot/**/*.cs" />
+      <_NetworkSource Include="$(MSBuildThisFileDirectory)../src/OpenWinter.Aurora/*.csproj;$(MSBuildThisFileDirectory)../src/OpenWinter.Content/*.csproj;$(MSBuildThisFileDirectory)../src/OpenWinter.Game/*.csproj;$(MSBuildThisFileDirectory)../src/OpenWinter.Net/*.csproj;$(MSBuildThisFileDirectory)../src/OpenWinter.Server/*.csproj;$(MSBuildThisFileDirectory)../client/*.csproj;$(MSBuildThisFileDirectory)../client/project.godot;$(MSBuildThisFileDirectory)../Directory.Build.*;$(MSBuildThisFileDirectory)*.targets" />
+    </ItemGroup>
+    <OpenWinterNetworkBuild Root="$(MSBuildThisFileDirectory).." Files="@(_NetworkSource)">
+      <Output TaskParameter="Fingerprint" PropertyName="_NetworkFingerprint" />
+    </OpenWinterNetworkBuild>
+    <ItemGroup>
+      <AssemblyMetadata Include="OpenWinterBuild" Value="$(_NetworkFingerprint)" />
+      <AssemblyMetadata Include="OpenWinterVersion" Value="$(Version)" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,0 +1,28 @@
+{
+  "template": "nw_drowcler020",
+  "classLevels": [
+    {
+      "class": 10,
+      "level": 20,
+      "memorizedSpells": {
+        "0": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "1": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "2": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "3": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "4": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "5": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "6": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "7": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "8": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}],
+        "9": [{"spell": 102, "ready": false}, {"spell": 102, "ready": false}, {"spell": 102, "ready": false}]
+      },
+      "knownSpells": {
+        "1": [102],
+        "8": [30]
+      }
+    }
+  ],
+  "abilities": {"wisdom": 20, "intelligence": 20, "charisma": 20},
+  "feats": [],
+  "equipment": []
+}

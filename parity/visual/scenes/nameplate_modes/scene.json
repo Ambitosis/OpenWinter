@@ -1,0 +1,5 @@
+{
+  "tileset": "ttr01", "tile": 109, "size": 4, "pc": [20, 15, 0], "facing": 90,
+  "seconds": 35, "gui": true, "textBubbleMode": 2, "largeFont": false,
+  "doors": [{ "template": "nw_door_normal", "tag": "VIS_DOOR", "position": [22.3, 17, 0], "facing": 0 }]
+}

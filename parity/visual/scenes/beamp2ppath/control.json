@@ -1,0 +1,18 @@
+{
+  "status": "prepared only",
+  "purpose": "Independent target-binding/P2P progression positive; no runtime change",
+  "cases": [
+    "Normal P2P disabled life1",
+    "Normal P2P enabled life1",
+    "Linked P2P enabled life1",
+    "Linked P2P enabled life2"
+  ],
+  "bezier": [
+    0,
+    0
+  ],
+  "velocity": 0,
+  "combinetime": 0,
+  "renderBlend": "Normal",
+  "expectedFrames": 21
+}

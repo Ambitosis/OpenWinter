@@ -1,0 +1,200 @@
+{
+ "seconds": 45,
+ "tile": 4,
+ "size": 8,
+ "instances": [
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 10,
+   "y": 10,
+   "facing": 0,
+   "set": {
+    "Tag": "D0A"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 22,
+   "y": 10,
+   "facing": 0,
+   "set": {
+    "Tag": "D0B"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 34,
+   "y": 10,
+   "facing": 0,
+   "set": {
+    "Tag": "D0C"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 46,
+   "y": 10,
+   "facing": 0,
+   "set": {
+    "Tag": "D0D"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 58,
+   "y": 10,
+   "facing": 90,
+   "set": {
+    "Tag": "D90A"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 70,
+   "y": 10,
+   "facing": 90,
+   "set": {
+    "Tag": "D90B"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 10,
+   "y": 22,
+   "facing": 90,
+   "set": {
+    "Tag": "D90C"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 22,
+   "y": 22,
+   "facing": 90,
+   "set": {
+    "Tag": "D90D"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 34,
+   "y": 22,
+   "facing": 180,
+   "set": {
+    "Tag": "D180A"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 46,
+   "y": 22,
+   "facing": 180,
+   "set": {
+    "Tag": "D180B"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 58,
+   "y": 22,
+   "facing": 180,
+   "set": {
+    "Tag": "D180C"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 70,
+   "y": 22,
+   "facing": 180,
+   "set": {
+    "Tag": "D180D"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 10,
+   "y": 46,
+   "facing": 0,
+   "set": {
+    "Tag": "DSELF"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 22,
+   "y": 46,
+   "facing": 0,
+   "set": {
+    "Tag": "DFAR"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 34,
+   "y": 46,
+   "facing": 0,
+   "set": {
+    "Tag": "DFARN"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 46,
+   "y": 46,
+   "facing": 0,
+   "set": {
+    "Tag": "DCLOSE"
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 58,
+   "y": 46,
+   "facing": 0,
+   "set": {
+    "Tag": "LK1",
+    "LinkedTo": "LK2",
+    "LinkedToFlags": 1
+   }
+  },
+  {
+   "type": "utd",
+   "from": "dl_door",
+   "x": 70,
+   "y": 46,
+   "facing": 0,
+   "set": {
+    "Tag": "LK2",
+    "LinkedTo": "LK1",
+    "LinkedToFlags": 1
+   }
+  }
+ ],
+ "templates": {
+  "dl_door": {
+   "from": "nw_door_normal",
+   "type": "utd",
+   "set": {
+    "OnDeath": ""
+   }
+  }
+ }
+}

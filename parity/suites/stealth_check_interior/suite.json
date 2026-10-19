@@ -1,0 +1,79 @@
+{
+ "seconds": 30,
+ "size": 4,
+ "factions": "Prelude",
+ "areas": [
+  {
+   "resref": "sn_a0",
+   "tag": "SN_A0",
+   "are": {
+    "Flags": 0
+   }
+  },
+  {
+   "resref": "sn_a1",
+   "tag": "SN_A1",
+   "are": {
+    "Flags": 1
+   }
+  },
+  {
+   "resref": "sn_a2",
+   "tag": "SN_A2",
+   "are": {
+    "Flags": 2
+   }
+  },
+  {
+   "resref": "sn_a3",
+   "tag": "SN_A3",
+   "are": {
+    "Flags": 3
+   }
+  }
+ ],
+ "templates": {
+  "sn_obs": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "sn_percept",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "SN_OBS",
+    "PerceptionRange": 9
+   }
+  },
+  "sn_tgt": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "SN_TGT",
+    "PerceptionRange": 8
+   }
+  }
+ }
+}

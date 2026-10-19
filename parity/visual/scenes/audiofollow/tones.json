@@ -1,0 +1,9 @@
+{
+  "al_pl_whispersm": {"freq": 300, "seconds": 4.0, "channels": 2},
+  "al_pl_whispersf": {"freq": 340, "seconds": 4.0, "channels": 2},
+  "ow_fall": {"freq": 500, "seconds": 2.0},
+  "ow_day": {"freq": 1260, "seconds": 2.0},
+  "ow_night": {"freq": 1150, "seconds": 2.0},
+  "ow_pitchpos": {"freq": 2000, "seconds": 0.25, "search": 0.3},
+  "ow_pitchflat": {"freq": 4000, "seconds": 0.25, "search": 0.3}
+}

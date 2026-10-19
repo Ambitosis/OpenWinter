@@ -1,0 +1,3 @@
+{"tileset": "tde01", "tile": 4, "size": 8, "pc": [20, 20, 0], "facing": 0, "seconds": 185, "chatLog": true,
+ "areaProperties": {"MusicDay": 4, "MusicNight": 4, "MusicBattle": 34, "MusicDelay": 8000,
+                    "AmbientSndDay": 0, "AmbientSndNight": 0, "AmbientSndDayVol": 0, "AmbientSndNitVol": 0}}

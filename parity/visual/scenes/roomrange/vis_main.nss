@@ -1,0 +1,3 @@
+#include "visual_inc"
+void Map(string phase) {object pc=GetFirstPC();string mask="";int x;int y;for(y=0;y<16;y++){for(x=0;x<16;x++)mask+=IntToString(GetTileExplored(pc,GetArea(pc),x,y));mask+="/";}WriteTimestampedLogEntry("VISUAL|note|map|"+phase+"|"+mask);VShot(phase);}
+void main(){object pc=GetEnteringObject();if(!GetIsPC(pc))return;SetCameraMode(pc,CAMERA_MODE_TOP_DOWN);SetCameraLimits(pc,1.0,89.0,1.0,90.0);DelayCommand(2.0,VCamera(pc,90.0,80.0,5.0));DelayCommand(5.0,Map("a_center"));DelayCommand(8.0,VMovePC(pc,79.8,75.0,0.0,90.0));DelayCommand(11.0,Map("b_edge"));DelayCommand(14.0,VMovePC(pc,80.2,75.0,0.0,90.0));DelayCommand(17.0,Map("c_next"));DelayCommand(20.0,VDone());}

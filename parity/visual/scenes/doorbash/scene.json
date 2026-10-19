@@ -1,0 +1,9 @@
+{
+  "tileset": "tde01", "tile": 4, "size": 4,
+  "pc": [20, 15, 0], "facing": 90, "seconds": 30, "gui": true,
+  "doors": [
+    { "template": "nw_door_strong", "tag": "bash", "position": [17, 19, 0], "facing": 0, "linkedTo": "dest" },
+    { "template": "nw_door_strong", "tag": "dest", "position": [23, 19, 0], "facing": 0, "linkedTo": "bash" },
+    { "template": "nw_door_strong", "tag": "plain", "position": [20, 23, 0], "facing": 0 }
+  ]
+}

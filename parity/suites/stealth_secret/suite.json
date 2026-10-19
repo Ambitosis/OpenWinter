@@ -1,0 +1,409 @@
+{
+ "seconds": 40,
+ "size": 8,
+ "tile": 4,
+ "instances": [
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 10,
+   "y": 10,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_0"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 22,
+   "y": 10,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_1"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 34,
+   "y": 10,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_2"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 46,
+   "y": 10,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_3"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 58,
+   "y": 10,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_4"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 70,
+   "y": 10,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_5"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 10,
+   "y": 22,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_6"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 22,
+   "y": 22,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_7"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 34,
+   "y": 22,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_8"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 46,
+   "y": 22,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_9"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 58,
+   "y": 22,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_10"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 70,
+   "y": 22,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_11"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 10,
+   "y": 34,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_12"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 22,
+   "y": 34,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_13"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 34,
+   "y": 34,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_14"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 46,
+   "y": 34,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_15"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 58,
+   "y": 34,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_16"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 70,
+   "y": 34,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_17"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 10,
+   "y": 46,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_18"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 22,
+   "y": 46,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_19"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 34,
+   "y": 46,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_20"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 46,
+   "y": 46,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_21"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 58,
+   "y": 46,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_22"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 70,
+   "y": 46,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_23"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 10,
+   "y": 58,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_24"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 22,
+   "y": 58,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_25"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 34,
+   "y": 58,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_26"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 46,
+   "y": 58,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_27"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 58,
+   "y": 58,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_28"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 70,
+   "y": 58,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_29"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 10,
+   "y": 70,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_30"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 22,
+   "y": 70,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_31"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 34,
+   "y": 70,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_32"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 46,
+   "y": 70,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_33"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 58,
+   "y": 70,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_34"
+   }
+  },
+  {
+   "type": "utt",
+   "from": "sec_wdr",
+   "x": 70,
+   "y": 70,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "Tag": "SECTRIG_35"
+   }
+  }
+ ],
+ "templates": {
+  "sec_wdr": {
+   "from": "x0_sectrig_wdr",
+   "type": "utt"
+  }
+ }
+}

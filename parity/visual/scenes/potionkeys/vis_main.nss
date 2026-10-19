@@ -1,0 +1,8 @@
+#include "visual_inc"
+float Now(){return IntToFloat((GetTimeHour()*(FloatToInt(HoursToSeconds(1))/60)+GetTimeMinute())*60+GetTimeSecond())+IntToFloat(GetTimeMillisecond())/1000.0;}
+void Note(string s){WriteTimestampedLogEntry("VISUAL|note|"+s);}
+void Poll(object pc,int previous,int n){object p=GetLocalObject(pc,"pot");int stack=GetItemStackSize(p);if(stack!=previous)Note("stack."+IntToString(stack)+".time."+FloatToString(Now()-GetLocalFloat(pc,"start"),0,3));if(n<220)DelayCommand(0.05,Poll(pc,stack,n+1));}
+void Start(object pc){SetLocalFloat(pc,"start",Now());Poll(pc,3,0);Note("start");WriteTimestampedLogEntry("VISUAL|key|118|tap");}
+void Key(){WriteTimestampedLogEntry("VISUAL|key|118|tap");}
+void Ready(object pc){object p=GetFirstItemInInventory(pc);while(GetIsObjectValid(p)&&(GetBaseItemType(p)!=49||GetItemPropertySubType(GetFirstItemProperty(p))!=66))p=GetNextItemInInventory(pc);SetLocalObject(pc,"pot",p);SetItemStackSize(p,3);Note("ready.pc."+IntToString(GetIsPC(pc))+".base."+IntToString(GetBaseItemType(p))+".property."+IntToString(GetItemPropertySubType(GetFirstItemProperty(p)))+".stack."+IntToString(GetItemStackSize(p)));}
+void main(){object pc=GetEnteringObject();if(!GetIsPC(pc))return;SetPlotFlag(pc,TRUE);DelayCommand(0.5,Ready(pc));DelayCommand(1.0,VCamera(pc,90.0,5.0,65.0));DelayCommand(2.0,VShot("before"));DelayCommand(3.0,Start(pc));DelayCommand(3.15,Key());DelayCommand(3.3,Key());DelayCommand(3.6,VShot("queued"));DelayCommand(4.25,VShot("drink"));DelayCommand(5.2,VShot("impact"));DelayCommand(8.5,VShot("third"));DelayCommand(11.0,VShot("done"));DelayCommand(12.0,VDone());}

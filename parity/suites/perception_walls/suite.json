@@ -1,0 +1,73 @@
+{
+  "seconds": 30,
+  "templates": {
+    "p_obs": {
+      "from": "nw_bandit001",
+      "type": "utc",
+      "set": {
+        "Tag": "P_OBS",
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "pc_percept",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": ""
+      }
+    },
+    "p_tgt": {
+      "from": "nw_bandit001",
+      "type": "utc",
+      "set": {
+        "Tag": "P_TGT",
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": ""
+      }
+    },
+    "p_obs8": {
+      "from": "p_obs",
+      "type": "utc",
+      "set": {
+        "PerceptionRange": 8
+      }
+    },
+    "p_obs9": {
+      "from": "p_obs",
+      "type": "utc",
+      "set": {
+        "PerceptionRange": 9
+      }
+    },
+    "p_obs10": {
+      "from": "p_obs",
+      "type": "utc",
+      "set": {
+        "PerceptionRange": 10
+      }
+    },
+    "p_obs11": {
+      "from": "p_obs",
+      "type": "utc",
+      "set": {
+        "PerceptionRange": 11
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "source": { "module": "Prelude", "area": "m0q1c" },
+  "extraAreas": [ { "source": { "module": "Prelude", "area": "m0q1b" } },
+                  { "source": { "module": "Chapter1", "area": "map_m1q5a" } } ],
+  "pc": [ 9, 35, 0 ],
+  "facing": 180,
+  "seconds": 60,
+  "gui": true
+}

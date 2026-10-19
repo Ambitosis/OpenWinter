@@ -1,0 +1,91 @@
+{
+ "tileset": "tde01",
+ "tile": 4,
+ "size": 8,
+ "pc": [
+  20,
+  20,
+  0
+ ],
+ "facing": 0,
+ "seconds": 110,
+ "gui": true,
+ "chatLog": true,
+ "factions": "Prelude",
+ "extraAreas": [
+  {
+   "source": {
+    "module": "Prelude",
+    "area": "m0q1b"
+   }
+  }
+ ],
+ "encounters": [
+  {
+   "from": "nw_goblingrp",
+   "tag": "PAI_ENC",
+   "x": 33,
+   "y": 20,
+   "w": 6,
+   "h": 20,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 1,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "pai_e",
+     "cr": 1
+    }
+   ],
+   "spawnPoints": [
+    [
+     45.0,
+     20.0,
+     180
+    ]
+   ]
+  }
+ ],
+ "triggers": [
+  {
+   "tag": "PAI_TRANS",
+   "position": [
+    60,
+    20,
+    0
+   ],
+   "points": [
+    [
+     -1,
+     -2
+    ],
+    [
+     1,
+     -2
+    ],
+    [
+     1,
+     2
+    ],
+    [
+     -1,
+     2
+    ]
+   ],
+   "linkedTo": "M0Q1B_M0Q1C",
+   "linkedToFlags": 1
+  }
+ ]
+}

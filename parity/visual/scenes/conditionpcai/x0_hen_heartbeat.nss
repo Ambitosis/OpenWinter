@@ -1,0 +1,5 @@
+// Stand-in that reports when it runs on the player (conditionpcai: which scripts drive a player under a condition).
+void main()
+{
+    if (GetIsPC(OBJECT_SELF)) WriteTimestampedLogEntry("VISUAL|note|pcai|script|x0_hen_heartbeat");
+}

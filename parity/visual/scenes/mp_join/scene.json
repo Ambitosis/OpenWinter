@@ -1,0 +1,9 @@
+{
+  "tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 60, "gui": true, "chatLog": true,
+  "extraAreas": [
+    { "resref": "mp_nopvp", "tag": "MP_NOPVP", "tileset": "tde01", "tile": 4, "size": 2, "are": { "PlayerVsPlayer": 0 } },
+    { "resref": "mp_fullpvp", "tag": "MP_FULLPVP", "tileset": "tde01", "tile": 4, "size": 2, "are": { "PlayerVsPlayer": 2 } },
+    { "resref": "mp_partypvp", "tag": "MP_PARTYPVP", "tileset": "tde01", "tile": 4, "size": 2, "are": { "PlayerVsPlayer": 1 } },
+    { "resref": "mp_default", "tag": "MP_DEFAULT", "tileset": "tde01", "tile": 4, "size": 2, "are": { "PlayerVsPlayer": 3 } }
+  ]
+}

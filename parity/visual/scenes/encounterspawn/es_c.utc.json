@@ -1,0 +1,1 @@
+{ "template": "nw_kobold001", "hitPoints": 1, "tag": "ES_C", "scripts": { "ScriptSpawn": "es_spawn" } }

@@ -1,0 +1,14 @@
+{
+  "seconds": 30,
+  "tile": 4,
+  "areaProperties": { "MusicDay": 5, "MusicNight": 6, "MusicBattle": 35, "MusicDelay": 12345,
+                      "AmbientSndDay": 3, "AmbientSndNight": 4, "AmbientSndDayVol": 100, "AmbientSndNitVol": 50 },
+  "templates": {
+    "a_snd": { "from": "birdflaps", "type": "uts", "set": { "Tag": "A_SND" } },
+    "a_snd_off": { "from": "birdflaps", "type": "uts", "set": { "Tag": "A_SND_OFF", "Active": 0, "Positional": 0 } }
+  },
+  "instances": [
+    { "type": "uts", "from": "a_snd", "x": 22, "y": 20 },
+    { "type": "uts", "from": "a_snd_off", "x": 18, "y": 24 }
+  ]
+}

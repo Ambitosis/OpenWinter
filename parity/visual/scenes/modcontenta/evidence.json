@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "engine": "nwn",
+      "shot": "red_source",
+      "dominantColorPixels": 22437,
+      "sha256": "9bbb186aef69bf82c31d8ec7e09ffab3329dcd925d947dcf37ff48746b73f2c1"
+    },
+    {
+      "engine": "nwn",
+      "shot": "blue_destination",
+      "dominantColorPixels": 25900,
+      "sha256": "ad9ab3a7cb451890616d61cd1d966c9cc85b8fdfc42dcf8c57342537ab5a4768"
+    },
+    {
+      "engine": "openwinter",
+      "shot": "red_source",
+      "dominantColorPixels": 19509,
+      "sha256": "76b2f7c0a132585467b8658e82d1869ae2cf81daa7dda85d284c90427f2a3463"
+    },
+    {
+      "engine": "openwinter",
+      "shot": "blue_destination",
+      "dominantColorPixels": 20005,
+      "sha256": "40449408600562f31c88623f621cca9ce036b804e4e1cf0be9b0900eb88f0015"
+    }
+  ],
+  "scope": "module resource replacement; material brightness differs"
+}

@@ -1,0 +1,22 @@
+{
+  "template": "nw_drowmage020",
+  "classLevels": [
+    {
+      "class": 10,
+      "level": 20
+    }
+  ],
+  "abilities": {
+    "intelligence": 20,
+    "wisdom": 20,
+    "charisma": 20
+  },
+  "feats": [
+    303
+  ],
+  "equipment": [],
+  "familiar": {
+    "type": 8,
+    "name": "Audit fam8"
+  }
+}

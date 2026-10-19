@@ -1,0 +1,20 @@
+{
+  "starts": [
+    0
+  ],
+  "preventZoomIn": true,
+  "entries": [
+    {
+      "text": "This authored conversation checks which classic panels remain open.",
+      "replies": [
+        0
+      ]
+    }
+  ],
+  "replies": [
+    {
+      "text": "End this panel check.",
+      "entries": []
+    }
+  ]
+}

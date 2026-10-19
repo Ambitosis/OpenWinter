@@ -1,0 +1,25 @@
+{
+  "tileset": "ttr01", "tile": 109, "size": 6, "pc": [30, 25, 0], "facing": 90, "seconds": 120, "gui": true,
+  "softwareCursor": true, "largeFont": false,
+  "character": "aluviandarkstar",
+  "characterFixture": {
+    "name": "Scroll Icons",
+    "replaceItems": [
+      {"x": 0, "y": 0, "resref": "nw_it_sparscr305"},
+      {"x": 7, "y": 0, "resref": "nw_it_sparscr211"},
+      {"x": 4, "y": 0, "resref": "nw_wmgwn002"},
+      {"x": 8, "y": 0, "resref": "x1_it_spdvscr301"},
+      {"x": 9, "y": 0, "resref": "nw_it_spdvscr501"},
+      {"x": 0, "y": 1, "resref": "x2_it_sparscrmc"},
+      {"x": 8, "y": 1, "resref": "nw_it_sparscr509"},
+      {"x": 3, "y": 0, "resref": "nw_it_mpotion008"}
+    ],
+    "quickbarItems": [
+      {"slot": 7, "x": 8, "y": 0, "property": 0},
+      {"slot": 8, "x": 9, "y": 0, "property": 0},
+      {"slot": 9, "x": 0, "y": 1, "property": 0},
+      {"slot": 10, "x": 8, "y": 1, "property": 0},
+      {"slot": 11, "x": 3, "y": 0, "property": 0}
+    ]
+  }
+}

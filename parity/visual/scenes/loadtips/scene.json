@@ -1,0 +1,2 @@
+{ "tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 110, "gui": true, "chatLog": true,
+  "extraAreas": [{ "resref": "lt_far", "tag": "LT_FAR", "tileset": "tde01", "tile": 4, "size": 2 }, { "resref": "lt_far2", "tag": "LT_FAR2", "tileset": "tde01", "tile": 4, "size": 2 }] }

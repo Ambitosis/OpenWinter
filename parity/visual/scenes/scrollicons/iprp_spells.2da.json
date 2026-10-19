@@ -1,0 +1,5 @@
+{"rows": [
+  {"row": 600, "copy": 14, "values": {"Icon": "nosuchicon"}},
+  {"row": 601, "copy": 14, "values": {"Icon": null}},
+  {"row": 602, "copy": 14, "values": {"Icon": "is_fireball"}}
+]}

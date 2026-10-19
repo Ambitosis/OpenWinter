@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-10",
+  "engine": "original NWN via sandbox harness",
+  "tag": "neutral",
+  "inputs_sha256": {
+    "parity/visual/scenes/reststockduration/rd_inc.nss": "89a55bc6d76ca1bde18c0306a6d46572bac70bfd0d7657e329581fdd8f59f108",
+    "parity/visual/scenes/reststockduration/rd_rest.nss": "aac6e7c546c5f8ed4674692ac9150a9a16dbc8a6ff65ce8fd413de98adfab04b",
+    "parity/visual/scenes/reststockduration/rd_spell.nss": "8ea2b8e71aaa18595a13c106c73c05a9338756b721a29d4ce382552a440b06f4",
+    "parity/visual/scenes/reststockduration/scene.json": "5a56d0869d97845666b3f204d2ea1c731d13675c4904b2a6db203baa2690eb49",
+    "parity/visual/scenes/reststockduration/vis_main.nss": "1fafe0f8dfe482dc5e7a0dfb6523c2bc9886a591abd01ec6eec28e4044720f8b"
+  },
+  "artifacts_sha256": {
+    "out/visual/shots/vis_reststockduration_neutral/nwn/a_buffed.png": "f629c450fdd090bf81a5781b0e7b6fea4f3059e3c90b6a3cbcbe49da7e820af7",
+    "out/visual/shots/vis_reststockduration_neutral/nwn/b_rest_start.png": "94bfe2661b256ae8074ce6df0503dee9005ec2eaedd4566582ade188522c6d98",
+    "out/visual/shots/vis_reststockduration_neutral/nwn/c_during_rest.png": "e99f43d17edca95bd7eb281e81dfc615294b9793fa679e400b1de317b38003e1",
+    "out/visual/shots/vis_reststockduration_neutral/nwn/d_cancelled.png": "23a50df68ef3b53dfc3bf4523178ea0f5e0c6c8a22c26583fe5b9b33f4a92fe3",
+    "out/visual/shots/vis_reststockduration_neutral/nwn/native-framebuffer.jsonl": "adc4d076393ee46a681cca4375e915c6c81003bdcfcf6208bdf597e45d91bd41",
+    "out/visual/shots/vis_reststockduration_neutral/nwn/notes.txt": "ae971beaddd483595d127ce3a331af15e8fa814cfc3aa37756e3c623e2b01b8c",
+    "out/visual/shots/vis_reststockduration_neutral/nwn/shots.txt": "94c491d04229f5282b41ace95c97dcffd0e26bab3334ff2feeecc6fd45676062"
+  },
+  "interpretation": "See README.md for accepted gates, rejected controls and limits.",
+  "framebuffer": [
+    {
+      "shot": "a_buffed",
+      "source": "vis_reststockduratio_0000a.tga",
+      "requestedUnixSeconds": 1791689002.5513296,
+      "latencySeconds": 0.15351080003893003,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "c5a118665123fc9c582cd3b005252272a1027d8af605da1b4afdf6b5beb9a879",
+      "windowSha256": "f91dbe85d105781bdd3eb47ac41ac2f2ea35ddf32f80a7272872098a2ad54173",
+      "nonblack": true
+    },
+    {
+      "shot": "b_rest_start",
+      "source": "vis_reststockduratio_0001a.tga",
+      "requestedUnixSeconds": 1791689004.317398,
+      "latencySeconds": 0.11731570004485548,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "17dfad67e28932e43aad8f9d2c66f4a2ab4d77e5be0d1682937637f82a923c72",
+      "windowSha256": "92bb9ced676622a27490722191de98929866e8f2fc68f8a1fd18871d958b7639",
+      "nonblack": true
+    },
+    {
+      "shot": "c_during_rest",
+      "source": "vis_reststockduratio_0002a.tga",
+      "requestedUnixSeconds": 1791689008.016379,
+      "latencySeconds": 0.11395760002778843,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "fef1bad01ef8fc1aab1f17a1b32b842b5cfd4fa4e0496fd3c0a4be99fe7da36c",
+      "windowSha256": "f1597290dd6c5b7670a421fb4d530b6c45247a95333841a0a3867dfcdbb117fe",
+      "nonblack": true
+    },
+    {
+      "shot": "d_cancelled",
+      "source": "vis_reststockduratio_0003a.tga",
+      "requestedUnixSeconds": 1791689010.449307,
+      "latencySeconds": 0.11728580005001277,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "112737f1d9c8b1934e2f2c490a3eaf433a00090fa349b34e5beec03670cd1132",
+      "windowSha256": "19c33a04eecb7a2797184ab3b2f355e657e4f78098358828d337bf763e2f627d",
+      "nonblack": true
+    }
+  ],
+  "notes": [
+    "VISUAL|note|character-fixture|000 Rest Duration Probe|pc=1",
+    "VISUAL|note|reststockduration|spell450_impact=X0_S0_ShieldFait",
+    "VISUAL|note|reststockduration|stage=before_buff|actor=REST_PC|valid=1|pc=1|cleric=15|resting=0|action=65535|combat=0|ac=20|events=0|last_spell=0|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=2.000",
+    "VISUAL|note|reststockduration|stage=stock_spell_callback|actor=REST_PC|valid=1|pc=1|cleric=15|resting=0|action=65535|combat=0|ac=20|events=1|last_spell=421|count=2|effects_spell_type_subtype_cl_remaining=450:74:8:10:600,450:46:8:10:600,|elapsed=2.000",
+    "VISUAL|note|reststockduration|stage=before_buff|actor=NO_REST|valid=1|pc=0|cleric=0|resting=0|action=65535|combat=0|ac=12|events=0|last_spell=0|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=3.004",
+    "VISUAL|note|reststockduration|stage=stock_spell_callback|actor=NO_REST|valid=1|pc=0|cleric=0|resting=0|action=65535|combat=0|ac=15|events=1|last_spell=421|count=2|effects_spell_type_subtype_cl_remaining=450:74:8:10:600,450:46:8:10:600,|elapsed=3.004",
+    "VISUAL|note|reststockduration|stage=a_buffed|actor=REST_PC|valid=1|pc=1|cleric=15|resting=0|action=65535|combat=0|ac=20|events=1|last_spell=421|count=2|effects_spell_type_subtype_cl_remaining=450:74:8:10:597,450:46:8:10:597,|elapsed=4.504",
+    "VISUAL|note|reststockduration|stage=a_buffed|actor=NO_REST|valid=1|pc=0|cleric=0|resting=0|action=65535|combat=0|ac=15|events=1|last_spell=421|count=2|effects_spell_type_subtype_cl_remaining=450:74:8:10:598,450:46:8:10:598,|elapsed=4.504",
+    "VISUAL|note|reststockduration|enemy_pc_control=0|enemy_control_pc=0",
+    "VISUAL|note|reststockduration|stage=before_rest|actor=REST_PC|valid=1|pc=1|cleric=15|resting=0|action=65535|combat=0|ac=20|events=1|last_spell=421|count=2|effects_spell_type_subtype_cl_remaining=450:74:8:10:595,450:46:8:10:595,|elapsed=6.004",
+    "VISUAL|note|reststockduration|stage=module_hook_1|actor=REST_PC|valid=1|pc=1|cleric=15|resting=1|action=17|combat=0|ac=20|events=1|last_spell=421|count=2|effects_spell_type_subtype_cl_remaining=450:74:8:10:595,450:46:8:10:595,|elapsed=6.004",
+    "VISUAL|note|reststockduration|stage=b_rest_start|actor=REST_PC|valid=1|pc=1|cleric=15|resting=1|action=17|combat=0|ac=20|events=1|last_spell=421|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=6.305",
+    "VISUAL|note|reststockduration|stage=b_rest_start|actor=NO_REST|valid=1|pc=0|cleric=0|resting=0|action=65535|combat=0|ac=12|events=1|last_spell=421|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=6.305",
+    "VISUAL|note|reststockduration|stage=c_during_rest|actor=REST_PC|valid=1|pc=1|cleric=15|resting=1|action=17|combat=0|ac=20|events=1|last_spell=421|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=10.008",
+    "VISUAL|note|reststockduration|stage=c_during_rest|actor=NO_REST|valid=1|pc=0|cleric=0|resting=0|action=65535|combat=0|ac=12|events=1|last_spell=421|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=10.008",
+    "VISUAL|note|reststockduration|stage=before_cancel|actor=REST_PC|valid=1|pc=1|cleric=15|resting=1|action=17|combat=0|ac=20|events=1|last_spell=421|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=12.008",
+    "VISUAL|note|reststockduration|stage=module_hook_3|actor=REST_PC|valid=1|pc=1|cleric=15|resting=0|action=65535|combat=0|ac=20|events=1|last_spell=421|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=12.008",
+    "VISUAL|note|reststockduration|stage=d_cancelled|actor=REST_PC|valid=1|pc=1|cleric=15|resting=0|action=65535|combat=0|ac=20|events=1|last_spell=421|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=12.402",
+    "VISUAL|note|reststockduration|stage=d_cancelled|actor=NO_REST|valid=1|pc=0|cleric=0|resting=0|action=65535|combat=0|ac=12|events=1|last_spell=421|count=0|effects_spell_type_subtype_cl_remaining=|elapsed=12.402"
+  ],
+  "rejected_artifacts": "out/visual/shots/vis_reststockduration_reference/nwn: rest never started; identity note missing; current source hash does not describe this attempt."
+}

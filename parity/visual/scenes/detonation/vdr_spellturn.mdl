@@ -1,0 +1,48 @@
+newmodel vdr_spellturn
+setsupermodel vdr_spellturn NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vdr_spellturn
+node dummy vdr_spellturn
+ parent NULL
+endnode
+node emitter burst
+ parent vdr_spellturn
+ position -2 0 2
+ update Explosion
+ render Normal
+ blend Normal
+ texture fxpa_white
+ birthrate 8
+ lifeExp 3
+ velocity 0.15
+ sizeStart 0.18
+ sizeEnd 0.18
+ colorStart 1 0 1
+ colorEnd 1 0 1
+ alphaStart 1
+ alphaEnd 1
+ xsize 70
+ ysize 70
+endnode
+endmodelgeom vdr_spellturn
+newanim impact vdr_spellturn
+ length 7
+ transtime 0
+ animroot vdr_spellturn
+ event 1 detonate
+ event 2 detonate
+ event 2 detonate
+ node dummy vdr_spellturn
+  parent NULL
+ endnode
+ node emitter burst
+  parent vdr_spellturn
+  positionkey 4
+   0 -2 0 2
+   1.2 -2 0 2
+   1.8 2 0 2
+   7 2 0 2
+ endnode
+doneanim impact vdr_spellturn
+donemodel vdr_spellturn

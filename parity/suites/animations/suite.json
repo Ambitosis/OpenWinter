@@ -1,0 +1,62 @@
+{
+  "seconds": 25,
+  "tile": 4,
+  "templates": {
+    "p_human": {
+      "from": "nw_bandit001",
+      "type": "utc",
+      "set": {
+        "Tag": "P_HUMAN",
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": ""
+      }
+    },
+    "p_dog": {
+      "from": "nw_dog",
+      "type": "utc",
+      "set": {
+        "Tag": "P_DOG",
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": ""
+      }
+    },
+    "p_chair": {
+      "from": "plc_chair",
+      "type": "utp",
+      "set": {
+        "Tag": "P_CHAIR",
+        "Useable": 1
+      }
+    },
+    "p_crate": {
+      "from": "plc_chair",
+      "type": "utp",
+      "set": {
+        "Tag": "P_CRATE",
+        "Useable": 0
+      }
+    }
+  }
+}

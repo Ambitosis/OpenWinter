@@ -1,0 +1,271 @@
+{
+ "seconds": 60,
+ "tile": 4,
+ "factions": "Prelude",
+ "templates": {
+  "al_c": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "AL_C"
+   }
+  },
+  "al_door": {
+   "from": "nw_door_normal",
+   "type": "utd",
+   "set": {
+    "OnDeath": "",
+    "OnOpen": "",
+    "OnFailToOpen": ""
+   }
+  }
+ },
+ "areas": [
+  {
+   "resref": "ex_a",
+   "tag": "EX_A",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "EX_AB",
+      "LinkedTo": "EX_AB_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ex_b",
+   "tag": "EX_B",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "EX_AB_R",
+      "LinkedTo": "EX_AB",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ps_a",
+   "tag": "PS_A",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "PS_AB",
+      "LinkedTo": "PS_AB_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ps_b",
+   "tag": "PS_B",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "PS_AB_R",
+      "LinkedTo": "PS_AB",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "pse_a",
+   "tag": "PSE_A",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "PSE_AB",
+      "LinkedTo": "PSE_AB_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "pse_b",
+   "tag": "PSE_B",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "PSE_AB_R",
+      "LinkedTo": "PSE_AB",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "exe_a",
+   "tag": "EXE_A",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "EXE_AB",
+      "LinkedTo": "EXE_AB_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "exe_b",
+   "tag": "EXE_B",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "EXE_AB_R",
+      "LinkedTo": "EXE_AB",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "nr_a",
+   "tag": "NR_A",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "NR_AB",
+      "LinkedTo": "NR_AB_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "nr_b",
+   "tag": "NR_B",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "NR_AB_R",
+      "LinkedTo": "NR_AB",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "nre_a",
+   "tag": "NRE_A",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "NRE_AB",
+      "LinkedTo": "NRE_AB_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "nre_b",
+   "tag": "NRE_B",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "al_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "NRE_AB_R",
+      "LinkedTo": "NRE_AB",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "al_z",
+   "tag": "AL_Z",
+   "size": 6
+  }
+ ]
+}

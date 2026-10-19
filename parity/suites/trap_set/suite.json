@@ -1,0 +1,7 @@
+{
+  "seconds": 40,
+  "tile": 4,
+  "size": 8,
+  "templates": { "p_door": { "from": "nw_door_metal", "type": "utd", "set": { "Tag": "T_DOOR" } } },
+  "instances": [ { "type": "utd", "from": "p_door", "x": 30, "y": 70, "facing": 0 } ]
+}

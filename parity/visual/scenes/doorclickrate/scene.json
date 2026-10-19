@@ -1,0 +1,1 @@
+{"tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 17.5, 0], "facing": 90, "seconds": 38, "doors": [{"template": "nw_door_strong", "tag": "audio_door", "position": [20, 19, 0], "facing": 0}], "gui": true}

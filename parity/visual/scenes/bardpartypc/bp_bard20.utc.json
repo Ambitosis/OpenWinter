@@ -1,0 +1,18 @@
+{
+  "template": "nw_hen_sha_11",
+  "classLevels": [
+    {
+      "class": 1,
+      "level": 20,
+      "knownSpells": {
+        "6": [
+          445
+        ]
+      }
+    }
+  ],
+  "abilities": {
+    "charisma": 20
+  },
+  "equipment": []
+}

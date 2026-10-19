@@ -1,0 +1,1 @@
+{"starts":[0],"endScript":"ce_ended","abortScript":"ce_aborted","entries":[{"text":"First line opens the store (answer goes on).","script":"ce_openstore","replies":[0]},{"text":"More?","replies":[1]}],"replies":[{"text":"Continue.","entries":[1]},{"text":"No.","entries":[]}]}

@@ -1,0 +1,8 @@
+{
+  "fs_stone_hard1": {"freq": 700, "seconds": 0.12},
+  "fs_stone_hard2": {"freq": 800, "seconds": 0.12},
+  "fs_stone_hard3": {"freq": 900, "seconds": 0.12},
+  "fs_stone_soft1": {"freq": 1100, "seconds": 0.12},
+  "fs_stone_soft2": {"freq": 1250, "seconds": 0.12},
+  "fs_stone_soft3": {"freq": 1400, "seconds": 0.12}
+}

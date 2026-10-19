@@ -1,0 +1,12 @@
+{
+  "tileset": "ttr01", "tile": 109, "size": 6, "pc": [30, 25, 0], "facing": 90, "seconds": 200, "gui": true,
+  "softwareCursor": true, "largeFont": false,
+  "character": "aluviandarkstar",
+  "characterFixture": {
+    "name": "Armour Icons",
+    "addFeats": [2, 3, 4],
+    "replaceItems": [
+      {"x": 4, "y": 0, "resref": "nw_aarcl004"}
+    ]
+  }
+}

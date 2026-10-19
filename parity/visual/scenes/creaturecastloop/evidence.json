@@ -1,0 +1,1443 @@
+{
+  "scope": "Authored harmless ordinary out-cast on installed rat appearance386; public animation replacement, not stock ability or all-creature parity.",
+  "reference": {
+    "command": "python tools/visual/visual.py run creaturecastloop --only nwn --native-framebuffer --tag _reference",
+    "exitCode": 0,
+    "sources": {
+      "cl_impact.nss": "220f7cb0ec9f74a3cad4c8de19856a2d240242f3aab2e254769d1b917cc6411f",
+      "cl_inc.nss": "65e9722a912cb3b9c6edc4e694acc9c5d95c8e98b5dc12aa5f9ad911b0b5a69b",
+      "scene.json": "8ee7c943f1ce1f037ed0af5b61f5146f35bb69b810c2ce4d8e0f066d685656c1",
+      "spells.2da": "b22207369ff1dc22369bdc87ea5d81af64bc0ed4c7ec43610d5b95e6c0ecc763",
+      "vis_main.nss": "97f50c35d1a75e2d2e6c373091b0f469649ddef5e98bbab4729fc8f4eff19186"
+    },
+    "nativeNotes": "VISUAL|note|creaturecastloop|table_conjure=1000|table_cast=3500|animation=out|replacement=RELEASE:ccastout->ctaunt,LOOP:ccastoutlp->ctaunt\nVISUAL|note|creaturecastloop|stage=a_idle|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.977\nVISUAL|note|creaturecastloop|stage=a_idle|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.977\nVISUAL|note|creaturecastloop|stage=a_idle|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.977\nVISUAL|note|creaturecastloop|stage=request|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastloop|stage=request|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastloop|stage=request|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastloop|stage=b_conjure_060|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=0.594\nVISUAL|note|creaturecastloop|stage=b_conjure_060|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=0.594\nVISUAL|note|creaturecastloop|stage=b_conjure_060|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=0.594\nVISUAL|note|creaturecastloop|stage=c_release_120|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.216\nVISUAL|note|creaturecastloop|stage=c_release_120|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.216\nVISUAL|note|creaturecastloop|stage=c_release_120|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.216\nVISUAL|note|creaturecastloop|impact=LOOP|spell=0|caster_matches=1|target_matches=1|elapsed=1.529\nVISUAL|note|creaturecastloop|stage=impact|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.529\nVISUAL|note|creaturecastloop|impact=STOCK|spell=0|caster_matches=1|target_matches=1|elapsed=1.559\nVISUAL|note|creaturecastloop|stage=impact|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.559\nVISUAL|note|creaturecastloop|impact=RELEASE|spell=0|caster_matches=1|target_matches=1|elapsed=1.590\nVISUAL|note|creaturecastloop|stage=impact|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.590\nVISUAL|note|creaturecastloop|stage=d_release_170|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.714\nVISUAL|note|creaturecastloop|stage=d_release_170|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.714\nVISUAL|note|creaturecastloop|stage=d_release_170|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.714\nVISUAL|note|creaturecastloop|stage=e_recovery_240|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.394\nVISUAL|note|creaturecastloop|stage=e_recovery_240|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.394\nVISUAL|note|creaturecastloop|stage=e_recovery_240|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.394\nVISUAL|note|creaturecastloop|stage=f_recovery_330|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=3.292\nVISUAL|note|creaturecastloop|stage=f_recovery_330|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=3.292\nVISUAL|note|creaturecastloop|stage=f_recovery_330|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=3.292\nVISUAL|note|creaturecastloop|stage=g_recovery_440|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=4.399\nVISUAL|note|creaturecastloop|stage=g_recovery_440|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=4.399\nVISUAL|note|creaturecastloop|stage=g_recovery_440|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=4.399\nVISUAL|note|creaturecastloop|stage=queue_finished|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.027\nVISUAL|note|creaturecastloop|stage=queue_finished|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.027\nVISUAL|note|creaturecastloop|stage=queue_finished|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.027\nVISUAL|note|creaturecastloop|stage=h_finished_560|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.611\nVISUAL|note|creaturecastloop|stage=h_finished_560|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.611\nVISUAL|note|creaturecastloop|stage=h_finished_560|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.611\n",
+    "framebuffer": [
+      {
+        "shot": "a_idle",
+        "source": "vis_creaturecastloop_0000.tga",
+        "requestedUnixSeconds": 1791685443.818538,
+        "latencySeconds": 0.14966090000234544,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "3a165de9a9f83498796f4b2334ced523ce1b0320fb072e0a463a9a7123a848c7",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "b_conjure_060",
+        "source": "vis_creaturecastloop_0001.tga",
+        "requestedUnixSeconds": 1791685446.4408386,
+        "latencySeconds": 0.11993899999652058,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "1b9f56724af96dc7173259faf0b853ac1b6ac29828a792f76fcd7255890b3981",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "c_release_120",
+        "source": "vis_creaturecastloop_0002.tga",
+        "requestedUnixSeconds": 1791685447.060206,
+        "latencySeconds": 0.11818749998928979,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "7a1dea23c230f2dd288c8a6f63316f92bb9276b3d9a3c1d2583b78722832777e",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "d_release_170",
+        "source": "vis_creaturecastloop_0003.tga",
+        "requestedUnixSeconds": 1791685447.5251107,
+        "latencySeconds": 0.1164246000116691,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "942eb2505f406abd80a550d66ae796b35d599ff230075c29ea42a4317effdfc7",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "e_recovery_240",
+        "source": "vis_creaturecastloop_0004.tga",
+        "requestedUnixSeconds": 1791685448.2426405,
+        "latencySeconds": 0.12099029996898025,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "8bfd31214c1b7eaf1ddf2cd162a79a126f8866a26ec2e9b453fd77a9a01f1c10",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "f_recovery_330",
+        "source": "vis_creaturecastloop_0005.tga",
+        "requestedUnixSeconds": 1791685449.1046813,
+        "latencySeconds": 0.1174167999997735,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "ec6067349f4a8f60ebfc9364a050c4ec083bc89949a22bf5489b954bc9c0ec9d",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "g_recovery_440",
+        "source": "vis_creaturecastloop_0006.tga",
+        "requestedUnixSeconds": 1791685450.2110357,
+        "latencySeconds": 0.11580839997623116,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "8a5645b630836f62e8e353ce2fd692d10ba807ce182312c4d0cebe3a50638e38",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "h_finished_560",
+        "source": "vis_creaturecastloop_0007.tga",
+        "requestedUnixSeconds": 1791685451.4235833,
+        "latencySeconds": 0.11719350004568696,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "c6d3060ef7609553c324241defc27387be84be2e1b06e9eca65c923a4744af5e",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      }
+    ],
+    "pngSha256": {
+      "a_idle.png": "c149ab0730d081af46270c6e3f616c4101a329ea271d76ea8aaeb3d5f602b677",
+      "b_conjure_060.png": "2f65aa0a0ae41b358d5f78dc20172295ac2caddb14b28df30385f1292fe0ee3d",
+      "c_release_120.png": "0c1e620bc94e88598b91d6befc86256ec7c05568abc6f9860fc1aae394373bf9",
+      "d_release_170.png": "8f017b21ccb06b675336ade3418e0c9b70a100c2958110460cb04e7ba55ec5d5",
+      "e_recovery_240.png": "32f643c0d08da8dfee89df6f78a228b6f1b7638429189d59607766d9417ada76",
+      "f_recovery_330.png": "be6c89521617c16589048716e62ced47cf0991a13445408d55af34265898cd2a",
+      "g_recovery_440.png": "12a9b35f762738aa938429f7afa8e4318a41e66ec7d2bdc8c6ddd7a68930c724",
+      "h_finished_560.png": "ed4f7d9a81aaf97f1fcd000d52be1fb692d8467634407b74c9b24b804448d755"
+    },
+    "findings": {
+      "appearance": 386,
+      "allActorAndStationaryGates": true,
+      "impacts": {
+        "LOOP": 1.529,
+        "STOCK": 1.559,
+        "RELEASE": 1.59
+      },
+      "queueFinishedAll": 5.027,
+      "impactCountEach": 1,
+      "releaseIdentity": "ccastout confirmed by distinct center RELEASE pose in c_release_120",
+      "loopIdentity": "inconclusive: ctaunt replacement does not visually distinguish late recovery from stock",
+      "timingLimit": "Framebuffer latency plus log polling precludes exact pose-transition timestamps."
+    }
+  },
+  "deadloop": {
+    "command": "python tools/visual/visual.py run creaturecastloop --only nwn --native-framebuffer --tag _deadloop",
+    "exitCode": 0,
+    "sources": {
+      "cl_impact.nss": "220f7cb0ec9f74a3cad4c8de19856a2d240242f3aab2e254769d1b917cc6411f",
+      "cl_inc.nss": "65e9722a912cb3b9c6edc4e694acc9c5d95c8e98b5dc12aa5f9ad911b0b5a69b",
+      "scene.json": "8ee7c943f1ce1f037ed0af5b61f5146f35bb69b810c2ce4d8e0f066d685656c1",
+      "spells.2da": "b22207369ff1dc22369bdc87ea5d81af64bc0ed4c7ec43610d5b95e6c0ecc763",
+      "vis_main.nss": "e231fb827cd203deae4744ee8fd909b0b148f669552119909497395a64beec35"
+    },
+    "nativeNotes": "VISUAL|note|creaturecastloop|table_conjure=1000|table_cast=3500|animation=out|replacement=RELEASE:ccastout->ctaunt,LOOP:ccastoutlp->cdead\nVISUAL|note|creaturecastloop|stage=a_idle|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.987\nVISUAL|note|creaturecastloop|stage=a_idle|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.987\nVISUAL|note|creaturecastloop|stage=a_idle|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.987\nVISUAL|note|creaturecastloop|stage=request|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastloop|stage=request|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastloop|stage=request|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastloop|stage=b_conjure_060|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=0.586\nVISUAL|note|creaturecastloop|stage=b_conjure_060|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=0.586\nVISUAL|note|creaturecastloop|stage=b_conjure_060|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=0.586\nVISUAL|note|creaturecastloop|stage=c_release_120|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.179\nVISUAL|note|creaturecastloop|stage=c_release_120|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.179\nVISUAL|note|creaturecastloop|stage=c_release_120|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.179\nVISUAL|note|creaturecastloop|impact=LOOP|spell=0|caster_matches=1|target_matches=1|elapsed=1.523\nVISUAL|note|creaturecastloop|stage=impact|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.523\nVISUAL|note|creaturecastloop|impact=STOCK|spell=0|caster_matches=1|target_matches=1|elapsed=1.556\nVISUAL|note|creaturecastloop|stage=impact|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.556\nVISUAL|note|creaturecastloop|impact=RELEASE|spell=0|caster_matches=1|target_matches=1|elapsed=1.587\nVISUAL|note|creaturecastloop|stage=impact|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.587\nVISUAL|note|creaturecastloop|stage=d_release_170|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.680\nVISUAL|note|creaturecastloop|stage=d_release_170|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.680\nVISUAL|note|creaturecastloop|stage=d_release_170|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.680\nVISUAL|note|creaturecastloop|stage=e_recovery_240|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.398\nVISUAL|note|creaturecastloop|stage=e_recovery_240|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.398\nVISUAL|note|creaturecastloop|stage=e_recovery_240|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.398\nVISUAL|note|creaturecastloop|stage=f_recovery_330|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=3.303\nVISUAL|note|creaturecastloop|stage=f_recovery_330|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=3.303\nVISUAL|note|creaturecastloop|stage=f_recovery_330|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=3.303\nVISUAL|note|creaturecastloop|stage=g_recovery_440|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=4.391\nVISUAL|note|creaturecastloop|stage=g_recovery_440|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=4.391\nVISUAL|note|creaturecastloop|stage=g_recovery_440|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=4.391\nVISUAL|note|creaturecastloop|stage=queue_finished|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.022\nVISUAL|note|creaturecastloop|stage=queue_finished|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.022\nVISUAL|note|creaturecastloop|stage=queue_finished|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.022\nVISUAL|note|creaturecastloop|stage=h_finished_560|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.575\nVISUAL|note|creaturecastloop|stage=h_finished_560|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.575\nVISUAL|note|creaturecastloop|stage=h_finished_560|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.575\n",
+    "framebuffer": [
+      {
+        "shot": "a_idle",
+        "source": "vis_creaturecastloop_0000a.tga",
+        "requestedUnixSeconds": 1791685520.6433713,
+        "latencySeconds": 0.15061099996091798,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "c4445598038acfbaebd2e227ed4128a94eb7ea344868f668c3bd24bdec0e9545",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "b_conjure_060",
+        "source": "vis_creaturecastloop_0001a.tga",
+        "requestedUnixSeconds": 1791685523.2024693,
+        "latencySeconds": 0.11799469997640699,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "a4ae3014e7f0c566799a572087c483fddcc337657ded91f5dcc0f6e8d2986e59",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "c_release_120",
+        "source": "vis_creaturecastloop_0002a.tga",
+        "requestedUnixSeconds": 1791685523.8266218,
+        "latencySeconds": 0.12049050000496209,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "435833a546bca3ddf670fa9fbac14c59cb3b3f227e362c2278ac500d028f215a",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "d_release_170",
+        "source": "vis_creaturecastloop_0003a.tga",
+        "requestedUnixSeconds": 1791685524.297227,
+        "latencySeconds": 0.11993220000294968,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "87b7dcd364af759d2b3bad7cdec95f9206aea02850cb9a43683849d1b9ddebf2",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "e_recovery_240",
+        "source": "vis_creaturecastloop_0004a.tga",
+        "requestedUnixSeconds": 1791685525.01541,
+        "latencySeconds": 0.11726700002327561,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "cf927505112a3d02404a821a427760eb8c4602fc98c25547caf486fe41466a49",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "f_recovery_330",
+        "source": "vis_creaturecastloop_0005a.tga",
+        "requestedUnixSeconds": 1791685525.9208574,
+        "latencySeconds": 0.11765760002890602,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "f95900cb2b38beb79b2d0e28febdfd9a00b1838d1aa713998b5eb127b8c2b4ba",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "g_recovery_440",
+        "source": "vis_creaturecastloop_0006a.tga",
+        "requestedUnixSeconds": 1791685526.981765,
+        "latencySeconds": 0.12044670002069324,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "ca6dfe5331e46c576ed0cca95251d0a58f16fb0d2e2d3dadea741efc39bd91e8",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      },
+      {
+        "shot": "h_finished_560",
+        "source": "vis_creaturecastloop_0007a.tga",
+        "requestedUnixSeconds": 1791685528.1918955,
+        "latencySeconds": 0.11596289998851717,
+        "size": [
+          1280,
+          720
+        ],
+        "rawSha256": "d437dade46b91c7f1d210d8b985e3ec10895d40c55852b85c1c942adc0ac1fdc",
+        "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+        "nonblack": true
+      }
+    ],
+    "pngSha256": {
+      "a_idle.png": "444fb654f9f5274933a91fa08949550614aa7bf044b8a09ed4becadd5e0b6295",
+      "b_conjure_060.png": "8bb2ad9b2f53c551361367a38c5b1eb3111ae3820f95102f0452d11357b17b8b",
+      "c_release_120.png": "b720fb0fcaa8b8582a441e61fc91019dc126d8906656ef36693b55c198065cf5",
+      "d_release_170.png": "a7bc7cda4523dd4e29c23215709d6bcf0794658a50cf8a60985edc678e9c6dc6",
+      "e_recovery_240.png": "d05160560bc9abbc352c5778226a83e02836171fa0b09bd54952bba88a3612ca",
+      "f_recovery_330.png": "1333da33524df333bc5d74a86e80f39bcb0fff153fa7e4eb20a49aba9a0b426b",
+      "g_recovery_440.png": "fcb87d5410446e330475af2cb29f1ed4413a1964a7c6de8a7e90f68852fb17c6",
+      "h_finished_560.png": "fb162acbdd260d68518cac8000d93684ac967ef4028ae7dce873096e7d604f4c"
+    },
+    "gates": {
+      "stateRows": 33,
+      "allValidRat386Stationary": true,
+      "allFaces270": true,
+      "impactRows": [
+        {
+          "impact": "LOOP",
+          "spell": "0",
+          "caster_matches": "1",
+          "target_matches": "1",
+          "elapsed": "1.523"
+        },
+        {
+          "impact": "STOCK",
+          "spell": "0",
+          "caster_matches": "1",
+          "target_matches": "1",
+          "elapsed": "1.556"
+        },
+        {
+          "impact": "RELEASE",
+          "spell": "0",
+          "caster_matches": "1",
+          "target_matches": "1",
+          "elapsed": "1.587"
+        }
+      ],
+      "finishedRows": [
+        {
+          "stage": "queue_finished",
+          "caster": "STOCK",
+          "valid": "1",
+          "appearance": "386",
+          "rat": "1",
+          "stationary": "1",
+          "pos": "18.600,19.000,0.000",
+          "facing": "270.00",
+          "action": "65535",
+          "impacts": "1",
+          "finished": "1",
+          "elapsed": "5.022"
+        },
+        {
+          "stage": "queue_finished",
+          "caster": "RELEASE",
+          "valid": "1",
+          "appearance": "386",
+          "rat": "1",
+          "stationary": "1",
+          "pos": "20.000,19.000,0.000",
+          "facing": "270.00",
+          "action": "65535",
+          "impacts": "1",
+          "finished": "1",
+          "elapsed": "5.022"
+        },
+        {
+          "stage": "queue_finished",
+          "caster": "LOOP",
+          "valid": "1",
+          "appearance": "386",
+          "rat": "1",
+          "stationary": "1",
+          "pos": "21.400,19.000,0.000",
+          "facing": "270.00",
+          "action": "65535",
+          "impacts": "1",
+          "finished": "1",
+          "elapsed": "5.022"
+        }
+      ]
+    },
+    "findings": {
+      "releaseIdentity": "Center RELEASE differs from STOCK/LOOP at c_release_120; supports ccastout.",
+      "loopIdentity": "Right LOOP lies on its side in d/e/f/g while other actors remain upright; supports ccastoutlp. All return idle in h.",
+      "timingLimit": "The loop probe is already in cdead at the d sample, public elapsed1.680 plus framebuffer latency0.120 and log polling. This precedes a naive1.0s conjure plus1.0s authored intro. The control identifies clips, not exact transition rule, intro scaling or truncation.",
+      "replacementLengthLimit": "ccastout is1s, ctaunt2s in installed c_rat data. Release replacement timing cannot be treated as unchanged original intro playback."
+    }
+  },
+  "provenance": {
+    "behavior": "Two sandbox original-client executions using authored public spells.2da and ReplaceObjectAnimation.",
+    "modelCandidates": "Installed c_rat via existing out/label-rat-model.txt diagnostic: cconjure1(2s), ccastout(1s), ccastoutlp(2s), ctaunt(2s), cdead(1s). No asset data copied into repository.",
+    "captureReliability": "Owned native-framebuffer PrintScreen captures are nonblack. GDI window hashes are repeated and are excluded from pose evidence.",
+    "runtimeChanges": "None while collecting this native evidence; the client comparison is recorded below."
+  },
+  "baselineClient": {
+    "folder": "out/visual/shots/vis_creaturecastloop_baseline/openwinter",
+    "executionGates": "pass",
+    "notes": [
+      {
+        "stage": "a_idle",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1563.033"
+      },
+      {
+        "stage": "a_idle",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1563.033"
+      },
+      {
+        "stage": "a_idle",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1563.033"
+      },
+      {
+        "stage": "request",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.000"
+      },
+      {
+        "stage": "request",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.000"
+      },
+      {
+        "stage": "request",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.000"
+      },
+      {
+        "stage": "b_conjure_060",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.600"
+      },
+      {
+        "stage": "b_conjure_060",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.600"
+      },
+      {
+        "stage": "b_conjure_060",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.600"
+      },
+      {
+        "stage": "c_release_120",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1.200"
+      },
+      {
+        "stage": "c_release_120",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1.200"
+      },
+      {
+        "stage": "c_release_120",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1.200"
+      },
+      {
+        "impact": "STOCK",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.533"
+      },
+      {
+        "stage": "impact",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.533"
+      },
+      {
+        "impact": "RELEASE",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.533"
+      },
+      {
+        "stage": "impact",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.533"
+      },
+      {
+        "impact": "LOOP",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.533"
+      },
+      {
+        "stage": "impact",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.533"
+      },
+      {
+        "stage": "d_release_170",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.700"
+      },
+      {
+        "stage": "d_release_170",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.700"
+      },
+      {
+        "stage": "d_release_170",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.700"
+      },
+      {
+        "stage": "e_recovery_240",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "2.400"
+      },
+      {
+        "stage": "e_recovery_240",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "2.400"
+      },
+      {
+        "stage": "e_recovery_240",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "2.400"
+      },
+      {
+        "stage": "f_recovery_330",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "3.300"
+      },
+      {
+        "stage": "f_recovery_330",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "3.300"
+      },
+      {
+        "stage": "f_recovery_330",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "3.300"
+      },
+      {
+        "stage": "g_recovery_440",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "4.400"
+      },
+      {
+        "stage": "g_recovery_440",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "4.400"
+      },
+      {
+        "stage": "g_recovery_440",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "4.400"
+      },
+      {
+        "stage": "queue_finished",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.033"
+      },
+      {
+        "stage": "queue_finished",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.033"
+      },
+      {
+        "stage": "queue_finished",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.033"
+      },
+      {
+        "stage": "h_finished_560",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.600"
+      },
+      {
+        "stage": "h_finished_560",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.600"
+      },
+      {
+        "stage": "h_finished_560",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.600"
+      }
+    ],
+    "clips": {
+      "a_idle": [
+        null,
+        null,
+        null
+      ],
+      "b_conjure_060": [
+        "cconjure1",
+        "cconjure1",
+        "cconjure1"
+      ],
+      "c_release_120": [
+        "ccastout",
+        "ccastout",
+        "ccastout"
+      ],
+      "d_release_170": [
+        "ccastout",
+        "ccastout",
+        "ccastout"
+      ],
+      "e_recovery_240": [
+        "ccastout",
+        "ccastout",
+        "ccastout"
+      ],
+      "f_recovery_330": [
+        "ccastout",
+        "ccastout",
+        "ccastout"
+      ],
+      "g_recovery_440": [
+        "ccastout",
+        "ccastout",
+        "ccastout"
+      ],
+      "h_finished_560": [
+        null,
+        null,
+        null
+      ]
+    },
+    "sha256": {
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/notes.txt": "bb7652de3ca9d7ad01660a16f8852bdd55742e57a87a864bacd1dee06c913343",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/state.jsonl": "68e002e683761eb7bd94de50424504aa4e63b375acbb03eb858b8c9d619adc8e",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/a_idle.png": "09ed8fd35e3d54fdd1a0e852cd6e8053cda2c619e31e93d307e1c430324acb5b",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/b_conjure_060.png": "d09fab75d771d19479cf2f66175e70ab30875a7c4f943c2a1bd33fa1b3ad39ca",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/c_release_120.png": "638a757f6938bf7dfb5137dd2172c442fe5efec4044f4863e9de8c14ccc38a26",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/d_release_170.png": "7ef1625dbd5af5a080c642c52fdaa4ce18c55a8d18fcec1942977be5a063f2cf",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/e_recovery_240.png": "c0eaa1c8a7f9418db15fb1c2f5ae43140fbfd603a924bf85f0b4f6c797a2b72a",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/f_recovery_330.png": "7e2fde1d819aad1d2df26d76a725b166d4e5bd1d7284f97f4d179a09e5bd6040",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/g_recovery_440.png": "d3d35e5b5ccc8495a4d4b76af6c633b24319b5082fc907955bfc38eeeeea392c",
+      "out/visual/shots/vis_creaturecastloop_baseline/openwinter/h_finished_560.png": "3a99716c9db426d27de35561b1d43f8f1e0cfcd7255e0411947c117d53eaf030"
+    }
+  },
+  "fixedClient": {
+    "folder": "out/visual/shots/vis_creaturecastloop_fixed/openwinter",
+    "executionGates": "pass",
+    "notes": [
+      {
+        "stage": "a_idle",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1563.033"
+      },
+      {
+        "stage": "a_idle",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1563.033"
+      },
+      {
+        "stage": "a_idle",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1563.033"
+      },
+      {
+        "stage": "request",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.000"
+      },
+      {
+        "stage": "request",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.000"
+      },
+      {
+        "stage": "request",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.000"
+      },
+      {
+        "stage": "b_conjure_060",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.600"
+      },
+      {
+        "stage": "b_conjure_060",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.600"
+      },
+      {
+        "stage": "b_conjure_060",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "0.600"
+      },
+      {
+        "stage": "c_release_120",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1.200"
+      },
+      {
+        "stage": "c_release_120",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1.200"
+      },
+      {
+        "stage": "c_release_120",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "0",
+        "finished": "0",
+        "elapsed": "1.200"
+      },
+      {
+        "impact": "STOCK",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.533"
+      },
+      {
+        "stage": "impact",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.533"
+      },
+      {
+        "impact": "RELEASE",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.533"
+      },
+      {
+        "stage": "impact",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.533"
+      },
+      {
+        "impact": "LOOP",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.533"
+      },
+      {
+        "stage": "impact",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.533"
+      },
+      {
+        "stage": "d_release_170",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.700"
+      },
+      {
+        "stage": "d_release_170",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.700"
+      },
+      {
+        "stage": "d_release_170",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "1.700"
+      },
+      {
+        "stage": "e_recovery_240",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "2.400"
+      },
+      {
+        "stage": "e_recovery_240",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "2.400"
+      },
+      {
+        "stage": "e_recovery_240",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "2.400"
+      },
+      {
+        "stage": "f_recovery_330",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "3.300"
+      },
+      {
+        "stage": "f_recovery_330",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "3.300"
+      },
+      {
+        "stage": "f_recovery_330",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "3.300"
+      },
+      {
+        "stage": "g_recovery_440",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "4.400"
+      },
+      {
+        "stage": "g_recovery_440",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "4.400"
+      },
+      {
+        "stage": "g_recovery_440",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "4",
+        "impacts": "1",
+        "finished": "0",
+        "elapsed": "4.400"
+      },
+      {
+        "stage": "queue_finished",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.033"
+      },
+      {
+        "stage": "queue_finished",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.033"
+      },
+      {
+        "stage": "queue_finished",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.033"
+      },
+      {
+        "stage": "h_finished_560",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.600"
+      },
+      {
+        "stage": "h_finished_560",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.600"
+      },
+      {
+        "stage": "h_finished_560",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.600"
+      }
+    ],
+    "clips": {
+      "a_idle": [
+        null,
+        null,
+        null
+      ],
+      "b_conjure_060": [
+        "cconjure1",
+        "cconjure1",
+        "cconjure1"
+      ],
+      "c_release_120": [
+        "ccastout",
+        "ccastout",
+        "ccastout"
+      ],
+      "d_release_170": [
+        "ccastoutlp",
+        "ccastoutlp",
+        "ccastoutlp"
+      ],
+      "e_recovery_240": [
+        "ccastoutlp",
+        "ccastoutlp",
+        "ccastoutlp"
+      ],
+      "f_recovery_330": [
+        "ccastoutlp",
+        "ccastoutlp",
+        "ccastoutlp"
+      ],
+      "g_recovery_440": [
+        "ccastoutlp",
+        "ccastoutlp",
+        "ccastoutlp"
+      ],
+      "h_finished_560": [
+        null,
+        null,
+        null
+      ]
+    },
+    "sha256": {
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/notes.txt": "bb7652de3ca9d7ad01660a16f8852bdd55742e57a87a864bacd1dee06c913343",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/state.jsonl": "32f6f5059838c5a558449b504f3b4dc9b30759590cc24b834846c77ed5bd897f",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/a_idle.png": "13fd9941931046e259d9f5713bf8534098c7b225df87ed23eaf3d3b5d9b1692f",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/b_conjure_060.png": "2246c5e83935e96181d4cfe37b74c1474be5e5e36dae64a14abaa4a1844b1af6",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/c_release_120.png": "57782edbb9c17f00d4c415dd8862aa544490f075bb5f5581375ac1ebb02b74ac",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/d_release_170.png": "04feb41d225034cd3b7b3e4ab2bc14e192b0bc5d9da07a66c94824420cfc6466",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/e_recovery_240.png": "be4841e34b160636faab7bb988aa6562205c390afe7630821263c806980412b3",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/f_recovery_330.png": "268b11ef46ce88f60315799ab393ae5ece03877c591259bb7306242cd94f6a74",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/g_recovery_440.png": "bfd281c14ec0e57fab642b50ab54d9e4f8145f957a62888b4c40db1d81bf8b66",
+      "out/visual/shots/vis_creaturecastloop_fixed/openwinter/h_finished_560.png": "fbe2622d74b415a401fd906aa54f241ec32e6eb2151498a69e6d7720c10c4439"
+    }
+  }
+}

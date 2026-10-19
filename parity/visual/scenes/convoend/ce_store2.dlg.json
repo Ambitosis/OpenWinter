@@ -1,0 +1,5 @@
+{
+  "starts": [0], "endScript": "ce_ended", "abortScript": "ce_aborted",
+  "entries": [{ "text": "Want to trade?", "replies": [0] }, { "text": "Anything else?", "replies": [1] }],
+  "replies": [{ "text": "Show me your wares.", "script": "ce_openstore", "entries": [1] }, { "text": "No.", "entries": [] }]
+}

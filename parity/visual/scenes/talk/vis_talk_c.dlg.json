@@ -1,0 +1,10 @@
+{
+  "preventZoomIn": true,
+  "starts": [0],
+  "entries": [
+    { "text": "One line, animation 0.", "animation": 0, "replies": [0] }
+  ],
+  "replies": [
+    { "text": "Goodbye." }
+  ]
+}

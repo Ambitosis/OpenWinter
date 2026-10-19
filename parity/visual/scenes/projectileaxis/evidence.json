@@ -1,0 +1,219 @@
+{
+  "executionGates": "pass",
+  "engines": {
+    "nwn": {
+      "directory": "out/visual/shots/vis_projectileaxis_fixed/nwn",
+      "notes": [
+        {
+          "cast": "AXIS_DIAGONAL",
+          "spell": "0",
+          "distance": "20.000"
+        },
+        {
+          "cast": "AXIS_NORTH",
+          "spell": "0",
+          "distance": "20.000"
+        },
+        {
+          "cast": "AXIS_EAST",
+          "spell": "0",
+          "distance": "20.000"
+        },
+        {
+          "impact": "AXIS_EAST",
+          "elapsed": "1.458",
+          "spell": "0",
+          "x": "15.000",
+          "y": "15.000",
+          "tx": "35.000",
+          "ty": "15.000"
+        },
+        {
+          "impact": "AXIS_DIAGONAL",
+          "elapsed": "1.458",
+          "spell": "0",
+          "x": "35.000",
+          "y": "20.000",
+          "tx": "23.000",
+          "ty": "36.000"
+        },
+        {
+          "impact": "AXIS_NORTH",
+          "elapsed": "1.458",
+          "spell": "0",
+          "x": "15.000",
+          "y": "20.000",
+          "tx": "15.000",
+          "ty": "40.000"
+        },
+        {
+          "cast": "AXIS_DIAGONAL",
+          "spell": "1",
+          "distance": "20.000"
+        },
+        {
+          "cast": "AXIS_NORTH",
+          "spell": "1",
+          "distance": "20.000"
+        },
+        {
+          "cast": "AXIS_EAST",
+          "spell": "1",
+          "distance": "20.000"
+        },
+        {
+          "impact": "AXIS_NORTH",
+          "elapsed": "1.447",
+          "spell": "1",
+          "x": "15.000",
+          "y": "20.000",
+          "tx": "15.000",
+          "ty": "40.000"
+        },
+        {
+          "impact": "AXIS_EAST",
+          "elapsed": "1.447",
+          "spell": "1",
+          "x": "15.000",
+          "y": "15.000",
+          "tx": "35.000",
+          "ty": "15.000"
+        },
+        {
+          "impact": "AXIS_DIAGONAL",
+          "elapsed": "1.447",
+          "spell": "1",
+          "x": "35.000",
+          "y": "20.000",
+          "tx": "23.000",
+          "ty": "36.000"
+        },
+        {
+          "final_east": "2",
+          "final_north": "2",
+          "final_diagonal": "2"
+        }
+      ]
+    },
+    "openwinter": {
+      "directory": "out/visual/shots/vis_projectileaxis_fixed/openwinter",
+      "notes": [
+        {
+          "cast": "AXIS_DIAGONAL",
+          "spell": "0",
+          "distance": "20.000"
+        },
+        {
+          "cast": "AXIS_NORTH",
+          "spell": "0",
+          "distance": "20.000"
+        },
+        {
+          "cast": "AXIS_EAST",
+          "spell": "0",
+          "distance": "20.000"
+        },
+        {
+          "impact": "AXIS_DIAGONAL",
+          "elapsed": "1.433",
+          "spell": "0",
+          "x": "35.000",
+          "y": "20.000",
+          "tx": "23.000",
+          "ty": "36.000"
+        },
+        {
+          "impact": "AXIS_NORTH",
+          "elapsed": "1.433",
+          "spell": "0",
+          "x": "15.000",
+          "y": "20.000",
+          "tx": "15.000",
+          "ty": "40.000"
+        },
+        {
+          "impact": "AXIS_EAST",
+          "elapsed": "1.433",
+          "spell": "0",
+          "x": "15.000",
+          "y": "15.000",
+          "tx": "35.000",
+          "ty": "15.000"
+        },
+        {
+          "cast": "AXIS_DIAGONAL",
+          "spell": "1",
+          "distance": "20.000"
+        },
+        {
+          "cast": "AXIS_NORTH",
+          "spell": "1",
+          "distance": "20.000"
+        },
+        {
+          "cast": "AXIS_EAST",
+          "spell": "1",
+          "distance": "20.000"
+        },
+        {
+          "impact": "AXIS_DIAGONAL",
+          "elapsed": "1.433",
+          "spell": "1",
+          "x": "35.000",
+          "y": "20.000",
+          "tx": "23.000",
+          "ty": "36.000"
+        },
+        {
+          "impact": "AXIS_NORTH",
+          "elapsed": "1.433",
+          "spell": "1",
+          "x": "15.000",
+          "y": "20.000",
+          "tx": "15.000",
+          "ty": "40.000"
+        },
+        {
+          "impact": "AXIS_EAST",
+          "elapsed": "1.433",
+          "spell": "1",
+          "x": "15.000",
+          "y": "15.000",
+          "tx": "35.000",
+          "ty": "15.000"
+        },
+        {
+          "final_east": "2",
+          "final_north": "2",
+          "final_diagonal": "2"
+        }
+      ]
+    }
+  },
+  "findings": "Visible +Y arrow nose follows travel after correction; explicit HasProjectile=0 hides models without removing impact delay.",
+  "limits": "Trails and precise positions differ; spiral geometry, vertical roll and hidden-projectile audio not established.",
+  "sha256": {
+    "parity/visual/scenes/projectileaxis/pa_impact.nss": "31cf07d019377665e31a97e3241653c2edeff4d0b22031e00408f9f4c1424b2e",
+    "parity/visual/scenes/projectileaxis/pa_inc.nss": "d0e622af92db41f14288d4adaee183278195ab4cbcca06023617d07f2e6d8a3e",
+    "parity/visual/scenes/projectileaxis/scene.json": "251141af313d2fd621ce2445c661eb3de9d724c747e973c845f4074dd1028d8c",
+    "parity/visual/scenes/projectileaxis/spells.2da": "94b4a3394adbe2a38105bfa49f6dcb2a65eeba78b47ee5c05d613d83a43ec21c",
+    "parity/visual/scenes/projectileaxis/vis_main.nss": "7e0a8cf454233adab88ad6c5ab2313d3f0f4ba1e6032c81b8ac0ed46a8738283",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/notes.txt": "22d8bc107417bc54e9d388185c259f4d3076526c0db9e33dc78d24c61f74951f",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/a_before.png": "3fc377d2b6ed3e17a9ba0333ed52a84f815057f19e79d0ff938362d614147410",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/b_travel_075.png": "f278ff2bce790863e2899706249f869513d6f542eac60078806f0397d20c8b4f",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/c_travel_110.png": "14be7b24a339342714d79471a60674b343a4e338f8d0c018f5cb5ef98b19d281",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/d_after.png": "e1615f929d0e9a425079c3cf71acebc6a2e8de417019f55ec0c5dd87ad1dc18a",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/e_hidden_075.png": "4661e9300998e5e46f07a1f75653868a537649489452579946ef910134289ef6",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/f_hidden_110.png": "ab607851fc7ce2fad42afdcfc3a2e8fa4d01df9c8e8dd78b729a1be86f2f8b9c",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/g_hidden_after.png": "0d282eb27c513f7022189f3a8e5a59f77352dca3eb76f88978396176c1d980a9",
+    "out/visual/shots/vis_projectileaxis_fixed/nwn/native-framebuffer.jsonl": "fc7d99ce9858268abb36f2204cc8bb9bf983c78a70e703001b2e4ccee5f826f4",
+    "out/visual/shots/vis_projectileaxis_fixed/openwinter/notes.txt": "9b813b17f8c405b6c59ce502f1841db79243af7340ddec56127acdf1aee22b1a",
+    "out/visual/shots/vis_projectileaxis_fixed/openwinter/a_before.png": "53b5e0b33345288e01b89547288f42122cc12d88fe3f7437ed839faff6a80694",
+    "out/visual/shots/vis_projectileaxis_fixed/openwinter/b_travel_075.png": "cc36bfc8972d91e21dd50a6bb7d6c7f9de9def14272fcad0dbceeef6babeb81e",
+    "out/visual/shots/vis_projectileaxis_fixed/openwinter/c_travel_110.png": "cd480821bc0924e444994ff849743aef4dcde9562b8188f5d2dfca5a19365dac",
+    "out/visual/shots/vis_projectileaxis_fixed/openwinter/d_after.png": "50396e40d68279ff077b28e9d067d8b70ec2fe2f6cb58b6d765b5c59b880edac",
+    "out/visual/shots/vis_projectileaxis_fixed/openwinter/e_hidden_075.png": "633cdf34ebb8cc1177256ad9f3f115798c96635b6489cf00314e8434895d03d3",
+    "out/visual/shots/vis_projectileaxis_fixed/openwinter/f_hidden_110.png": "5629b557ca0f9034429836aab9ddd353eda8cf3c23331f10861ee215dedf9e35",
+    "out/visual/shots/vis_projectileaxis_fixed/openwinter/g_hidden_after.png": "b762778b240ea6d0e32db0782a8451ccf287bc8850c84e965ff3bbe1637c6138"
+  }
+}

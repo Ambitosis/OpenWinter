@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/client/">
+    <Project Path="client/OpenWinter.Client.csproj">
+      <BuildType Project="Debug" />
+    </Project>
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/OpenWinter.Aurora/OpenWinter.Aurora.csproj" />
+    <Project Path="src/OpenWinter.Content/OpenWinter.Content.csproj" />
+    <Project Path="src/OpenWinter.Game/OpenWinter.Game.csproj" />
+    <Project Path="src/OpenWinter.Net/OpenWinter.Net.csproj" />
+    <Project Path="src/OpenWinter.Server/OpenWinter.Server.csproj" />
+    <Project Path="src/OpenWinter.Tools/OpenWinter.Tools.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OpenWinter.Tests/OpenWinter.Tests.csproj" />
+  </Folder>
+</Solution>

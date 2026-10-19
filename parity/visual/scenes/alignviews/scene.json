@@ -1,0 +1,14 @@
+{
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 4,
+  "pc": [
+    20,
+    18,
+    0
+  ],
+  "facing": 90,
+  "seconds": 8,
+  "difficulty": 3,
+  "description": "Aligned fixed-axis follow-up: camera views. No renderer assumption."
+}

@@ -1,0 +1,1 @@
+void main(){WriteTimestampedLogEntry("VISUAL|note|quickchat.order.trial."+IntToString(GetLocalInt(GetModule(),"quickchat_trial"))+".command."+IntToString(GetLastAssociateCommand())+".pattern."+IntToString(GetListenPatternNumber())+".masterPC."+IntToString(GetIsPC(GetMaster())));}

@@ -1,0 +1,1 @@
+{"seconds": 60, "size": 4, "tile": 4, "factions": "Prelude", "areas": [{"resref": "aq_near", "tag": "AQ_NEAR", "size": 5}, {"resref": "aq_act", "tag": "AQ_ACT", "size": 4}, {"resref": "aq_cs", "tag": "AQ_CS", "size": 4}]}

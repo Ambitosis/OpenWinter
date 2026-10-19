@@ -1,0 +1,52 @@
+# Wholly authored P2P routing control, no game model copied.
+newmodel pt_3
+setsupermodel pt_3 NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom pt_3
+node dummy pt_3
+ parent NULL
+endnode
+node emitter stream
+ parent pt_3
+ position 0 0 0
+ update Fountain
+ render Linked
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ birthrate 10
+ lifeExp 2
+ sizeStart 0.1
+ sizeEnd 0.1
+ colorStart 0 0 1
+ colorEnd 0 0 1
+ alphaStart 1
+ alphaEnd 1
+ velocity 0
+ spread 0
+ p2p 1
+ p2p_sel 1
+ p2p_bezier2 0
+ p2p_bezier3 0
+ grav 0
+ combinetime 1
+ inherit 0
+endnode
+node reference endpoint
+ parent stream
+ position 0 0 1
+ refmodel fx_ref
+ reattachable 1
+endnode
+endmodelgeom pt_3
+newanim impact pt_3
+ length 0
+ transtime 0
+ animroot pt_3
+ node dummy pt_3
+  parent NULL
+ endnode
+doneanim impact pt_3
+donemodel pt_3

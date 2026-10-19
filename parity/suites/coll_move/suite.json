@@ -1,0 +1,107 @@
+{
+  "seconds": 60,
+  "tile": 4,
+  "templates": {
+    "p_gob": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_GOB",
+        "ScriptOnBlocked": "cm_blocked"
+      }
+    },
+    "p_ogre": {
+      "from": "nw_ogre01",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_OGRE",
+        "ScriptOnBlocked": "cm_blocked"
+      }
+    },
+    "p_human": {
+      "from": "nw_bandit001",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_HUMAN",
+        "ScriptOnBlocked": "cm_blocked"
+      }
+    },
+    "p_fairy": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_FAIRY",
+        "ScriptOnBlocked": "cm_blocked",
+        "Appearance_Type": 55
+      }
+    },
+    "p_quiet": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_QUIET",
+        "ScriptOnBlocked": ""
+      }
+    }
+  }
+}

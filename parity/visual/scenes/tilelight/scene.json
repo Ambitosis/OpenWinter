@@ -1,0 +1,8 @@
+{ "tileset": "tic01", "tile": 36, "size": 3, "pc": [15, 15, 0], "facing": 90, "seconds": 40,
+  "are": { "Flags": 1, "IsNight": 1, "MoonAmbientColor": 0, "MoonDiffuseColor": 0, "MoonShadows": 0, "MoonFogAmount": 0 },
+  "variants": {
+    "dim":    { "are": {}, "mainLight": 1 },
+    "white":  { "are": {}, "mainLight": 2 },
+    "bright": { "are": {}, "mainLight": 3 },
+    "ambient": { "are": { "MoonAmbientColor": 4210752 }, "mainLight": 2 }
+  } }

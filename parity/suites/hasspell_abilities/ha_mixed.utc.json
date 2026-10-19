@@ -1,0 +1,1 @@
+{ "template": "nw_bandit001", "specAbilities": [ { "spell": 90, "level": 6 }, { "spell": 90, "level": 6, "ready": false }, { "spell": 90, "level": 6 } ] }

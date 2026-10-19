@@ -1,0 +1,13 @@
+{
+ "tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 120, "gui": true, "chatLog": true,
+ "journal": [
+  { "tag": "q_a", "name": "Quest A", "xp": 150, "priority": 1,
+    "entries": [ { "id": 1, "text": "A begins." }, { "id": 2, "text": "A goes on." }, { "id": 3, "text": "A is done.", "end": 1 } ] },
+  { "tag": "q_b", "name": "Quest B", "xp": 80,
+    "entries": [ { "id": 1, "text": "B from a conversation." }, { "id": 2, "text": "B is done.", "end": 1 } ] },
+  { "tag": "q_c", "name": "Quest C", "xp": 200,
+    "entries": [ { "id": 1, "text": "C begins." }, { "id": 2, "text": "C ended by a conversation.", "end": 1 } ] },
+  { "tag": "q_d", "name": "Quest D", "xp": 40,
+    "entries": [ { "id": 5, "text": "D for the henchman's party." } ] }
+ ]
+}

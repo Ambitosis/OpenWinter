@@ -1,0 +1,154 @@
+{
+  "seconds": 40,
+  "tile": 4,
+  "templates": {
+    "p_gob": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_GOB",
+        "ScriptOnBlocked": "cd_blocked"
+      }
+    },
+    "p_ogre": {
+      "from": "nw_ogre01",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_OGRE",
+        "ScriptOnBlocked": "cd_blocked"
+      }
+    },
+    "p_human": {
+      "from": "nw_bandit001",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_HUMAN",
+        "ScriptOnBlocked": "cd_blocked"
+      }
+    },
+    "p_fairy": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_FAIRY",
+        "ScriptOnBlocked": "cd_blocked",
+        "Appearance_Type": 55
+      }
+    },
+    "p_door": {
+      "from": "nw_door_metal",
+      "type": "utd",
+      "set": {
+        "Tag": "P_DOOR",
+        "OnClosed": "cd_closed"
+      }
+    },
+    "p_table": {
+      "from": "plc_table",
+      "type": "utp",
+      "set": {
+        "Tag": "P_TABLE"
+      }
+    }
+  },
+  "instances": [
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 10,
+      "y": 20,
+      "facing": 0,
+      "set": {
+        "Tag": "D1"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 30,
+      "y": 20,
+      "facing": 0,
+      "set": {
+        "Tag": "D2"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 10,
+      "y": 32,
+      "facing": 0,
+      "set": {
+        "Tag": "D3"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 30,
+      "y": 32,
+      "facing": 0,
+      "set": {
+        "Tag": "D4"
+      }
+    },
+    {
+      "type": "utp",
+      "from": "p_table",
+      "x": 20,
+      "y": 8,
+      "facing": 0,
+      "set": {
+        "Tag": "TABLE"
+      }
+    }
+  ]
+}

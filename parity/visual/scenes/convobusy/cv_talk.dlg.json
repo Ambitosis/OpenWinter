@@ -1,0 +1,5 @@
+{
+  "starts": [0], "endScript": "cv_end", "abortScript": "cv_abort",
+  "entries": [{ "text": "First line from the probe.", "script": "cv_e0", "replies": [0] }, { "text": "Second line from the probe.", "replies": [1] }],
+  "replies": [{ "text": "Keep talking.", "entries": [1] }, { "text": "Finish.", "entries": [] }]
+}

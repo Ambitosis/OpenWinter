@@ -1,0 +1,20 @@
+{
+  "template": "nw_drowmage020",
+  "classLevels": [
+    {
+      "class": 3,
+      "level": 10
+    }
+  ],
+  "abilities": {
+    "wisdom": 20
+  },
+  "feats": [
+    199
+  ],
+  "equipment": [],
+  "companion": {
+    "type": 1,
+    "name": "Audit Wolf"
+  }
+}

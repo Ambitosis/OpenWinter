@@ -1,0 +1,5 @@
+{
+  "starts": [0], "endScript": "cb_end", "abortScript": "cb_abort",
+  "entries": [{ "text": "First line.", "script": "cb_e0", "replies": [0] }, { "text": "Second line." }],
+  "replies": [{ "text": "Answer.", "entries": [1] }]
+}

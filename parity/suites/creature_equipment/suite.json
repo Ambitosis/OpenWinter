@@ -1,0 +1,21 @@
+{
+  "seconds": 8,
+  "instances": [
+    {
+      "from": "eq_heavy_no",
+      "x": 5,
+      "y": 5,
+      "set": {
+        "Tag": "placed_no"
+      }
+    },
+    {
+      "from": "eq_heavy_yes",
+      "x": 8,
+      "y": 5,
+      "set": {
+        "Tag": "placed_yes"
+      }
+    }
+  ]
+}

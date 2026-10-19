@@ -1,0 +1,1 @@
+void main(){int k=GetLastGuiEventType();if(k>=18&&k<=20){SetLocalInt(GetModule(),"quickchat_last_gui",k);WriteTimestampedLogEntry("VISUAL|note|quickchat.gui.trial."+IntToString(GetLocalInt(GetModule(),"quickchat_trial"))+".type."+IntToString(k)+".integer."+IntToString(GetLastGuiEventInteger())+".pc."+IntToString(GetIsPC(GetLastGuiEventPlayer())));}}

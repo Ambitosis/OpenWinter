@@ -1,0 +1,14 @@
+{
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 6,
+  "pc": [
+    30,
+    30,
+    0
+  ],
+  "facing": 90,
+  "seconds": 50,
+  "gui": true,
+  "factions": "Prelude"
+}

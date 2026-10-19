@@ -1,0 +1,1068 @@
+{
+  "purpose": "Authored additive transfer controls; reports expose mismatches, not spell acceptance.",
+  "reports": {
+    "native": {
+      "shots": "out\\visual\\shots\\vis_particleblend_raw\\nwn",
+      "rows": [
+        {
+          "kind": "texture",
+          "cells": [
+            {
+              "center": [
+                439,
+                204
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 0
+            },
+            {
+              "center": [
+                519,
+                204
+              ],
+              "rgb": [
+                2,
+                2,
+                2
+              ],
+              "spread": 0,
+              "nativeExpected": 2
+            },
+            {
+              "center": [
+                600,
+                204
+              ],
+              "rgb": [
+                8,
+                8,
+                8
+              ],
+              "spread": 0,
+              "nativeExpected": 8
+            },
+            {
+              "center": [
+                680,
+                204
+              ],
+              "rgb": [
+                32,
+                32,
+                32
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                760,
+                204
+              ],
+              "rgb": [
+                128,
+                128,
+                128
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                840,
+                204
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        },
+        {
+          "kind": "vertexColor",
+          "cells": [
+            {
+              "center": [
+                445,
+                309
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 0
+            },
+            {
+              "center": [
+                523,
+                309
+              ],
+              "rgb": [
+                2,
+                2,
+                2
+              ],
+              "spread": 0,
+              "nativeExpected": 2
+            },
+            {
+              "center": [
+                601,
+                309
+              ],
+              "rgb": [
+                8,
+                8,
+                8
+              ],
+              "spread": 0,
+              "nativeExpected": 8
+            },
+            {
+              "center": [
+                679,
+                309
+              ],
+              "rgb": [
+                32,
+                32,
+                32
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                757,
+                309
+              ],
+              "rgb": [
+                128,
+                128,
+                128
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                834,
+                309
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        },
+        {
+          "kind": "overlap",
+          "cells": [
+            {
+              "center": [
+                451,
+                395
+              ],
+              "rgb": [
+                32,
+                32,
+                32
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                527,
+                395
+              ],
+              "rgb": [
+                64,
+                64,
+                64
+              ],
+              "spread": 0,
+              "nativeExpected": 64
+            },
+            {
+              "center": [
+                602,
+                395
+              ],
+              "rgb": [
+                128,
+                128,
+                128
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                678,
+                395
+              ],
+              "rgb": [
+                128,
+                128,
+                128
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                753,
+                395
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            },
+            {
+              "center": [
+                828,
+                395
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        }
+      ],
+      "controlsValid": true,
+      "nativeMatches": 18,
+      "totalCells": 18,
+      "limitation": "Three isolated additive rows over black only; colored backgrounds, alpha and real spells unverified.",
+      "sha256": {
+        "blend_grid.png": "5d863e878d9d502fcd6fc0108296631c8a6bfcdf4ca33ed0d7556c345b146a28",
+        "removed.png": "20f08885b32fd899b85bcdfc5d390a99015ecd71de0242214234ec1efba549e7"
+      }
+    },
+    "currentClient": {
+      "shots": "out\\visual\\shots\\vis_particleblend_raw\\openwinter",
+      "rows": [
+        {
+          "kind": "texture",
+          "cells": [
+            {
+              "center": [
+                438,
+                190
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 0
+            },
+            {
+              "center": [
+                519,
+                190
+              ],
+              "rgb": [
+                28,
+                28,
+                28
+              ],
+              "spread": 0,
+              "nativeExpected": 2
+            },
+            {
+              "center": [
+                600,
+                190
+              ],
+              "rgb": [
+                53,
+                53,
+                53
+              ],
+              "spread": 0,
+              "nativeExpected": 8
+            },
+            {
+              "center": [
+                680,
+                190
+              ],
+              "rgb": [
+                99,
+                99,
+                99
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                761,
+                190
+              ],
+              "rgb": [
+                186,
+                186,
+                186
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                841,
+                190
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        },
+        {
+          "kind": "vertexColor",
+          "cells": [
+            {
+              "center": [
+                445,
+                296
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 0
+            },
+            {
+              "center": [
+                523,
+                296
+              ],
+              "rgb": [
+                9,
+                9,
+                9
+              ],
+              "spread": 0,
+              "nativeExpected": 2
+            },
+            {
+              "center": [
+                601,
+                296
+              ],
+              "rgb": [
+                16,
+                16,
+                16
+              ],
+              "spread": 0,
+              "nativeExpected": 8
+            },
+            {
+              "center": [
+                679,
+                296
+              ],
+              "rgb": [
+                37,
+                37,
+                37
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                757,
+                296
+              ],
+              "rgb": [
+                127,
+                127,
+                127
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                835,
+                296
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        },
+        {
+          "kind": "overlap",
+          "cells": [
+            {
+              "center": [
+                451,
+                386
+              ],
+              "rgb": [
+                99,
+                99,
+                99
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                526,
+                386
+              ],
+              "rgb": [
+                136,
+                136,
+                136
+              ],
+              "spread": 0,
+              "nativeExpected": 64
+            },
+            {
+              "center": [
+                602,
+                386
+              ],
+              "rgb": [
+                186,
+                186,
+                186
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                678,
+                386
+              ],
+              "rgb": [
+                186,
+                186,
+                186
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                753,
+                386
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            },
+            {
+              "center": [
+                829,
+                386
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        }
+      ],
+      "controlsValid": true,
+      "nativeMatches": 6,
+      "totalCells": 18,
+      "limitation": "Three isolated additive rows over black only; colored backgrounds, alpha and real spells unverified.",
+      "sha256": {
+        "blend_grid.png": "f104f21baf2787b9058d7fe788028a5ec4c76334546b954440b6ab2227b89ada",
+        "removed.png": "0b37fe2b760522c6101c70c0322547ae6c9dcca72424fd596870988e00b13196"
+      }
+    },
+    "rejectedGamma22": {
+      "shots": "out\\visual\\shots\\vis_particleblend_gamma22\\openwinter",
+      "rows": [
+        {
+          "kind": "texture",
+          "cells": [
+            {
+              "center": [
+                440,
+                190
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 0
+            },
+            {
+              "center": [
+                520,
+                190
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 2
+            },
+            {
+              "center": [
+                600,
+                190
+              ],
+              "rgb": [
+                8,
+                8,
+                8
+              ],
+              "spread": 0,
+              "nativeExpected": 8
+            },
+            {
+              "center": [
+                680,
+                190
+              ],
+              "rgb": [
+                32,
+                32,
+                32
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                761,
+                190
+              ],
+              "rgb": [
+                128,
+                128,
+                128
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                841,
+                190
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        },
+        {
+          "kind": "vertexColor",
+          "cells": [
+            {
+              "center": [
+                445,
+                296
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 0
+            },
+            {
+              "center": [
+                523,
+                296
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 2
+            },
+            {
+              "center": [
+                601,
+                296
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 8
+            },
+            {
+              "center": [
+                679,
+                296
+              ],
+              "rgb": [
+                10,
+                10,
+                10
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                757,
+                296
+              ],
+              "rgb": [
+                59,
+                59,
+                59
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                835,
+                296
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        },
+        {
+          "kind": "overlap",
+          "cells": [
+            {
+              "center": [
+                451,
+                386
+              ],
+              "rgb": [
+                32,
+                32,
+                32
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                526,
+                386
+              ],
+              "rgb": [
+                44,
+                44,
+                44
+              ],
+              "spread": 0,
+              "nativeExpected": 64
+            },
+            {
+              "center": [
+                602,
+                386
+              ],
+              "rgb": [
+                60,
+                60,
+                60
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                678,
+                386
+              ],
+              "rgb": [
+                128,
+                128,
+                128
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                753,
+                386
+              ],
+              "rgb": [
+                175,
+                175,
+                175
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            },
+            {
+              "center": [
+                829,
+                386
+              ],
+              "rgb": [
+                240,
+                240,
+                240
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        }
+      ],
+      "controlsValid": true,
+      "nativeMatches": 9,
+      "totalCells": 18,
+      "limitation": "Three isolated additive rows over black only; colored backgrounds, alpha and real spells unverified.",
+      "sha256": {
+        "blend_grid.png": "b57ee073e25e352ecfb468dc4a49d8e4a0b059093c0ea1f8cc6e968f18c6bf1b",
+        "removed.png": "0b37fe2b760522c6101c70c0322547ae6c9dcca72424fd596870988e00b13196"
+      }
+    },
+    "diagnosticVector4Built": {
+      "shots": "out\\visual\\shots\\vis_particleblend_vector4_built\\openwinter",
+      "rows": [
+        {
+          "kind": "texture",
+          "cells": [
+            {
+              "center": [
+                438,
+                190
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 0
+            },
+            {
+              "center": [
+                519,
+                190
+              ],
+              "rgb": [
+                28,
+                28,
+                28
+              ],
+              "spread": 0,
+              "nativeExpected": 2
+            },
+            {
+              "center": [
+                600,
+                190
+              ],
+              "rgb": [
+                53,
+                53,
+                53
+              ],
+              "spread": 0,
+              "nativeExpected": 8
+            },
+            {
+              "center": [
+                680,
+                190
+              ],
+              "rgb": [
+                99,
+                99,
+                99
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                761,
+                190
+              ],
+              "rgb": [
+                186,
+                186,
+                186
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                841,
+                190
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        },
+        {
+          "kind": "vertexColor",
+          "cells": [
+            {
+              "center": [
+                445,
+                296
+              ],
+              "rgb": [
+                0,
+                0,
+                0
+              ],
+              "spread": 0,
+              "nativeExpected": 0
+            },
+            {
+              "center": [
+                523,
+                296
+              ],
+              "rgb": [
+                28,
+                28,
+                28
+              ],
+              "spread": 0,
+              "nativeExpected": 2
+            },
+            {
+              "center": [
+                601,
+                296
+              ],
+              "rgb": [
+                53,
+                53,
+                53
+              ],
+              "spread": 0,
+              "nativeExpected": 8
+            },
+            {
+              "center": [
+                679,
+                296
+              ],
+              "rgb": [
+                99,
+                99,
+                99
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                757,
+                296
+              ],
+              "rgb": [
+                186,
+                186,
+                186
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                835,
+                296
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        },
+        {
+          "kind": "overlap",
+          "cells": [
+            {
+              "center": [
+                451,
+                386
+              ],
+              "rgb": [
+                99,
+                99,
+                99
+              ],
+              "spread": 0,
+              "nativeExpected": 32
+            },
+            {
+              "center": [
+                526,
+                386
+              ],
+              "rgb": [
+                136,
+                136,
+                136
+              ],
+              "spread": 0,
+              "nativeExpected": 64
+            },
+            {
+              "center": [
+                602,
+                386
+              ],
+              "rgb": [
+                186,
+                186,
+                186
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                678,
+                386
+              ],
+              "rgb": [
+                186,
+                186,
+                186
+              ],
+              "spread": 0,
+              "nativeExpected": 128
+            },
+            {
+              "center": [
+                753,
+                386
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            },
+            {
+              "center": [
+                829,
+                386
+              ],
+              "rgb": [
+                255,
+                255,
+                255
+              ],
+              "spread": 0,
+              "nativeExpected": 255
+            }
+          ]
+        }
+      ],
+      "controlsValid": true,
+      "nativeMatches": 6,
+      "totalCells": 18,
+      "limitation": "Three isolated additive rows over black only; colored backgrounds, alpha and real spells unverified.",
+      "sha256": {
+        "blend_grid.png": "778fac16839b115badb2c30bac7a09d8a1e3c365973a01449c3ea02a5f7dbf73",
+        "removed.png": "0b37fe2b760522c6101c70c0322547ae6c9dcca72424fd596870988e00b13196"
+      }
+    }
+  },
+  "authoredSourceSha256": {
+    "parity/visual/scenes/particleblend/scene.json": "e0b00fdd5dacf7e9d9ef8a91b09eb6edfff2b5f7ffef5ecb4401969e6be736d7",
+    "parity/visual/scenes/particleblend/vis_main.nss": "3163973830e98fd787146417d12bcf410a4060ccddfef7dfa2444f2f109ea3c3",
+    "parity/visual/scenes/particleblend/vdr_spellturn.mdl": "c8adf964562c447c02dde9e2ee1ce7e71dd89fbf8691772e29116f80cacb80cc",
+    "parity/visual/scenes/particleblend/vtest_gray.tga": "d8885e160c25a5a051b5f94d33f957f587cdadcfbd6026ccc1463daaebc0bf93"
+  },
+  "diagnosticVector4Candidate": {
+    "originalSha256": "17f8de4822389fc1dda53214d86950453c1f61f8c28dd7454bef26fa44f06532",
+    "candidateSourceSha256": "bc5484965bd9c14414b0918fafd31657985aa32a81737a554baab90953b79230",
+    "change": "diff --git a/client/Rendering/Emitters/AuroraEmitter.cs b/client/Rendering/Emitters/AuroraEmitter.cs\nindex 02b26f5..511c69b 100644\n--- a/client/Rendering/Emitters/AuroraEmitter.cs\n+++ b/client/Rendering/Emitters/AuroraEmitter.cs\n@@ -256,9 +256,12 @@ public partial class AuroraEmitter : Node3D\n         m.SetShaderParameter(\"gravity\", e.Mass * Gravity);\n         m.SetShaderParameter(\"drag\", Math.Max(0, e.Drag));\n         float g = Gamma(e);\n-        m.SetShaderParameter(\"col_start\", Linear(e.ColorStart, e.AlphaStart, g));\n-        m.SetShaderParameter(\"col_end\", Linear(e.ColorEnd, e.AlphaEnd, g));\n-        m.SetShaderParameter(\"col_mid\", Linear(e.ColorMid, e.AlphaMid, g));\n+        var startColor = Linear(e.ColorStart, e.AlphaStart, g);\n+        m.SetShaderParameter(\"col_start\", new Vector4(startColor.R, startColor.G, startColor.B, startColor.A));\n+        var endColor = Linear(e.ColorEnd, e.AlphaEnd, g);\n+        m.SetShaderParameter(\"col_end\", new Vector4(endColor.R, endColor.G, endColor.B, endColor.A));\n+        var midColor = Linear(e.ColorMid, e.AlphaMid, g);\n+        m.SetShaderParameter(\"col_mid\", new Vector4(midColor.R, midColor.G, midColor.B, midColor.A));\n         bool hasY = e.SizeStartY != 0 || e.SizeEndY != 0;\n         m.SetShaderParameter(\"size_start\", new Vector2(e.SizeStart, hasY ? e.SizeStartY : e.SizeStart));\n         m.SetShaderParameter(\"size_end\", new Vector2(e.SizeEnd, hasY ? e.SizeEndY : e.SizeEnd));\n",
+    "assemblySha256": "5dd84ee5725f3d67762424ab491304e6dd5c8c82c0206b00cdda58708713c40a"
+  },
+  "excludedEvidence": {
+    "vis_particleblend_vector4": "No client rebuild; source modification not active."
+  }
+}

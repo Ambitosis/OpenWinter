@@ -1,0 +1,176 @@
+newmodel vim_bonac
+setsupermodel vim_bonac NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vim_bonac
+node dummy vim_bonac
+ parent NULL
+endnode
+node dummy center
+ parent vim_bonac
+endnode
+node dummy slide
+ parent center
+ position -3 0 0
+endnode
+node emitter fountain5
+ parent slide
+ position 0 0 0.7
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 0
+ birthrate 5
+ lifeExp 1
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 0.06
+ sizeEnd 0.06
+ sizeStart_y 0.06
+ sizeEnd_y 0.06
+ alphaStart 1
+ alphaEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ inherit 0
+ inherit_local 0
+endnode
+node emitter fountain20
+ parent slide
+ position 0 0 1.4
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 0
+ birthrate 20
+ lifeExp 1
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 0.06
+ sizeEnd 0.06
+ sizeStart_y 0.06
+ sizeEnd_y 0.06
+ alphaStart 1
+ alphaEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ inherit 0
+ inherit_local 0
+endnode
+node emitter trail5
+ parent slide
+ position 0 0 2.1
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 1
+ birthrate 5
+ lifeExp 1
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 0.06
+ sizeEnd 0.06
+ sizeStart_y 0.06
+ sizeEnd_y 0.06
+ alphaStart 1
+ alphaEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ inherit 0
+ inherit_local 0
+endnode
+node emitter trail20
+ parent slide
+ position 0 0 2.8
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 1
+ birthrate 20
+ lifeExp 1
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 0.06
+ sizeEnd 0.06
+ sizeStart_y 0.06
+ sizeEnd_y 0.06
+ alphaStart 1
+ alphaEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ inherit 0
+ inherit_local 0
+endnode
+endmodelgeom vim_bonac
+newanim impact vim_bonac
+ length 5
+ transtime 0
+ animroot vim_bonac
+node dummy vim_bonac
+ parent NULL
+endnode
+node dummy center
+ parent vim_bonac
+endnode
+node dummy slide
+ parent center
+ positionkey 4
+  0 -3 0 0
+  3 -1.5 0 0
+  4 -1.5 0 0
+  5 -1.5 0 0
+endnode
+node emitter fountain5
+ parent slide
+ positionkey 1
+  0 0 0 0.7
+ birthratekey 3
+  0 5
+  3.99 5
+  4 0
+endnode
+node emitter fountain20
+ parent slide
+ positionkey 1
+  0 0 0 1.4
+ birthratekey 3
+  0 20
+  3.99 20
+  4 0
+endnode
+node emitter trail5
+ parent slide
+ positionkey 1
+  0 0 0 2.1
+ birthratekey 3
+  0 5
+  3.99 5
+  4 0
+endnode
+node emitter trail20
+ parent slide
+ positionkey 1
+  0 0 0 2.8
+ birthratekey 3
+  0 20
+  3.99 20
+  4 0
+endnode
+doneanim impact vim_bonac
+donemodel vim_bonac

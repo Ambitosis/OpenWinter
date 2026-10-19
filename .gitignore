@@ -1,0 +1,36 @@
+# Godot
+.godot/
+*.translation
+
+# Local machine paths (copy config/local.example.cfg to config/local.json)
+config/local.json
+
+# Never commit game data or anything extracted from it
+extracted/
+*.mdl
+*.tga
+*.dds
+*.plt
+*.bif
+*.key
+*.erf
+*.hak
+*.mod
+
+# Test/screenshot output
+out/
+# Authored spell audit scenes generated from the installed table; regenerate with spell_evidence.py.
+parity/visual/scenes/spb[0-9][0-9][0-9]/
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+server.json
+
+# Python
+__pycache__/
+# Text test models written for parity scenes (the project's own, never game assets).
+!parity/visual/scenes/**/*.mdl

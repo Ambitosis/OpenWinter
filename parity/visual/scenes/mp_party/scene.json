@@ -1,0 +1,7 @@
+{
+  "tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 15, 0], "facing": 90, "seconds": 130, "gui": true, "chatLog": true,
+  "multiplayer": {
+    "oneParty": false,
+    "players": [{ "name": "MPA", "character": "fighter" }, { "name": "MPB", "character": "aluviandarkstar" }]
+  }
+}

@@ -1,0 +1,31 @@
+# Wholly authored module-content marker, same resref with different color in each module.
+newmodel c_rat
+setsupermodel c_rat NULL
+classification Character
+setanimationscale 1
+beginmodelgeom c_rat
+node dummy c_rat
+ parent NULL
+endnode
+node trimesh marker
+ parent c_rat
+ bitmap NULL
+ diffuse 1 0 0
+ ambient 1 0 0
+ selfillumcolor 1 0 0
+ render 1
+ shadow 0
+ verts 5
+ -1 -1 0
+ 1 -1 0
+ 1 1 0
+ -1 1 0
+ 0 0 3
+ faces 4
+ 0 1 4 1 0 0 0 0
+ 1 2 4 1 0 0 0 0
+ 2 3 4 1 0 0 0 0
+ 3 0 4 1 0 0 0 0
+endnode
+endmodelgeom c_rat
+donemodel c_rat

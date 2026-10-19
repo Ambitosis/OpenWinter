@@ -1,0 +1,9 @@
+{
+  "tileset": "tde01", "tile": 4, "size": 6, "pc": [20, 15, 0], "facing": 90, "seconds": 150, "gui": true, "chatLog": true,
+  "doors": [{ "template": "nw_door_normal", "tag": "MP_DOOR", "position": [20, 26, 0], "facing": 0 }],
+  "extraAreas": [{ "resref": "mp_far", "tag": "MP_FAR", "tileset": "tde01", "tile": 4, "size": 2 }],
+  "multiplayer": {
+    "oneParty": false,
+    "players": [{ "name": "MPA", "character": "fighter" }, { "name": "MPB", "character": "aluviandarkstar" }]
+  }
+}

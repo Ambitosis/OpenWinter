@@ -1,0 +1,41 @@
+{
+  "source_hashes_during_run": {
+    "fc_chat.nss": "da0986098f789d0d69d22686c56341ea9dd7fca003712c0f08adf0976209aadf",
+    "fc_edit.nss": "3613853d9bb64c8b9e04dbbfad569adbe83e446d6a6849d1c91129d9a1ca0561",
+    "scene.json": "61e704ca8fd18fb35106c32dd3c01c59bf02e6346f3ced476cd65c7d806611c2",
+    "vis_main.nss": "42fa38de45302d7c26192037ba1c0b13b6af85a233fcbf381cf48d78cbc3de4c"
+  },
+  "marker_added_after_run": true,
+  "native_notes": [
+    "VISUAL|note|ready|masterpc=1|familiarpc=0|possessed=0|masterss=227|familiarss=6",
+    "VISUAL|note|chat|text=MASTER_BEFORE|volume=0|master=1|familiar=0|ispc=1|possessed=0|name=000 Familiar Possession|player=",
+    "VISUAL|note|nested_enter|event=3017|direct=0",
+    "VISUAL|note|nested_return|text=EDITED_MASTER|volume=0|event=3017|direct=3017",
+    "VISUAL|note|possessed|masterpc=0|familiarpc=1|possessed=1|masterss=227|familiarss=6",
+    "VISUAL|note|chat|text=FAMILIAR_CHAT|volume=0|master=0|familiar=1|ispc=1|possessed=1|name=Thamat|player=",
+    "VISUAL|note|nested_enter|event=3017|direct=0",
+    "VISUAL|note|nested_return|text=EDITED_FAMILIAR|volume=1|event=3017|direct=3017",
+    "VISUAL|note|returned|masterpc=1|familiarpc=0|possessed=0|masterss=227|familiarss=6",
+    "VISUAL|note|chat|text=MASTER_AFTER|volume=0|master=1|familiar=0|ispc=1|possessed=0|name=000 Familiar Possession|player=",
+    "VISUAL|note|nested_enter|event=3017|direct=0",
+    "VISUAL|note|nested_return|text=MASTER_AFTER|volume=0|event=3017|direct=3017",
+    "VISUAL|note|suppressed|length=0"
+  ],
+  "native_hashes": {
+    "a_possessed_chat.png": "de0975ee4bdf169b58043c994e5bae72118f1c59737aa809977e8008cecca6ad",
+    "b_quickchat_root.png": "9cc5e09a996080df27fd6ea772c83c7fbb9c2ebaf13f15b905c540d875cbd3d3",
+    "c_quickchat_selected.png": "7d0b14513a12b4603c908f1068da6e576760f4952af83a43badbc1c90241c20a",
+    "d_returned_chat.png": "728b78e97b5e904d73a00c20c69d70b76f29d9f9706cd470e94e517d23fc7204",
+    "notes.txt": "fbe99bc843792f7f1db1727f5fbf468b4a1c263d5faddd9cf80e0c26dff0528c",
+    "shots.txt": "e01901127434406cde28f6d47e3ed712f8044a11736d9c59d711b77946e71b53"
+  },
+  "native_exit_code": 1,
+  "exit_reason": "Post-run character-fixture exact marker missing; script independently validates exact generated PC name in Ready, actual screenshots and possession gates accepted. Marker added for future runs.",
+  "manual": {
+    "path": "<NWN install>\\lang\\en\\docs\\legacy\\NWN_OnlineManual.pdf",
+    "sha256": "5bc7e027788226fee3d8a3c8923d48102b77f820b841ebcf7d84d98462398cb9",
+    "pdf_page": 9,
+    "rule": "/P sends message to other party members"
+  },
+  "focused_tests": 3
+}

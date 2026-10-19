@@ -1,0 +1,1 @@
+{"tileset":"tde01","tile":4,"size":4,"pc":[20,15,0],"facing":90,"seconds":18,"gui":true,"character":"aluviandarkstar","characterFixture":{"name":"Separate Potion Queue Probe","replaceItems":[{"x":7,"y":0,"resref":"nw_it_mpotion001","stack":1},{"x":8,"y":0,"resref":"nw_it_mpotion001","stack":1},{"x":9,"y":0,"resref":"nw_it_mpotion001","stack":1}]}}

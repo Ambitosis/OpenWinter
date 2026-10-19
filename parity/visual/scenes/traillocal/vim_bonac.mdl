@@ -1,0 +1,73 @@
+newmodel vim_bonac
+setsupermodel vim_bonac NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vim_bonac
+node dummy vim_bonac
+ parent NULL
+endnode
+node dummy camera_center
+ parent vim_bonac
+ position 0 0 1.7
+endnode
+node dummy camera_pivot
+ parent camera_center
+endnode
+node emitter camera
+ parent camera_pivot
+ position 1.1 0 0
+ update Fountain
+ render Aligned_to_Particle_Dir
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 1
+ birthrate 20
+ lifeExp 1.2
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 0.55
+ sizeEnd 0.55
+ sizeStart_y 0.10
+ sizeEnd_y 0.10
+ alphaStart 1
+ alphaEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ inherit 0
+ inherit_local 1
+endnode
+endmodelgeom vim_bonac
+newanim impact vim_bonac
+ length 6
+ transtime 0
+ animroot vim_bonac
+ node dummy vim_bonac
+  parent NULL
+ endnode
+ node dummy camera_center
+  parent vim_bonac
+ endnode
+ node dummy camera_pivot
+  parent camera_center
+  orientationkey 7
+   0 0 1 0 0.0000000000
+   1 0 1 0 1.5707963268
+   2 0 1 0 3.1415926536
+   3 0 1 0 4.7123889804
+   4 0 1 0 6.2831853072
+   5 0 1 0 7.8539816340
+   6 0 1 0 9.4247779608
+ endnode
+ node emitter camera
+  parent camera_pivot
+  birthratekey 4
+   0 20
+   4.99 20
+   5 0
+   6 0
+ endnode
+doneanim impact vim_bonac
+donemodel vim_bonac

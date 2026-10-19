@@ -1,0 +1,75 @@
+{
+  "template": "nw_drowcler020",
+  "classLevels": [
+    {
+      "class": 2,
+      "level": 20,
+      "memorizedSpells": {
+        "0": [
+          {
+            "spell": 6
+          }
+        ],
+        "1": [
+          {
+            "spell": 6
+          }
+        ],
+        "2": [
+          {
+            "spell": 6
+          }
+        ],
+        "3": [
+          {
+            "spell": 6
+          }
+        ],
+        "4": [
+          {
+            "spell": 6
+          }
+        ],
+        "5": [
+          {
+            "spell": 6
+          }
+        ],
+        "6": [
+          {
+            "spell": 6
+          }
+        ],
+        "7": [
+          {
+            "spell": 6
+          }
+        ],
+        "8": [
+          {
+            "spell": 6
+          }
+        ],
+        "9": [
+          {
+            "spell": 6
+          }
+        ]
+      },
+      "domains": [
+        13,
+        0
+      ]
+    }
+  ],
+  "abilities": {
+    "wisdom": 20
+  },
+  "feats": [
+    320,
+    311,
+    12,
+    25
+  ],
+  "equipment": []
+}

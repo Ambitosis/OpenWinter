@@ -1,0 +1,1 @@
+void main(){object m=GetModule();SetLocalInt(m,"deaths",GetLocalInt(m,"deaths")+1);WriteTimestampedLogEntry("VISUAL|note|fatal.death."+IntToString(GetLocalInt(OBJECT_SELF,"trial")));DelayCommand(1.0,ExecuteScript("vis_next",m));DelayCommand(2.0,DestroyObject(OBJECT_SELF));}

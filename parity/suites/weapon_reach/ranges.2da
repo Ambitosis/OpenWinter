@@ -1,0 +1,17 @@
+2DA V2.0
+
+Label PrimaryRange SecondaryRange
+0 SpellRngPers 0 ****
+1 SpellRngTouch 1.5 ****
+2 SpellRngShrt 4 ****
+3 SpellRngMed 7 ****
+4 SpellRngLng 10 ****
+5 WeaponRngShrt 4 ****
+6 WeaponRngMed 8 ****
+7 WeaponRngLng 12 ****
+8 PercepRngShrt 120 120
+9 PercepRngMed 120 120
+10 PercepRngLng 120 120
+11 PercepRngDefault **** ****
+12 PercepRngPlayer 120 120
+13 PercepRngMonster 120 120

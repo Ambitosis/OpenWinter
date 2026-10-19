@@ -1,0 +1,22 @@
+{
+ "rows": [
+  {
+   "row": 0,
+   "values": {
+    "LABEL": "PPTest",
+    "ReqType": "SAVE",
+    "ReqParam1": "1",
+    "ReqParam2": "9"
+   }
+  },
+  {
+   "row": 1,
+   "values": {
+    "LABEL": "PPNone",
+    "ReqType": "VAR",
+    "ReqParam1": "PP_None",
+    "ReqParam2": "0"
+   }
+  }
+ ]
+}

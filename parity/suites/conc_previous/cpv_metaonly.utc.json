@@ -1,0 +1,12 @@
+{
+  "template": "nw_drowmage020",
+  "hitPoints": 1000,
+  "classLevels": [ { "class": 10, "level": 20,
+    "knownSpells": { "1": [0, 2] },
+    "memorizedSpells": { "1": [ { "spell": 2, "ready": true } ], "3": [ { "spell": 0, "ready": true, "metamagic": 1 } ] } } ],
+  "skills": { "1": 0 },
+  "feats": [11],
+  "equipment": [],
+  "items": [],
+  "abilities": { "intelligence": 20 }
+}

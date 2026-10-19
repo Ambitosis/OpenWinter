@@ -1,0 +1,2 @@
+#include "fpa_time"
+void main(){WriteTimestampedLogEntry("VISUAL|note|impact."+IntToString(GetLocalInt(GetModule(),"fpa_step"))+".spell."+IntToString(GetSpellId()));WriteTimestampedLogEntry("VISUAL|note|elapsed."+IntToString(GetLocalInt(GetModule(),"fpa_step"))+"."+FloatToString(PNow()-GetLocalFloat(GetModule(),"fpa_casttime"),0,3));AssignCommand(GetLocalObject(GetModule(),"fpa_marker"),PlaySound("fpa_hit"));}

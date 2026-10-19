@@ -1,0 +1,2 @@
+{ "starts": [0], "entries": [ { "text": "This line adds Quest B, entry 1.", "quest": "q_b", "questEntry": 1, "replies": [0] } ],
+  "replies": [ { "text": "Goodbye." } ] }

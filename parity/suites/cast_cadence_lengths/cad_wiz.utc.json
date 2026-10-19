@@ -1,0 +1,70 @@
+{
+  "template": "nw_drowmage020",
+  "classLevels": [
+    {
+      "class": 10,
+      "level": 20,
+      "knownSpells": {
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "memorizedSpells": {
+        "1": [
+          {
+            "spell": 0,
+            "ready": true,
+            "metamagic": 0
+          },
+          {
+            "spell": 1,
+            "ready": true,
+            "metamagic": 0
+          },
+          {
+            "spell": 2,
+            "ready": true,
+            "metamagic": 0
+          },
+          {
+            "spell": 3,
+            "ready": true,
+            "metamagic": 0
+          }
+        ],
+        "5": [
+          {
+            "spell": 0,
+            "ready": true,
+            "metamagic": 8
+          },
+          {
+            "spell": 1,
+            "ready": true,
+            "metamagic": 8
+          },
+          {
+            "spell": 2,
+            "ready": true,
+            "metamagic": 8
+          },
+          {
+            "spell": 3,
+            "ready": true,
+            "metamagic": 8
+          }
+        ]
+      }
+    }
+  ],
+  "feats": [
+    29
+  ],
+  "equipment": [],
+  "abilities": {
+    "intelligence": 20
+  }
+}

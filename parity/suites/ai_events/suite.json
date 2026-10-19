@@ -1,0 +1,163 @@
+{
+ "seconds": 70,
+ "tile": 4,
+ "size": 2,
+ "factions": "Prelude",
+ "areas": [
+  {
+   "resref": "aih00",
+   "tag": "AIH00",
+   "size": 4
+  },
+  {
+   "resref": "aip00",
+   "tag": "AIP00",
+   "size": 4
+  },
+  {
+   "resref": "aip01",
+   "tag": "AIP01",
+   "size": 4
+  },
+  {
+   "resref": "aip02",
+   "tag": "AIP02",
+   "size": 4
+  },
+  {
+   "resref": "aip03",
+   "tag": "AIP03",
+   "size": 4
+  },
+  {
+   "resref": "aip04",
+   "tag": "AIP04",
+   "size": 4
+  },
+  {
+   "resref": "aip05",
+   "tag": "AIP05",
+   "size": 4
+  },
+  {
+   "resref": "aip06",
+   "tag": "AIP06",
+   "size": 4
+  },
+  {
+   "resref": "aip07",
+   "tag": "AIP07",
+   "size": 4
+  },
+  {
+   "resref": "aip08",
+   "tag": "AIP08",
+   "size": 4
+  },
+  {
+   "resref": "aip09",
+   "tag": "AIP09",
+   "size": 4
+  },
+  {
+   "resref": "aip10",
+   "tag": "AIP10",
+   "size": 4
+  },
+  {
+   "resref": "aip11",
+   "tag": "AIP11",
+   "size": 4
+  },
+  {
+   "resref": "aip12",
+   "tag": "AIP12",
+   "size": 4
+  },
+  {
+   "resref": "aip13",
+   "tag": "AIP13",
+   "size": 4
+  },
+  {
+   "resref": "aip14",
+   "tag": "AIP14",
+   "size": 4
+  },
+  {
+   "resref": "aip15",
+   "tag": "AIP15",
+   "size": 4
+  },
+  {
+   "resref": "aic00",
+   "tag": "AIC00",
+   "size": 2
+  },
+  {
+   "resref": "aic01",
+   "tag": "AIC01",
+   "size": 2
+  },
+  {
+   "resref": "aic02",
+   "tag": "AIC02",
+   "size": 2
+  },
+  {
+   "resref": "aic03",
+   "tag": "AIC03",
+   "size": 2
+  },
+  {
+   "resref": "aic04",
+   "tag": "AIC04",
+   "size": 2
+  },
+  {
+   "resref": "aic05",
+   "tag": "AIC05",
+   "size": 2
+  },
+  {
+   "resref": "aic06",
+   "tag": "AIC06",
+   "size": 2
+  },
+  {
+   "resref": "aic07",
+   "tag": "AIC07",
+   "size": 2
+  },
+  {
+   "resref": "air00",
+   "tag": "AIR00",
+   "size": 3
+  },
+  {
+   "resref": "air01",
+   "tag": "AIR01",
+   "size": 3
+  },
+  {
+   "resref": "air02",
+   "tag": "AIR02",
+   "size": 3
+  },
+  {
+   "resref": "air03",
+   "tag": "AIR03",
+   "size": 3
+  },
+  {
+   "resref": "air04",
+   "tag": "AIR04",
+   "size": 3
+  },
+  {
+   "resref": "air05",
+   "tag": "AIR05",
+   "size": 3
+  }
+ ]
+}

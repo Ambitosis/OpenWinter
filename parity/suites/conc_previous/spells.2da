@@ -1,0 +1,6 @@
+2DA V2.0
+
+ Label Name School Range VS MetaMagic TargetType ImpactScript Innate ConjTime ConjAnim CastAnim CastTime Proj UserType UseConcentration HostileSetting HasProjectile Wiz_Sorc
+0 Level1 **** A P vs 0x3f 0x2F cpv_impact 1 3000 hand self 1000 0 1 1 0 0 1
+1 Level9 **** A P vs 0x3f 0x2F cpv_impact 9 3000 hand self 1000 0 1 1 0 0 9
+2 NoConc **** A P vs 0x3f 0x2F cpv_impact 1 3000 hand self 1000 0 1 0 0 0 1

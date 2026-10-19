@@ -1,0 +1,14 @@
+{
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 4,
+  "pc": [
+    20,
+    18,
+    0
+  ],
+  "facing": 90,
+  "seconds": 8,
+  "difficulty": 3,
+  "description": "Static parent, four emitter orientations, including axial roll, Aligned_to_Particle_Dir, velocity 0; rectangular positive controls."
+}

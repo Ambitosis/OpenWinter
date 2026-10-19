@@ -1,0 +1,28 @@
+{
+  "seconds": 60,
+  "size": 6,
+  "tile": 4,
+  "templates": {
+    "p_mover": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_MOVER",
+        "Str": 10
+      }
+    }
+  }
+}

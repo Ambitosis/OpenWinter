@@ -1,0 +1,1 @@
+void main(){int n=GetLocalInt(OBJECT_SELF,"trial");SetLocalInt(OBJECT_SELF,"attacks",GetLocalInt(OBJECT_SELF,"attacks")+1);WriteTimestampedLogEntry("VISUAL|note|entry.attack."+IntToString(n)+".attackerPC."+IntToString(GetIsPC(GetLastAttacker())));}

@@ -1,0 +1,33 @@
+{
+ "seconds": 70,
+ "tile": 4,
+ "size": 8,
+ "areas": [
+  { "resref": "sp_a", "tag": "SP_A", "size": 8 },
+  { "resref": "sp_b", "tag": "SP_B", "size": 8 },
+  { "resref": "sp_c", "tag": "SP_C", "size": 8 }
+ ],
+ "templates": {
+  "sp_c": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "sp_hb",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "sp_perc",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "SP_C",
+    "PerceptionRange": 10
+   }
+  }
+ }
+}

@@ -1,0 +1,5 @@
+{
+  "starts": [0], "endScript": "ce_ended", "abortScript": "ce_aborted",
+  "entries": [{ "text": "A line with two answers.", "replies": [0, 1] }, { "text": "Fine.", "replies": [] }],
+  "replies": [{ "text": "Finish.", "entries": [] }, { "text": "Go on.", "entries": [1] }]
+}

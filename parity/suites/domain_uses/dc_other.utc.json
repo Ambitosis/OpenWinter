@@ -1,0 +1,163 @@
+{
+  "template": "nw_drowcler020",
+  "classLevels": [
+    {
+      "class": 2,
+      "level": 20,
+      "domains": [
+        0,
+        1
+      ],
+      "memorizedSpells": {
+        "0": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "1": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "2": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "3": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "4": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "5": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "6": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "7": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "8": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ],
+        "9": [
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          },
+          {
+            "spell": 6,
+            "ready": false
+          }
+        ]
+      }
+    }
+  ],
+  "abilities": {
+    "wisdom": 20
+  },
+  "feats": [
+    12,
+    25
+  ],
+  "equipment": []
+}

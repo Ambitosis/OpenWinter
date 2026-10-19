@@ -1,0 +1,1 @@
+{"tileset":"tde01","tile":4,"size":4,"pc":[20,17,0],"facing":90,"gui":true,"softwareCursor":true,"seconds":55,"doors":[{"template":"nw_door_strong","tag":"probe_door","position":[20,20,0],"facing":0}],"are":{"SunAmbientColor":8421504,"SunDiffuseColor":0,"MoonAmbientColor":8421504,"MoonDiffuseColor":0,"FogClipDist":100}}

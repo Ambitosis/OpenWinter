@@ -1,0 +1,7 @@
+{ "tileset": "ttr01", "tile": 109, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 40,
+  "are": { "MoonShadows": 0, "MoonFogAmount": 0, "IsNight": 1 },
+  "variants": {
+    "ambient": { "are": { "MoonAmbientColor": 8421504, "MoonDiffuseColor": 0 } },
+    "diffuse": { "are": { "MoonAmbientColor": 0, "MoonDiffuseColor": 8421504 } },
+    "graveyard": { "are": { "MoonAmbientColor": 0, "MoonDiffuseColor": 2570047 } }
+  } }

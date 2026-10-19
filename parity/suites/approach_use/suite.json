@@ -1,0 +1,21 @@
+{
+ "seconds": 45,
+ "tile": 4,
+ "size": 8,
+ "templates": {
+  "ap_door": {"from": "nw_door_normal", "type": "utd", "set": {"OnDeath": ""}},
+  "ap_trig": {"from": "newgeneric", "type": "utt", "set": {"ScriptOnEnter": "ap_tenter"}}
+ },
+ "instances": [
+  {"type": "utd", "from": "ap_door", "x": 10, "y": 15, "facing": 0, "set": {"Tag": "D_OD_H"}},
+  {"type": "utd", "from": "ap_door", "x": 20, "y": 15, "facing": 0, "set": {"Tag": "D_OD_O"}},
+  {"type": "utd", "from": "ap_door", "x": 30, "y": 15, "facing": 0, "set": {"Tag": "D_OD_L"}},
+  {"type": "utd", "from": "ap_door", "x": 40, "y": 15, "facing": 0, "set": {"Tag": "D_MD_H"}},
+  {"type": "utd", "from": "ap_door", "x": 50, "y": 15, "facing": 0, "set": {"Tag": "D_MD_H3"}},
+  {"type": "utd", "from": "ap_door", "x": 60, "y": 15, "facing": 0, "set": {"Tag": "D_J110"}},
+  {"type": "utd", "from": "ap_door", "x": 70, "y": 15, "facing": 0, "set": {"Tag": "D_J120"}},
+  {"type": "utt", "from": "ap_trig", "x": 40, "y": 60, "points": [[0, 0], [6, 0], [6, 6], [0, 6]], "set": {"Tag": "TG1"}},
+  {"type": "utt", "from": "ap_trig", "x": 60, "y": 60, "points": [[0, 0], [6, 0], [6, 6], [0, 6]], "set": {"Tag": "TG2"}},
+  {"type": "utt", "from": "ap_trig", "x": 20, "y": 60, "points": [[0, 0], [6, 0], [6, 6], [0, 6]], "set": {"Tag": "TG3"}}
+ ]
+}

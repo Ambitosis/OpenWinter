@@ -1,0 +1,85 @@
+{
+  "seconds": 22,
+  "tile": 4,
+  "templates": {
+    "db_actor": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_GOB",
+        "ScriptOnBlocked": "db_blocked"
+      }
+    },
+    "db_door": {
+      "from": "nw_door_metal",
+      "type": "utd",
+      "set": {
+        "OnHeartbeat": "",
+        "OnOpen": "",
+        "OnClosed": ""
+      }
+    }
+  },
+  "instances": [
+    {
+      "type": "utd",
+      "from": "db_door",
+      "x": 10,
+      "y": 10,
+      "facing": 0,
+      "set": {
+        "Tag": "QUIET",
+        "Locked": 0,
+        "Lockable": 1
+      }
+    },
+    {
+      "type": "utd",
+      "from": "db_door",
+      "x": 30,
+      "y": 10,
+      "facing": 0,
+      "set": {
+        "Tag": "OPEN",
+        "Locked": 0,
+        "Lockable": 1
+      }
+    },
+    {
+      "type": "utd",
+      "from": "db_door",
+      "x": 10,
+      "y": 30,
+      "facing": 0,
+      "set": {
+        "Tag": "RECOVER",
+        "Locked": 0,
+        "Lockable": 1
+      }
+    },
+    {
+      "type": "utd",
+      "from": "db_door",
+      "x": 30,
+      "y": 30,
+      "facing": 0,
+      "set": {
+        "Tag": "LOCKED",
+        "Locked": 1,
+        "Lockable": 1
+      }
+    }
+  ]
+}

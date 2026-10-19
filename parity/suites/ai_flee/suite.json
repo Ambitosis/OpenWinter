@@ -1,0 +1,68 @@
+{
+ "seconds": 70,
+ "tile": 4,
+ "size": 4,
+ "factions": "Prelude",
+ "areas": [
+  {
+   "resref": "ai00",
+   "tag": "AI00",
+   "size": 4
+  },
+  {
+   "resref": "ai01",
+   "tag": "AI01",
+   "size": 4
+  },
+  {
+   "resref": "ai02",
+   "tag": "AI02",
+   "size": 4
+  },
+  {
+   "resref": "ai03",
+   "tag": "AI03",
+   "size": 4
+  },
+  {
+   "resref": "ai04",
+   "tag": "AI04",
+   "size": 4
+  },
+  {
+   "resref": "ai05",
+   "tag": "AI05",
+   "size": 4
+  },
+  {
+   "resref": "ai06",
+   "tag": "AI06",
+   "size": 4
+  },
+  {
+   "resref": "ai07",
+   "tag": "AI07",
+   "size": 4
+  },
+  {
+   "resref": "ai08",
+   "tag": "AI08",
+   "size": 4
+  },
+  {
+   "resref": "ai09",
+   "tag": "AI09",
+   "size": 4
+  },
+  {
+   "resref": "ai10",
+   "tag": "AI10",
+   "size": 4
+  },
+  {
+   "resref": "ai11",
+   "tag": "AI11",
+   "size": 4
+  }
+ ]
+}

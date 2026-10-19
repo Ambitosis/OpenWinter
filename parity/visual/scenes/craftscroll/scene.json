@@ -1,0 +1,2 @@
+{"tileset": "ttr01", "tile": 109, "size": 6, "pc": [30, 25, 0], "facing": 90, "seconds": 45, "gui": true, "chatLog": true,
+ "character": "aluviandarkstar", "characterFixture": {"name": "Craft Probe", "addFeats": [945]}}

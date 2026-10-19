@@ -1,0 +1,154 @@
+newmodel vim_bonac
+setsupermodel vim_bonac NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vim_bonac
+node dummy vim_bonac
+ parent NULL
+endnode
+node emitter marker0
+ parent vim_bonac
+ position -3 0 2
+ orientation 1 0 0 0
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 0
+ birthrate 5
+ lifeExp 1.2
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 1
+ sizeEnd 1
+ sizeStart_y 0.15
+ sizeEnd_y 0.15
+ alphaStart 1
+ alphaEnd 1
+ colorStart 1 0 0
+ colorEnd 1 0 0
+ inherit 0
+ inherit_local 0
+endnode
+node emitter marker1
+ parent vim_bonac
+ position -1 0 2
+ orientation 0 1 0 1.5707963268
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 0
+ birthrate 5
+ lifeExp 1.2
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 1
+ sizeEnd 1
+ sizeStart_y 0.15
+ sizeEnd_y 0.15
+ alphaStart 1
+ alphaEnd 1
+ colorStart 0 1 0
+ colorEnd 0 1 0
+ inherit 0
+ inherit_local 0
+endnode
+node emitter marker2
+ parent vim_bonac
+ position 1 0 2
+ orientation 1 0 0 1.5707963268
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 0
+ birthrate 5
+ lifeExp 1.2
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 1
+ sizeEnd 1
+ sizeStart_y 0.15
+ sizeEnd_y 0.15
+ alphaStart 1
+ alphaEnd 1
+ colorStart 0 0 1
+ colorEnd 0 0 1
+ inherit 0
+ inherit_local 0
+endnode
+node emitter marker3
+ parent vim_bonac
+ position 3 0 2
+ orientation 0 0 1 1.5707963268
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ spawntype 0
+ birthrate 5
+ lifeExp 1.2
+ velocity 0
+ randvel 0
+ spread 0
+ sizeStart 1
+ sizeEnd 1
+ sizeStart_y 0.15
+ sizeEnd_y 0.15
+ alphaStart 1
+ alphaEnd 1
+ colorStart 1 1 0
+ colorEnd 1 1 0
+ inherit 0
+ inherit_local 0
+endnode
+endmodelgeom vim_bonac
+newanim impact vim_bonac
+ length 4
+ transtime 0
+ animroot vim_bonac
+ node dummy vim_bonac
+  parent NULL
+ endnode
+ node emitter marker0
+  parent vim_bonac
+  birthratekey 3
+   0 5
+   2 5
+   2.01 0
+ endnode
+ node emitter marker1
+  parent vim_bonac
+  birthratekey 3
+   0 5
+   2 5
+   2.01 0
+ endnode
+ node emitter marker2
+  parent vim_bonac
+  birthratekey 3
+   0 5
+   2 5
+   2.01 0
+ endnode
+ node emitter marker3
+  parent vim_bonac
+  birthratekey 3
+   0 5
+   2 5
+   2.01 0
+ endnode
+doneanim impact vim_bonac
+donemodel vim_bonac

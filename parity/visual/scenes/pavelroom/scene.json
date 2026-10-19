@@ -1,0 +1,2 @@
+{ "source": { "module": "Prelude", "area": "m0q1d", "keepCreatures": true, "moduleScripts": ["m1q0ddeadgob_9"] },
+  "pc": [44, 101, 0], "facing": 90, "seconds": 40 }

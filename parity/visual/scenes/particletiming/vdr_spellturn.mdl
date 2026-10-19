@@ -1,0 +1,126 @@
+newmodel vdr_spellturn
+setsupermodel vdr_spellturn NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vdr_spellturn
+node dummy vdr_spellturn
+ parent NULL
+endnode
+node emitter random
+ parent vdr_spellturn
+ position -2 0 1.5
+ update Single
+ render Normal
+ blend Normal
+ texture fxpa_Symbl_001
+ xgrid 2
+ ygrid 2
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1.5
+ sizeEnd 1.5
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ frameStart 0
+ frameEnd 3
+ random 1
+ fps 2
+endnode
+node emitter fixed
+ parent vdr_spellturn
+ position 0 0 1.5
+ update Single
+ render Normal
+ blend Normal
+ texture fxpa_Symbl_001
+ xgrid 2
+ ygrid 2
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1.5
+ sizeEnd 1.5
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ frameStart 0
+ frameEnd 3
+ random 0
+ fps 2
+endnode
+node emitter still
+ parent vdr_spellturn
+ position 2 0 1.5
+ update Single
+ render Normal
+ blend Normal
+ texture fxpa_Symbl_001
+ xgrid 2
+ ygrid 2
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1.5
+ sizeEnd 1.5
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ frameStart 0
+ frameEnd 3
+ random 1
+ fps 0
+endnode
+node emitter fountain
+ parent vdr_spellturn
+ position 0 0 0.1
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ birthrate 12
+ lifeExp 2
+ velocity 1
+ sizeStart 0.15
+ sizeEnd 0.15
+ colorStart 1 0 0
+ colorEnd 1 0 0
+ alphaStart 1
+ alphaEnd 1
+endnode
+endmodelgeom vdr_spellturn
+newanim impact vdr_spellturn
+ length 0.1
+ transtime 0
+ animroot vdr_spellturn
+ node dummy vdr_spellturn
+  parent NULL
+ endnode
+ node emitter fountain
+  parent vdr_spellturn
+  birthratekey 3
+   0 12
+   0.05 14
+   0.1 12
+ endnode
+doneanim impact vdr_spellturn
+newanim duration vdr_spellturn
+ length 1.0
+ transtime 0
+ animroot vdr_spellturn
+ node dummy vdr_spellturn
+  parent NULL
+ endnode
+ node emitter fountain
+  parent vdr_spellturn
+  birthratekey 3
+   0 12
+   0.5 14
+   1.0 12
+ endnode
+doneanim duration vdr_spellturn
+donemodel vdr_spellturn

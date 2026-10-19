@@ -1,0 +1,1 @@
+Native release-position probe. The corrected run places a shield in chest cell (0,3), then releases a club over it and observes first-free relocation to (0,0). Posted hover is not reliable native cursor evidence.

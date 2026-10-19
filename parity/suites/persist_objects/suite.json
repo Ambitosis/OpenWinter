@@ -1,0 +1,16 @@
+{
+  "seconds": 40, "tile": 4, "size": 6,
+  "templates": {
+    "po_crt": { "from": "nw_bandit001", "type": "utc", "set": { "Tag": "PO_CRT", "ScriptSpawn": "", "ScriptHeartbeat": "", "ScriptOnNotice": "", "ScriptEndRound": "", "ScriptUserDefine": "" } },
+    "po_door": { "from": "nw_door_metal", "type": "utd", "set": { "Tag": "PO_DOOR" } },
+    "po_trig": { "from": "newgeneric", "type": "utt", "set": { "Tag": "PO_TRIG" } },
+    "po_snd": { "from": "bellrings", "type": "uts", "set": { "Tag": "PO_SND" } },
+    "po_enc": { "from": "nw_goblingrp", "type": "ute", "set": { "Tag": "PO_ENC", "Active": 0 } }
+  },
+  "instances": [
+    { "type": "utd", "from": "po_door", "x": 30, "y": 30, "facing": 0 },
+    { "type": "utt", "from": "po_trig", "x": 10, "y": 30, "w": 4, "h": 4 },
+    { "type": "uts", "from": "po_snd", "x": 12, "y": 12 },
+    { "type": "ute", "from": "po_enc", "x": 30, "y": 10, "w": 4, "h": 4, "spawnPoints": [[30, 14, 90]] }
+  ]
+}

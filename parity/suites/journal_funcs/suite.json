@@ -1,0 +1,12 @@
+{
+ "seconds": 20,
+ "tile": 4,
+ "journal": [
+  { "tag": "q_a", "name": "Quest A", "xp": 150, "priority": 1,
+    "entries": [ { "id": 1, "text": "A begins." }, { "id": 2, "text": "A goes on." }, { "id": 3, "text": "A is done.", "end": 1 } ] },
+  { "tag": "Q_Mixed", "name": "Mixed Case", "xp": 25,
+    "entries": [ { "id": 10, "text": "Mixed begins." }, { "id": 20, "text": "Mixed ends.", "end": 1 } ] },
+  { "tag": "q_noxp", "name": "No XP",
+    "entries": [ { "id": 1, "text": "Nothing." } ] }
+ ]
+}

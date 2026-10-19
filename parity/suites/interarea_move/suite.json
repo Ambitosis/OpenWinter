@@ -1,0 +1,2098 @@
+{
+ "seconds": 85,
+ "tile": 4,
+ "templates": {
+  "ia_walk": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "IA_WALK",
+    "ScriptOnBlocked": "ia_blocked"
+   }
+  },
+  "ia_stock": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "Tag": "IA_STOCK"
+   }
+  },
+  "ia_door": {
+   "from": "nw_door_normal",
+   "type": "utd",
+   "set": {
+    "OnDeath": "",
+    "OnOpen": "ia_open",
+    "OnFailToOpen": "ia_fail"
+   }
+  },
+  "ia_tr": {
+   "from": "newtransition",
+   "type": "utt",
+   "set": {
+    "ScriptOnEnter": "ia_tenter"
+   }
+  },
+  "ia_wp": {
+   "from": "nw_waypoint001",
+   "type": "utw"
+  }
+ },
+ "areaEvents": {
+  "OnEnter": "ia_aenter",
+  "OnExit": "ia_aexit"
+ },
+ "areas": [
+  {
+   "resref": "ia_hub",
+   "tag": "IA_HUB",
+   "size": 2,
+   "instances": []
+  },
+  {
+   "resref": "mda",
+   "tag": "MDA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "MD_0",
+      "LinkedTo": "MD_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "MD_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mdb",
+   "tag": "MDB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "MD_0_R",
+      "LinkedTo": "MD_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "MD_1",
+      "LinkedTo": "MD_1_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mdc",
+   "tag": "MDC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "MD_1_R",
+      "LinkedTo": "MD_1",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "MD_2",
+      "LinkedTo": "MD_2_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mdd",
+   "tag": "MDD",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "MD_2_R",
+      "LinkedTo": "MD_2",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "MD_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mta",
+   "tag": "MTA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "MT_0",
+      "LinkedTo": "MT_0_RWP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22.5,
+     "set": {
+      "Tag": "MT_0_WP"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "MT_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mtb",
+   "tag": "MTB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "MT_0_RWP"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 5,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "MT_0_R",
+      "LinkedTo": "MT_0_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "MT_1",
+      "LinkedTo": "MT_1_RWP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22.5,
+     "set": {
+      "Tag": "MT_1_WP"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mtc",
+   "tag": "MTC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "MT_1_RWP"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 5,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "MT_1_R",
+      "LinkedTo": "MT_1_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "MT_2",
+      "LinkedTo": "MT_2_RWP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22.5,
+     "set": {
+      "Tag": "MT_2_WP"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mtd",
+   "tag": "MTD",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "MT_2_RWP"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 5,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "MT_2_R",
+      "LinkedTo": "MT_2_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "MT_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mra",
+   "tag": "MRA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "MR_0",
+      "LinkedTo": "MR_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "MR_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mrb",
+   "tag": "MRB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "MR_0_R",
+      "LinkedTo": "MR_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "MR_1",
+      "LinkedTo": "MR_1_RWP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22.5,
+     "set": {
+      "Tag": "MR_1_WP"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mrc",
+   "tag": "MRC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "MR_1_RWP"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 5,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "MR_1_R",
+      "LinkedTo": "MR_1_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "MR_2",
+      "LinkedTo": "MR_2_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mrd",
+   "tag": "MRD",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "MR_2_R",
+      "LinkedTo": "MR_2",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "MR_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "lda",
+   "tag": "LDA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "LD_0",
+      "LinkedTo": "LD_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "LD_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ldb",
+   "tag": "LDB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "LD_0_R",
+      "LinkedTo": "LD_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "LD_1",
+      "LinkedTo": "LD_1_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ldc",
+   "tag": "LDC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "LD_1_R",
+      "LinkedTo": "LD_1",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "LD_2",
+      "LinkedTo": "LD_2_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ldd",
+   "tag": "LDD",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "LD_2_R",
+      "LinkedTo": "LD_2",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "LD_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "lta",
+   "tag": "LTA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "LT_0",
+      "LinkedTo": "LT_0_RWP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22.5,
+     "set": {
+      "Tag": "LT_0_WP"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "LT_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ltb",
+   "tag": "LTB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "LT_0_RWP"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 5,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "LT_0_R",
+      "LinkedTo": "LT_0_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "LT_1",
+      "LinkedTo": "LT_1_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ltc",
+   "tag": "LTC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "LT_1_R",
+      "LinkedTo": "LT_1",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "LT_2",
+      "LinkedTo": "LT_2_RWP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22.5,
+     "set": {
+      "Tag": "LT_2_WP"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ltd",
+   "tag": "LTD",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "LT_2_RWP"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 5,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "LT_2_R",
+      "LinkedTo": "LT_2_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "LT_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "fda",
+   "tag": "FDA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "FD_0",
+      "LinkedTo": "FD_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "FD_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "fdb",
+   "tag": "FDB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "FD_0_R",
+      "LinkedTo": "FD_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "FD_1",
+      "LinkedTo": "FD_1_RWP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22.5,
+     "set": {
+      "Tag": "FD_1_WP"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "fdc",
+   "tag": "FDC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "FD_1_RWP"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 5,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "FD_1_R",
+      "LinkedTo": "FD_1_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "FD_2",
+      "LinkedTo": "FD_2_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "fdd",
+   "tag": "FDD",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "FD_2_R",
+      "LinkedTo": "FD_2",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "FD_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cla",
+   "tag": "CLA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CL_0",
+      "LinkedTo": "CL_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "CL_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "clb",
+   "tag": "CLB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CL_0_R",
+      "LinkedTo": "CL_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CL_1",
+      "LinkedTo": "CL_1_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "clc",
+   "tag": "CLC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CL_1_R",
+      "LinkedTo": "CL_1",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "CL_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ala",
+   "tag": "ALA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "AL_0",
+      "LinkedTo": "AL_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "AL_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "alb",
+   "tag": "ALB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "AL_0_R",
+      "LinkedTo": "AL_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "AL_1",
+      "LinkedTo": "AL_1_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "alc",
+   "tag": "ALC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "AL_1_R",
+      "LinkedTo": "AL_1",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "AL_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cka",
+   "tag": "CKA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CK_0",
+      "LinkedTo": "CK_0_R",
+      "LinkedToFlags": 1,
+      "OnClick": {
+       "resref": "ia_click"
+      }
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "CK_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ckb",
+   "tag": "CKB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CK_0_R",
+      "LinkedTo": "CK_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CK_1",
+      "LinkedTo": "CK_1_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ckc",
+   "tag": "CKC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CK_1_R",
+      "LinkedTo": "CK_1",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "CK_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cta",
+   "tag": "CTA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "CT_0",
+      "LinkedTo": "CT_0_RWP",
+      "LinkedToFlags": 2,
+      "OnClick": {
+       "resref": "ia_click"
+      }
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22.5,
+     "set": {
+      "Tag": "CT_0_WP"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "CT_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ctb",
+   "tag": "CTB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "CT_0_RWP"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 5,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "CT_0_R",
+      "LinkedTo": "CT_0_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CT_1",
+      "LinkedTo": "CT_1_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ctc",
+   "tag": "CTC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CT_1_R",
+      "LinkedTo": "CT_1",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "CT_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "rca",
+   "tag": "RCA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 8,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_L",
+      "LinkedTo": "RC_L_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 22,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_R",
+      "LinkedTo": "RC_R_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_X",
+      "LinkedTo": "RC_X_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "RC_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "rcl",
+   "tag": "RCL",
+   "size": 8,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 8,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_L_R",
+      "LinkedTo": "RC_L",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 8,
+     "y": 75,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_LD",
+      "LinkedTo": "RC_LD_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "rcr1",
+   "tag": "RCR1",
+   "size": 2,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 10,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_R_R",
+      "LinkedTo": "RC_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 10,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_R1",
+      "LinkedTo": "RC_R1_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "rcr2",
+   "tag": "RCR2",
+   "size": 2,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 10,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_R1_R",
+      "LinkedTo": "RC_R1",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 10,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_R2",
+      "LinkedTo": "RC_R2_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "rcx",
+   "tag": "RCX",
+   "size": 2,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 10,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_X_R",
+      "LinkedTo": "RC_X",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "rcd",
+   "tag": "RCD",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 8,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_LD_R",
+      "LinkedTo": "RC_LD",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 22,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "RC_R2_R",
+      "LinkedTo": "RC_R2",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "RC_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "laa",
+   "tag": "LAA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 8,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "LA_AB",
+      "LinkedTo": "LA_AB_R",
+      "LinkedToFlags": 1,
+      "Locked": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 22,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "LA_AC",
+      "LinkedTo": "LA_AC_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "LA_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "lab",
+   "tag": "LAB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 8,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "LA_AB_R",
+      "LinkedTo": "LA_AB",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 22,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "LA_CB_R",
+      "LinkedTo": "LA_CB",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "LA_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "lac",
+   "tag": "LAC",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 22,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "LA_AC_R",
+      "LinkedTo": "LA_AC",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "LA_CB",
+      "LinkedTo": "LA_CB_R",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "lka",
+   "tag": "LKA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "LK_AB",
+      "LinkedTo": "LK_AB_R",
+      "LinkedToFlags": 1,
+      "Locked": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "LK_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "lkb",
+   "tag": "LKB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "LK_AB_R",
+      "LinkedTo": "LK_AB",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "LK_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "nra",
+   "tag": "NRA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "NR_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 20,
+     "y": 5,
+     "set": {
+      "Tag": "NL_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "nrz",
+   "tag": "NRZ",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "NR_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mla",
+   "tag": "MLA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "ML_AB",
+      "LinkedTo": "NOWHERE",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "ML_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mlb",
+   "tag": "MLB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "ML_AB_R",
+      "LinkedTo": "ML_AB",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "ML_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "sta",
+   "tag": "STA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 25,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "ST_AB",
+      "LinkedTo": "",
+      "LinkedToFlags": 0
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "ST_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "stb",
+   "tag": "STB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "ST_AB_RWP"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 7.5,
+     "set": {
+      "Tag": "ST_DEST"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "ST_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "pfa",
+   "tag": "PFA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "PF_AB",
+      "LinkedTo": "PF_AB_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "PF_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "pfb",
+   "tag": "PFB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 180,
+     "set": {
+      "Tag": "PF_AB_R",
+      "LinkedTo": "PF_AB",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 25,
+     "set": {
+      "Tag": "PF_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "pga",
+   "tag": "PGA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "PG_AB",
+      "LinkedTo": "PG_AB_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "PG_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "pgb",
+   "tag": "PGB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 15,
+     "facing": 90,
+     "set": {
+      "Tag": "PG_AB_R",
+      "LinkedTo": "PG_AB",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 25,
+     "set": {
+      "Tag": "PG_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "oha",
+   "tag": "OHA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "OH_AB",
+      "LinkedTo": "OH_AB_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 15,
+     "set": {
+      "Tag": "OH_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ohb",
+   "tag": "OHB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "OH_AB_R",
+      "LinkedTo": "OH_AB",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 15,
+     "set": {
+      "Tag": "OH_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "saa",
+   "tag": "SAA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utt",
+     "from": "ia_tr",
+     "x": 15,
+     "y": 15,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "SA_T",
+      "LinkedTo": "SA_T_RWP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "SA_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 25,
+     "set": {
+      "Tag": "SA_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "sab",
+   "tag": "SAB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 15,
+     "set": {
+      "Tag": "SA_T_RWP"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "maa",
+   "tag": "MAA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "MA_AB",
+      "LinkedTo": "MA_AB_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 10,
+     "set": {
+      "Tag": "MA_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "mab",
+   "tag": "MAB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "ia_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "MA_AB_R",
+      "LinkedTo": "MA_AB",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 15,
+     "set": {
+      "Tag": "MA_FROM"
+     }
+    }
+   ]
+  }
+ ]
+}

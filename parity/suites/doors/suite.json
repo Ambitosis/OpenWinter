@@ -1,0 +1,162 @@
+{
+  "seconds": 40,
+  "tile": 4,
+  "templates": {
+    "p_actor": {
+      "from": "nw_bandit001",
+      "type": "utc",
+      "set": {
+        "Tag": "P_ACTOR",
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "dr_blocked",
+        "ScriptRested": "",
+        "ScriptSpellAt": ""
+      }
+    },
+    "p_door": {
+      "from": "nw_door_metal",
+      "type": "utd",
+      "set": {
+        "OnOpen": "dr_open",
+        "OnClosed": "dr_close",
+        "OnFailToOpen": "dr_fail",
+        "OnLock": "dr_lock",
+        "OnUnlock": "dr_unlock",
+        "Tag": "P_DOOR"
+      }
+    },
+    "p_chest": {
+      "from": "plc_chest1",
+      "type": "utp",
+      "set": {
+        "OnOpen": "dr_open",
+        "OnClosed": "dr_close",
+        "OnFailToOpen": "dr_fail",
+        "OnLock": "dr_lock",
+        "OnUnlock": "dr_unlock",
+        "Tag": "P_CHEST",
+        "OnDeath": "",
+        "OnUsed": "dr_used"
+      }
+    },
+    "p_chair": {
+      "from": "plc_chair",
+      "type": "utp",
+      "set": {
+        "Tag": "P_CHAIR"
+      }
+    }
+  },
+  "instances": [
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 6,
+      "y": 10,
+      "facing": 90,
+      "set": {
+        "Tag": "D_PLAIN"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 14,
+      "y": 10,
+      "facing": 90,
+      "set": {
+        "Locked": 1,
+        "Lockable": 1,
+        "OpenLockDC": 50,
+        "Tag": "D_LOCKED"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 22,
+      "y": 10,
+      "facing": 90,
+      "set": {
+        "Tag": "D_SELF"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 30,
+      "y": 10,
+      "facing": 90,
+      "set": {
+        "Locked": 1,
+        "Lockable": 1,
+        "OpenLockDC": 0,
+        "Tag": "D_EASY"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 6,
+      "y": 26,
+      "facing": 90,
+      "set": {
+        "Locked": 1,
+        "Lockable": 1,
+        "KeyRequired": 1,
+        "OpenLockDC": 0,
+        "Tag": "D_KEY"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 14,
+      "y": 26,
+      "facing": 90,
+      "set": {
+        "Tag": "D_SCRIPT"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 22,
+      "y": 26,
+      "facing": 90,
+      "set": {
+        "Plot": 1,
+        "Tag": "D_PLOT"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 30,
+      "y": 26,
+      "facing": 90,
+      "set": {
+        "Tag": "D_CLOSE"
+      }
+    },
+    {
+      "type": "utp",
+      "from": "p_chest",
+      "x": 36,
+      "y": 36,
+      "facing": 0,
+      "set": {
+        "Tag": "C_GIT"
+      }
+    }
+  ]
+}

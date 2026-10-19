@@ -1,0 +1,13 @@
+{
+  "seconds": 60,
+  "tile": 4,
+  "size": 9,
+  "templates": {
+    "p_door": { "from": "nw_door_metal", "type": "utd", "set": { "TrapFlag": 1, "TrapType": 0, "TrapDetectDC": 10, "DisarmDC": 22, "TrapOneShot": 1, "OnTrapTriggered": "tp_trig", "OnOpen": "tp_open", "OnDisarm": "tp_disarm" } }
+  },
+  "instances": [
+    { "type": "utd", "from": "p_door", "x": 30, "y": 50, "facing": 0, "set": { "Tag": "T_DOOR" } },
+    { "type": "utd", "from": "p_door", "x": 40, "y": 50, "facing": 0, "set": { "Tag": "T_DOORF" } }
+  ],
+ "factions": "Prelude"
+}

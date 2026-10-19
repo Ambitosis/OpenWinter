@@ -1,0 +1,25 @@
+{
+  "character": "aluviandarkstar",
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 4,
+  "pc": [
+    20,
+    14,
+    0
+  ],
+  "facing": 90,
+  "seconds": 30,
+  "difficulty": 3,
+  "characterSha256": "1d5972a4105cfa75b3bf586777f2d6bdc51c8c6e2add63bdfe5ca2a48eb35da5",
+  "cueControl": {
+    "spell": 107,
+    "candidate": "sco_mehancold03",
+    "silenced": [
+      "vs_chant_evoc_lf",
+      "sca_outsonic",
+      "spr_magicmissile",
+      "sim_magblue"
+    ]
+  }
+}

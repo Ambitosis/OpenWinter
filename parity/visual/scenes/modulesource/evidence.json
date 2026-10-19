@@ -1,0 +1,36 @@
+{
+  "checksPerEngine": 21,
+  "observations": {
+    "source.local": "73",
+    "source.gold": "3900",
+    "source.level": "15",
+    "source.hp": "134",
+    "source.before": "1",
+    "source.after": "1",
+    "event.load": "1",
+    "event.enter": "1",
+    "destination.entered": "1",
+    "destination.acquires": "10",
+    "destination.itemLocal": "91",
+    "destination.local": "0",
+    "destination.selfRef": "0",
+    "destination.gold": "3900",
+    "destination.level": "15",
+    "destination.hp": "134",
+    "destination.action": "65535",
+    "destination.item": "1",
+    "destination.permanent": "0",
+    "destination.temporary": "0",
+    "destination.entry": "1"
+  },
+  "engines": {
+    "nwn": {
+      "notesSha256": "43c546ebe24c62000199723cf8116d4c095d0d04802de22b7490d24c474db1e0",
+      "captureSha256": "e616d3444ab58c77bb57e2929c9e0e40359409f4839d4e82dc0ea4ca1eb37e51"
+    },
+    "openwinter": {
+      "notesSha256": "a6b4c81e87d1312c50a9f2a8879059d59e01b44e481f43247e2cb6774d3f1455",
+      "captureSha256": "836ebcc4cd689455a7aef335a84855dadd9bc2d09d1076ee1423bcccd6bd6828"
+    }
+  }
+}

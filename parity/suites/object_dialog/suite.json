@@ -1,0 +1,80 @@
+{
+  "seconds": 10,
+  "events": {},
+  "areaEvents": {},
+  "templates": {
+    "ec_crit": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDeath": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "CRIT"
+      }
+    },
+    "ec_plc": {
+      "from": "plc_chair",
+      "type": "utp",
+      "set": {
+        "OnUserDefined": "",
+        "OnDialog": {
+          "resref": "od_dialog"
+        },
+        "OnSpellCastAt": "",
+        "OnHeartbeat": ""
+      }
+    },
+    "ec_door": {
+      "from": "nw_door_metal",
+      "type": "utd",
+      "set": {
+        "OnUserDefined": "",
+        "OnDialog": {
+          "resref": "od_dialog"
+        },
+        "OnSpellCastAt": "",
+        "OnHeartbeat": ""
+      }
+    }
+  },
+  "instances": [
+    {
+      "type": "utc",
+      "from": "ec_crit",
+      "x": 14,
+      "y": 20,
+      "set": {
+        "Tag": "CRIT"
+      }
+    },
+    {
+      "type": "utp",
+      "from": "ec_plc",
+      "x": 26,
+      "y": 20,
+      "set": {
+        "Tag": "PLC"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "ec_door",
+      "x": 20,
+      "y": 26,
+      "set": {
+        "Tag": "DOOR"
+      }
+    }
+  ]
+}

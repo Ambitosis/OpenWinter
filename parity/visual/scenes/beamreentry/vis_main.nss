@@ -1,0 +1,11 @@
+#include "visual_inc"
+void Note(string s){WriteTimestampedLogEntry("VISUAL|note|"+s);}
+void Quiet(object o){int i;for(i=5000;i<=5012;i++)SetEventScript(o,i,"");SetCommandable(TRUE,o);SetPlotFlag(o,TRUE);SetIsDestroyable(TRUE,TRUE,TRUE,o);}
+void State(object pc,object target,int n,string tag){int count=0;effect e=GetFirstEffect(target);while(GetIsEffectValid(e)){if(GetEffectType(e)==EFFECT_TYPE_BEAM)count++;e=GetNextEffect(target);}Note(tag+"."+IntToString(n)+".distance."+FloatToString(GetDistanceBetween(pc,target),0,3)+".valid."+IntToString(GetIsObjectValid(target))+".beams."+IntToString(count));}
+void Move(object pc,object target,int n,float d,string tag){vector p=GetPosition(pc);p.y+=d;AssignCommand(target,JumpToLocation(Location(GetArea(pc),p,180.0)));DelayCommand(.5,State(pc,target,n,tag));DelayCommand(1.0,VShot(tag+IntToString(n)));}
+void Apply(object source,object target,int n,string tag){Note(tag+"."+IntToString(n)+".valid."+IntToString(GetIsObjectValid(source))+IntToString(GetIsObjectValid(target)));int duration=DURATION_TYPE_INSTANT;if(n==1)duration=DURATION_TYPE_TEMPORARY;if(n==2)duration=DURATION_TYPE_PERMANENT;ApplyEffectToObject(duration,EffectBeam(VFX_BEAM_LIGHTNING,source,BODY_NODE_HAND),target,20.0);}
+void Fresh(object source,object target,int n){effect e=GetFirstEffect(target);while(GetIsEffectValid(e)){if(GetEffectType(e)==EFFECT_TYPE_BEAM)RemoveEffect(target,e);e=GetNextEffect(target);}Apply(source,target,n,"fresh");}
+void Remove(object o){SetPlotFlag(o,FALSE);SetIsDestroyable(TRUE,TRUE,TRUE,o);DestroyObject(o);}
+void Case(object pc,int n){object source=VSpawn(pc,"nw_bandit001",-1.0,3.0,0.0);object target=VSpawn(pc,"nw_bandit001",0.0,3.0,180.0);Quiet(source);Quiet(target);
+ DelayCommand(1.0,Apply(source,target,n,"start"));DelayCommand(2.0,State(pc,target,n,"initial"));DelayCommand(3.0,Move(pc,target,n,40.0,"out"));DelayCommand(6.0,Move(pc,target,n,3.0,"back"));DelayCommand(9.0,Fresh(source,target,n));DelayCommand(12.0,Remove(target));DelayCommand(12.0,Remove(source));}
+void main(){object pc=GetEnteringObject();if(!GetIsPC(pc))return;VBegin(pc);SetPlotFlag(pc,TRUE);DelayCommand(1.0,VCamera(pc,90.0,14.0,65.0));DelayCommand(3.0,Case(pc,0));DelayCommand(21.0,Case(pc,1));DelayCommand(39.0,Case(pc,2));DelayCommand(57.0,VDone());}

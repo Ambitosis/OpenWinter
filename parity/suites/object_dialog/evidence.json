@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-11",
+  "headlessComparison": {
+    "matched": 10,
+    "different": 0,
+    "missing": 0
+  },
+  "sha256": {
+    "parity/suites/object_dialog/od_dialog.nss": "6aa73215d02e52726466d6cf87c62a5b35f202cf8350e5657725bad27316ec7f",
+    "parity/suites/object_dialog/parity_main.nss": "2d5e0e51606d79a0ba287086ed0e9df26584f988ac56c88307091b2b6f970cb3",
+    "parity/suites/object_dialog/suite.json": "119cc82c939ff350f013a0a8aa8e2492b713554fcab97063307f26b9cd9de2d9",
+    "parity/visual/scenes/objectdialog/od_dialog.nss": "cbde19709b26cb727b3f78a33e29b188f9c3adb87427ea0a8efb37645cd98ba6",
+    "parity/visual/scenes/objectdialog/od_empty.dlg.json": "3651b824e87defdc044fee118b70b7ba51e2895551f4621245caea9274d4520e",
+    "parity/visual/scenes/objectdialog/od_used.nss": "b7baed07b4e01b46a8b7f10a1eb0cfb1b35826d0a22fd49963de700ed134c19c",
+    "parity/visual/scenes/objectdialog/scene.json": "26245e17cc7ec89220a55411080f108ce6d7e221cc75e60dfb61f6fcd827b110",
+    "parity/visual/scenes/objectdialog/vis_main.nss": "c2b80feaf9f77d08a69edb6106333db7060988456ebb8a1aaa7129556d55148a",
+    "parity/visual/scenes/objectdialogbegin/od_begin.nss": "959d90f12211e43427c1c5adb7f48762deb16df6ac1dec7d417ba1a920595218",
+    "parity/visual/scenes/objectdialogbegin/od_line.dlg.json": "9fd0eb80f99275eb2e61275038ef123802b25a08234b9113b5fbc2fd108a41e2",
+    "parity/visual/scenes/objectdialogbegin/scene.json": "60831af9287934508fbf8a015c4dbc1746ade0edf503a34dbe4ae6ce5e89d9c9",
+    "parity/visual/scenes/objectdialogbegin/vis_main.nss": "7abe1f252420702dfe62fefd5cb92ab592a2ccdbeabf74b945d5ba9d18aa33e9",
+    "out/parity/results/object_dialog/nwn.txt": "569dd12d9fb55dab760b43fc5fe41b1f2b534ec0c99b5a46d920241ce52f5f45",
+    "out/parity/results/object_dialog/openwinter.txt": "569dd12d9fb55dab760b43fc5fe41b1f2b534ec0c99b5a46d920241ce52f5f45",
+    "out/visual/shots/vis_objectdialog_reference/nwn/notes.txt": "239ac3d70670da0ae84892415af2a35f15c467c951dcac8e3a7f3c2bb15e39e4",
+    "out/visual/shots/vis_objectdialogbegin_reference/nwn/notes.txt": "76e13a2e0b16e40221714e04cc5fd5d93622335e8ccc2c4a79df3484e270d179"
+  },
+  "nativeHeadless": [
+    "plc.loaded|od_dialog",
+    "door.loaded|od_dialog",
+    "PLC.signal.event|9014",
+    "PLC.signal.speaker|",
+    "PLC.signal.pc|0",
+    "DOOR.signal.event|10013",
+    "DOOR.signal.speaker|",
+    "DOOR.signal.pc|0",
+    "plc.count|1",
+    "door.count|1",
+    "__done__|1"
+  ],
+  "nativePcNotes": {
+    "objectdialog": [
+      "VISUAL|note|state|phase=setup|pc=1|plc=1|door=1|plcDialogs=0|doorDialogs=0|action=65535",
+      "VISUAL|note|dialog|phase=plc_default|tag=PLC|event=9014|speaker=0|pcspeaker=0|inconversation=0",
+      "VISUAL|note|state|phase=plc_default|pc=1|plc=1|door=1|plcDialogs=1|doorDialogs=0|action=65535",
+      "VISUAL|note|dialog|phase=plc_explicit|tag=PLC|event=9014|speaker=0|pcspeaker=0|inconversation=0",
+      "VISUAL|note|state|phase=plc_explicit|pc=1|plc=1|door=1|plcDialogs=2|doorDialogs=0|action=65535",
+      "VISUAL|note|dialog|phase=door_default|tag=DOOR|event=10013|speaker=0|pcspeaker=0|inconversation=0",
+      "VISUAL|note|state|phase=door_default|pc=1|plc=1|door=1|plcDialogs=2|doorDialogs=1|action=65535",
+      "VISUAL|note|dialog|phase=door_explicit|tag=DOOR|event=10013|speaker=0|pcspeaker=0|inconversation=0",
+      "VISUAL|note|state|phase=door_explicit|pc=1|plc=1|door=1|plcDialogs=2|doorDialogs=2|action=65535",
+      "VISUAL|note|state|phase=plc_use|pc=1|plc=1|door=1|plcDialogs=2|doorDialogs=2|action=15",
+      "VISUAL|note|used|phase=plc_use|pc=1"
+    ],
+    "objectdialogbegin": [
+      "VISUAL|note|before|pc=1|speakerValid=0|pcspeakerValid=0|usedPC=0|clickPC=0",
+      "VISUAL|note|begin_default|result=1|conversation=1",
+      "VISUAL|note|finish|pc=1|conversation=1"
+    ]
+  },
+  "rejected": "Initial newly added OnDialog ExoString fields did not load. Repeat used typed ResRef before drawing any GFF conclusion."
+}

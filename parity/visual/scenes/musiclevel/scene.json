@@ -1,0 +1,2 @@
+{"tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 20, 0], "facing": 0, "seconds": 30,
+ "areaProperties": {"MusicDay": 1, "MusicNight": 1, "MusicBattle": 34, "MusicDelay": 3000, "AmbientSndDay": 0, "AmbientSndNight": 0}}

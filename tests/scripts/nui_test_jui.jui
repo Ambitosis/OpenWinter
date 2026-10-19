@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "title": false,
+  "geometry": {"x": 500.0, "y": 460.0, "w": 340.0, "h": 70.0},
+  "resizable": false,
+  "collapsed": false,
+  "closable": false,
+  "transparent": false,
+  "border": true,
+  "accepts_input": true,
+  "root": {
+    "type": "row",
+    "label": null,
+    "value": null,
+    "children": [
+      {"type": "image", "label": null, "value": "ir_cast", "image_aspect": 0, "image_halign": 0, "image_valign": 0, "width": 50.0},
+      {"type": "label", "label": null, "value": {"bind": "message", "number_flags": 0, "number_precision": 0, "text_flags": 2}, "text_halign": 1, "text_valign": 0}
+    ]
+  }
+}

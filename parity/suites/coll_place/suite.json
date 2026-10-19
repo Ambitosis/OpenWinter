@@ -1,0 +1,109 @@
+{
+  "seconds": 40,
+  "tile": 4,
+  "templates": {
+    "p_gob": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_GOB",
+        "ScriptOnBlocked": ""
+      }
+    },
+    "p_ogre": {
+      "from": "nw_ogre01",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_OGRE",
+        "ScriptOnBlocked": ""
+      }
+    },
+    "p_human": {
+      "from": "nw_bandit001",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_HUMAN",
+        "ScriptOnBlocked": ""
+      }
+    },
+    "p_fairy": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_FAIRY",
+        "ScriptOnBlocked": "",
+        "Appearance_Type": 55
+      }
+    }
+  },
+  "instances": [
+    {
+      "type": "utc",
+      "from": "p_gob",
+      "x": 36,
+      "y": 36,
+      "facing": 0,
+      "set": {
+        "Tag": "GIT_A"
+      }
+    },
+    {
+      "type": "utc",
+      "from": "p_gob",
+      "x": 36,
+      "y": 36,
+      "facing": 0,
+      "set": {
+        "Tag": "GIT_B"
+      }
+    }
+  ]
+}

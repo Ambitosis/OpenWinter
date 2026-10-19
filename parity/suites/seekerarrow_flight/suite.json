@@ -1,0 +1,9 @@
+{
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 8,
+  "seconds": 25,
+  "events": {
+    "OnModLoad": "parity_main"
+  }
+}

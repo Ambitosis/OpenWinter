@@ -1,0 +1,6 @@
+{
+  "tileset": "ttr01", "tile": 109, "size": 6, "pc": [30, 25, 0], "facing": 90, "seconds": 200, "gui": true,
+  "softwareCursor": true, "largeFont": false,
+  "character": "fighter",
+  "characterFixture": { "name": "Armour Icons M" }
+}

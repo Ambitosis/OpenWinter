@@ -1,0 +1,14 @@
+{
+  "character": "aluviandarkstar",
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 5,
+  "pc": [
+    20,
+    14,
+    0
+  ],
+  "facing": 90,
+  "seconds": 86,
+  "difficulty": 3
+}

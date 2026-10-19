@@ -1,0 +1,29 @@
+{
+ "seconds": 60,
+ "size": 14,
+ "tile": 4,
+ "templates": {
+  "sr_obs": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "Tag": "SR_OBS",
+    "PerceptionRange": 8,
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "ss_percept",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": ""
+   }
+  }
+ },
+ "factions": "Prelude"
+}

@@ -1,0 +1,5 @@
+2DA V2.0
+
+Label Name School Range VS MetaMagic TargetType ImpactScript Innate ConjTime ConjAnim CastAnim CastTime Proj ProjModel ProjType ProjSpwnPoint ProjOrientation UserType UseConcentration HostileSetting HasProjectile
+0 AxisControl **** V L vs 0x3f 0x2f pa_impact 1 0 hand area 1000 1 wamar_001 homing hand path 1 0 0 1
+1 HiddenControl **** V L vs 0x3f 0x2f pa_impact 1 0 hand area 1000 1 wamar_001 homing hand path 1 0 0 0

@@ -1,0 +1,7 @@
+{
+  "preventZoomIn": true,
+  "starts": [0],
+  "entries": [
+    { "text": "A single line, animation 0.", "animation": 0 }
+  ]
+}

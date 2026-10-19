@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-11",
+  "source": "Black-box original nwmain through sandbox visual harness; matching client input control",
+  "sources": {
+    "parity/visual/scenes/cutsceneabort/scene.json": "279383a13318d0622f16c5a54b425f6d04bddb604c098986826bb230f69f1b3a",
+    "parity/visual/scenes/cutsceneabort/vis_main.nss": "7e72188457a98666dd494ed052d364cba902c5ff961bbf6c30100126f4e42ddd",
+    "parity/visual/scenes/cutsceneabort/ca_abort.nss": "9519130a52507f2e29c06657ef0e96ce3305cebe8cd9826f9e626599161d543b"
+  },
+  "notes": {
+    "nwn": {
+      "path": "out/visual/shots/vis_cutsceneabort_reference/nwn/notes.txt",
+      "sha256": "4ad6944c99190e784a097e3d8f97d80f77dd96a1802cf8b000334c9eacce9332",
+      "readings": [
+        "VISUAL|note|state|phase=before|pc=1|cutscene=0|plot=0|aborts=0|outsideCanceller=0",
+        "VISUAL|note|state|phase=started|pc=1|cutscene=1|plot=1|aborts=0|outsideCanceller=0",
+        "VISUAL|note|abort|number=1|cancellerPC=1|event=3014|cutscene=1|plot=1",
+        "VISUAL|note|state|phase=after_first|pc=1|cutscene=1|plot=1|aborts=1|outsideCanceller=1",
+        "VISUAL|note|abort|number=2|cancellerPC=1|event=3014|cutscene=1|plot=1",
+        "VISUAL|note|state|phase=after_repeat|pc=1|cutscene=1|plot=1|aborts=2|outsideCanceller=1",
+        "VISUAL|note|state|phase=script_stop|pc=1|cutscene=0|plot=0|aborts=2|outsideCanceller=1",
+        "VISUAL|note|state|phase=started|pc=1|cutscene=1|plot=1|aborts=2|outsideCanceller=1",
+        "VISUAL|note|abort|number=3|cancellerPC=1|event=3014|cutscene=1|plot=1",
+        "VISUAL|note|state|phase=after_handler_exit|pc=1|cutscene=0|plot=0|aborts=3|outsideCanceller=1"
+      ]
+    },
+    "openwinter": {
+      "path": "out/visual/shots/vis_cutsceneabort_fixed/openwinter/notes.txt",
+      "sha256": "44869cc5e12bc2dc1eb646f43efb70f77b8a8aa6301f294300a872e3a390fa5c",
+      "readings": [
+        "VISUAL|note|state|phase=started|pc=1|cutscene=1|plot=1|aborts=0|outsideCanceller=0",
+        "VISUAL|note|abort|number=1|cancellerPC=1|event=3014|cutscene=1|plot=1",
+        "VISUAL|note|state|phase=after_first|pc=1|cutscene=1|plot=1|aborts=1|outsideCanceller=1",
+        "VISUAL|note|abort|number=2|cancellerPC=1|event=3014|cutscene=1|plot=1",
+        "VISUAL|note|state|phase=after_repeat|pc=1|cutscene=1|plot=1|aborts=2|outsideCanceller=1",
+        "VISUAL|note|state|phase=script_stop|pc=1|cutscene=0|plot=0|aborts=2|outsideCanceller=1",
+        "VISUAL|note|state|phase=started|pc=1|cutscene=1|plot=1|aborts=2|outsideCanceller=1",
+        "VISUAL|note|abort|number=3|cancellerPC=1|event=3014|cutscene=1|plot=1",
+        "VISUAL|note|state|phase=after_handler_exit|pc=1|cutscene=0|plot=0|aborts=3|outsideCanceller=1"
+      ]
+    }
+  },
+  "shared_notes_matched": 9,
+  "limits": [
+    "No dialogue-visible cancellation policy change or claim",
+    "No left-click cancellation claim",
+    "No exact timing or body presentation claim"
+  ],
+  "checks": {
+    "focused_tests": 6,
+    "godot_input_checks": 10
+  }
+}

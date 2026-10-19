@@ -1,0 +1,15 @@
+{
+  "al_pl_whispersm": {"freq": 300, "seconds": 4.0},
+  "al_pl_whispersf": {"freq": 340, "seconds": 4.0},
+  "ow_falloff": {"freq": 500, "seconds": 2.0},
+  "ow_flat": {"freq": 610, "seconds": 2.0},
+  "ow_interval": {"freq": 720, "seconds": 0.5},
+  "ow_once1": {"freq": 800, "seconds": 0.4},
+  "ow_once2": {"freq": 900, "seconds": 0.4},
+  "ow_once3": {"freq": 1000, "seconds": 0.4},
+  "ow_night": {"freq": 1150, "seconds": 2.0},
+  "ow_day": {"freq": 1260, "seconds": 2.0},
+  "ow_hours": {"freq": 1380, "seconds": 2.0},
+  "ow_click": {"freq": 1500, "seconds": 0.08},
+  "ow_vary": {"freq": 2400, "seconds": 0.3, "search": 0.35}
+}

@@ -1,0 +1,29 @@
+{
+ "seconds": 20,
+ "size": 4,
+ "tile": 4,
+ "factions": "Prelude",
+ "templates": {
+  "fa_f2": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 2
+   }
+  },
+  "fa_f3": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 3
+   }
+  },
+  "fa_f4": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "FactionID": 4
+   }
+  }
+ }
+}

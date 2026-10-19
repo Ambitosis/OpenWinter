@@ -1,0 +1,31 @@
+# Wholly authored green endpoint marker, not a copied game asset.
+newmodel be_tip
+setsupermodel be_tip NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom be_tip
+node dummy be_tip
+ parent NULL
+endnode
+node emitter green
+ parent be_tip
+ position 0 0 0
+ update Fountain
+ render Normal
+ blend Lighten
+ texture fxpa_flare
+ xgrid 1
+ ygrid 1
+ birthrate 20
+ lifeExp 0.25
+ sizeStart 0.35
+ sizeEnd 0.35
+ colorStart 0 1 0
+ colorEnd 0 1 0
+ alphaStart 1
+ alphaEnd 1
+ velocity 0
+ spread 0
+endnode
+endmodelgeom be_tip
+donemodel be_tip

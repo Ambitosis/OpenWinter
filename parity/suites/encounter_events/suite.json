@@ -1,0 +1,241 @@
+{
+ "seconds": 40,
+ "tile": 4,
+ "size": 8,
+ "templates": {
+  "ep_gob": {
+   "from": "nw_goblina",
+   "type": "utc",
+   "set": {
+    "ScriptHeartbeat": "",
+    "ScriptOnNotice": "",
+    "ScriptSpellAt": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptDialogue": "",
+    "ScriptRested": "",
+    "ScriptDeath": "",
+    "ScriptUserDefine": "",
+    "ScriptOnBlocked": "",
+    "ScriptSpawn": "ep_spawn",
+    "Tag": "EP_GOB"
+   }
+  },
+  "ep_gobb": {
+   "from": "nw_goblinb",
+   "type": "utc",
+   "set": {
+    "ScriptHeartbeat": "",
+    "ScriptOnNotice": "",
+    "ScriptSpellAt": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptDialogue": "",
+    "ScriptRested": "",
+    "ScriptDeath": "",
+    "ScriptUserDefine": "",
+    "ScriptOnBlocked": "",
+    "ScriptSpawn": "ep_spawn",
+    "Tag": "EP_GOBB"
+   }
+  },
+  "ep_chief": {
+   "from": "nw_gobchiefa",
+   "type": "utc",
+   "set": {
+    "ScriptHeartbeat": "",
+    "ScriptOnNotice": "",
+    "ScriptSpellAt": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptDialogue": "",
+    "ScriptRested": "",
+    "ScriptDeath": "",
+    "ScriptUserDefine": "",
+    "ScriptOnBlocked": "",
+    "ScriptSpawn": "ep_spawn",
+    "Tag": "EP_CHIEF"
+   }
+  },
+  "ep_enc": {
+   "from": "nw_goblingrp",
+   "type": "ute",
+   "set": {
+    "OnEntered": "ep_enter",
+    "OnExit": "ep_exit",
+    "OnExhausted": "ep_exh",
+    "OnHeartbeat": "ep_hb",
+    "OnUserDefined": "ep_ud"
+   },
+   "creatures": [
+    {
+     "resref": "ep_gob",
+     "cr": 0.25
+    },
+    {
+     "resref": "ep_gobb",
+     "cr": 0.25
+    },
+    {
+     "resref": "ep_chief",
+     "cr": 3,
+     "single": 1
+    }
+   ]
+  }
+ },
+ "instances": [
+  {
+   "type": "ute",
+   "from": "ep_enc",
+   "x": 8,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "PlayerOnly": 0,
+    "Faction": 1,
+    "Tag": "E1"
+   },
+   "spawnPoints": [
+    [
+     8,
+     30,
+     90
+    ]
+   ]
+  },
+  {
+   "type": "ute",
+   "from": "ep_enc",
+   "x": 18,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "PlayerOnly": 0,
+    "Faction": 4,
+    "Tag": "E2",
+    "DifficultyIndex": 1
+   },
+   "spawnPoints": [
+    [
+     18,
+     30,
+     90
+    ]
+   ]
+  },
+  {
+   "type": "ute",
+   "from": "ep_enc",
+   "x": 28,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "PlayerOnly": 0,
+    "Faction": 3,
+    "Tag": "E3",
+    "DifficultyIndex": 3
+   },
+   "spawnPoints": [
+    [
+     28,
+     30,
+     90
+    ]
+   ]
+  },
+  {
+   "type": "ute",
+   "from": "ep_enc",
+   "x": 38,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "PlayerOnly": 0,
+    "Faction": 2,
+    "Tag": "E4",
+    "SpawnOption": 0,
+    "Respawns": -1,
+    "Reset": 1
+   },
+   "spawnPoints": [
+    [
+     38,
+     30,
+     90
+    ]
+   ]
+  },
+  {
+   "type": "ute",
+   "from": "ep_enc",
+   "x": 48,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "PlayerOnly": 0,
+    "Faction": 1,
+    "Tag": "E5"
+   },
+   "spawnPoints": []
+  },
+  {
+   "type": "ute",
+   "from": "ep_enc",
+   "x": 58,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "PlayerOnly": 0,
+    "Faction": 1,
+    "Respawns": -1,
+    "DifficultyIndex": 4,
+    "Difficulty": 7,
+    "Tag": "E6"
+   },
+   "spawnPoints": [
+    [
+     58,
+     30,
+     90
+    ]
+   ]
+  },
+  {
+   "type": "ute",
+   "from": "ep_enc",
+   "x": 68,
+   "y": 20,
+   "w": 4,
+   "h": 4,
+   "set": {
+    "PlayerOnly": 0,
+    "Faction": 1,
+    "Respawns": 3,
+    "DifficultyIndex": 0,
+    "Active": 0,
+    "Tag": "E7"
+   },
+   "spawnPoints": [
+    [
+     68,
+     30,
+     90
+    ]
+   ]
+  }
+ ],
+ "factions": "Prelude"
+}

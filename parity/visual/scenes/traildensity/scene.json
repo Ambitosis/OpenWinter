@@ -1,0 +1,14 @@
+{
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 4,
+  "pc": [
+    20,
+    18,
+    0
+  ],
+  "facing": 90,
+  "seconds": 10,
+  "difficulty": 3,
+  "description": "Authored constant-speed parallel Normal emitters, rates5/20 and spawn modes0/1. Count/spacing probe, no parity claim before comparison."
+}

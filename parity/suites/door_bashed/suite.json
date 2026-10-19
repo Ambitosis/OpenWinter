@@ -1,0 +1,1365 @@
+{
+ "seconds": 80,
+ "tile": 4,
+ "templates": {
+  "ia_walk": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "IA_WALK",
+    "ScriptOnBlocked": "ia_blocked"
+   }
+  },
+  "ia_stock": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "Tag": "IA_STOCK"
+   }
+  },
+  "ia_door": {
+   "from": "nw_door_normal",
+   "type": "utd",
+   "set": {
+    "OnDeath": "",
+    "OnOpen": "ia_open",
+    "OnFailToOpen": "ia_fail"
+   }
+  },
+  "ia_tr": {
+   "from": "newtransition",
+   "type": "utt",
+   "set": {
+    "ScriptOnEnter": "ia_tenter"
+   }
+  },
+  "ia_wp": {
+   "from": "nw_waypoint001",
+   "type": "utw"
+  },
+  "bt_door": {
+   "from": "nw_door_normal",
+   "type": "utd",
+   "set": {
+    "OnDeath": "bt_death",
+    "OnDamaged": "bt_damaged",
+    "OnOpen": "bt_open",
+    "OnClosed": "bt_closed",
+    "OnFailToOpen": "bt_fail",
+    "OnLock": "bt_lock",
+    "OnUnlock": "bt_unlock",
+    "OnHeartbeat": "",
+    "OnMeleeAttacked": "bt_attacked",
+    "Plot": 0,
+    "HP": 10,
+    "CurrentHP": 10,
+    "Hardness": 0
+   }
+  }
+ },
+ "areaEvents": {
+  "OnEnter": "ia_aenter",
+  "OnExit": "ia_aexit"
+ },
+ "areas": [
+  {
+   "resref": "ia_hub",
+   "tag": "IA_HUB",
+   "size": 2,
+   "instances": []
+  },
+  {
+   "resref": "eda",
+   "tag": "EDA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "ED_0",
+      "LinkedTo": "ED_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "ED_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 12,
+     "set": {
+      "Tag": "EDR_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "edb",
+   "tag": "EDB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "ED_0_R",
+      "LinkedTo": "ED_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "ED_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 15,
+     "set": {
+      "Tag": "EDR_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "eka",
+   "tag": "EKA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "EK_0",
+      "LinkedTo": "EK_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "EK_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 12,
+     "set": {
+      "Tag": "EKR_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ekb",
+   "tag": "EKB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "EK_0_R",
+      "LinkedTo": "EK_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "EK_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 15,
+     "set": {
+      "Tag": "EKR_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "baa",
+   "tag": "BAA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "BA_0",
+      "LinkedTo": "BA_0_R",
+      "LinkedToFlags": 1,
+      "Locked": 1,
+      "HP": 1,
+      "CurrentHP": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "BA_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 21,
+     "set": {
+      "Tag": "BA_BASH"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "bab",
+   "tag": "BAB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "BA_0_R",
+      "LinkedTo": "BA_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "BA_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cca",
+   "tag": "CCA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CC_0",
+      "LinkedTo": "CC_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "CC_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 13,
+     "y": 21,
+     "set": {
+      "Tag": "CC_USER"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ccb",
+   "tag": "CCB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CC_0_R",
+      "LinkedTo": "CC_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "CC_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cua",
+   "tag": "CUA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CU_0",
+      "LinkedTo": "CU_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "CU_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 13,
+     "y": 21,
+     "set": {
+      "Tag": "CU_USER"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cub",
+   "tag": "CUB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CU_0_R",
+      "LinkedTo": "CU_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "CU_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cxa",
+   "tag": "CXA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CX_0",
+      "LinkedTo": "CX_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "CX_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 13,
+     "y": 21,
+     "set": {
+      "Tag": "CX_USER"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 22,
+     "set": {
+      "Tag": "CXX_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 28,
+     "set": {
+      "Tag": "CXX_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cxb",
+   "tag": "CXB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CX_0_R",
+      "LinkedTo": "CX_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "CX_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "coa",
+   "tag": "COA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CO_0",
+      "LinkedTo": "CO_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "CO_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 13,
+     "y": 21,
+     "set": {
+      "Tag": "CO_USER"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cob",
+   "tag": "COB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CO_0_R",
+      "LinkedTo": "CO_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "CO_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "opa",
+   "tag": "OPA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "OP_0",
+      "LinkedTo": "OP_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "OP_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 12,
+     "set": {
+      "Tag": "OPR_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "opb",
+   "tag": "OPB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "OP_0_R",
+      "LinkedTo": "OP_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "OP_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 15,
+     "set": {
+      "Tag": "OPR_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "cka",
+   "tag": "CKA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "CK_0",
+      "LinkedTo": "CK_0_R",
+      "LinkedToFlags": 1,
+      "OnClick": {
+       "resref": "bt_click"
+      }
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "CK_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ckb",
+   "tag": "CKB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "CK_0_R",
+      "LinkedTo": "CK_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "CK_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "dsa",
+   "tag": "DSA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "DS_0",
+      "LinkedTo": "DS_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "DS_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 12,
+     "set": {
+      "Tag": "DSR_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "dsb",
+   "tag": "DSB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "DS_0_R",
+      "LinkedTo": "DS_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "DS_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 25,
+     "y": 15,
+     "set": {
+      "Tag": "DSR_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "jpa",
+   "tag": "JPA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "JP_0",
+      "LinkedTo": "JP_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "JP_START"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "jpb",
+   "tag": "JPB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "JP_0_R",
+      "LinkedTo": "JP_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "JP_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "JP_J1"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 18,
+     "y": 20,
+     "set": {
+      "Tag": "JP_J2"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 21,
+     "y": 20,
+     "set": {
+      "Tag": "JP_J3"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "pua",
+   "tag": "PUA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 25,
+     "facing": 0,
+     "set": {
+      "Tag": "PU_0",
+      "LinkedTo": "PU_0_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "PU_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 15,
+     "set": {
+      "Tag": "PU_T"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 11,
+     "set": {
+      "Tag": "PU_A"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "pub",
+   "tag": "PUB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 5,
+     "facing": 0,
+     "set": {
+      "Tag": "PU_0_R",
+      "LinkedTo": "PU_0",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "PU_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "sxa",
+   "tag": "SXA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 10,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "SX_DEAD"
+     }
+    },
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 20,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "SX_LIVE"
+     }
+    },
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 25,
+     "y": 26,
+     "facing": 0,
+     "set": {
+      "Tag": "UK"
+     }
+    },
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 5,
+     "y": 26,
+     "facing": 0,
+     "set": {
+      "Tag": "UD"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 20,
+     "y": 10,
+     "set": {
+      "Tag": "SXL_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 20,
+     "y": 20,
+     "set": {
+      "Tag": "SXL_GOAL"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ula",
+   "tag": "ULA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 8,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "UW",
+      "LinkedTo": "UW_WP",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 20,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "UN",
+      "LinkedTo": "NOWHERE",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ulb",
+   "tag": "ULB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 15,
+     "set": {
+      "Tag": "UW_WP"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "lfa",
+   "tag": "LFA",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 6,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "LO",
+      "LinkedTo": "LO_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "LD",
+      "LinkedTo": "LD_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 24,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "KD",
+      "LinkedTo": "KD_R",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 3,
+     "y": 14,
+     "set": {
+      "Tag": "LOS_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 9,
+     "y": 14,
+     "set": {
+      "Tag": "LOS_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 3,
+     "y": 16,
+     "set": {
+      "Tag": "LON_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 9,
+     "y": 16,
+     "set": {
+      "Tag": "LON_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 6,
+     "y": 11,
+     "set": {
+      "Tag": "LOX_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 6,
+     "y": 19,
+     "set": {
+      "Tag": "LOX_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 6,
+     "y": 17,
+     "set": {
+      "Tag": "LO_OPENER"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 8,
+     "y": 23,
+     "set": {
+      "Tag": "LO_AWAY"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 12,
+     "y": 14,
+     "set": {
+      "Tag": "LDS_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 18,
+     "y": 14,
+     "set": {
+      "Tag": "LDS_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 12,
+     "y": 16,
+     "set": {
+      "Tag": "LDN_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 18,
+     "y": 16,
+     "set": {
+      "Tag": "LDN_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 11,
+     "set": {
+      "Tag": "LDX_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 19,
+     "set": {
+      "Tag": "LDX_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 15,
+     "y": 17,
+     "set": {
+      "Tag": "LD_OPENER"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 17,
+     "y": 23,
+     "set": {
+      "Tag": "LD_AWAY"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 21,
+     "y": 14,
+     "set": {
+      "Tag": "KDS_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 27,
+     "y": 14,
+     "set": {
+      "Tag": "KDS_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 21,
+     "y": 16,
+     "set": {
+      "Tag": "KDN_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 27,
+     "y": 16,
+     "set": {
+      "Tag": "KDN_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 24,
+     "y": 11,
+     "set": {
+      "Tag": "KDX_START"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 24,
+     "y": 19,
+     "set": {
+      "Tag": "KDX_GOAL"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 24,
+     "y": 17,
+     "set": {
+      "Tag": "KD_OPENER"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 26,
+     "y": 23,
+     "set": {
+      "Tag": "KD_AWAY"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ia_wp",
+     "x": 9,
+     "y": 20,
+     "set": {
+      "Tag": "LO_USER"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "lfb",
+   "tag": "LFB",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 6,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "LO_R",
+      "LinkedTo": "LO",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 15,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "LD_R",
+      "LinkedTo": "LD",
+      "LinkedToFlags": 1
+     }
+    },
+    {
+     "type": "utd",
+     "from": "bt_door",
+     "x": 24,
+     "y": 15,
+     "facing": 0,
+     "set": {
+      "Tag": "KD_R",
+      "LinkedTo": "KD",
+      "LinkedToFlags": 1
+     }
+    }
+   ]
+  }
+ ]
+}

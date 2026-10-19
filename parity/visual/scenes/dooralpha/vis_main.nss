@@ -1,0 +1,2 @@
+#include "visual_inc"
+void main(){object pc=GetEnteringObject();if(!GetIsPC(pc))return;SetCameraMode(pc,CAMERA_MODE_TOP_DOWN);SetCameraLimits(pc,1.0,89.0,1.0,40.0);VHidePC(pc);DelayCommand(2.0,VCamera(pc,90.0,10.0,65.0));DelayCommand(5.0,VShot("a_opaque"));DelayCommand(8.0,VCamera(pc,270.0,10.0,65.0));DelayCommand(11.0,VShot("b_faded"));DelayCommand(14.0,DestroyObject(GetObjectByTag("probe_door")));DelayCommand(17.0,VShot("c_background"));DelayCommand(20.0,VDone());}

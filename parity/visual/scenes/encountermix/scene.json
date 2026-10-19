@@ -1,0 +1,801 @@
+{
+ "tileset": "tde01",
+ "tile": 4,
+ "size": 12,
+ "pc": [
+  4,
+  4,
+  0
+ ],
+ "facing": 90,
+ "seconds": 200,
+ "gui": true,
+ "factions": "Prelude",
+ "extraAreas": [
+  {
+   "source": {
+    "module": "Prelude",
+    "area": "m0q1b"
+   }
+  }
+ ],
+ "encounters": [
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MA",
+   "x": 12,
+   "y": 12,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 2,
+     "single": 0
+    },
+    {
+     "resref": "mx_3",
+     "cr": 3,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     17,
+     17,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MA2",
+   "x": 30,
+   "y": 12,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 2,
+     "single": 0
+    },
+    {
+     "resref": "mx_3",
+     "cr": 3,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     35,
+     17,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MB",
+   "x": 48,
+   "y": 12,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 3,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 2,
+     "single": 0
+    },
+    {
+     "resref": "mx_3",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     53,
+     17,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MC",
+   "x": 66,
+   "y": 12,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     71,
+     17,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MD",
+   "x": 84,
+   "y": 12,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 6,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 0.25,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     89,
+     17,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_ME",
+   "x": 102,
+   "y": 12,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 8,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 10,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     107,
+     17,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MF",
+   "x": 12,
+   "y": 30,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 1
+    },
+    {
+     "resref": "mx_2",
+     "cr": 2,
+     "single": 0
+    },
+    {
+     "resref": "mx_3",
+     "cr": 4,
+     "single": 1
+    }
+   ],
+   "spawnPoints": [
+    [
+     17,
+     35,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MG",
+   "x": 30,
+   "y": 30,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 4,
+     "single": 1
+    },
+    {
+     "resref": "mx_2",
+     "cr": 4,
+     "single": 1
+    },
+    {
+     "resref": "mx_3",
+     "cr": 4,
+     "single": 1
+    }
+   ],
+   "spawnPoints": [
+    [
+     35,
+     35,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MH",
+   "x": 48,
+   "y": 30,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 0.5,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 1,
+     "single": 0
+    },
+    {
+     "resref": "mx_3",
+     "cr": 2,
+     "single": 0
+    },
+    {
+     "resref": "mx_4",
+     "cr": 3,
+     "single": 0
+    },
+    {
+     "resref": "mx_5",
+     "cr": 4,
+     "single": 0
+    },
+    {
+     "resref": "mx_6",
+     "cr": 5,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     53,
+     35,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MI",
+   "x": 66,
+   "y": 30,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 3,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     71,
+     35,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MJ",
+   "x": 84,
+   "y": 30,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 2,
+     "single": 1
+    },
+    {
+     "resref": "mx_2",
+     "cr": 2,
+     "single": 1
+    }
+   ],
+   "spawnPoints": [
+    [
+     89,
+     35,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_MK",
+   "x": 102,
+   "y": 30,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 5,
+     "single": 0
+    },
+    {
+     "resref": "mx_2",
+     "cr": 3,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     107,
+     35,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_SA",
+   "x": 12,
+   "y": 48,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     12,
+     56,
+     90
+    ],
+    [
+     13,
+     41,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_SB",
+   "x": 30,
+   "y": 48,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     38,
+     48,
+     90
+    ],
+    [
+     24,
+     50,
+     90
+    ],
+    [
+     30,
+     57,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_NO",
+   "x": 48,
+   "y": 48,
+   "w": 4,
+   "h": 4,
+   "ox": 6,
+   "oy": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": []
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_NOBIG",
+   "x": 66,
+   "y": 48,
+   "w": 14,
+   "h": 14,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": []
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_DZ",
+   "x": 84,
+   "y": 48,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": ""
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     89,
+     53,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "MX_DK",
+   "x": 102,
+   "y": 48,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 25,
+    "RecCreatures": 1,
+    "SpawnOption": 0,
+    "Reset": 1,
+    "Respawns": -1,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "",
+    "OnExit": "",
+    "OnExhausted": "",
+    "OnHeartbeat": "",
+    "ResetTime": 3
+   },
+   "creatures": [
+    {
+     "resref": "mx_1",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     107,
+     53,
+     90
+    ]
+   ]
+  }
+ ]
+}

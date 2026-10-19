@@ -1,0 +1,32 @@
+{
+  "native": "installed original nwserver via parity harness",
+  "audio": false,
+  "accepted_readings": 174,
+  "position_tolerance_m": 0.1,
+  "results": {
+    "out/parity/results/ranges_override/nwn.txt": {
+      "sha256": "f6891018243ced54449d0e00782ba55f38ed31b9a3e905107b0a7d60de7edd32",
+      "bytes": 956
+    },
+    "out/parity/results/ranges_override/openwinter.txt": {
+      "sha256": "f394e8077fe21224b74c7b92842f636f2c4608e0b249c8dd4e94ece72c7f0855",
+      "bytes": 956
+    },
+    "out/parity/results/weapon_ranges/nwn.txt": {
+      "sha256": "03dfc99de118bd1f7f9e63661ad1cda3d1572ef1938fe5ac83ffc2a84b676043",
+      "bytes": 1120
+    },
+    "out/parity/results/weapon_ranges/openwinter.txt": {
+      "sha256": "040a8a8552fb958c20b08323363684bf272e7c065a039248865e91ed1bb5ca49",
+      "bytes": 1120
+    },
+    "out/parity/results/weapon_reach/nwn.txt": {
+      "sha256": "07bb317eb61392bec6e4841ebc8625364cc7278155c6800976cd936d573bed4e",
+      "bytes": 1479
+    },
+    "out/parity/results/weapon_reach/openwinter.txt": {
+      "sha256": "d021c66f3a29417689b4ae5f63e5d9f322696f9c9a6ba4196d42f96bbc9d23d3",
+      "bytes": 1479
+    }
+  }
+}

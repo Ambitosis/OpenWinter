@@ -1,0 +1,31 @@
+{
+  "purpose": "Authored Lightning radius/scale factorial; not yet accepted until native positive",
+  "rate": 3,
+  "cases": [
+    {
+      "model": "bs_0",
+      "radius": 0,
+      "scale": 0
+    },
+    {
+      "model": "bs_1",
+      "radius": 0,
+      "scale": 1
+    },
+    {
+      "model": "bs_2",
+      "radius": 0.2,
+      "scale": 0
+    },
+    {
+      "model": "bs_3",
+      "radius": 0.2,
+      "scale": 0.2
+    },
+    {
+      "model": "bs_4",
+      "radius": 0.2,
+      "scale": 1
+    }
+  ]
+}

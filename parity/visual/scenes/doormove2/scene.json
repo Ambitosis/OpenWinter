@@ -1,0 +1,10 @@
+{
+  "source": { "module": "Prelude", "area": "m0q1c" },
+  "extraAreas": [ { "source": { "module": "Prelude", "area": "m0q1b" }, "onEnter": "dm_enter" } ],
+  "triggers": [ { "tag": "DM_TRANS", "position": [ 20, 37, 0 ], "points": [ [ -1, -1 ], [ 1, -1 ], [ 1, 1 ], [ -1, 1 ] ],
+                  "linkedTo": "M0Q1B_M0Q1C", "linkedToFlags": 1 } ],
+  "pc": [ 12, 35, 0 ],
+  "facing": 180,
+  "seconds": 70,
+  "gui": true
+}

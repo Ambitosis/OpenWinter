@@ -1,0 +1,8 @@
+{
+  "source": { "module": "Prelude", "area": "m0q1c" },
+  "extraAreas": [ { "source": { "module": "Prelude", "area": "m0q1b" }, "onEnter": "tf_enter" } ],
+  "pc": [ 9, 35, 0 ],
+  "facing": 180,
+  "seconds": 110,
+  "gui": true
+}

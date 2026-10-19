@@ -1,0 +1,1 @@
+{ "template": "nw_storgenral001", "empty": true, "fields": {"MarkUp": 100, "MarkDown": 50, "StoreGold": -1, "MaxBuyPrice": -1, "BlackMarket": 1, "BM_MarkDown": 30, "IdentifyPrice": 100} }

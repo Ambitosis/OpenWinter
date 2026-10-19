@@ -1,0 +1,1 @@
+void main(){int n=GetLocalInt(OBJECT_SELF,"attack_events")+1;SetLocalInt(OBJECT_SELF,"attack_events",n);WriteTimestampedLogEntry("VISUAL|note|attack.event."+IntToString(n)+".phase."+IntToString(GetLocalInt(OBJECT_SELF,"phase")));}

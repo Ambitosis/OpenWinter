@@ -1,0 +1,91 @@
+{
+ "seconds": 620,
+ "tile": 4,
+ "size": 12,
+ "factions": "Prelude",
+ "areas": [
+  {
+   "resref": "sn_a0",
+   "tag": "SN_A0",
+   "size": 16
+  },
+  {
+   "resref": "sn_a1",
+   "tag": "SN_A1"
+  },
+  {
+   "resref": "sn_a2",
+   "tag": "SN_A2"
+  },
+  {
+   "resref": "sn_park",
+   "tag": "SN_PARK",
+   "size": 16
+  }
+ ],
+ "templates": {
+  "sn_obs": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "sn_percept",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "SN_OBS",
+    "PerceptionRange": 8
+   }
+  },
+  "sn_obs9": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "sn_percept",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "SN_OBS",
+    "PerceptionRange": 9
+   }
+  },
+  "sn_tgt": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "SN_TGT",
+    "PerceptionRange": 8
+   }
+  }
+ }
+}

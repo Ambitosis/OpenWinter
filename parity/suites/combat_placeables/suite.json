@@ -1,0 +1,55 @@
+{
+  "seconds": 25,
+  "size": 8,
+  "tile": 4,
+  "templates": {
+    "p_chest": {
+      "from": "plc_chest1",
+      "type": "utp",
+      "set": {
+        "Plot": 1,
+        "Static": 0,
+        "Useable": 1,
+        "OnMeleeAttacked": "pp_attacked",
+        "OnDamaged": "",
+        "OnDeath": ""
+      }
+    },
+    "p_desk": {
+      "from": "plc_desk",
+      "type": "utp",
+      "set": {
+        "Plot": 1,
+        "Static": 0,
+        "Useable": 1,
+        "OnMeleeAttacked": "pp_attacked",
+        "OnDamaged": "",
+        "OnDeath": ""
+      }
+    },
+    "p_armoire": {
+      "from": "plc_armoire",
+      "type": "utp",
+      "set": {
+        "Plot": 1,
+        "Static": 0,
+        "Useable": 1,
+        "OnMeleeAttacked": "pp_attacked",
+        "OnDamaged": "",
+        "OnDeath": ""
+      }
+    },
+    "p_table": {
+      "from": "plc_table",
+      "type": "utp",
+      "set": {
+        "Plot": 1,
+        "Static": 0,
+        "Useable": 1,
+        "OnMeleeAttacked": "pp_attacked",
+        "OnDamaged": "",
+        "OnDeath": ""
+      }
+    }
+  }
+}

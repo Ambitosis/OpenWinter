@@ -1,0 +1,1810 @@
+{
+  "2": {
+    "target": "ground",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script creates an undead associate at the target location; a corpse is not required.",
+    "source": "spells.2da row 2; nw_s0_animdead.nss",
+    "status": "inferred"
+  },
+  "7": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Legacy authored script is a placeholder message, not the later working spell implementation.",
+    "source": "spells.2da row 7; nw_s0_blessweap.nss",
+    "status": "inferred",
+    "note": "Capture only as a documented legacy row; no buff is expected from this placeholder."
+  },
+  "14": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 14; nw_s0_chlightn.nss; classes.2da row10",
+    "extraTargets": [
+      {
+        "x": -2,
+        "y": 8
+      },
+      {
+        "x": 2,
+        "y": 8
+      }
+    ],
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "28": {
+    "target": "undead",
+    "caster": "nw_drowmage020",
+    "setup": [],
+    "reason": "Control Undead filters targets by undead racial type and hit dice.",
+    "source": "spells.2da row 28; nw_s0_conund.nss",
+    "status": "inferred",
+    "note": "Use a low-hit-die undead target; immunity, resistance and saves can still reject an otherwise legal target."
+  },
+  "29": {
+    "target": "ground",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script creates an undead associate at the target location; a corpse is not required.",
+    "source": "spells.2da row 29; nw_s0_crgrund.nss",
+    "status": "inferred"
+  },
+  "30": {
+    "target": "ground",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script creates an undead associate at the target location; a corpse is not required.",
+    "source": "spells.2da row 30; nw_s0_crundead.nss",
+    "status": "inferred"
+  },
+  "40": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Requires an enemy summoned creature, familiar or animal companion with a valid master. A generic hostile NPC does not exercise dismissal/banishment.",
+    "source": "spells.2da row 40; nw_s0_dismissal.nss",
+    "status": "inferred",
+    "note": "Build an enemy summoner and real associate, then target that associate."
+  },
+  "43": {
+    "target": "animal",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script restricts targets to animal racial type.",
+    "source": "spells.2da row 43; nw_s0_doman.nss",
+    "status": "inferred"
+  },
+  "58": {
+    "target": "ground",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 58; nw_s0_fireball.nss; classes.2da row10",
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "59": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 59; nw_s0_flmarrow.nss; classes.2da row10",
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "68": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Legacy authored script is a placeholder message, not the later working spell implementation.",
+    "source": "spells.2da row 68; nw_s0_grmgweap.nss",
+    "status": "inferred",
+    "note": "Capture only as a documented legacy row; no buff is expected from this placeholder."
+  },
+  "81": {
+    "target": "animal",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script restricts targets to animal racial type.",
+    "source": "spells.2da row 81; nw_s0_holdanim.nss",
+    "status": "inferred"
+  },
+  "85": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Legacy authored script is a placeholder message, not the later working spell implementation.",
+    "source": "spells.2da row 85; nw_s0_holyswrd.nss",
+    "status": "inferred",
+    "note": "Capture only as a documented legacy row; no buff is expected from this placeholder."
+  },
+  "101": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 101; nw_s0_lghtnbolt.nss; classes.2da row10",
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "103": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Legacy authored script is a placeholder message, not the later working spell implementation.",
+    "source": "spells.2da row 103; nw_s0_circchaos.nss",
+    "status": "inferred",
+    "note": "Capture only as a documented legacy row; no buff is expected from this placeholder."
+  },
+  "106": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Legacy authored script is a placeholder message, not the later working spell implementation.",
+    "source": "spells.2da row 106; nw_s0_circlaw.nss",
+    "status": "inferred",
+    "note": "Capture only as a documented legacy row; no buff is expected from this placeholder."
+  },
+  "107": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 107; nw_s0_magmiss.nss; classes.2da row10",
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "109": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Legacy authored script is a placeholder message, not the later working spell implementation.",
+    "source": "spells.2da row 109; nw_s0_magweap.nss",
+    "status": "inferred",
+    "note": "Capture only as a documented legacy row; no buff is expected from this placeholder."
+  },
+  "115": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 115; nw_s0_acidarrow.nss; classes.2da row10",
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "142": {
+    "target": "corpse",
+    "caster": "pc",
+    "setup": [
+      "SetPlotFlag(target, FALSE);",
+      "SetIsDestroyable(FALSE, TRUE, TRUE, target);",
+      "ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(FALSE, FALSE), target);"
+    ],
+    "reason": "Authored resurrection script requires a dead, raiseable creature.",
+    "source": "spells.2da row 142; nw_s0_raisdead.nss",
+    "status": "inferred",
+    "note": "Wait until the target is dead before casting. Restore destroyability before fixture cleanup."
+  },
+  "143": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 143; nw_s0_rayenfeeb.nss; classes.2da row10",
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "144": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 144; nw_s0_rayfrost.nss; classes.2da row10",
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "153": {
+    "target": "corpse",
+    "caster": "pc",
+    "setup": [
+      "SetPlotFlag(target, FALSE);",
+      "SetIsDestroyable(FALSE, TRUE, TRUE, target);",
+      "ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(FALSE, FALSE), target);"
+    ],
+    "reason": "Authored resurrection script requires a dead, raiseable creature.",
+    "source": "spells.2da row 153; nw_s0_resserec.nss",
+    "status": "inferred",
+    "note": "Wait until the target is dead before casting. Restore destroyability before fixture cleanup."
+  },
+  "174": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row174; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "175": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row175; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "176": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row176; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "177": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row177; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "178": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row178; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "179": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row179; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "180": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row180; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "181": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row181; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "182": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row182; nw_s0_summon.nss",
+    "reason": "Defined Wizard20 caster supplies positive summon duration. Associate validity/resref snapshots distinguish actual creature creation from casting alone.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "307": {
+    "target": "self",
+    "caster": "nw_hen_dae_11",
+    "setup": [],
+    "reason": "Rage magnitude/duration uses barbarian class levels.",
+    "source": "spells.2da row 307; nw_s1_barbrage.nss",
+    "status": "inferred"
+  },
+  "308": {
+    "target": "undead",
+    "caster": "nw_drowcler020",
+    "setup": [],
+    "reason": "Turn Undead needs a turn-capable caster and undead target.",
+    "source": "spells.2da row 308; nw_s2_turndead.nss",
+    "status": "inferred"
+  },
+  "310": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored spell script is a placeholder; the engine-owned feat action must be exercised instead of a cheat spell cast.",
+    "source": "spells.2da row 310; nw_s2_palm.nss",
+    "status": "inferred",
+    "note": "Requires a separate ActionUseFeat fixture and a character with the feat."
+  },
+  "314": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Aura of Courage is a passive feat placeholder, not an ordinary active spell cast.",
+    "source": "spells.2da row 314; nw_s2_couragea.nss",
+    "status": "inferred"
+  },
+  "315": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored spell script is a placeholder; the engine-owned feat action must be exercised instead of a cheat spell cast.",
+    "source": "spells.2da row 315; nw_s2_smiteevil.nss",
+    "status": "inferred",
+    "note": "Requires a separate ActionUseFeat fixture and a character with the feat."
+  },
+  "317": {
+    "target": "self",
+    "trigger": "feat",
+    "feat": 199,
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 3,
+          "level": 10
+        }
+      ],
+      "abilities": {
+        "wisdom": 20
+      },
+      "feats": [
+        199
+      ],
+      "equipment": [],
+      "companion": {
+        "type": 1,
+        "name": "Audit Wolf"
+      }
+    },
+    "prepareSeconds": 6,
+    "durationSeconds": 10,
+    "phases": {
+      "conjure": 0.25,
+      "release": 0.75,
+      "impact": 1.25,
+      "spawn": 2.5,
+      "late": 5.0
+    },
+    "status": "source-and-native-profile-supported",
+    "reason": "Uses actual ActionUseFeat with a selected associate and eligible class, preserving use consumption.",
+    "source": "Native summon_casts suite confirms legal selected associate, master and use consumption. This presentation context still requires paired execution/capture.",
+    "note": "No casting-script shortcut; visual/audio axes remain unverified until reviewed."
+  },
+  "318": {
+    "target": "self",
+    "trigger": "feat",
+    "feat": 303,
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ],
+      "abilities": {
+        "intelligence": 20
+      },
+      "feats": [
+        303
+      ],
+      "equipment": [],
+      "familiar": {
+        "type": 0,
+        "name": "Audit Bat"
+      }
+    },
+    "prepareSeconds": 6,
+    "durationSeconds": 10,
+    "phases": {
+      "conjure": 0.25,
+      "release": 0.75,
+      "impact": 1.25,
+      "spawn": 2.5,
+      "late": 5.0
+    },
+    "status": "source-and-native-profile-supported",
+    "reason": "Uses actual ActionUseFeat with a selected associate and eligible class, preserving use consumption.",
+    "source": "Native summon_casts suite confirms legal selected associate, master and use consumption. This presentation context still requires paired execution/capture.",
+    "note": "No casting-script shortcut; visual/audio axes remain unverified until reviewed."
+  },
+  "319": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 319; nw_s2_elemshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "320": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 320; nw_s2_wildshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "371": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 371; nw_s0_negray.nss; classes.2da row10",
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "397": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 397; nw_s2_elemshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "398": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 398; nw_s2_elemshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "399": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 399; nw_s2_elemshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "400": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 400; nw_s2_elemshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "401": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 401; nw_s2_wildshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "402": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 402; nw_s2_wildshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "403": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 403; nw_s2_wildshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "404": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 404; nw_s2_wildshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "405": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Druid shape ability duration and selected form depend on a real druid caster.",
+    "source": "spells.2da row 405; nw_s2_wildshape.nss",
+    "status": "inferred",
+    "note": "Supply a druid UTC/BIC and choose a concrete child form; parent rows may select a form differently."
+  },
+  "411": {
+    "target": "self",
+    "caster": "nw_hen_sha_11",
+    "setup": [],
+    "reason": "Bard Song depends on bard levels and Perform skill.",
+    "source": "spells.2da row 411; nw_s2_bardsong.nss",
+    "status": "inferred",
+    "note": "Include a nearby friendly creature/henchman and a hostile control; deaf targets are excluded."
+  },
+  "430": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Banishment accepts summoned associates or outsider racial targets; a generic humanoid enemy does not exercise either branch.",
+    "source": "spells.2da row 430; x0_s0_banishment.nss",
+    "status": "inferred",
+    "note": "Build an enemy summoner with a real associate, or an outsider. Capture both branches separately; saves and spell resistance can reject legal targets."
+  },
+  "440": {
+    "target": "ground",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 440; x0_s0_firebrand.nss; classes.2da row10",
+    "extraTargets": [
+      {
+        "x": -2,
+        "y": 8
+      },
+      {
+        "x": 2,
+        "y": 8
+      }
+    ],
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "445": {
+    "target": "self",
+    "caster": "nw_hen_sha_11",
+    "setup": [],
+    "reason": "Dirge duration uses bard levels and its area affects hostile creatures.",
+    "source": "spells.2da row 445; x0_s0_dirge.nss",
+    "status": "inferred",
+    "note": "Include a nearby hostile target and friendly control; individual Fortitude saves can suppress ticks."
+  },
+  "447": {
+    "target": "ground",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 447; x0_s0_missstorm1.nss; classes.2da row10",
+    "extraTargets": [
+      {
+        "x": -2,
+        "y": 8
+      },
+      {
+        "x": 2,
+        "y": 8
+      }
+    ],
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "448": {
+    "target": "ground",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 448; x0_s0_missstorm2.nss; classes.2da row10",
+    "extraTargets": [
+      {
+        "x": -2,
+        "y": 8
+      },
+      {
+        "x": 2,
+        "y": 8
+      }
+    ],
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "479": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Craft Harper Item opens the x1_harper conversation; it is a dialog/crafting action rather than an isolated effect.",
+    "source": "spells.2da row 479; x0_s2_harpitem.nss",
+    "status": "inferred",
+    "note": "Requires a separate conversation fixture with gold/XP and the appropriate feat."
+  },
+  "486": {
+    "target": "ally",
+    "caster": "pc",
+    "setup": [
+      "ApplyEffectToObject(DURATION_TYPE_PERMANENT, EffectPetrify(), target);"
+    ],
+    "reason": "Stone to Flesh needs an existing petrification effect.",
+    "source": "spells.2da row 486; x0_s0_stoflesh.nss",
+    "status": "inferred",
+    "note": "Wait for petrification before casting; verify it is removed rather than accepting a no-op."
+  },
+  "516": {
+    "target": "enemy",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ]
+    },
+    "distance": 8.0,
+    "status": "inferred",
+    "reason": "Defined Wizard20 caster and protected hostile target exercise the authored ray/projectile script; target spell/damage events and phase snapshots provide trigger observations.",
+    "source": "spells.2da row 516; x2_s0_balllghtng.nss; classes.2da row10",
+    "extraTargets": [
+      {
+        "x": -2,
+        "y": 8
+      },
+      {
+        "x": 2,
+        "y": 8
+      }
+    ],
+    "phases": {
+      "flight": 2.2,
+      "arrival": 2.7
+    }
+  },
+  "535": {
+    "target": "weapon",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 7,
+          "level": 20
+        }
+      ],
+      "feats": [
+        45
+      ],
+      "equipment": [
+        {
+          "slot": 4,
+          "resref": "nw_wswls001"
+        }
+      ]
+    },
+    "status": "inferred",
+    "source": "spells.2da row535; x2_s0_bldethst.nss; native-verified utcprofile equipment layout",
+    "reason": "Equipped slashing longsword on a level20 eligible caster with explicit martial proficiency; item possessor is the caster. Property/effect observations still require actual execution.",
+    "setup": [
+      "Note(\"weapon.baseitem.\"+IntToString(GetBaseItemType(target)));"
+    ]
+  },
+  "537": {
+    "target": "weapon",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 6,
+          "level": 20
+        }
+      ],
+      "feats": [
+        45
+      ],
+      "equipment": [
+        {
+          "slot": 4,
+          "resref": "nw_wswls001"
+        }
+      ]
+    },
+    "status": "inferred",
+    "source": "spells.2da row537; x2_s0_blssweap.nss; native-verified utcprofile equipment layout",
+    "reason": "Equipped slashing longsword on a level20 eligible caster with explicit martial proficiency; item possessor is the caster. Property/effect observations still require actual execution.",
+    "setup": [
+      "Note(\"weapon.baseitem.\"+IntToString(GetBaseItemType(target)));"
+    ]
+  },
+  "538": {
+    "target": "weapon",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 6,
+          "level": 20
+        }
+      ],
+      "feats": [
+        45
+      ],
+      "equipment": [
+        {
+          "slot": 4,
+          "resref": "nw_wswls001"
+        }
+      ]
+    },
+    "status": "inferred",
+    "source": "spells.2da row538; x2_s0_holyswrd.nss; native-verified utcprofile equipment layout",
+    "reason": "Equipped slashing longsword on a level20 eligible caster with explicit martial proficiency; item possessor is the caster. Property/effect observations still require actual execution.",
+    "setup": [
+      "Note(\"weapon.baseitem.\"+IntToString(GetBaseItemType(target)));"
+    ]
+  },
+  "542": {
+    "target": "weapon",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ],
+      "feats": [
+        45
+      ],
+      "equipment": [
+        {
+          "slot": 4,
+          "resref": "nw_wswls001"
+        }
+      ]
+    },
+    "status": "inferred",
+    "source": "spells.2da row542; x2_s0_flmeweap.nss; native-verified utcprofile equipment layout",
+    "reason": "Equipped slashing longsword on a level20 eligible caster with explicit martial proficiency; item possessor is the caster. Property/effect observations still require actual execution.",
+    "setup": [
+      "Note(\"weapon.baseitem.\"+IntToString(GetBaseItemType(target)));"
+    ]
+  },
+  "544": {
+    "target": "weapon",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ],
+      "feats": [
+        45
+      ],
+      "equipment": [
+        {
+          "slot": 4,
+          "resref": "nw_wswls001"
+        }
+      ]
+    },
+    "status": "inferred",
+    "source": "spells.2da row544; x2_s0_magcweap.nss; native-verified utcprofile equipment layout",
+    "reason": "Equipped slashing longsword on a level20 eligible caster with explicit martial proficiency; item possessor is the caster. Property/effect observations still require actual execution.",
+    "setup": [
+      "Note(\"weapon.baseitem.\"+IntToString(GetBaseItemType(target)));"
+    ]
+  },
+  "545": {
+    "target": "weapon",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        }
+      ],
+      "feats": [
+        45
+      ],
+      "equipment": [
+        {
+          "slot": 4,
+          "resref": "nw_wswls001"
+        }
+      ]
+    },
+    "status": "inferred",
+    "source": "spells.2da row545; x2_s0_grmagweap.nss; native-verified utcprofile equipment layout",
+    "reason": "Equipped slashing longsword on a level20 eligible caster with explicit martial proficiency; item possessor is the caster. Property/effect observations still require actual execution.",
+    "setup": [
+      "Note(\"weapon.baseitem.\"+IntToString(GetBaseItemType(target)));"
+    ]
+  },
+  "622": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Divine Wrath returns early for nonpositive Charisma modifier and scales with Divine Champion levels.",
+    "source": "spells.2da row 622; x2_s2_divwrath.nss",
+    "status": "inferred"
+  },
+  "624": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        },
+        {
+          "class": 34,
+          "level": 10
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row624; x2_s2_sumundead.nss; classes.2da row34",
+    "reason": "PaleMaster10 with Wizard20 supplies the authored prestige-level selection and duration; actual associate snapshots remain required.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "625": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Pale Master ability uses prestige-class levels for selection, duration or save DC.",
+    "source": "spells.2da row 625; x2_s2_undgraft1.nss",
+    "status": "inferred",
+    "note": "Supply a Pale Master caster; Greater Undead requires at least ten Pale Master levels."
+  },
+  "626": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Pale Master ability uses prestige-class levels for selection, duration or save DC.",
+    "source": "spells.2da row 626; x2_s2_undgraft1.nss",
+    "status": "inferred",
+    "note": "Supply a Pale Master caster; Greater Undead requires at least ten Pale Master levels."
+  },
+  "627": {
+    "target": "location",
+    "casterFixture": {
+      "template": "nw_drowmage020",
+      "classLevels": [
+        {
+          "class": 10,
+          "level": 20
+        },
+        {
+          "class": 34,
+          "level": 10
+        }
+      ]
+    },
+    "distance": 5.0,
+    "status": "inferred",
+    "source": "spells.2da row627; x2_s2_sumgrund.nss; classes.2da row34",
+    "reason": "PaleMaster10 with Wizard20 supplies the authored prestige-level selection and duration; actual associate snapshots remain required.",
+    "phases": {
+      "arrival": 2.8,
+      "spawn": 3.8
+    }
+  },
+  "641": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored spell script is a placeholder; the engine-owned feat action must be exercised instead of a cheat spell cast.",
+    "source": "spells.2da row 641; x2_s2_defstance.nss",
+    "status": "inferred",
+    "note": "Requires a separate ActionUseFeat fixture and a character with the feat."
+  },
+  "642": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Mighty Rage requires an appropriate epic barbarian caster and distinct rage-state setup.",
+    "source": "spells.2da row 642; x2_s2_mghtyrage.nss",
+    "status": "inferred"
+  },
+  "644": {
+    "target": "self",
+    "caster": "nw_hen_sha_11",
+    "setup": [],
+    "reason": "Curse Song requires the bard song feat and applies to hostile listeners.",
+    "source": "spells.2da row 644; x2_s2_cursesong.nss",
+    "status": "inferred",
+    "note": "Include hostile listener and friendly control within the song area."
+  },
+  "646": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 646; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "648": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 648; x2_s2_dyearmor.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "649": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 649; x2_s2_dyearmor.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "650": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 650; x2_s2_dyearmor.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "651": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 651; x2_s2_dyearmor.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "652": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 652; x2_s2_dyearmor.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "653": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 653; x2_s2_dyearmor.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "655": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 655; x2_s2_poisonwp.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "656": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 656; x2_s2_crafting.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "657": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 657; x2_s2_crafting.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "658": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 658; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "659": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 659; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "660": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 660; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "661": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 661; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "662": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 662; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "670": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 670; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "671": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 671; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "672": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 672; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "673": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 673; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "674": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 674; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "675": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 675; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "676": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 676; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "677": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 677; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "678": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 678; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "679": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 679; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "680": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 680; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "681": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 681; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "682": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 682; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "683": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 683; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "684": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 684; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "685": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 685; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "690": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Disciple breath damage scales with Red Dragon Disciple class levels.",
+    "source": "spells.2da row 690; x2_s2_discbreath.nss",
+    "status": "inferred"
+  },
+  "691": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 691; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "694": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 694; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "704": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 704; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "705": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 705; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "706": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 706; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "707": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 707; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "708": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 708; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "709": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 709; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "725": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 725; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "732": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 732; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "733": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 733; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "734": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 734; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "735": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 735; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "737": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 737; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "738": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 738; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "739": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 739; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "740": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Shifter form and scaling depend on shifter levels; parent rows randomly select a child form.",
+    "source": "spells.2da row 740; x2_s2_gwildshp.nss",
+    "status": "inferred",
+    "note": "Supply a shifter UTC/BIC; retain separate evidence for each concrete form and parent selection behavior."
+  },
+  "742": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 742; x2_s2_crafting.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "743": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Authored script depends on GetSpellCastItem and item tags/materials; cheat casting omits required item-use context.",
+    "source": "spells.2da row 743; x2_s2_crafting.nss",
+    "status": "inferred",
+    "note": "Exercise a real item activation against valid owned equipment; dye and crafting rows also require suitable item parts/materials."
+  },
+  "767": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Intelligent weapon script requires the owning weapon and its item event/activation context.",
+    "source": "spells.2da row 767; x2_s3_intitemtlk.nss",
+    "status": "inferred"
+  },
+  "768": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Intelligent weapon script requires the owning weapon and its item event/activation context.",
+    "source": "spells.2da row 768; x2_s3_intitemijc.nss",
+    "status": "inferred"
+  },
+  "820": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 820; x3_dm_tool01.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "821": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 821; x3_dm_tool02.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "822": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 822; x3_dm_tool03.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "823": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 823; x3_dm_tool04.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "824": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 824; x3_dm_tool05.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "825": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 825; x3_dm_tool06.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "826": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 826; x3_dm_tool07.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "827": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 827; x3_dm_tool08.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "828": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 828; x3_dm_tool09.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "829": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 829; x3_dm_tool10.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "830": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 830; x3_pl_tool01.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "831": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 831; x3_pl_tool02.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "832": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 832; x3_pl_tool03.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "833": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 833; x3_pl_tool04.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "834": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 834; x3_pl_tool05.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "835": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 835; x3_pl_tool06.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "836": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 836; x3_pl_tool07.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "837": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 837; x3_pl_tool08.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "838": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 838; x3_pl_tool09.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  },
+  "839": {
+    "target": "manual",
+    "caster": "pc",
+    "setup": [],
+    "reason": "Stock DM/player tool script is a module customization hook whose default behavior is a message.",
+    "source": "spells.2da row 839; x3_pl_tool10.nss",
+    "status": "inferred",
+    "note": "No universal stock spell effect can be inferred; exercise the module-provided hook separately."
+  }
+}

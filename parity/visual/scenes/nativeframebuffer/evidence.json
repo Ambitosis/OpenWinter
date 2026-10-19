@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-10",
+  "captureMethod": "owned HWND VK_SNAPSHOT with E0:37 scan; sandbox screenshot alias",
+  "initialGroundRun": "out/ground-item-native1.txt",
+  "verificationRun": "out/native-framebuffer-verified.txt",
+  "proofs": [
+    {
+      "shot": "a_right_root",
+      "raw": "out/visual/shots/vis_radialgrounditem_extendedshot/nwn/a_right_root_native_0.tga",
+      "rawSha256": "89c12ed618a0a8741b5d1588e91334756b6d14a5247897eaaecfe10dd50947e4",
+      "window": "out/visual/shots/vis_radialgrounditem_extendedshot/nwn/a_right_root.png",
+      "windowSha256": "20f08885b32fd899b85bcdfc5d390a99015ecd71de0242214234ec1efba549e7"
+    },
+    {
+      "shot": "b_left_root",
+      "raw": "out/visual/shots/vis_radialgrounditem_extendedshot/nwn/b_left_root_native_0.tga",
+      "rawSha256": "2802f370978d007a9450011fa95d6ab7ae5a688ab795dd9061d6103a51ced515",
+      "window": "out/visual/shots/vis_radialgrounditem_extendedshot/nwn/b_left_root.png",
+      "windowSha256": "20f08885b32fd899b85bcdfc5d390a99015ecd71de0242214234ec1efba549e7"
+    },
+    {
+      "shot": "c_pickup_root",
+      "raw": "out/visual/shots/vis_radialgrounditem_extendedshot/nwn/c_pickup_root_native_0.tga",
+      "rawSha256": "ab68cda2fe687c42870babbc9bcf171eec92f879827cce96901dbcf675f319d9",
+      "window": "out/visual/shots/vis_radialgrounditem_extendedshot/nwn/c_pickup_root.png",
+      "windowSha256": "20f08885b32fd899b85bcdfc5d390a99015ecd71de0242214234ec1efba549e7"
+    },
+    {
+      "shot": "a_chest",
+      "raw": "out/visual/shots/vis_nativeframebuffer_verified/nwn/a_chest.tga",
+      "rawSha256": "9682137319fab21eb486946ee8fac3c5668f1ffd528c9e858a174da608031190",
+      "window": "out/visual/shots/vis_nativeframebuffer_verified/nwn/a_chest_window.png",
+      "windowSha256": "20f08885b32fd899b85bcdfc5d390a99015ecd71de0242214234ec1efba549e7"
+    },
+    {
+      "shot": "b_empty",
+      "raw": "out/visual/shots/vis_nativeframebuffer_verified/nwn/b_empty.tga",
+      "rawSha256": "7d608facb73b5710fb089dfac82bf1137671dd8cb6caf9f02423aa3474a6b9b1",
+      "window": "out/visual/shots/vis_nativeframebuffer_verified/nwn/b_empty_window.png",
+      "windowSha256": "20f08885b32fd899b85bcdfc5d390a99015ecd71de0242214234ec1efba549e7"
+    },
+    {
+      "shot": "c_table",
+      "raw": "out/visual/shots/vis_nativeframebuffer_verified/nwn/c_table.tga",
+      "rawSha256": "6d3d67bf79d5c36c6934054c9df74badeecb56ddad7039ed71779b85cfea6433",
+      "window": "out/visual/shots/vis_nativeframebuffer_verified/nwn/c_table_window.png",
+      "windowSha256": "20f08885b32fd899b85bcdfc5d390a99015ecd71de0242214234ec1efba549e7"
+    }
+  ]
+}

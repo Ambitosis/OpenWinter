@@ -1,0 +1,82 @@
+{
+  "seconds": 35,
+  "tile": 4,
+  "templates": {
+    "p_mover": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "Tag": "P_MOVER",
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": ""
+      }
+    },
+    "p_spd0": {
+      "from": "p_mover",
+      "type": "utc",
+      "set": {
+        "WalkRate": 0
+      }
+    },
+    "p_spd1": {
+      "from": "p_mover",
+      "type": "utc",
+      "set": {
+        "WalkRate": 1
+      }
+    },
+    "p_spd2": {
+      "from": "p_mover",
+      "type": "utc",
+      "set": {
+        "WalkRate": 2
+      }
+    },
+    "p_spd3": {
+      "from": "p_mover",
+      "type": "utc",
+      "set": {
+        "WalkRate": 3
+      }
+    },
+    "p_spd4": {
+      "from": "p_mover",
+      "type": "utc",
+      "set": {
+        "WalkRate": 4
+      }
+    },
+    "p_spd5": {
+      "from": "p_mover",
+      "type": "utc",
+      "set": {
+        "WalkRate": 5
+      }
+    },
+    "p_spd6": {
+      "from": "p_mover",
+      "type": "utc",
+      "set": {
+        "WalkRate": 6
+      }
+    },
+    "p_spd8": {
+      "from": "p_mover",
+      "type": "utc",
+      "set": {
+        "WalkRate": 8
+      }
+    }
+  }
+}

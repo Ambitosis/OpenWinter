@@ -1,0 +1,160 @@
+{
+  "seconds": 11,
+  "tile": 4,
+  "size": 10,
+  "templates": {
+    "bd_door": {
+      "from": "nw_door_metal",
+      "type": "utd",
+      "set": {
+        "Tag": "bd_door",
+        "HP": 1000,
+        "CurrentHP": 1000,
+        "Hardness": 50,
+        "Plot": 0,
+        "OnDeath": "",
+        "OnHeartbeat": "",
+        "OnMeleeAttacked": "bd_attacked",
+        "OnDamaged": ""
+      }
+    },
+    "bd_chest": {
+      "from": "plc_chest1",
+      "type": "utp",
+      "set": {
+        "Tag": "bd_chest",
+        "HP": 1000,
+        "CurrentHP": 1000,
+        "Hardness": 50,
+        "Plot": 0,
+        "OnDeath": "",
+        "OnHeartbeat": "",
+        "OnMeleeAttacked": "bd_attacked",
+        "OnDamaged": ""
+      }
+    }
+  },
+  "instances": [
+    {
+      "type": "utd",
+      "from": "bd_door",
+      "x": 15,
+      "y": 15,
+      "facing": 90,
+      "set": {
+        "Tag": "BD0"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "bd_door",
+      "x": 35,
+      "y": 15,
+      "facing": 90,
+      "set": {
+        "Tag": "BD1"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "bd_door",
+      "x": 55,
+      "y": 15,
+      "facing": 90,
+      "set": {
+        "Tag": "BD2"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "bd_door",
+      "x": 75,
+      "y": 15,
+      "facing": 90,
+      "set": {
+        "Tag": "BD3"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "bd_door",
+      "x": 15,
+      "y": 40,
+      "facing": 90,
+      "set": {
+        "Tag": "BD4"
+      }
+    },
+    {
+      "type": "utd",
+      "from": "bd_door",
+      "x": 35,
+      "y": 40,
+      "facing": 90,
+      "set": {
+        "Tag": "BD5"
+      }
+    },
+    {
+      "type": "utp",
+      "from": "bd_chest",
+      "x": 55,
+      "y": 40,
+      "facing": 90,
+      "set": {
+        "Tag": "BD6"
+      }
+    },
+    {
+      "type": "utp",
+      "from": "bd_chest",
+      "x": 75,
+      "y": 40,
+      "facing": 90,
+      "set": {
+        "Tag": "BD7"
+      }
+    },
+    {
+      "type": "utp",
+      "from": "bd_chest",
+      "x": 15,
+      "y": 65,
+      "facing": 90,
+      "set": {
+        "Tag": "BD8"
+      }
+    },
+    {
+      "type": "utp",
+      "from": "bd_chest",
+      "x": 35,
+      "y": 65,
+      "facing": 90,
+      "set": {
+        "Tag": "BD9",
+        "Static": 1
+      }
+    },
+    {
+      "type": "utp",
+      "from": "bd_chest",
+      "x": 55,
+      "y": 65,
+      "facing": 90,
+      "set": {
+        "Tag": "BD10"
+      }
+    },
+    {
+      "type": "utp",
+      "from": "bd_chest",
+      "x": 75,
+      "y": 65,
+      "facing": 90,
+      "set": {
+        "Tag": "BD11"
+      }
+    }
+  ]
+}

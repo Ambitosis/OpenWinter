@@ -1,0 +1,7 @@
+{
+  "starts": [0],
+  "endScript": "lc_ended",
+  "abortScript": "lc_aborted",
+  "entries": [{ "text": "This authored conversation was started from OnClientEnter.", "replies": [0] }],
+  "replies": [{ "text": "End the login conversation check.", "entries": [] }]
+}

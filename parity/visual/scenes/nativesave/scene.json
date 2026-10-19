@@ -1,0 +1,18 @@
+{
+  "tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 25, "gui": true,
+  "doors": [
+    { "template": "nw_door_metal", "tag": "NS_DOOR", "position": [28, 20, 0], "facing": 0 },
+    { "template": "nw_door_metal", "tag": "NS_DOOR2", "position": [12, 28, 0], "facing": 90 }
+  ],
+  "triggers": [ { "tag": "NS_TRIG", "position": [30, 10, 0], "points": [[-2, -2], [2, -2], [2, 2], [-2, 2]] } ],
+  "sounds": [ { "tag": "NS_SND", "sound": "as_cv_bell1", "position": [6, 6, 0] } ],
+  "encounters": [
+    { "from": "nw_goblingrp", "tag": "NS_ENC", "x": 34, "y": 34, "w": 4, "h": 4,
+      "set": { "Active": 0, "PlayerOnly": 1, "Faction": 1 }, "creatures": [ { "resref": "nw_goblina", "cr": 0.25, "single": 0 } ],
+      "spawnPoints": [ [ 34, 36, 90 ] ] }
+  ],
+  "journal": [
+    { "tag": "q_ns", "name": "Saved Quest", "xp": 10, "priority": 1,
+      "entries": [ { "id": 1, "text": "The quest begins." }, { "id": 2, "text": "The quest goes on." }, { "id": 3, "text": "Done.", "end": 1 } ] }
+  ]
+}

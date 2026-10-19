@@ -1,0 +1,82 @@
+newmodel vim_bonac
+setsupermodel vim_bonac NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vim_bonac
+node dummy vim_bonac
+ parent NULL
+endnode
+node emitter finite
+ parent vim_bonac
+ position -1.2 0 1.6
+ update Single
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ birthrate 1
+ lifeExp 5
+ velocity 0
+ sizeStart 0.45
+ sizeEnd 0.45
+ alphaStart 1
+ alphaEnd 1
+ colorStart 1 0 0
+ colorEnd 1 0 0
+endnode
+node emitter infinite
+ parent vim_bonac
+ position 0 0 1.6
+ update Single
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 0.45
+ sizeEnd 0.45
+ alphaStart 1
+ alphaEnd 1
+ colorStart 0 1 0
+ colorEnd 0 1 0
+endnode
+node emitter fountain
+ parent vim_bonac
+ position 1.2 0 1.6
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ xgrid 1
+ ygrid 1
+ birthrate 4
+ lifeExp 5
+ velocity 0.2
+ sizeStart 0.45
+ sizeEnd 0.45
+ alphaStart 1
+ alphaEnd 1
+ colorStart 0 0 1
+ colorEnd 0 0 1
+endnode
+endmodelgeom vim_bonac
+newanim impact vim_bonac
+ length 2
+ transtime 0
+ animroot vim_bonac
+ node dummy vim_bonac
+  parent NULL
+ endnode
+ node emitter fountain
+  parent vim_bonac
+  birthratekey 3
+   0 4
+   0.99 4
+   1 0
+ endnode
+doneanim impact vim_bonac
+donemodel vim_bonac

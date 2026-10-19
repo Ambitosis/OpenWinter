@@ -1,0 +1,61 @@
+{
+  "seconds": 40,
+  "tile": 4,
+  "templates": {
+    "p_actor": {
+      "from": "nw_bandit001",
+      "type": "utc",
+      "set": {
+        "Tag": "P_ACTOR",
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "ma_hb",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptOnBlocked": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": ""
+      }
+    },
+    "p_door": {
+      "from": "nw_door_metal",
+      "type": "utd",
+      "set": {
+        "Tag": "P_DOOR",
+        "OnUnlock": "ma_unlock",
+        "OnOpen": "ma_open"
+      }
+    },
+    "p_plc": {
+      "from": "plc_chair",
+      "type": "utp",
+      "set": {
+        "Tag": "P_PLC",
+        "OnHeartbeat": "ma_hb"
+      }
+    }
+  },
+  "instances": [
+    {
+      "type": "utd",
+      "from": "p_door",
+      "x": 30,
+      "y": 10,
+      "facing": 90,
+      "set": {
+        "Tag": "D_PICK",
+        "Locked": 1,
+        "Lockable": 1,
+        "OpenLockDC": 0
+      }
+    }
+  ],
+  "events": {
+    "OnHeartbeat": "ma_hb"
+  }
+}

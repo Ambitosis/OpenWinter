@@ -1,0 +1,10 @@
+{ "tileset": "ttr01", "tile": 109, "size": 8, "pc": [40, 40, 0], "facing": 90, "seconds": 40,
+  "are": { "SunShadows": 0, "IsNight": 0, "SunAmbientColor": 8421504, "SunDiffuseColor": 8421504, "SunFogColor": 255 },
+  "variants": {
+    "none": { "are": { "SunFogAmount": 0 } },
+    "f5":   { "are": { "SunFogAmount": 5 } },
+    "f8":   { "are": { "SunFogAmount": 8 } },
+    "f10":  { "are": { "SunFogAmount": 10 } },
+    "f12":  { "are": { "SunFogAmount": 12 } },
+    "f15":  { "are": { "SunFogAmount": 15 } }
+  } }

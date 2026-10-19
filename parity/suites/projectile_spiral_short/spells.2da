@@ -1,0 +1,5 @@
+2DA V2.0
+
+Label Name School Range VS MetaMagic TargetType ImpactScript Innate ConjTime ConjAnim CastAnim CastTime Proj ProjModel ProjType ProjSpwnPoint ProjOrientation UserType UseConcentration HostileSetting
+0 Control **** V L vs 0x3f 0x2f ps_impact 1 1500 hand area 1000 0 **** **** **** **** 1 0 0
+1 Spiral **** V L vs 0x3f 0x2f ps_impact 1 1500 hand area 1000 1 wamar_001 spiral hand path 1 0 0

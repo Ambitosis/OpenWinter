@@ -1,0 +1,34 @@
+{
+  "template": "nw_bandit001",
+  "classLevels": [
+    {
+      "class": 4,
+      "level": 6
+    },
+    {
+      "class": 10,
+      "level": 1
+    },
+    {
+      "class": 29,
+      "level": 4
+    }
+  ],
+  "feats": [
+    45,
+    46,
+    27,
+    101,
+    451
+  ],
+  "equipment": [
+    {
+      "slot": 4,
+      "resref": "nw_wbwln001"
+    },
+    {
+      "slot": 11,
+      "resref": "nw_wamar001"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"tileset":"tde01","tile":4,"size":4,"pc":[20,15,0],"facing":90,"seconds":53,"gui":true,"character":"cleric","characterFixture":{"name":"Queue Spell Probe","quickbarSpells":[{"slot":0,"spell":50,"classIndex":0},{"slot":1,"spell":6,"classIndex":0}]}}

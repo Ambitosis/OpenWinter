@@ -1,0 +1,38 @@
+# Authored constant-color two-sided panel for measuring door fade alpha.
+newmodel vis_red_door
+setsupermodel vis_red_door NULL
+classification Door
+setanimationscale 1
+beginmodelgeom vis_red_door
+node dummy vis_red_door
+ parent NULL
+endnode
+node trimesh panel
+ parent vis_red_door
+ position 0 0 0
+ orientation 0 0 1 0
+ render 1
+ shadow 0
+ bitmap vis_white
+ ambient 1 1 1
+ diffuse 1 1 1
+ specular 0 0 0
+ selfillumcolor 1 0 0
+ verts 4
+ -1 0 0
+ 1 0 0
+ 1 0 3
+ -1 0 3
+ tverts 4
+ 0 0 0
+ 1 0 0
+ 1 1 0
+ 0 1 0
+ faces 4
+ 0 1 2 1 0 1 2 0
+ 0 2 3 1 0 2 3 0
+ 2 1 0 1 2 1 0 0
+ 3 2 0 1 3 2 0 0
+endnode
+endmodelgeom vis_red_door
+donemodel vis_red_door

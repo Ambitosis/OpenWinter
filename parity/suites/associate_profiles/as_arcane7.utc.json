@@ -1,0 +1,26 @@
+{
+  "template": "nw_drowmage020",
+  "classLevels": [
+    {
+      "class": 10,
+      "level": 3
+    },
+    {
+      "class": 9,
+      "level": 4
+    }
+  ],
+  "abilities": {
+    "intelligence": 20,
+    "wisdom": 20,
+    "charisma": 20
+  },
+  "feats": [
+    303
+  ],
+  "equipment": [],
+  "familiar": {
+    "type": 0,
+    "name": "Audit arcane7"
+  }
+}

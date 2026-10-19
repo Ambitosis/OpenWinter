@@ -1,0 +1,136 @@
+newmodel vdr_spellturn
+setsupermodel vdr_spellturn NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vdr_spellturn
+node dummy vdr_spellturn
+ parent NULL
+endnode
+node emitter gray0
+ parent vdr_spellturn
+ position -3.75 0 2
+ update Single
+ render Normal
+ blend Lighten
+ texture vtest_gray
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1
+ sizeEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ xgrid 6
+ ygrid 1
+ frameStart 0
+ frameEnd 0
+endnode
+node emitter gray2
+ parent vdr_spellturn
+ position -2.25 0 2
+ update Single
+ render Normal
+ blend Lighten
+ texture vtest_gray
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1
+ sizeEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ xgrid 6
+ ygrid 1
+ frameStart 1
+ frameEnd 1
+endnode
+node emitter gray8
+ parent vdr_spellturn
+ position -0.75 0 2
+ update Single
+ render Normal
+ blend Lighten
+ texture vtest_gray
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1
+ sizeEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ xgrid 6
+ ygrid 1
+ frameStart 2
+ frameEnd 2
+endnode
+node emitter gray32
+ parent vdr_spellturn
+ position 0.75 0 2
+ update Single
+ render Normal
+ blend Lighten
+ texture vtest_gray
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1
+ sizeEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ xgrid 6
+ ygrid 1
+ frameStart 3
+ frameEnd 3
+endnode
+node emitter gray128
+ parent vdr_spellturn
+ position 2.25 0 2
+ update Single
+ render Normal
+ blend Lighten
+ texture vtest_gray
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1
+ sizeEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ xgrid 6
+ ygrid 1
+ frameStart 4
+ frameEnd 4
+endnode
+node emitter gray255
+ parent vdr_spellturn
+ position 3.75 0 2
+ update Single
+ render Normal
+ blend Lighten
+ texture vtest_gray
+ birthrate 1
+ lifeExp -1
+ velocity 0
+ sizeStart 1
+ sizeEnd 1
+ colorStart 1 1 1
+ colorEnd 1 1 1
+ alphaStart 1
+ alphaEnd 1
+ xgrid 6
+ ygrid 1
+ frameStart 5
+ frameEnd 5
+endnode
+endmodelgeom vdr_spellturn
+donemodel vdr_spellturn

@@ -1,0 +1,43 @@
+; Engine configuration file.
+
+config_version=5
+
+[application]
+
+config/name="OpenWinter"
+config/description="OpenWinter client"
+run/main_scene="res://Scenes/Main.tscn"
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+
+[dotnet]
+
+project/assembly_name="OpenWinter.Client"
+
+[physics]
+
+common/physics_ticks_per_second=30
+
+[rendering]
+
+anti_aliasing/quality/msaa_3d=2
+textures/vram_compression/import_s3tc_bptc=true
+
+[shader_globals]
+
+keyhole_view={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+keyhole_shape={
+"type": "vec4",
+"value": Vector4(0.36, 2.6, 0.4, 0.9)
+}
+keyhole_floor={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}

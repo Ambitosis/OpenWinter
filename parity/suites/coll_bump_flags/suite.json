@@ -1,0 +1,36 @@
+{
+  "seconds": 24,
+  "tile": 4,
+  "size": 14,
+  "templates": {
+    "p_quiet": {
+      "from": "nw_goblina",
+      "type": "utc",
+      "set": {
+        "ScriptSpawn": "",
+        "ScriptHeartbeat": "",
+        "ScriptUserDefine": "",
+        "ScriptDeath": "",
+        "ScriptOnNotice": "",
+        "ScriptAttacked": "",
+        "ScriptDamaged": "",
+        "ScriptDialogue": "",
+        "ScriptDisturbed": "",
+        "ScriptEndRound": "",
+        "ScriptRested": "",
+        "ScriptSpellAt": "",
+        "Tag": "P_QUIET",
+        "ScriptOnBlocked": "",
+        "FactionID": 2
+      }
+    },
+    "p_immobile": {
+      "from": "p_quiet",
+      "type": "utc",
+      "set": {
+        "WalkRate": 1
+      }
+    }
+  },
+  "factions": "Prelude"
+}

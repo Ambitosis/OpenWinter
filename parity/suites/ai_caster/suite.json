@@ -1,0 +1,88 @@
+{
+ "seconds": 110,
+ "tile": 4,
+ "size": 3,
+ "factions": "Prelude",
+ "areas": [
+  {
+   "resref": "ai00",
+   "tag": "AI00",
+   "size": 3
+  },
+  {
+   "resref": "ai01",
+   "tag": "AI01",
+   "size": 3
+  },
+  {
+   "resref": "ai02",
+   "tag": "AI02",
+   "size": 3
+  },
+  {
+   "resref": "ai03",
+   "tag": "AI03",
+   "size": 3
+  },
+  {
+   "resref": "ai04",
+   "tag": "AI04",
+   "size": 3
+  },
+  {
+   "resref": "ai05",
+   "tag": "AI05",
+   "size": 3
+  },
+  {
+   "resref": "ai06",
+   "tag": "AI06",
+   "size": 3
+  },
+  {
+   "resref": "ai07",
+   "tag": "AI07",
+   "size": 3
+  },
+  {
+   "resref": "ai08",
+   "tag": "AI08",
+   "size": 3
+  },
+  {
+   "resref": "ai09",
+   "tag": "AI09",
+   "size": 3
+  },
+  {
+   "resref": "ai10",
+   "tag": "AI10",
+   "size": 3
+  },
+  {
+   "resref": "ai11",
+   "tag": "AI11",
+   "size": 3
+  },
+  {
+   "resref": "ai12",
+   "tag": "AI12",
+   "size": 3
+  },
+  {
+   "resref": "ai13",
+   "tag": "AI13",
+   "size": 3
+  },
+  {
+   "resref": "ai14",
+   "tag": "AI14",
+   "size": 3
+  },
+  {
+   "resref": "ai15",
+   "tag": "AI15",
+   "size": 3
+  }
+ ]
+}

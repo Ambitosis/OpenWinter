@@ -1,0 +1,8 @@
+{ "tileset": "ttr01", "tile": 109, "size": 8, "pc": [40, 40, 0], "facing": 90, "seconds": 40,
+  "are": { "MoonShadows": 0, "IsNight": 1, "MoonAmbientColor": 8421504, "MoonDiffuseColor": 8421504, "MoonFogColor": 255 },
+  "variants": {
+    "none": { "are": { "MoonFogAmount": 0 } },
+    "f3":   { "are": { "MoonFogAmount": 3 } },
+    "f8":   { "are": { "MoonFogAmount": 8 } },
+    "f15":  { "are": { "MoonFogAmount": 15 } }
+  } }

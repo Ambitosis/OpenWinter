@@ -1,0 +1,1 @@
+Actual default ground click, ownership/position observations, and scripted put-down animation. The retained original reference run also had an invalid later camera-reset phase, now removed from this fixture.

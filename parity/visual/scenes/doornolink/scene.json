@@ -1,0 +1,1 @@
+{"tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 15, 0], "facing": 90, "seconds": 70, "gui": true, "chatLog": true, "doors": [{"template": "nw_door_strong", "tag": "plain", "position": [30, 30, 0], "facing": 0}, {"template": "nw_door_strong", "tag": "linked", "position": [17.8, 10.6, 0], "facing": 0, "linkedTo": "no_such_target"}]}

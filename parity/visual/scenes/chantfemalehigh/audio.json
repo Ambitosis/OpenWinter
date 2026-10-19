@@ -1,0 +1,27 @@
+{
+  "scene": "chantfemalehigh",
+  "gender": 1,
+  "rows": [
+    {
+      "id": 42,
+      "label": "Divine_Power",
+      "start": 4,
+      "span": 6,
+      "expected": "vs_chant_evoc_hf"
+    },
+    {
+      "id": 38,
+      "label": "Death_Ward",
+      "start": 10,
+      "span": 6,
+      "expected": "vs_chant_necr_hf"
+    },
+    {
+      "id": 189,
+      "label": "Virtue",
+      "start": 16,
+      "span": 6,
+      "expected": "vs_chant_ench_hf"
+    }
+  ]
+}

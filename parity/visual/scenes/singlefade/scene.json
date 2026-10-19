@@ -1,0 +1,14 @@
+{
+  "tileset": "tde01",
+  "tile": 4,
+  "size": 4,
+  "pc": [
+    20,
+    16,
+    0
+  ],
+  "facing": 90,
+  "seconds": 12,
+  "difficulty": 3,
+  "description": "Single alpha lifetime control: finite red life1 fades to0, infinite green stays1; long clip8."
+}

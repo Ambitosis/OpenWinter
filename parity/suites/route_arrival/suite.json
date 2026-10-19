@@ -1,0 +1,25 @@
+{
+ "seconds": 120,
+ "tile": 4,
+ "templates": {
+  "ra_tr": {"from": "newtransition", "type": "utt"},
+  "ra_wp": {"from": "nw_waypoint001", "type": "utw"}
+ },
+ "areaEvents": {"OnEnter": "ra_aenter"},
+ "areas": [
+  {"resref": "ra_hub", "tag": "RA_HUB", "size": 2, "instances": []},
+  {"resref": "raa", "tag": "RAA", "size": 3, "instances": [
+   {"type": "utw", "from": "ra_wp", "x": 15, "y": 8, "set": {"Tag": "RA_START"}},
+   {"type": "utt", "from": "ra_tr", "x": 15, "y": 25, "w": 4, "h": 2, "set": {"Tag": "RA_X", "LinkedTo": "RB_IN", "LinkedToFlags": 2}}
+  ]},
+  {"resref": "rab", "tag": "RAB", "size": 3, "instances": [
+   {"type": "utw", "from": "ra_wp", "x": 5, "y": 15, "set": {"Tag": "RB_IN"}},
+   {"type": "utt", "from": "ra_tr", "x": 25, "y": 15, "w": 2, "h": 4, "set": {"Tag": "RB_X", "LinkedTo": "RC_IN", "LinkedToFlags": 2}}
+  ]},
+  {"resref": "rac", "tag": "RAC", "size": 3, "instances": [
+   {"type": "utw", "from": "ra_wp", "x": 5, "y": 15, "set": {"Tag": "RC_IN"}},
+   {"type": "utw", "from": "ra_wp", "x": 25, "y": 15, "set": {"Tag": "RC_GOAL"}}
+  ]},
+  {"resref": "rad", "tag": "RAD", "size": 4, "instances": []}
+ ]
+}

@@ -1,0 +1,7 @@
+2DA V2.0
+
+ Label Wiz_Sorc Name School Range VS MetaMagic TargetType ImpactScript Innate ConjTime ConjAnim CastAnim CastTime Proj UserType UseConcentration HostileSetting
+0 Test0 1 782 C P vs 0x3f 0x2b pq_impact 1 0 hand touch 0 0 1 0 0
+1 Test1 1 782 C P vs 0x3f 0x2b pq_impact 1 0 hand touch 4000 0 1 0 0
+2 Test2 1 782 C P vs 0x3f 0x2b pq_impact 1 4000 hand touch 5000 0 1 0 0
+3 Test3 1 782 C P vs 0x3f 0x2b pq_impact 1 4000 hand touch 7000 0 1 0 0

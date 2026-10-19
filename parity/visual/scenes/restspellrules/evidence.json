@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-10",
+  "engine": "original NWN via sandbox harness",
+  "tag": "reference",
+  "inputs_sha256": {
+    "parity/visual/scenes/restspellrules/rr_inc.nss": "6f285072c252e7dbe1d73415a69bdd82ed3a1c88b712a8e8ba39ce2e1fac0c68",
+    "parity/visual/scenes/restspellrules/rr_rest.nss": "ceb4f92bc54fbf1a1da50e16067b296369fc6e387a987b457f39ec7001021d48",
+    "parity/visual/scenes/restspellrules/rr_rested.nss": "fcb175a151a90fe576d4df763a63166bd32ed57357c10cea86a889b73e595a4f",
+    "parity/visual/scenes/restspellrules/scene.json": "5ace0040bac8ff9166060e7ef74df6cfc9e8a98aa17a551a9f0c73b6709efe0e",
+    "parity/visual/scenes/restspellrules/vis_main.nss": "b20b3c6869f03327936d25f735cf812e378ec2ad011a86629f2ace16d9e9ace5"
+  },
+  "artifacts_sha256": {
+    "out/visual/shots/vis_restspellrules_reference/nwn/a_accepted_start.png": "bd70f964dc810b89d242bf2ad90ce5102a02a05d2777779f028eaac1ff0b7b91",
+    "out/visual/shots/vis_restspellrules_reference/nwn/b_finished.png": "2ab0163eaed1b190f0db99eadcccc1b0144bc2bfb68c843302affb0a44cda9d8",
+    "out/visual/shots/vis_restspellrules_reference/nwn/c_hook_cancel.png": "8dc368f0198ad5b016f99165e30936a398530046030302471c883e8bc4e13307",
+    "out/visual/shots/vis_restspellrules_reference/nwn/d_rejected.png": "57312741c76a54f3b363f84547c24c6ab4a467d89d82042a645f5bcefa22863e",
+    "out/visual/shots/vis_restspellrules_reference/nwn/native-framebuffer.jsonl": "1396e175f1373433b4d0f623e7d610d00661abfe63b3e7b4adb3eaa8e3995da6",
+    "out/visual/shots/vis_restspellrules_reference/nwn/notes.txt": "6ee831d5205b7442f228e917a3764e3047e741b5ee4b206e4ccea68bd2689406",
+    "out/visual/shots/vis_restspellrules_reference/nwn/shots.txt": "83f83080b021140cc942d99d0a9b10f09502f982fc186a03f29c9b0b18986d53"
+  },
+  "interpretation": "See README.md for accepted gates, rejected controls and limits.",
+  "framebuffer": [
+    {
+      "shot": "a_accepted_start",
+      "source": "vis_restspellrules_0000.tga",
+      "requestedUnixSeconds": 1791688223.5096257,
+      "latencySeconds": 0.15436340001178905,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "35c6ff017b6dc7230d5152195261851899667b04efa042f8a45bbfd04b482801",
+      "windowSha256": "d85fbe9cda4966162b53d7c4ccc5578f36ca2e14653ff9c09c675dac11c1e894",
+      "nonblack": true
+    },
+    {
+      "shot": "b_finished",
+      "source": "vis_restspellrules_0001.tga",
+      "requestedUnixSeconds": 1791688234.69116,
+      "latencySeconds": 0.12901690002763644,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "8e74458720641a612767069b2725c03bb6b050b23b80fe30c6aafb8601719021",
+      "windowSha256": "ac6f6029d1dbc58c94a6d4eeaa24dd296c01d52a7631f4dab705cff757132f3e",
+      "nonblack": true
+    },
+    {
+      "shot": "c_hook_cancel",
+      "source": "vis_restspellrules_0002.tga",
+      "requestedUnixSeconds": 1791688237.4719837,
+      "latencySeconds": 0.12383190001128241,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "86c2cd2f7c283e1bd780adcd240dc32208eb493473d1492e67ddfa605a6b0a29",
+      "windowSha256": "e0781abddc6fa1076e487f405f4f0c4474121846149820ab7a5a922f5bc172bc",
+      "nonblack": true
+    },
+    {
+      "shot": "d_rejected",
+      "source": "vis_restspellrules_0003.tga",
+      "requestedUnixSeconds": 1791688240.49942,
+      "latencySeconds": 0.12452329997904599,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "584d2198552a44aab3d0395d05d69e3e8b59661349a8d67bc6673da7864a05b0",
+      "windowSha256": "e619e381c3013c53496135701f668ec2ce15e6edf9bb762b81279fa038f09461",
+      "nonblack": true
+    }
+  ],
+  "notes": [
+    "VISUAL|note|restspellrules|stage=kit|trial=0|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=46802.844",
+    "VISUAL|note|restspellrules|stage=before_request|trial=0|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.000",
+    "VISUAL|note|restspellrules|stage=module_hook_1|trial=0|valid=1|pc=1|resting=1|action=17|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.000",
+    "VISUAL|note|restspellrules|stage=t010|trial=0|valid=1|pc=1|resting=1|action=17|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.105",
+    "VISUAL|note|restspellrules|stage=a_accepted_start|trial=0|valid=1|pc=1|resting=1|action=17|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.293",
+    "VISUAL|note|restspellrules|stage=t050|trial=0|valid=1|pc=1|resting=1|action=17|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.500",
+    "VISUAL|note|restspellrules|stage=during_rest|trial=0|valid=1|pc=1|resting=1|action=17|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=3.996",
+    "VISUAL|note|restspellrules|stage=queue_finished|trial=0|valid=1|pc=1|resting=0|action=65535|completed=1|rested=0|no_rest=0|count=6|effects=003:-1:1:32,011:-1:2:16,013:-1:2:32,103:450:1:32,111:450:2:16,113:450:2:32,|elapsed=10.504",
+    "VISUAL|note|restspellrules|stage=module_hook_2|trial=0|valid=1|pc=1|resting=0|action=65535|completed=1|rested=0|no_rest=0|count=6|effects=003:-1:1:32,011:-1:2:16,013:-1:2:32,103:450:1:32,111:450:2:16,113:450:2:32,|elapsed=10.504",
+    "VISUAL|note|restspellrules|stage=b_finished|trial=0|valid=1|pc=1|resting=0|action=65535|completed=1|rested=0|no_rest=0|count=6|effects=003:-1:1:32,011:-1:2:16,013:-1:2:32,103:450:1:32,111:450:2:16,113:450:2:32,|elapsed=11.496",
+    "VISUAL|note|restspellrules|stage=kit|trial=1|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=12.996",
+    "VISUAL|note|restspellrules|stage=before_request|trial=1|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.000",
+    "VISUAL|note|restspellrules|stage=module_hook_1|trial=1|valid=1|pc=1|resting=1|action=17|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.000",
+    "VISUAL|note|restspellrules|stage=hook_after_clear|trial=1|valid=1|pc=1|resting=1|action=17|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.000",
+    "VISUAL|note|restspellrules|stage=module_hook_3|trial=1|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.000",
+    "VISUAL|note|restspellrules|stage=t010|trial=1|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.098",
+    "VISUAL|note|restspellrules|stage=c_hook_cancel|trial=1|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.305",
+    "VISUAL|note|restspellrules|stage=t050|trial=1|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.496",
+    "VISUAL|note|restspellrules|stage=kit|trial=2|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=0|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=1.996",
+    "VISUAL|note|restspellrules|stage=before_request|trial=2|valid=1|pc=1|resting=0|action=65535|completed=0|rested=0|no_rest=1|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.000",
+    "VISUAL|note|restspellrules|stage=queue_finished|trial=2|valid=1|pc=1|resting=0|action=65535|completed=1|rested=0|no_rest=1|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.000",
+    "VISUAL|note|restspellrules|stage=t010|trial=2|valid=1|pc=1|resting=0|action=65535|completed=1|rested=0|no_rest=1|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.105",
+    "VISUAL|note|restspellrules|stage=d_rejected|trial=2|valid=1|pc=1|resting=0|action=65535|completed=1|rested=0|no_rest=1|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.309",
+    "VISUAL|note|restspellrules|stage=t050|trial=2|valid=1|pc=1|resting=0|action=65535|completed=1|rested=0|no_rest=1|count=16|effects=000:-1:1:8,001:-1:1:16,002:-1:1:24,003:-1:1:32,010:-1:2:8,011:-1:2:16,012:-1:2:24,013:-1:2:32,100:450:1:8,101:450:1:16,102:450:1:24,103:450:1:32,110:450:2:8,111:450:2:16,112:450:2:24,113:450:2:32,|elapsed=0.504"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "tileset": "ttr01",
+  "tile": 109,
+  "size": 4,
+  "pc": [
+    20,
+    15,
+    0
+  ],
+  "facing": 90,
+  "seconds": 28,
+  "gui": true,
+  "largeFont": false
+}

@@ -1,0 +1,408 @@
+{
+  "scope": "Native public combat/action state; no visual animation identity claim",
+  "readings": "seeker.valid|1\nseeker.position|1\nseeker.seen|1\nseeker.feat|1\nseeker.uses|1\nseeker.bow|8\nseeker.arrows|20\nseeker.before_request.time|0.000\nseeker.before_request.a_combat|0\nseeker.before_request.t_combat|0\nseeker.before_request.a_action|65535\nseeker.before_request.t_action|65535\nseeker.before_request.attacks|0\nseeker.before_request.spells|0\nseeker.before_request.distance|6.000\nbow.valid|1\nbow.position|1\nbow.seen|1\nbow.feat|1\nbow.uses|1\nbow.bow|8\nbow.arrows|20\nbow.before_request.time|0.000\nbow.before_request.a_combat|0\nbow.before_request.t_combat|0\nbow.before_request.a_action|65535\nbow.before_request.t_action|65535\nbow.before_request.attacks|0\nbow.before_request.spells|0\nbow.before_request.distance|6.000\nbow.attack_event.time|0.172\nbow.attack_event.a_combat|1\nbow.attack_event.t_combat|1\nbow.attack_event.a_action|3\nbow.attack_event.t_action|65535\nbow.attack_event.attacks|1\nbow.attack_event.spells|0\nbow.attack_event.distance|6.000\nbow.before_stop.time|0.172\nbow.before_stop.a_combat|1\nbow.before_stop.t_combat|1\nbow.before_stop.a_action|3\nbow.before_stop.t_action|65535\nbow.before_stop.attacks|1\nbow.before_stop.spells|0\nbow.before_stop.distance|6.000\nbow.after_stop.time|0.234\nbow.after_stop.a_combat|0\nbow.after_stop.t_combat|1\nbow.after_stop.a_action|65535\nbow.after_stop.t_action|65535\nbow.after_stop.attacks|1\nbow.after_stop.spells|0\nbow.after_stop.distance|6.000\nbow.request025.time|0.251\nbow.request025.a_combat|0\nbow.request025.t_combat|1\nbow.request025.a_action|65535\nbow.request025.t_action|65535\nbow.request025.attacks|1\nbow.request025.spells|0\nbow.request025.distance|6.000\nseeker.request025.time|0.251\nseeker.request025.a_combat|0\nseeker.request025.t_combat|0\nseeker.request025.a_action|4\nseeker.request025.t_action|65535\nseeker.request025.attacks|0\nseeker.request025.spells|0\nseeker.request025.distance|6.000\nbow.stop025.time|0.425\nbow.stop025.a_combat|0\nbow.stop025.t_combat|1\nbow.stop025.a_action|65535\nbow.stop025.t_action|65535\nbow.stop025.attacks|1\nbow.stop025.spells|0\nbow.stop025.distance|6.000\nbow.request075.time|0.763\nbow.request075.a_combat|1\nbow.request075.t_combat|1\nbow.request075.a_action|65535\nbow.request075.t_action|65535\nbow.request075.attacks|1\nbow.request075.spells|0\nbow.request075.distance|6.000\nseeker.request075.time|0.763\nseeker.request075.a_combat|0\nseeker.request075.t_combat|0\nseeker.request075.a_action|4\nseeker.request075.t_action|65535\nseeker.request075.attacks|0\nseeker.request075.spells|0\nseeker.request075.distance|6.000\nbow.stop075.time|0.935\nbow.stop075.a_combat|1\nbow.stop075.t_combat|1\nbow.stop075.a_action|65535\nbow.stop075.t_action|65535\nbow.stop075.attacks|1\nbow.stop075.spells|0\nbow.stop075.distance|6.000\nbow.request150.time|1.516\nbow.request150.a_combat|1\nbow.request150.t_combat|1\nbow.request150.a_action|65535\nbow.request150.t_action|65535\nbow.request150.attacks|1\nbow.request150.spells|0\nbow.request150.distance|6.000\nseeker.request150.time|1.516\nseeker.request150.a_combat|0\nseeker.request150.t_combat|0\nseeker.request150.a_action|4\nseeker.request150.t_action|65535\nseeker.request150.attacks|0\nseeker.request150.spells|0\nseeker.request150.distance|6.000\nseeker.queue_finished.time|1.516\nseeker.queue_finished.a_combat|0\nseeker.queue_finished.t_combat|0\nseeker.queue_finished.a_action|65535\nseeker.queue_finished.t_action|65535\nseeker.queue_finished.attacks|0\nseeker.queue_finished.spells|0\nseeker.queue_finished.distance|6.000\nbow.stop150.time|1.686\nbow.stop150.a_combat|1\nbow.stop150.t_combat|1\nbow.stop150.a_action|65535\nbow.stop150.t_action|65535\nbow.stop150.attacks|1\nbow.stop150.spells|0\nbow.stop150.distance|6.000\nbow.request300.time|3.003\nbow.request300.a_combat|1\nbow.request300.t_combat|1\nbow.request300.a_action|65535\nbow.request300.t_action|65535\nbow.request300.attacks|1\nbow.request300.spells|0\nbow.request300.distance|6.000\nseeker.request300.time|3.003\nseeker.request300.a_combat|0\nseeker.request300.t_combat|0\nseeker.request300.a_action|65535\nseeker.request300.t_action|65535\nseeker.request300.attacks|0\nseeker.request300.spells|0\nseeker.request300.distance|6.000\nbow.stop300.time|3.175\nbow.stop300.a_combat|1\nbow.stop300.t_combat|1\nbow.stop300.a_action|65535\nbow.stop300.t_action|65535\nbow.stop300.attacks|1\nbow.stop300.spells|0\nbow.stop300.distance|6.000\nseeker.stock_event_spell|601\nseeker.stock_event_caster|1\nseeker.spell_event.time|3.827\nseeker.spell_event.a_combat|1\nseeker.spell_event.t_combat|1\nseeker.spell_event.a_action|65535\nseeker.spell_event.t_action|65535\nseeker.spell_event.attacks|0\nseeker.spell_event.spells|1\nseeker.spell_event.distance|6.000\nseeker.impact025.time|4.077\nseeker.impact025.a_combat|1\nseeker.impact025.t_combat|1\nseeker.impact025.a_action|65535\nseeker.impact025.t_action|65535\nseeker.impact025.attacks|0\nseeker.impact025.spells|1\nseeker.impact025.distance|6.000\nseeker.impact075.time|4.579\nseeker.impact075.a_combat|1\nseeker.impact075.t_combat|1\nseeker.impact075.a_action|65535\nseeker.impact075.t_action|65535\nseeker.impact075.attacks|0\nseeker.impact075.spells|1\nseeker.impact075.distance|6.000\nseeker.impact150.time|5.331\nseeker.impact150.a_combat|1\nseeker.impact150.t_combat|1\nseeker.impact150.a_action|65535\nseeker.impact150.t_action|65535\nseeker.impact150.attacks|0\nseeker.impact150.spells|1\nseeker.impact150.distance|6.000\nbow.request600.time|6.001\nbow.request600.a_combat|1\nbow.request600.t_combat|1\nbow.request600.a_action|65535\nbow.request600.t_action|65535\nbow.request600.attacks|1\nbow.request600.spells|0\nbow.request600.distance|6.000\nseeker.request600.time|6.001\nseeker.request600.a_combat|1\nseeker.request600.t_combat|1\nseeker.request600.a_action|65535\nseeker.request600.t_action|65535\nseeker.request600.attacks|0\nseeker.request600.spells|1\nseeker.request600.distance|6.000\nbow.stop600.time|6.189\nbow.stop600.a_combat|1\nbow.stop600.t_combat|1\nbow.stop600.a_action|65535\nbow.stop600.t_action|65535\nbow.stop600.attacks|1\nbow.stop600.spells|0\nbow.stop600.distance|6.000\nseeker.impact300.time|6.828\nseeker.impact300.a_combat|1\nseeker.impact300.t_combat|1\nseeker.impact300.a_action|65535\nseeker.impact300.t_action|65535\nseeker.impact300.attacks|0\nseeker.impact300.spells|1\nseeker.impact300.distance|6.000\nbow.request700.time|7.001\nbow.request700.a_combat|1\nbow.request700.t_combat|1\nbow.request700.a_action|65535\nbow.request700.t_action|65535\nbow.request700.attacks|1\nbow.request700.spells|0\nbow.request700.distance|6.000\nseeker.request700.time|7.001\nseeker.request700.a_combat|1\nseeker.request700.t_combat|1\nseeker.request700.a_action|65535\nseeker.request700.t_action|65535\nseeker.request700.attacks|0\nseeker.request700.spells|1\nseeker.request700.distance|6.000\nbow.stop700.time|7.186\nbow.stop700.a_combat|1\nbow.stop700.t_combat|1\nbow.stop700.a_action|65535\nbow.stop700.t_action|65535\nbow.stop700.attacks|1\nbow.stop700.spells|0\nbow.stop700.distance|6.000\nseeker.impact600.time|9.831\nseeker.impact600.a_combat|1\nseeker.impact600.t_combat|1\nseeker.impact600.a_action|65535\nseeker.impact600.t_action|65535\nseeker.impact600.attacks|0\nseeker.impact600.spells|1\nseeker.impact600.distance|6.000\nseeker.impact700.time|10.832\nseeker.impact700.a_combat|1\nseeker.impact700.t_combat|1\nseeker.impact700.a_action|65535\nseeker.impact700.t_action|65535\nseeker.impact700.attacks|0\nseeker.impact700.spells|1\nseeker.impact700.distance|6.000\nseeker.final.time|14.016\nseeker.final.a_combat|0\nseeker.final.t_combat|0\nseeker.final.a_action|65535\nseeker.final.t_action|65535\nseeker.final.attacks|0\nseeker.final.spells|1\nseeker.final.distance|6.000\nseeker.final_uses|0\nseeker.stationary|1\nbow.final.time|14.016\nbow.final.a_combat|0\nbow.final.t_combat|0\nbow.final.a_action|65535\nbow.final.t_action|65535\nbow.final.attacks|1\nbow.final.spells|0\nbow.final.distance|6.000\nbow.final_uses|1\nbow.stationary|1\n__done__|1\n",
+  "states": {
+    "bow": [
+      {
+        "stage": "before_request",
+        "timeAfterRequest": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "attack_event",
+        "timeAfterRequest": 0.172,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 3.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "before_stop",
+        "timeAfterRequest": 0.172,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 3.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "after_stop",
+        "timeAfterRequest": 0.234,
+        "attackerCombat": 0.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request025",
+        "timeAfterRequest": 0.251,
+        "attackerCombat": 0.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "stop025",
+        "timeAfterRequest": 0.425,
+        "attackerCombat": 0.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request075",
+        "timeAfterRequest": 0.763,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "stop075",
+        "timeAfterRequest": 0.935,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request150",
+        "timeAfterRequest": 1.516,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "stop150",
+        "timeAfterRequest": 1.686,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request300",
+        "timeAfterRequest": 3.003,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "stop300",
+        "timeAfterRequest": 3.175,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request600",
+        "timeAfterRequest": 6.001,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "stop600",
+        "timeAfterRequest": 6.189,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request700",
+        "timeAfterRequest": 7.001,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "stop700",
+        "timeAfterRequest": 7.186,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "final",
+        "timeAfterRequest": 14.016,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 1.0,
+        "spells": 0.0,
+        "distance": 6.0
+      }
+    ],
+    "seeker": [
+      {
+        "stage": "before_request",
+        "timeAfterRequest": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request025",
+        "timeAfterRequest": 0.251,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 4.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request075",
+        "timeAfterRequest": 0.763,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 4.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request150",
+        "timeAfterRequest": 1.516,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 4.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "queue_finished",
+        "timeAfterRequest": 1.516,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request300",
+        "timeAfterRequest": 3.003,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 0.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "spell_event",
+        "timeAfterRequest": 3.827,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "impact025",
+        "timeAfterRequest": 4.077,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "impact075",
+        "timeAfterRequest": 4.579,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "impact150",
+        "timeAfterRequest": 5.331,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request600",
+        "timeAfterRequest": 6.001,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "impact300",
+        "timeAfterRequest": 6.828,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "request700",
+        "timeAfterRequest": 7.001,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "impact600",
+        "timeAfterRequest": 9.831,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "impact700",
+        "timeAfterRequest": 10.832,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      },
+      {
+        "stage": "final",
+        "timeAfterRequest": 14.016,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "attacks": 0.0,
+        "spells": 1.0,
+        "distance": 6.0
+      }
+    ]
+  },
+  "gates": {
+    "bow": {
+      "valid": 1.0,
+      "position": 1.0,
+      "seen": 1.0,
+      "feat": 1.0,
+      "uses": 1.0,
+      "bow": 8.0,
+      "arrows": 20.0,
+      "final_uses": 1.0,
+      "stationary": 1.0
+    },
+    "seeker": {
+      "valid": 1.0,
+      "position": 1.0,
+      "seen": 1.0,
+      "feat": 1.0,
+      "uses": 1.0,
+      "bow": 8.0,
+      "arrows": 20.0,
+      "final_uses": 0.0,
+      "stationary": 1.0
+    }
+  },
+  "limits": [
+    "Only one ordinary bow attack and one separate stock Seeker Arrow in this module.",
+    "Exact combat expiry time was not located; samples provide bounds only.",
+    "Attacker combat re-entry after ClearAllActions is observed, but this suite does not isolate its causal callback.",
+    "No client comparison or native pose captures in this suite; public combat state does not identify a ready animation.",
+    "Both pairs use the same standard factions in one area; no general faction propagation or combat expiry policy is inferred."
+  ],
+  "clientBaseline": {
+    "readings": "seeker.valid|1\nseeker.position|1\nseeker.seen|1\nseeker.feat|1\nseeker.uses|1\nseeker.bow|8\nseeker.arrows|20\nseeker.before_request.time|0.000\nseeker.before_request.a_combat|0\nseeker.before_request.t_combat|0\nseeker.before_request.a_action|65535\nseeker.before_request.t_action|65535\nseeker.before_request.attacks|0\nseeker.before_request.spells|0\nseeker.before_request.distance|6.000\nbow.valid|1\nbow.position|1\nbow.seen|1\nbow.feat|1\nbow.uses|1\nbow.bow|8\nbow.arrows|20\nbow.before_request.time|0.000\nbow.before_request.a_combat|0\nbow.before_request.t_combat|0\nbow.before_request.a_action|65535\nbow.before_request.t_action|65535\nbow.before_request.attacks|0\nbow.before_request.spells|0\nbow.before_request.distance|6.000\nbow.request025.time|0.266\nbow.request025.a_combat|1\nbow.request025.t_combat|0\nbow.request025.a_action|3\nbow.request025.t_action|65535\nbow.request025.attacks|0\nbow.request025.spells|0\nbow.request025.distance|6.000\nseeker.request025.time|0.266\nseeker.request025.a_combat|0\nseeker.request025.t_combat|0\nseeker.request025.a_action|4\nseeker.request025.t_action|65535\nseeker.request025.attacks|0\nseeker.request025.spells|0\nseeker.request025.distance|6.000\nbow.attack_event.time|0.300\nbow.attack_event.a_combat|1\nbow.attack_event.t_combat|1\nbow.attack_event.a_action|3\nbow.attack_event.t_action|65535\nbow.attack_event.attacks|1\nbow.attack_event.spells|0\nbow.attack_event.distance|6.000\nbow.before_stop.time|0.300\nbow.before_stop.a_combat|1\nbow.before_stop.t_combat|1\nbow.before_stop.a_action|3\nbow.before_stop.t_action|65535\nbow.before_stop.attacks|1\nbow.before_stop.spells|0\nbow.before_stop.distance|6.000\nbow.after_stop.time|0.366\nbow.after_stop.a_combat|0\nbow.after_stop.t_combat|1\nbow.after_stop.a_action|65535\nbow.after_stop.t_action|65535\nbow.after_stop.attacks|1\nbow.after_stop.spells|0\nbow.after_stop.distance|6.000\nbow.stop025.time|0.566\nbow.stop025.a_combat|0\nbow.stop025.t_combat|1\nbow.stop025.a_action|65535\nbow.stop025.t_action|65535\nbow.stop025.attacks|1\nbow.stop025.spells|0\nbow.stop025.distance|6.000\nbow.request075.time|0.766\nbow.request075.a_combat|0\nbow.request075.t_combat|1\nbow.request075.a_action|65535\nbow.request075.t_action|65535\nbow.request075.attacks|1\nbow.request075.spells|0\nbow.request075.distance|6.000\nseeker.request075.time|0.766\nseeker.request075.a_combat|0\nseeker.request075.t_combat|0\nseeker.request075.a_action|4\nseeker.request075.t_action|65535\nseeker.request075.attacks|0\nseeker.request075.spells|0\nseeker.request075.distance|6.000\nbow.stop075.time|1.066\nbow.stop075.a_combat|0\nbow.stop075.t_combat|1\nbow.stop075.a_action|65535\nbow.stop075.t_action|65535\nbow.stop075.attacks|1\nbow.stop075.spells|0\nbow.stop075.distance|6.000\nbow.request150.time|1.500\nbow.request150.a_combat|0\nbow.request150.t_combat|1\nbow.request150.a_action|65535\nbow.request150.t_action|65535\nbow.request150.attacks|1\nbow.request150.spells|0\nbow.request150.distance|6.000\nseeker.request150.time|1.500\nseeker.request150.a_combat|0\nseeker.request150.t_combat|0\nseeker.request150.a_action|4\nseeker.request150.t_action|65535\nseeker.request150.attacks|0\nseeker.request150.spells|0\nseeker.request150.distance|6.000\nseeker.queue_finished.time|1.500\nseeker.queue_finished.a_combat|0\nseeker.queue_finished.t_combat|0\nseeker.queue_finished.a_action|65535\nseeker.queue_finished.t_action|65535\nseeker.queue_finished.attacks|0\nseeker.queue_finished.spells|0\nseeker.queue_finished.distance|6.000\nbow.stop150.time|1.800\nbow.stop150.a_combat|0\nbow.stop150.t_combat|1\nbow.stop150.a_action|65535\nbow.stop150.t_action|65535\nbow.stop150.attacks|1\nbow.stop150.spells|0\nbow.stop150.distance|6.000\nbow.request300.time|3.000\nbow.request300.a_combat|0\nbow.request300.t_combat|1\nbow.request300.a_action|65535\nbow.request300.t_action|65535\nbow.request300.attacks|1\nbow.request300.spells|0\nbow.request300.distance|6.000\nseeker.request300.time|3.000\nseeker.request300.a_combat|0\nseeker.request300.t_combat|0\nseeker.request300.a_action|65535\nseeker.request300.t_action|65535\nseeker.request300.attacks|0\nseeker.request300.spells|0\nseeker.request300.distance|6.000\nbow.stop300.time|3.300\nbow.stop300.a_combat|0\nbow.stop300.t_combat|1\nbow.stop300.a_action|65535\nbow.stop300.t_action|65535\nbow.stop300.attacks|1\nbow.stop300.spells|0\nbow.stop300.distance|6.000\nseeker.stock_event_spell|601\nseeker.stock_event_caster|1\nseeker.spell_event.time|3.866\nseeker.spell_event.a_combat|0\nseeker.spell_event.t_combat|0\nseeker.spell_event.a_action|65535\nseeker.spell_event.t_action|65535\nseeker.spell_event.attacks|0\nseeker.spell_event.spells|1\nseeker.spell_event.distance|6.000\nseeker.impact025.time|4.133\nseeker.impact025.a_combat|0\nseeker.impact025.t_combat|0\nseeker.impact025.a_action|65535\nseeker.impact025.t_action|65535\nseeker.impact025.attacks|0\nseeker.impact025.spells|1\nseeker.impact025.distance|6.000\nseeker.impact075.time|4.633\nseeker.impact075.a_combat|0\nseeker.impact075.t_combat|0\nseeker.impact075.a_action|65535\nseeker.impact075.t_action|65535\nseeker.impact075.attacks|0\nseeker.impact075.spells|1\nseeker.impact075.distance|6.000\nseeker.impact150.time|5.366\nseeker.impact150.a_combat|0\nseeker.impact150.t_combat|0\nseeker.impact150.a_action|65535\nseeker.impact150.t_action|65535\nseeker.impact150.attacks|0\nseeker.impact150.spells|1\nseeker.impact150.distance|6.000\nbow.request600.time|6.000\nbow.request600.a_combat|0\nbow.request600.t_combat|1\nbow.request600.a_action|65535\nbow.request600.t_action|65535\nbow.request600.attacks|1\nbow.request600.spells|0\nbow.request600.distance|6.000\nseeker.request600.time|6.000\nseeker.request600.a_combat|0\nseeker.request600.t_combat|0\nseeker.request600.a_action|65535\nseeker.request600.t_action|65535\nseeker.request600.attacks|0\nseeker.request600.spells|1\nseeker.request600.distance|6.000\nbow.stop600.time|6.300\nbow.stop600.a_combat|0\nbow.stop600.t_combat|1\nbow.stop600.a_action|65535\nbow.stop600.t_action|65535\nbow.stop600.attacks|1\nbow.stop600.spells|0\nbow.stop600.distance|6.000\nseeker.impact300.time|6.866\nseeker.impact300.a_combat|0\nseeker.impact300.t_combat|0\nseeker.impact300.a_action|65535\nseeker.impact300.t_action|65535\nseeker.impact300.attacks|0\nseeker.impact300.spells|1\nseeker.impact300.distance|6.000\nbow.request700.time|7.000\nbow.request700.a_combat|0\nbow.request700.t_combat|0\nbow.request700.a_action|65535\nbow.request700.t_action|65535\nbow.request700.attacks|1\nbow.request700.spells|0\nbow.request700.distance|6.000\nseeker.request700.time|7.000\nseeker.request700.a_combat|0\nseeker.request700.t_combat|0\nseeker.request700.a_action|65535\nseeker.request700.t_action|65535\nseeker.request700.attacks|0\nseeker.request700.spells|1\nseeker.request700.distance|6.000\nbow.stop700.time|7.300\nbow.stop700.a_combat|0\nbow.stop700.t_combat|0\nbow.stop700.a_action|65535\nbow.stop700.t_action|65535\nbow.stop700.attacks|1\nbow.stop700.spells|0\nbow.stop700.distance|6.000\nseeker.impact600.time|9.866\nseeker.impact600.a_combat|0\nseeker.impact600.t_combat|0\nseeker.impact600.a_action|65535\nseeker.impact600.t_action|65535\nseeker.impact600.attacks|0\nseeker.impact600.spells|1\nseeker.impact600.distance|6.000\nseeker.impact700.time|10.866\nseeker.impact700.a_combat|0\nseeker.impact700.t_combat|0\nseeker.impact700.a_action|65535\nseeker.impact700.t_action|65535\nseeker.impact700.attacks|0\nseeker.impact700.spells|1\nseeker.impact700.distance|6.000\nseeker.final.time|14.000\nseeker.final.a_combat|0\nseeker.final.t_combat|0\nseeker.final.a_action|65535\nseeker.final.t_action|65535\nseeker.final.attacks|0\nseeker.final.spells|1\nseeker.final.distance|6.000\nseeker.final_uses|0\nseeker.stationary|1\nbow.final.time|14.000\nbow.final.a_combat|0\nbow.final.t_combat|0\nbow.final.a_action|65535\nbow.final.t_action|65535\nbow.final.attacks|1\nbow.final.spells|0\nbow.final.distance|6.000\nbow.final_uses|1\nbow.stationary|1\n__done__|1\n",
+    "findings": "Seeker flags never enter combat; stopped bow attacker remains clear, target clears near6s. Native state differs; no runtime fix in this diagnostic checkpoint."
+  }
+}

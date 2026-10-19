@@ -1,0 +1,1 @@
+{ "template": "nw_goblinb", "hitPoints": 1, "tag": "ES_B", "scripts": { "ScriptSpawn": "es_spawn" } }

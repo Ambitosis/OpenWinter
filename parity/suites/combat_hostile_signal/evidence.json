@@ -1,0 +1,959 @@
+{
+  "firstNativeReadings": "noop.valid|1\nnoop.position|1\nnoop.distance|6.000\nnoop.seen|1\nnoop.sees_other0|0\nnoop.sees_other1|0\nnoop.sees_other2|0\nnoop.before.time|0.000\nnoop.before.a_combat|0\nnoop.before.t_combat|0\nnoop.before.a_action|65535\nnoop.before.t_action|65535\nnoop.before.spells|0\nnoop.before.damage_events|0\nnoop.before.hp_delta|0\nnoop.after_call.time|0.000\nnoop.after_call.a_combat|0\nnoop.after_call.t_combat|0\nnoop.after_call.a_action|65535\nnoop.after_call.t_action|65535\nnoop.after_call.spells|0\nnoop.after_call.damage_events|0\nnoop.after_call.hp_delta|0\ndamage.valid|1\ndamage.position|1\ndamage.distance|6.000\ndamage.seen|1\ndamage.sees_other0|0\ndamage.sees_other1|0\ndamage.sees_other3|0\ndamage.before.time|0.000\ndamage.before.a_combat|0\ndamage.before.t_combat|0\ndamage.before.a_action|65535\ndamage.before.t_action|65535\ndamage.before.spells|0\ndamage.before.damage_events|0\ndamage.before.hp_delta|0\ndamage.after_call.time|0.000\ndamage.after_call.a_combat|0\ndamage.after_call.t_combat|0\ndamage.after_call.a_action|65535\ndamage.after_call.t_action|65535\ndamage.after_call.spells|0\ndamage.after_call.damage_events|0\ndamage.after_call.hp_delta|0\nfriendly.valid|1\nfriendly.position|1\nfriendly.distance|6.000\nfriendly.seen|1\nfriendly.sees_other0|0\nfriendly.sees_other2|0\nfriendly.sees_other3|0\nfriendly.before.time|0.000\nfriendly.before.a_combat|0\nfriendly.before.t_combat|0\nfriendly.before.a_action|65535\nfriendly.before.t_action|65535\nfriendly.before.spells|0\nfriendly.before.damage_events|0\nfriendly.before.hp_delta|0\nfriendly.after_call.time|0.000\nfriendly.after_call.a_combat|0\nfriendly.after_call.t_combat|0\nfriendly.after_call.a_action|65535\nfriendly.after_call.t_action|65535\nfriendly.after_call.spells|0\nfriendly.after_call.damage_events|0\nfriendly.after_call.hp_delta|0\nhostile.valid|1\nhostile.position|1\nhostile.distance|6.000\nhostile.seen|1\nhostile.sees_other1|0\nhostile.sees_other2|0\nhostile.sees_other3|0\nhostile.before.time|0.000\nhostile.before.a_combat|0\nhostile.before.t_combat|0\nhostile.before.a_action|65535\nhostile.before.t_action|65535\nhostile.before.spells|0\nhostile.before.damage_events|0\nhostile.before.hp_delta|0\nhostile.after_call.time|0.000\nhostile.after_call.a_combat|0\nhostile.after_call.t_combat|0\nhostile.after_call.a_action|65535\nhostile.after_call.t_action|65535\nhostile.after_call.spells|0\nhostile.after_call.damage_events|0\nhostile.after_call.hp_delta|0\ndamage.damage_caster|1\ndamage.damage_amount|1\ndamage.damage_callback.time|0.000\ndamage.damage_callback.a_combat|1\ndamage.damage_callback.t_combat|1\ndamage.damage_callback.a_action|65535\ndamage.damage_callback.t_action|65535\ndamage.damage_callback.spells|0\ndamage.damage_callback.damage_events|1\ndamage.damage_callback.hp_delta|1\nfriendly.callback_caster|1\nfriendly.callback_spell|601\nfriendly.callback_harmful|0\nfriendly.spell_callback.time|0.000\nfriendly.spell_callback.a_combat|0\nfriendly.spell_callback.t_combat|0\nfriendly.spell_callback.a_action|65535\nfriendly.spell_callback.t_action|65535\nfriendly.spell_callback.spells|1\nfriendly.spell_callback.damage_events|0\nfriendly.spell_callback.hp_delta|0\nhostile.callback_caster|1\nhostile.callback_spell|601\nhostile.callback_harmful|1\nhostile.spell_callback.time|0.000\nhostile.spell_callback.a_combat|0\nhostile.spell_callback.t_combat|0\nhostile.spell_callback.a_action|65535\nhostile.spell_callback.t_action|65535\nhostile.spell_callback.spells|1\nhostile.spell_callback.damage_events|0\nhostile.spell_callback.hp_delta|0\nhostile.t005.time|0.064\nhostile.t005.a_combat|1\nhostile.t005.t_combat|1\nhostile.t005.a_action|65535\nhostile.t005.t_action|65535\nhostile.t005.spells|1\nhostile.t005.damage_events|0\nhostile.t005.hp_delta|0\nfriendly.t005.time|0.064\nfriendly.t005.a_combat|0\nfriendly.t005.t_combat|0\nfriendly.t005.a_action|65535\nfriendly.t005.t_action|65535\nfriendly.t005.spells|1\nfriendly.t005.damage_events|0\nfriendly.t005.hp_delta|0\ndamage.t005.time|0.064\ndamage.t005.a_combat|1\ndamage.t005.t_combat|1\ndamage.t005.a_action|65535\ndamage.t005.t_action|65535\ndamage.t005.spells|0\ndamage.t005.damage_events|1\ndamage.t005.hp_delta|1\nnoop.t005.time|0.064\nnoop.t005.a_combat|0\nnoop.t005.t_combat|0\nnoop.t005.a_action|65535\nnoop.t005.t_action|65535\nnoop.t005.spells|0\nnoop.t005.damage_events|0\nnoop.t005.hp_delta|0\nhostile.t050.time|0.504\nhostile.t050.a_combat|1\nhostile.t050.t_combat|1\nhostile.t050.a_action|65535\nhostile.t050.t_action|65535\nhostile.t050.spells|1\nhostile.t050.damage_events|0\nhostile.t050.hp_delta|0\nfriendly.t050.time|0.504\nfriendly.t050.a_combat|0\nfriendly.t050.t_combat|0\nfriendly.t050.a_action|65535\nfriendly.t050.t_action|65535\nfriendly.t050.spells|1\nfriendly.t050.damage_events|0\nfriendly.t050.hp_delta|0\ndamage.t050.time|0.504\ndamage.t050.a_combat|1\ndamage.t050.t_combat|1\ndamage.t050.a_action|65535\ndamage.t050.t_action|65535\ndamage.t050.spells|0\ndamage.t050.damage_events|1\ndamage.t050.hp_delta|1\nnoop.t050.time|0.504\nnoop.t050.a_combat|0\nnoop.t050.t_combat|0\nnoop.t050.a_action|65535\nnoop.t050.t_action|65535\nnoop.t050.spells|0\nnoop.t050.damage_events|0\nnoop.t050.hp_delta|0\nhostile.t600.time|6.002\nhostile.t600.a_combat|1\nhostile.t600.t_combat|1\nhostile.t600.a_action|65535\nhostile.t600.t_action|65535\nhostile.t600.spells|1\nhostile.t600.damage_events|0\nhostile.t600.hp_delta|0\nfriendly.t600.time|6.002\nfriendly.t600.a_combat|0\nfriendly.t600.t_combat|0\nfriendly.t600.a_action|65535\nfriendly.t600.t_action|65535\nfriendly.t600.spells|1\nfriendly.t600.damage_events|0\nfriendly.t600.hp_delta|0\ndamage.t600.time|6.002\ndamage.t600.a_combat|1\ndamage.t600.t_combat|1\ndamage.t600.a_action|65535\ndamage.t600.t_action|65535\ndamage.t600.spells|0\ndamage.t600.damage_events|1\ndamage.t600.hp_delta|1\nnoop.t600.time|6.002\nnoop.t600.a_combat|0\nnoop.t600.t_combat|0\nnoop.t600.a_action|65535\nnoop.t600.t_action|65535\nnoop.t600.spells|0\nnoop.t600.damage_events|0\nnoop.t600.hp_delta|0\nhostile.t700.time|7.017\nhostile.t700.a_combat|1\nhostile.t700.t_combat|1\nhostile.t700.a_action|65535\nhostile.t700.t_action|65535\nhostile.t700.spells|1\nhostile.t700.damage_events|0\nhostile.t700.hp_delta|0\nfriendly.t700.time|7.017\nfriendly.t700.a_combat|0\nfriendly.t700.t_combat|0\nfriendly.t700.a_action|65535\nfriendly.t700.t_action|65535\nfriendly.t700.spells|1\nfriendly.t700.damage_events|0\nfriendly.t700.hp_delta|0\ndamage.t700.time|7.017\ndamage.t700.a_combat|1\ndamage.t700.t_combat|1\ndamage.t700.a_action|65535\ndamage.t700.t_action|65535\ndamage.t700.spells|0\ndamage.t700.damage_events|1\ndamage.t700.hp_delta|1\nnoop.t700.time|7.017\nnoop.t700.a_combat|0\nnoop.t700.t_combat|0\nnoop.t700.a_action|65535\nnoop.t700.t_action|65535\nnoop.t700.spells|0\nnoop.t700.damage_events|0\nnoop.t700.hp_delta|0\nhostile.t900.time|9.003\nhostile.t900.a_combat|0\nhostile.t900.t_combat|0\nhostile.t900.a_action|65535\nhostile.t900.t_action|65535\nhostile.t900.spells|1\nhostile.t900.damage_events|0\nhostile.t900.hp_delta|0\nfriendly.t900.time|9.003\nfriendly.t900.a_combat|0\nfriendly.t900.t_combat|0\nfriendly.t900.a_action|65535\nfriendly.t900.t_action|65535\nfriendly.t900.spells|1\nfriendly.t900.damage_events|0\nfriendly.t900.hp_delta|0\ndamage.t900.time|9.003\ndamage.t900.a_combat|0\ndamage.t900.t_combat|0\ndamage.t900.a_action|65535\ndamage.t900.t_action|65535\ndamage.t900.spells|0\ndamage.t900.damage_events|1\ndamage.t900.hp_delta|1\nnoop.t900.time|9.003\nnoop.t900.a_combat|0\nnoop.t900.t_combat|0\nnoop.t900.a_action|65535\nnoop.t900.t_action|65535\nnoop.t900.spells|0\nnoop.t900.damage_events|0\nnoop.t900.hp_delta|0\nhostile.t1000.time|10.014\nhostile.t1000.a_combat|0\nhostile.t1000.t_combat|0\nhostile.t1000.a_action|65535\nhostile.t1000.t_action|65535\nhostile.t1000.spells|1\nhostile.t1000.damage_events|0\nhostile.t1000.hp_delta|0\nfriendly.t1000.time|10.014\nfriendly.t1000.a_combat|0\nfriendly.t1000.t_combat|0\nfriendly.t1000.a_action|65535\nfriendly.t1000.t_action|65535\nfriendly.t1000.spells|1\nfriendly.t1000.damage_events|0\nfriendly.t1000.hp_delta|0\ndamage.t1000.time|10.014\ndamage.t1000.a_combat|0\ndamage.t1000.t_combat|0\ndamage.t1000.a_action|65535\ndamage.t1000.t_action|65535\ndamage.t1000.spells|0\ndamage.t1000.damage_events|1\ndamage.t1000.hp_delta|1\nnoop.t1000.time|10.014\nnoop.t1000.a_combat|0\nnoop.t1000.t_combat|0\nnoop.t1000.a_action|65535\nnoop.t1000.t_action|65535\nnoop.t1000.spells|0\nnoop.t1000.damage_events|0\nnoop.t1000.hp_delta|0\nhostile.t1200.time|12.026\nhostile.t1200.a_combat|0\nhostile.t1200.t_combat|0\nhostile.t1200.a_action|65535\nhostile.t1200.t_action|65535\nhostile.t1200.spells|1\nhostile.t1200.damage_events|0\nhostile.t1200.hp_delta|0\nfriendly.t1200.time|12.026\nfriendly.t1200.a_combat|0\nfriendly.t1200.t_combat|0\nfriendly.t1200.a_action|65535\nfriendly.t1200.t_action|65535\nfriendly.t1200.spells|1\nfriendly.t1200.damage_events|0\nfriendly.t1200.hp_delta|0\ndamage.t1200.time|12.026\ndamage.t1200.a_combat|0\ndamage.t1200.t_combat|0\ndamage.t1200.a_action|65535\ndamage.t1200.t_action|65535\ndamage.t1200.spells|0\ndamage.t1200.damage_events|1\ndamage.t1200.hp_delta|1\nnoop.t1200.time|12.026\nnoop.t1200.a_combat|0\nnoop.t1200.t_combat|0\nnoop.t1200.a_action|65535\nnoop.t1200.t_action|65535\nnoop.t1200.spells|0\nnoop.t1200.damage_events|0\nnoop.t1200.hp_delta|0\nhostile.t1400.time|14.016\nhostile.t1400.a_combat|0\nhostile.t1400.t_combat|0\nhostile.t1400.a_action|65535\nhostile.t1400.t_action|65535\nhostile.t1400.spells|1\nhostile.t1400.damage_events|0\nhostile.t1400.hp_delta|0\nfriendly.t1400.time|14.016\nfriendly.t1400.a_combat|0\nfriendly.t1400.t_combat|0\nfriendly.t1400.a_action|65535\nfriendly.t1400.t_action|65535\nfriendly.t1400.spells|1\nfriendly.t1400.damage_events|0\nfriendly.t1400.hp_delta|0\ndamage.t1400.time|14.016\ndamage.t1400.a_combat|0\ndamage.t1400.t_combat|0\ndamage.t1400.a_action|65535\ndamage.t1400.t_action|65535\ndamage.t1400.spells|0\ndamage.t1400.damage_events|1\ndamage.t1400.hp_delta|1\nnoop.t1400.time|14.016\nnoop.t1400.a_combat|0\nnoop.t1400.t_combat|0\nnoop.t1400.a_action|65535\nnoop.t1400.t_action|65535\nnoop.t1400.spells|0\nnoop.t1400.damage_events|0\nnoop.t1400.hp_delta|0\nnoop.final.time|14.986\nnoop.final.a_combat|0\nnoop.final.t_combat|0\nnoop.final.a_action|65535\nnoop.final.t_action|65535\nnoop.final.spells|0\nnoop.final.damage_events|0\nnoop.final.hp_delta|0\nnoop.stationary|1\ndamage.final.time|14.986\ndamage.final.a_combat|0\ndamage.final.t_combat|0\ndamage.final.a_action|65535\ndamage.final.t_action|65535\ndamage.final.spells|0\ndamage.final.damage_events|1\ndamage.final.hp_delta|1\ndamage.stationary|1\nfriendly.final.time|14.986\nfriendly.final.a_combat|0\nfriendly.final.t_combat|0\nfriendly.final.a_action|65535\nfriendly.final.t_action|65535\nfriendly.final.spells|1\nfriendly.final.damage_events|0\nfriendly.final.hp_delta|0\nfriendly.stationary|1\nhostile.final.time|14.986\nhostile.final.a_combat|0\nhostile.final.t_combat|0\nhostile.final.a_action|65535\nhostile.final.t_action|65535\nhostile.final.spells|1\nhostile.final.damage_events|0\nhostile.final.hp_delta|0\nhostile.stationary|1\n__done__|1\n",
+  "firstDebugBaselineReadings": "noop.valid|1\nnoop.position|1\nnoop.distance|6.000\nnoop.seen|1\nnoop.sees_other0|0\nnoop.sees_other1|0\nnoop.sees_other2|0\nnoop.before.time|0.000\nnoop.before.a_combat|0\nnoop.before.t_combat|0\nnoop.before.a_action|65535\nnoop.before.t_action|65535\nnoop.before.spells|0\nnoop.before.damage_events|0\nnoop.before.hp_delta|0\nnoop.after_call.time|0.000\nnoop.after_call.a_combat|0\nnoop.after_call.t_combat|0\nnoop.after_call.a_action|65535\nnoop.after_call.t_action|65535\nnoop.after_call.spells|0\nnoop.after_call.damage_events|0\nnoop.after_call.hp_delta|0\ndamage.valid|1\ndamage.position|1\ndamage.distance|6.000\ndamage.seen|1\ndamage.sees_other0|0\ndamage.sees_other1|0\ndamage.sees_other3|0\ndamage.before.time|0.000\ndamage.before.a_combat|0\ndamage.before.t_combat|0\ndamage.before.a_action|65535\ndamage.before.t_action|65535\ndamage.before.spells|0\ndamage.before.damage_events|0\ndamage.before.hp_delta|0\ndamage.after_call.time|0.000\ndamage.after_call.a_combat|0\ndamage.after_call.t_combat|0\ndamage.after_call.a_action|65535\ndamage.after_call.t_action|65535\ndamage.after_call.spells|0\ndamage.after_call.damage_events|0\ndamage.after_call.hp_delta|0\nfriendly.valid|1\nfriendly.position|1\nfriendly.distance|6.000\nfriendly.seen|1\nfriendly.sees_other0|0\nfriendly.sees_other2|0\nfriendly.sees_other3|0\nfriendly.before.time|0.000\nfriendly.before.a_combat|0\nfriendly.before.t_combat|0\nfriendly.before.a_action|65535\nfriendly.before.t_action|65535\nfriendly.before.spells|0\nfriendly.before.damage_events|0\nfriendly.before.hp_delta|0\nfriendly.after_call.time|0.000\nfriendly.after_call.a_combat|0\nfriendly.after_call.t_combat|0\nfriendly.after_call.a_action|65535\nfriendly.after_call.t_action|65535\nfriendly.after_call.spells|0\nfriendly.after_call.damage_events|0\nfriendly.after_call.hp_delta|0\nhostile.valid|1\nhostile.position|1\nhostile.distance|6.000\nhostile.seen|1\nhostile.sees_other1|0\nhostile.sees_other2|0\nhostile.sees_other3|0\nhostile.before.time|0.000\nhostile.before.a_combat|0\nhostile.before.t_combat|0\nhostile.before.a_action|65535\nhostile.before.t_action|65535\nhostile.before.spells|0\nhostile.before.damage_events|0\nhostile.before.hp_delta|0\nhostile.after_call.time|0.000\nhostile.after_call.a_combat|0\nhostile.after_call.t_combat|0\nhostile.after_call.a_action|65535\nhostile.after_call.t_action|65535\nhostile.after_call.spells|0\nhostile.after_call.damage_events|0\nhostile.after_call.hp_delta|0\nfriendly.callback_caster|1\nfriendly.callback_spell|601\nfriendly.callback_harmful|0\nfriendly.spell_callback.time|0.000\nfriendly.spell_callback.a_combat|0\nfriendly.spell_callback.t_combat|0\nfriendly.spell_callback.a_action|65535\nfriendly.spell_callback.t_action|65535\nfriendly.spell_callback.spells|1\nfriendly.spell_callback.damage_events|0\nfriendly.spell_callback.hp_delta|0\nhostile.callback_caster|1\nhostile.callback_spell|601\nhostile.callback_harmful|1\nhostile.spell_callback.time|0.000\nhostile.spell_callback.a_combat|0\nhostile.spell_callback.t_combat|0\nhostile.spell_callback.a_action|65535\nhostile.spell_callback.t_action|65535\nhostile.spell_callback.spells|1\nhostile.spell_callback.damage_events|0\nhostile.spell_callback.hp_delta|0\ndamage.damage_caster|1\ndamage.damage_amount|1\ndamage.damage_callback.time|0.000\ndamage.damage_callback.a_combat|0\ndamage.damage_callback.t_combat|0\ndamage.damage_callback.a_action|65535\ndamage.damage_callback.t_action|65535\ndamage.damage_callback.spells|0\ndamage.damage_callback.damage_events|1\ndamage.damage_callback.hp_delta|1\nhostile.t005.time|0.066\nhostile.t005.a_combat|0\nhostile.t005.t_combat|0\nhostile.t005.a_action|65535\nhostile.t005.t_action|65535\nhostile.t005.spells|1\nhostile.t005.damage_events|0\nhostile.t005.hp_delta|0\nfriendly.t005.time|0.066\nfriendly.t005.a_combat|0\nfriendly.t005.t_combat|0\nfriendly.t005.a_action|65535\nfriendly.t005.t_action|65535\nfriendly.t005.spells|1\nfriendly.t005.damage_events|0\nfriendly.t005.hp_delta|0\ndamage.t005.time|0.066\ndamage.t005.a_combat|0\ndamage.t005.t_combat|0\ndamage.t005.a_action|65535\ndamage.t005.t_action|65535\ndamage.t005.spells|0\ndamage.t005.damage_events|1\ndamage.t005.hp_delta|1\nnoop.t005.time|0.066\nnoop.t005.a_combat|0\nnoop.t005.t_combat|0\nnoop.t005.a_action|65535\nnoop.t005.t_action|65535\nnoop.t005.spells|0\nnoop.t005.damage_events|0\nnoop.t005.hp_delta|0\nhostile.t050.time|0.500\nhostile.t050.a_combat|0\nhostile.t050.t_combat|0\nhostile.t050.a_action|65535\nhostile.t050.t_action|65535\nhostile.t050.spells|1\nhostile.t050.damage_events|0\nhostile.t050.hp_delta|0\nfriendly.t050.time|0.500\nfriendly.t050.a_combat|0\nfriendly.t050.t_combat|0\nfriendly.t050.a_action|65535\nfriendly.t050.t_action|65535\nfriendly.t050.spells|1\nfriendly.t050.damage_events|0\nfriendly.t050.hp_delta|0\ndamage.t050.time|0.500\ndamage.t050.a_combat|0\ndamage.t050.t_combat|0\ndamage.t050.a_action|65535\ndamage.t050.t_action|65535\ndamage.t050.spells|0\ndamage.t050.damage_events|1\ndamage.t050.hp_delta|1\nnoop.t050.time|0.500\nnoop.t050.a_combat|0\nnoop.t050.t_combat|0\nnoop.t050.a_action|65535\nnoop.t050.t_action|65535\nnoop.t050.spells|0\nnoop.t050.damage_events|0\nnoop.t050.hp_delta|0\nhostile.t600.time|6.000\nhostile.t600.a_combat|0\nhostile.t600.t_combat|0\nhostile.t600.a_action|65535\nhostile.t600.t_action|65535\nhostile.t600.spells|1\nhostile.t600.damage_events|0\nhostile.t600.hp_delta|0\nfriendly.t600.time|6.000\nfriendly.t600.a_combat|0\nfriendly.t600.t_combat|0\nfriendly.t600.a_action|65535\nfriendly.t600.t_action|65535\nfriendly.t600.spells|1\nfriendly.t600.damage_events|0\nfriendly.t600.hp_delta|0\ndamage.t600.time|6.000\ndamage.t600.a_combat|0\ndamage.t600.t_combat|0\ndamage.t600.a_action|65535\ndamage.t600.t_action|65535\ndamage.t600.spells|0\ndamage.t600.damage_events|1\ndamage.t600.hp_delta|1\nnoop.t600.time|6.000\nnoop.t600.a_combat|0\nnoop.t600.t_combat|0\nnoop.t600.a_action|65535\nnoop.t600.t_action|65535\nnoop.t600.spells|0\nnoop.t600.damage_events|0\nnoop.t600.hp_delta|0\nhostile.t700.time|7.000\nhostile.t700.a_combat|0\nhostile.t700.t_combat|0\nhostile.t700.a_action|65535\nhostile.t700.t_action|65535\nhostile.t700.spells|1\nhostile.t700.damage_events|0\nhostile.t700.hp_delta|0\nfriendly.t700.time|7.000\nfriendly.t700.a_combat|0\nfriendly.t700.t_combat|0\nfriendly.t700.a_action|65535\nfriendly.t700.t_action|65535\nfriendly.t700.spells|1\nfriendly.t700.damage_events|0\nfriendly.t700.hp_delta|0\ndamage.t700.time|7.000\ndamage.t700.a_combat|0\ndamage.t700.t_combat|0\ndamage.t700.a_action|65535\ndamage.t700.t_action|65535\ndamage.t700.spells|0\ndamage.t700.damage_events|1\ndamage.t700.hp_delta|1\nnoop.t700.time|7.000\nnoop.t700.a_combat|0\nnoop.t700.t_combat|0\nnoop.t700.a_action|65535\nnoop.t700.t_action|65535\nnoop.t700.spells|0\nnoop.t700.damage_events|0\nnoop.t700.hp_delta|0\nhostile.t900.time|9.000\nhostile.t900.a_combat|0\nhostile.t900.t_combat|0\nhostile.t900.a_action|65535\nhostile.t900.t_action|65535\nhostile.t900.spells|1\nhostile.t900.damage_events|0\nhostile.t900.hp_delta|0\nfriendly.t900.time|9.000\nfriendly.t900.a_combat|0\nfriendly.t900.t_combat|0\nfriendly.t900.a_action|65535\nfriendly.t900.t_action|65535\nfriendly.t900.spells|1\nfriendly.t900.damage_events|0\nfriendly.t900.hp_delta|0\ndamage.t900.time|9.000\ndamage.t900.a_combat|0\ndamage.t900.t_combat|0\ndamage.t900.a_action|65535\ndamage.t900.t_action|65535\ndamage.t900.spells|0\ndamage.t900.damage_events|1\ndamage.t900.hp_delta|1\nnoop.t900.time|9.000\nnoop.t900.a_combat|0\nnoop.t900.t_combat|0\nnoop.t900.a_action|65535\nnoop.t900.t_action|65535\nnoop.t900.spells|0\nnoop.t900.damage_events|0\nnoop.t900.hp_delta|0\nhostile.t1000.time|10.000\nhostile.t1000.a_combat|0\nhostile.t1000.t_combat|0\nhostile.t1000.a_action|65535\nhostile.t1000.t_action|65535\nhostile.t1000.spells|1\nhostile.t1000.damage_events|0\nhostile.t1000.hp_delta|0\nfriendly.t1000.time|10.000\nfriendly.t1000.a_combat|0\nfriendly.t1000.t_combat|0\nfriendly.t1000.a_action|65535\nfriendly.t1000.t_action|65535\nfriendly.t1000.spells|1\nfriendly.t1000.damage_events|0\nfriendly.t1000.hp_delta|0\ndamage.t1000.time|10.000\ndamage.t1000.a_combat|0\ndamage.t1000.t_combat|0\ndamage.t1000.a_action|65535\ndamage.t1000.t_action|65535\ndamage.t1000.spells|0\ndamage.t1000.damage_events|1\ndamage.t1000.hp_delta|1\nnoop.t1000.time|10.000\nnoop.t1000.a_combat|0\nnoop.t1000.t_combat|0\nnoop.t1000.a_action|65535\nnoop.t1000.t_action|65535\nnoop.t1000.spells|0\nnoop.t1000.damage_events|0\nnoop.t1000.hp_delta|0\nhostile.t1200.time|12.000\nhostile.t1200.a_combat|0\nhostile.t1200.t_combat|0\nhostile.t1200.a_action|65535\nhostile.t1200.t_action|65535\nhostile.t1200.spells|1\nhostile.t1200.damage_events|0\nhostile.t1200.hp_delta|0\nfriendly.t1200.time|12.000\nfriendly.t1200.a_combat|0\nfriendly.t1200.t_combat|0\nfriendly.t1200.a_action|65535\nfriendly.t1200.t_action|65535\nfriendly.t1200.spells|1\nfriendly.t1200.damage_events|0\nfriendly.t1200.hp_delta|0\ndamage.t1200.time|12.000\ndamage.t1200.a_combat|0\ndamage.t1200.t_combat|0\ndamage.t1200.a_action|65535\ndamage.t1200.t_action|65535\ndamage.t1200.spells|0\ndamage.t1200.damage_events|1\ndamage.t1200.hp_delta|1\nnoop.t1200.time|12.000\nnoop.t1200.a_combat|0\nnoop.t1200.t_combat|0\nnoop.t1200.a_action|65535\nnoop.t1200.t_action|65535\nnoop.t1200.spells|0\nnoop.t1200.damage_events|0\nnoop.t1200.hp_delta|0\nhostile.t1400.time|14.000\nhostile.t1400.a_combat|0\nhostile.t1400.t_combat|0\nhostile.t1400.a_action|65535\nhostile.t1400.t_action|65535\nhostile.t1400.spells|1\nhostile.t1400.damage_events|0\nhostile.t1400.hp_delta|0\nfriendly.t1400.time|14.000\nfriendly.t1400.a_combat|0\nfriendly.t1400.t_combat|0\nfriendly.t1400.a_action|65535\nfriendly.t1400.t_action|65535\nfriendly.t1400.spells|1\nfriendly.t1400.damage_events|0\nfriendly.t1400.hp_delta|0\ndamage.t1400.time|14.000\ndamage.t1400.a_combat|0\ndamage.t1400.t_combat|0\ndamage.t1400.a_action|65535\ndamage.t1400.t_action|65535\ndamage.t1400.spells|0\ndamage.t1400.damage_events|1\ndamage.t1400.hp_delta|1\nnoop.t1400.time|14.000\nnoop.t1400.a_combat|0\nnoop.t1400.t_combat|0\nnoop.t1400.a_action|65535\nnoop.t1400.t_action|65535\nnoop.t1400.spells|0\nnoop.t1400.damage_events|0\nnoop.t1400.hp_delta|0\nnoop.final.time|15.000\nnoop.final.a_combat|0\nnoop.final.t_combat|0\nnoop.final.a_action|65535\nnoop.final.t_action|65535\nnoop.final.spells|0\nnoop.final.damage_events|0\nnoop.final.hp_delta|0\nnoop.stationary|1\ndamage.final.time|15.000\ndamage.final.a_combat|0\ndamage.final.t_combat|0\ndamage.final.a_action|65535\ndamage.final.t_action|65535\ndamage.final.spells|0\ndamage.final.damage_events|1\ndamage.final.hp_delta|1\ndamage.stationary|1\nfriendly.final.time|15.000\nfriendly.final.a_combat|0\nfriendly.final.t_combat|0\nfriendly.final.a_action|65535\nfriendly.final.t_action|65535\nfriendly.final.spells|1\nfriendly.final.damage_events|0\nfriendly.final.hp_delta|0\nfriendly.stationary|1\nhostile.final.time|15.000\nhostile.final.a_combat|0\nhostile.final.t_combat|0\nhostile.final.a_action|65535\nhostile.final.t_action|65535\nhostile.final.spells|1\nhostile.final.damage_events|0\nhostile.final.hp_delta|0\nhostile.stationary|1\n__done__|1\n",
+  "firstCombatFlagDifferences": [
+    {
+      "key": "damage.damage_callback.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.damage_callback.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "hostile.t005.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "hostile.t005.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.t005.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.t005.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "hostile.t050.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "hostile.t050.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.t050.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.t050.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "hostile.t600.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "hostile.t600.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.t600.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.t600.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "hostile.t700.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "hostile.t700.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.t700.a_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    },
+    {
+      "key": "damage.t700.t_combat",
+      "native": 1.0,
+      "openwinter": 0.0
+    }
+  ],
+  "firstConclusion": "TRUE spell event without damage sets both combat flags after its callback;1HP damage sets both by its damage callback;FALSE/noop remainclear. Active at7s, clearby9s; exactdurationpending.",
+  "refinedNativeReadings": "noop.valid|1\nnoop.position|1\nnoop.distance|6.000\nnoop.seen|1\nnoop.sees_other0|0\nnoop.sees_other1|0\nnoop.sees_other2|0\nnoop.before.time|0.000\nnoop.before.a_combat|0\nnoop.before.t_combat|0\nnoop.before.a_action|65535\nnoop.before.t_action|65535\nnoop.before.spells|0\nnoop.before.damage_events|0\nnoop.before.hp_delta|0\nnoop.after_call.time|0.000\nnoop.after_call.a_combat|0\nnoop.after_call.t_combat|0\nnoop.after_call.a_action|65535\nnoop.after_call.t_action|65535\nnoop.after_call.spells|0\nnoop.after_call.damage_events|0\nnoop.after_call.hp_delta|0\nfriendly.valid|1\nfriendly.position|1\nfriendly.distance|6.000\nfriendly.seen|1\nfriendly.sees_other0|0\nfriendly.sees_other2|0\nfriendly.sees_other3|0\nfriendly.before.time|0.000\nfriendly.before.a_combat|0\nfriendly.before.t_combat|0\nfriendly.before.a_action|65535\nfriendly.before.t_action|65535\nfriendly.before.spells|0\nfriendly.before.damage_events|0\nfriendly.before.hp_delta|0\nfriendly.after_call.time|0.000\nfriendly.after_call.a_combat|0\nfriendly.after_call.t_combat|0\nfriendly.after_call.a_action|65535\nfriendly.after_call.t_action|65535\nfriendly.after_call.spells|0\nfriendly.after_call.damage_events|0\nfriendly.after_call.hp_delta|0\nhostile.valid|1\nhostile.position|1\nhostile.distance|6.000\nhostile.seen|1\nhostile.sees_other1|0\nhostile.sees_other2|0\nhostile.sees_other3|0\nhostile.before.time|0.000\nhostile.before.a_combat|0\nhostile.before.t_combat|0\nhostile.before.a_action|65535\nhostile.before.t_action|65535\nhostile.before.spells|0\nhostile.before.damage_events|0\nhostile.before.hp_delta|0\nhostile.after_call.time|0.000\nhostile.after_call.a_combat|0\nhostile.after_call.t_combat|0\nhostile.after_call.a_action|65535\nhostile.after_call.t_action|65535\nhostile.after_call.spells|0\nhostile.after_call.damage_events|0\nhostile.after_call.hp_delta|0\nfriendly.callback_caster|1\nfriendly.callback_spell|601\nfriendly.callback_harmful|0\nfriendly.spell_callback.time|0.000\nfriendly.spell_callback.a_combat|0\nfriendly.spell_callback.t_combat|0\nfriendly.spell_callback.a_action|65535\nfriendly.spell_callback.t_action|65535\nfriendly.spell_callback.spells|1\nfriendly.spell_callback.damage_events|0\nfriendly.spell_callback.hp_delta|0\nhostile.callback_caster|1\nhostile.callback_spell|601\nhostile.callback_harmful|1\nhostile.spell_callback.time|0.000\nhostile.spell_callback.a_combat|0\nhostile.spell_callback.t_combat|0\nhostile.spell_callback.a_action|65535\nhostile.spell_callback.t_action|65535\nhostile.spell_callback.spells|1\nhostile.spell_callback.damage_events|0\nhostile.spell_callback.hp_delta|0\nhostile.t002.time|0.031\nhostile.t002.a_combat|1\nhostile.t002.t_combat|1\nhostile.t002.a_action|65535\nhostile.t002.t_action|65535\nhostile.t002.spells|1\nhostile.t002.damage_events|0\nhostile.t002.hp_delta|0\nfriendly.t002.time|0.031\nfriendly.t002.a_combat|0\nfriendly.t002.t_combat|0\nfriendly.t002.a_action|65535\nfriendly.t002.t_action|65535\nfriendly.t002.spells|1\nfriendly.t002.damage_events|0\nfriendly.t002.hp_delta|0\nnoop.t002.time|0.031\nnoop.t002.a_combat|0\nnoop.t002.t_combat|0\nnoop.t002.a_action|65535\nnoop.t002.t_action|65535\nnoop.t002.spells|0\nnoop.t002.damage_events|0\nnoop.t002.hp_delta|0\nhostile.t005.time|0.062\nhostile.t005.a_combat|1\nhostile.t005.t_combat|1\nhostile.t005.a_action|65535\nhostile.t005.t_action|65535\nhostile.t005.spells|1\nhostile.t005.damage_events|0\nhostile.t005.hp_delta|0\nfriendly.t005.time|0.062\nfriendly.t005.a_combat|0\nfriendly.t005.t_combat|0\nfriendly.t005.a_action|65535\nfriendly.t005.t_action|65535\nfriendly.t005.spells|1\nfriendly.t005.damage_events|0\nfriendly.t005.hp_delta|0\nnoop.t005.time|0.062\nnoop.t005.a_combat|0\nnoop.t005.t_combat|0\nnoop.t005.a_action|65535\nnoop.t005.t_action|65535\nnoop.t005.spells|0\nnoop.t005.damage_events|0\nnoop.t005.hp_delta|0\nhostile.t010.time|0.108\nhostile.t010.a_combat|1\nhostile.t010.t_combat|1\nhostile.t010.a_action|65535\nhostile.t010.t_action|65535\nhostile.t010.spells|1\nhostile.t010.damage_events|0\nhostile.t010.hp_delta|0\nfriendly.t010.time|0.108\nfriendly.t010.a_combat|0\nfriendly.t010.t_combat|0\nfriendly.t010.a_action|65535\nfriendly.t010.t_action|65535\nfriendly.t010.spells|1\nfriendly.t010.damage_events|0\nfriendly.t010.hp_delta|0\nnoop.t010.time|0.108\nnoop.t010.a_combat|0\nnoop.t010.t_combat|0\nnoop.t010.a_action|65535\nnoop.t010.t_action|65535\nnoop.t010.spells|0\nnoop.t010.damage_events|0\nnoop.t010.hp_delta|0\ndamage.valid|1\ndamage.position|1\ndamage.distance|6.000\ndamage.seen|1\ndamage.sees_other0|0\ndamage.sees_other1|0\ndamage.sees_other3|0\ndamage.before.time|0.000\ndamage.before.a_combat|0\ndamage.before.t_combat|0\ndamage.before.a_action|65535\ndamage.before.t_action|65535\ndamage.before.spells|0\ndamage.before.damage_events|0\ndamage.before.hp_delta|0\ndamage.after_call.time|0.000\ndamage.after_call.a_combat|0\ndamage.after_call.t_combat|0\ndamage.after_call.a_action|65535\ndamage.after_call.t_action|65535\ndamage.after_call.spells|0\ndamage.after_call.damage_events|0\ndamage.after_call.hp_delta|0\ndamage.damage_caster|1\ndamage.damage_amount|1\ndamage.damage_callback.time|0.000\ndamage.damage_callback.a_combat|1\ndamage.damage_callback.t_combat|1\ndamage.damage_callback.a_action|65535\ndamage.damage_callback.t_action|65535\ndamage.damage_callback.spells|0\ndamage.damage_callback.damage_events|1\ndamage.damage_callback.hp_delta|1\ndamage.t002.time|0.030\ndamage.t002.a_combat|1\ndamage.t002.t_combat|1\ndamage.t002.a_action|65535\ndamage.t002.t_action|65535\ndamage.t002.spells|0\ndamage.t002.damage_events|1\ndamage.t002.hp_delta|1\ndamage.t005.time|0.078\ndamage.t005.a_combat|1\ndamage.t005.t_combat|1\ndamage.t005.a_action|65535\ndamage.t005.t_action|65535\ndamage.t005.spells|0\ndamage.t005.damage_events|1\ndamage.t005.hp_delta|1\ndamage.t010.time|0.109\ndamage.t010.a_combat|1\ndamage.t010.t_combat|1\ndamage.t010.a_action|65535\ndamage.t010.t_action|65535\ndamage.t010.spells|0\ndamage.t010.damage_events|1\ndamage.t010.hp_delta|1\nhostile.t050.time|0.511\nhostile.t050.a_combat|1\nhostile.t050.t_combat|1\nhostile.t050.a_action|65535\nhostile.t050.t_action|65535\nhostile.t050.spells|1\nhostile.t050.damage_events|0\nhostile.t050.hp_delta|0\nfriendly.t050.time|0.511\nfriendly.t050.a_combat|0\nfriendly.t050.t_combat|0\nfriendly.t050.a_action|65535\nfriendly.t050.t_action|65535\nfriendly.t050.spells|1\nfriendly.t050.damage_events|0\nfriendly.t050.hp_delta|0\nnoop.t050.time|0.511\nnoop.t050.a_combat|0\nnoop.t050.t_combat|0\nnoop.t050.a_action|65535\nnoop.t050.t_action|65535\nnoop.t050.spells|0\nnoop.t050.damage_events|0\nnoop.t050.hp_delta|0\ndamage.t050.time|0.516\ndamage.t050.a_combat|1\ndamage.t050.t_combat|1\ndamage.t050.a_action|65535\ndamage.t050.t_action|65535\ndamage.t050.spells|0\ndamage.t050.damage_events|1\ndamage.t050.hp_delta|1\nhostile.t600.time|6.029\nhostile.t600.a_combat|1\nhostile.t600.t_combat|1\nhostile.t600.a_action|65535\nhostile.t600.t_action|65535\nhostile.t600.spells|1\nhostile.t600.damage_events|0\nhostile.t600.hp_delta|0\nfriendly.t600.time|6.029\nfriendly.t600.a_combat|0\nfriendly.t600.t_combat|0\nfriendly.t600.a_action|65535\nfriendly.t600.t_action|65535\nfriendly.t600.spells|1\nfriendly.t600.damage_events|0\nfriendly.t600.hp_delta|0\nnoop.t600.time|6.029\nnoop.t600.a_combat|0\nnoop.t600.t_combat|0\nnoop.t600.a_action|65535\nnoop.t600.t_action|65535\nnoop.t600.spells|0\nnoop.t600.damage_events|0\nnoop.t600.hp_delta|0\ndamage.t600.time|6.008\ndamage.t600.a_combat|1\ndamage.t600.t_combat|1\ndamage.t600.a_action|65535\ndamage.t600.t_action|65535\ndamage.t600.spells|0\ndamage.t600.damage_events|1\ndamage.t600.hp_delta|1\nhostile.t700.time|7.008\nhostile.t700.a_combat|1\nhostile.t700.t_combat|1\nhostile.t700.a_action|65535\nhostile.t700.t_action|65535\nhostile.t700.spells|1\nhostile.t700.damage_events|0\nhostile.t700.hp_delta|0\nfriendly.t700.time|7.008\nfriendly.t700.a_combat|0\nfriendly.t700.t_combat|0\nfriendly.t700.a_action|65535\nfriendly.t700.t_action|65535\nfriendly.t700.spells|1\nfriendly.t700.damage_events|0\nfriendly.t700.hp_delta|0\nnoop.t700.time|7.008\nnoop.t700.a_combat|0\nnoop.t700.t_combat|0\nnoop.t700.a_action|65535\nnoop.t700.t_action|65535\nnoop.t700.spells|0\nnoop.t700.damage_events|0\nnoop.t700.hp_delta|0\ndamage.t700.time|7.012\ndamage.t700.a_combat|1\ndamage.t700.t_combat|1\ndamage.t700.a_action|65535\ndamage.t700.t_action|65535\ndamage.t700.spells|0\ndamage.t700.damage_events|1\ndamage.t700.hp_delta|1\nhostile.t750.time|7.523\nhostile.t750.a_combat|1\nhostile.t750.t_combat|1\nhostile.t750.a_action|65535\nhostile.t750.t_action|65535\nhostile.t750.spells|1\nhostile.t750.damage_events|0\nhostile.t750.hp_delta|0\nfriendly.t750.time|7.523\nfriendly.t750.a_combat|0\nfriendly.t750.t_combat|0\nfriendly.t750.a_action|65535\nfriendly.t750.t_action|65535\nfriendly.t750.spells|1\nfriendly.t750.damage_events|0\nfriendly.t750.hp_delta|0\nnoop.t750.time|7.523\nnoop.t750.a_combat|0\nnoop.t750.t_combat|0\nnoop.t750.a_action|65535\nnoop.t750.t_action|65535\nnoop.t750.spells|0\nnoop.t750.damage_events|0\nnoop.t750.hp_delta|0\ndamage.t750.time|7.510\ndamage.t750.a_combat|1\ndamage.t750.t_combat|1\ndamage.t750.a_action|65535\ndamage.t750.t_action|65535\ndamage.t750.spells|0\ndamage.t750.damage_events|1\ndamage.t750.hp_delta|1\nhostile.t800.time|8.020\nhostile.t800.a_combat|0\nhostile.t800.t_combat|0\nhostile.t800.a_action|65535\nhostile.t800.t_action|65535\nhostile.t800.spells|1\nhostile.t800.damage_events|0\nhostile.t800.hp_delta|0\nfriendly.t800.time|8.020\nfriendly.t800.a_combat|0\nfriendly.t800.t_combat|0\nfriendly.t800.a_action|65535\nfriendly.t800.t_action|65535\nfriendly.t800.spells|1\nfriendly.t800.damage_events|0\nfriendly.t800.hp_delta|0\nnoop.t800.time|8.020\nnoop.t800.a_combat|0\nnoop.t800.t_combat|0\nnoop.t800.a_action|65535\nnoop.t800.t_action|65535\nnoop.t800.spells|0\nnoop.t800.damage_events|0\nnoop.t800.hp_delta|0\nhostile.t825.time|8.253\nhostile.t825.a_combat|0\nhostile.t825.t_combat|0\nhostile.t825.a_action|65535\nhostile.t825.t_action|65535\nhostile.t825.spells|1\nhostile.t825.damage_events|0\nhostile.t825.hp_delta|0\nfriendly.t825.time|8.253\nfriendly.t825.a_combat|0\nfriendly.t825.t_combat|0\nfriendly.t825.a_action|65535\nfriendly.t825.t_action|65535\nfriendly.t825.spells|1\nfriendly.t825.damage_events|0\nfriendly.t825.hp_delta|0\nnoop.t825.time|8.253\nnoop.t825.a_combat|0\nnoop.t825.t_combat|0\nnoop.t825.a_action|65535\nnoop.t825.t_action|65535\nnoop.t825.spells|0\nnoop.t825.damage_events|0\nnoop.t825.hp_delta|0\ndamage.t800.time|8.009\ndamage.t800.a_combat|0\ndamage.t800.t_combat|0\ndamage.t800.a_action|65535\ndamage.t800.t_action|65535\ndamage.t800.spells|0\ndamage.t800.damage_events|1\ndamage.t800.hp_delta|1\nhostile.t850.time|8.506\nhostile.t850.a_combat|0\nhostile.t850.t_combat|0\nhostile.t850.a_action|65535\nhostile.t850.t_action|65535\nhostile.t850.spells|1\nhostile.t850.damage_events|0\nhostile.t850.hp_delta|0\nfriendly.t850.time|8.506\nfriendly.t850.a_combat|0\nfriendly.t850.t_combat|0\nfriendly.t850.a_action|65535\nfriendly.t850.t_action|65535\nfriendly.t850.spells|1\nfriendly.t850.damage_events|0\nfriendly.t850.hp_delta|0\nnoop.t850.time|8.506\nnoop.t850.a_combat|0\nnoop.t850.t_combat|0\nnoop.t850.a_action|65535\nnoop.t850.t_action|65535\nnoop.t850.spells|0\nnoop.t850.damage_events|0\nnoop.t850.hp_delta|0\ndamage.t825.time|8.259\ndamage.t825.a_combat|0\ndamage.t825.t_combat|0\ndamage.t825.a_action|65535\ndamage.t825.t_action|65535\ndamage.t825.spells|0\ndamage.t825.damage_events|1\ndamage.t825.hp_delta|1\ndamage.t850.time|8.511\ndamage.t850.a_combat|0\ndamage.t850.t_combat|0\ndamage.t850.a_action|65535\ndamage.t850.t_action|65535\ndamage.t850.spells|0\ndamage.t850.damage_events|1\ndamage.t850.hp_delta|1\nhostile.t900.time|9.023\nhostile.t900.a_combat|0\nhostile.t900.t_combat|0\nhostile.t900.a_action|65535\nhostile.t900.t_action|65535\nhostile.t900.spells|1\nhostile.t900.damage_events|0\nhostile.t900.hp_delta|0\nfriendly.t900.time|9.023\nfriendly.t900.a_combat|0\nfriendly.t900.t_combat|0\nfriendly.t900.a_action|65535\nfriendly.t900.t_action|65535\nfriendly.t900.spells|1\nfriendly.t900.damage_events|0\nfriendly.t900.hp_delta|0\nnoop.t900.time|9.023\nnoop.t900.a_combat|0\nnoop.t900.t_combat|0\nnoop.t900.a_action|65535\nnoop.t900.t_action|65535\nnoop.t900.spells|0\nnoop.t900.damage_events|0\nnoop.t900.hp_delta|0\ndamage.t900.time|9.024\ndamage.t900.a_combat|0\ndamage.t900.t_combat|0\ndamage.t900.a_action|65535\ndamage.t900.t_action|65535\ndamage.t900.spells|0\ndamage.t900.damage_events|1\ndamage.t900.hp_delta|1\nhostile.t1000.time|10.016\nhostile.t1000.a_combat|0\nhostile.t1000.t_combat|0\nhostile.t1000.a_action|65535\nhostile.t1000.t_action|65535\nhostile.t1000.spells|1\nhostile.t1000.damage_events|0\nhostile.t1000.hp_delta|0\nfriendly.t1000.time|10.016\nfriendly.t1000.a_combat|0\nfriendly.t1000.t_combat|0\nfriendly.t1000.a_action|65535\nfriendly.t1000.t_action|65535\nfriendly.t1000.spells|1\nfriendly.t1000.damage_events|0\nfriendly.t1000.hp_delta|0\nnoop.t1000.time|10.016\nnoop.t1000.a_combat|0\nnoop.t1000.t_combat|0\nnoop.t1000.a_action|65535\nnoop.t1000.t_action|65535\nnoop.t1000.spells|0\nnoop.t1000.damage_events|0\nnoop.t1000.hp_delta|0\ndamage.t1000.time|10.024\ndamage.t1000.a_combat|0\ndamage.t1000.t_combat|0\ndamage.t1000.a_action|65535\ndamage.t1000.t_action|65535\ndamage.t1000.spells|0\ndamage.t1000.damage_events|1\ndamage.t1000.hp_delta|1\nhostile.t1200.time|12.000\nhostile.t1200.a_combat|0\nhostile.t1200.t_combat|0\nhostile.t1200.a_action|65535\nhostile.t1200.t_action|65535\nhostile.t1200.spells|1\nhostile.t1200.damage_events|0\nhostile.t1200.hp_delta|0\nfriendly.t1200.time|12.000\nfriendly.t1200.a_combat|0\nfriendly.t1200.t_combat|0\nfriendly.t1200.a_action|65535\nfriendly.t1200.t_action|65535\nfriendly.t1200.spells|1\nfriendly.t1200.damage_events|0\nfriendly.t1200.hp_delta|0\nnoop.t1200.time|12.000\nnoop.t1200.a_combat|0\nnoop.t1200.t_combat|0\nnoop.t1200.a_action|65535\nnoop.t1200.t_action|65535\nnoop.t1200.spells|0\nnoop.t1200.damage_events|0\nnoop.t1200.hp_delta|0\ndamage.t1200.time|12.008\ndamage.t1200.a_combat|0\ndamage.t1200.t_combat|0\ndamage.t1200.a_action|65535\ndamage.t1200.t_action|65535\ndamage.t1200.spells|0\ndamage.t1200.damage_events|1\ndamage.t1200.hp_delta|1\nhostile.t1400.time|14.007\nhostile.t1400.a_combat|0\nhostile.t1400.t_combat|0\nhostile.t1400.a_action|65535\nhostile.t1400.t_action|65535\nhostile.t1400.spells|1\nhostile.t1400.damage_events|0\nhostile.t1400.hp_delta|0\nfriendly.t1400.time|14.007\nfriendly.t1400.a_combat|0\nfriendly.t1400.t_combat|0\nfriendly.t1400.a_action|65535\nfriendly.t1400.t_action|65535\nfriendly.t1400.spells|1\nfriendly.t1400.damage_events|0\nfriendly.t1400.hp_delta|0\nnoop.t1400.time|14.007\nnoop.t1400.a_combat|0\nnoop.t1400.t_combat|0\nnoop.t1400.a_action|65535\nnoop.t1400.t_action|65535\nnoop.t1400.spells|0\nnoop.t1400.damage_events|0\nnoop.t1400.hp_delta|0\ndamage.t1400.time|14.026\ndamage.t1400.a_combat|0\ndamage.t1400.t_combat|0\ndamage.t1400.a_action|65535\ndamage.t1400.t_action|65535\ndamage.t1400.spells|0\ndamage.t1400.damage_events|1\ndamage.t1400.hp_delta|1\nnoop.final.time|15.023\nnoop.final.a_combat|0\nnoop.final.t_combat|0\nnoop.final.a_action|65535\nnoop.final.t_action|65535\nnoop.final.spells|0\nnoop.final.damage_events|0\nnoop.final.hp_delta|0\nnoop.stationary|1\ndamage.final.time|14.637\ndamage.final.a_combat|0\ndamage.final.t_combat|0\ndamage.final.a_action|65535\ndamage.final.t_action|65535\ndamage.final.spells|0\ndamage.final.damage_events|1\ndamage.final.hp_delta|1\ndamage.stationary|1\nfriendly.final.time|15.023\nfriendly.final.a_combat|0\nfriendly.final.t_combat|0\nfriendly.final.a_action|65535\nfriendly.final.t_action|65535\nfriendly.final.spells|1\nfriendly.final.damage_events|0\nfriendly.final.hp_delta|0\nfriendly.stationary|1\nhostile.final.time|15.023\nhostile.final.a_combat|0\nhostile.final.t_combat|0\nhostile.final.a_action|65535\nhostile.final.t_action|65535\nhostile.final.spells|1\nhostile.final.damage_events|0\nhostile.final.hp_delta|0\nhostile.stationary|1\n__done__|1\n",
+  "refinedStates": {
+    "hostile": [
+      {
+        "stage": "before",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "after_call",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "spell_callback",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t002",
+        "time": 0.031,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t005",
+        "time": 0.062,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t010",
+        "time": 0.108,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t050",
+        "time": 0.511,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t600",
+        "time": 6.029,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t700",
+        "time": 7.008,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t750",
+        "time": 7.523,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t800",
+        "time": 8.02,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t825",
+        "time": 8.253,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t850",
+        "time": 8.506,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t900",
+        "time": 9.023,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1000",
+        "time": 10.016,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1200",
+        "time": 12.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1400",
+        "time": 14.007,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "final",
+        "time": 15.023,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      }
+    ],
+    "friendly": [
+      {
+        "stage": "before",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "after_call",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "spell_callback",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t002",
+        "time": 0.031,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t005",
+        "time": 0.062,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t010",
+        "time": 0.108,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t050",
+        "time": 0.511,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t600",
+        "time": 6.029,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t700",
+        "time": 7.008,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t750",
+        "time": 7.523,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t800",
+        "time": 8.02,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t825",
+        "time": 8.253,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t850",
+        "time": 8.506,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t900",
+        "time": 9.023,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1000",
+        "time": 10.016,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1200",
+        "time": 12.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1400",
+        "time": 14.007,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "final",
+        "time": 15.023,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 1.0,
+        "damageCallbacks": 0.0
+      }
+    ],
+    "damage": [
+      {
+        "stage": "before",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "after_call",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "damage_callback",
+        "time": 0.0,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t002",
+        "time": 0.03,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t005",
+        "time": 0.078,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t010",
+        "time": 0.109,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t050",
+        "time": 0.516,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t600",
+        "time": 6.008,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t700",
+        "time": 7.012,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t750",
+        "time": 7.51,
+        "attackerCombat": 1.0,
+        "targetCombat": 1.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t800",
+        "time": 8.009,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t825",
+        "time": 8.259,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t850",
+        "time": 8.511,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t900",
+        "time": 9.024,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t1000",
+        "time": 10.024,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t1200",
+        "time": 12.008,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "t1400",
+        "time": 14.026,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      },
+      {
+        "stage": "final",
+        "time": 14.637,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 1.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 1.0
+      }
+    ],
+    "noop": [
+      {
+        "stage": "before",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "after_call",
+        "time": 0.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t002",
+        "time": 0.031,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t005",
+        "time": 0.062,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t010",
+        "time": 0.108,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t050",
+        "time": 0.511,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t600",
+        "time": 6.029,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t700",
+        "time": 7.008,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t750",
+        "time": 7.523,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t800",
+        "time": 8.02,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t825",
+        "time": 8.253,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t850",
+        "time": 8.506,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t900",
+        "time": 9.023,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1000",
+        "time": 10.016,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1200",
+        "time": 12.0,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "t1400",
+        "time": 14.007,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      },
+      {
+        "stage": "final",
+        "time": 15.023,
+        "attackerCombat": 0.0,
+        "targetCombat": 0.0,
+        "attackerAction": 65535.0,
+        "targetAction": 65535.0,
+        "hpDelta": 0.0,
+        "spellCallbacks": 0.0,
+        "damageCallbacks": 0.0
+      }
+    ]
+  },
+  "expiryBoundsAfterTrigger": {
+    "hostile": {
+      "lastActive": 7.523,
+      "firstClear": 8.02
+    },
+    "damage": {
+      "lastActive": 7.51,
+      "firstClear": 8.009
+    },
+    "actualTriggerSeparation": 0.386
+  },
+  "limits": [
+    "Native hostile-event activation occurs after callback but by+.031s; exact scheduling instant not measured.",
+    "First Debug baseline predates added refinementpoints; its18 combatflag differences concern first-run sharedsamples only.",
+    "Only quiet ordinary NPC pairs with specified public event/damage calls; self/dead/invalid actors,players,ongoing attacks and repeated refreshes are not measured.",
+    "No model ready-animation identity is inferred from GetIsInCombat.",
+    "Final poll resolves sharedcoarse-boundary ambiguity but only bounds relativeexpiry to~.032s; no sub-tick deadline claim."
+  ],
+  "finalPollNativeReadings": "noop.trigger_absolute|1565.052\nnoop.valid|1\nnoop.position|1\nnoop.distance|6.000\nnoop.seen|1\nnoop.sees_other0|0\nnoop.sees_other1|0\nnoop.sees_other2|0\nnoop.before.time|0.000\nnoop.before.a_combat|0\nnoop.before.t_combat|0\nnoop.before.a_action|65535\nnoop.before.t_action|65535\nnoop.before.spells|0\nnoop.before.damage_events|0\nnoop.before.hp_delta|0\nnoop.after_call.time|0.000\nnoop.after_call.a_combat|0\nnoop.after_call.t_combat|0\nnoop.after_call.a_action|65535\nnoop.after_call.t_action|65535\nnoop.after_call.spells|0\nnoop.after_call.damage_events|0\nnoop.after_call.hp_delta|0\nfriendly.trigger_absolute|1565.052\nfriendly.valid|1\nfriendly.position|1\nfriendly.distance|6.000\nfriendly.seen|1\nfriendly.sees_other0|0\nfriendly.sees_other2|0\nfriendly.sees_other3|0\nfriendly.before.time|0.000\nfriendly.before.a_combat|0\nfriendly.before.t_combat|0\nfriendly.before.a_action|65535\nfriendly.before.t_action|65535\nfriendly.before.spells|0\nfriendly.before.damage_events|0\nfriendly.before.hp_delta|0\nfriendly.after_call.time|0.000\nfriendly.after_call.a_combat|0\nfriendly.after_call.t_combat|0\nfriendly.after_call.a_action|65535\nfriendly.after_call.t_action|65535\nfriendly.after_call.spells|0\nfriendly.after_call.damage_events|0\nfriendly.after_call.hp_delta|0\nhostile.trigger_absolute|1565.052\nhostile.valid|1\nhostile.position|1\nhostile.distance|6.000\nhostile.seen|1\nhostile.sees_other1|0\nhostile.sees_other2|0\nhostile.sees_other3|0\nhostile.before.time|0.000\nhostile.before.a_combat|0\nhostile.before.t_combat|0\nhostile.before.a_action|65535\nhostile.before.t_action|65535\nhostile.before.spells|0\nhostile.before.damage_events|0\nhostile.before.hp_delta|0\nhostile.after_call.time|0.000\nhostile.after_call.a_combat|0\nhostile.after_call.t_combat|0\nhostile.after_call.a_action|65535\nhostile.after_call.t_action|65535\nhostile.after_call.spells|0\nhostile.after_call.damage_events|0\nhostile.after_call.hp_delta|0\nfriendly.callback_caster|1\nfriendly.callback_spell|601\nfriendly.callback_harmful|0\nfriendly.spell_callback.time|0.000\nfriendly.spell_callback.a_combat|0\nfriendly.spell_callback.t_combat|0\nfriendly.spell_callback.a_action|65535\nfriendly.spell_callback.t_action|65535\nfriendly.spell_callback.spells|1\nfriendly.spell_callback.damage_events|0\nfriendly.spell_callback.hp_delta|0\nhostile.callback_caster|1\nhostile.callback_spell|601\nhostile.callback_harmful|1\nhostile.spell_callback.time|0.000\nhostile.spell_callback.a_combat|0\nhostile.spell_callback.t_combat|0\nhostile.spell_callback.a_action|65535\nhostile.spell_callback.t_action|65535\nhostile.spell_callback.spells|1\nhostile.spell_callback.damage_events|0\nhostile.spell_callback.hp_delta|0\nhostile.t002.time|0.031\nhostile.t002.a_combat|1\nhostile.t002.t_combat|1\nhostile.t002.a_action|65535\nhostile.t002.t_action|65535\nhostile.t002.spells|1\nhostile.t002.damage_events|0\nhostile.t002.hp_delta|0\nfriendly.t002.time|0.031\nfriendly.t002.a_combat|0\nfriendly.t002.t_combat|0\nfriendly.t002.a_action|65535\nfriendly.t002.t_action|65535\nfriendly.t002.spells|1\nfriendly.t002.damage_events|0\nfriendly.t002.hp_delta|0\nnoop.t002.time|0.031\nnoop.t002.a_combat|0\nnoop.t002.t_combat|0\nnoop.t002.a_action|65535\nnoop.t002.t_action|65535\nnoop.t002.spells|0\nnoop.t002.damage_events|0\nnoop.t002.hp_delta|0\nhostile.t005.time|0.078\nhostile.t005.a_combat|1\nhostile.t005.t_combat|1\nhostile.t005.a_action|65535\nhostile.t005.t_action|65535\nhostile.t005.spells|1\nhostile.t005.damage_events|0\nhostile.t005.hp_delta|0\nfriendly.t005.time|0.078\nfriendly.t005.a_combat|0\nfriendly.t005.t_combat|0\nfriendly.t005.a_action|65535\nfriendly.t005.t_action|65535\nfriendly.t005.spells|1\nfriendly.t005.damage_events|0\nfriendly.t005.hp_delta|0\nnoop.t005.time|0.078\nnoop.t005.a_combat|0\nnoop.t005.t_combat|0\nnoop.t005.a_action|65535\nnoop.t005.t_action|65535\nnoop.t005.spells|0\nnoop.t005.damage_events|0\nnoop.t005.hp_delta|0\nhostile.t010.time|0.108\nhostile.t010.a_combat|1\nhostile.t010.t_combat|1\nhostile.t010.a_action|65535\nhostile.t010.t_action|65535\nhostile.t010.spells|1\nhostile.t010.damage_events|0\nhostile.t010.hp_delta|0\nfriendly.t010.time|0.108\nfriendly.t010.a_combat|0\nfriendly.t010.t_combat|0\nfriendly.t010.a_action|65535\nfriendly.t010.t_action|65535\nfriendly.t010.spells|1\nfriendly.t010.damage_events|0\nfriendly.t010.hp_delta|0\nnoop.t010.time|0.108\nnoop.t010.a_combat|0\nnoop.t010.t_combat|0\nnoop.t010.a_action|65535\nnoop.t010.t_action|65535\nnoop.t010.spells|0\nnoop.t010.damage_events|0\nnoop.t010.hp_delta|0\ndamage.trigger_absolute|1565.427\ndamage.valid|1\ndamage.position|1\ndamage.distance|6.000\ndamage.seen|1\ndamage.sees_other0|0\ndamage.sees_other1|0\ndamage.sees_other3|0\ndamage.before.time|0.000\ndamage.before.a_combat|0\ndamage.before.t_combat|0\ndamage.before.a_action|65535\ndamage.before.t_action|65535\ndamage.before.spells|0\ndamage.before.damage_events|0\ndamage.before.hp_delta|0\ndamage.after_call.time|0.000\ndamage.after_call.a_combat|0\ndamage.after_call.t_combat|0\ndamage.after_call.a_action|65535\ndamage.after_call.t_action|65535\ndamage.after_call.spells|0\ndamage.after_call.damage_events|0\ndamage.after_call.hp_delta|0\ndamage.damage_caster|1\ndamage.damage_amount|1\ndamage.damage_callback.time|0.000\ndamage.damage_callback.a_combat|1\ndamage.damage_callback.t_combat|1\ndamage.damage_callback.a_action|65535\ndamage.damage_callback.t_action|65535\ndamage.damage_callback.spells|0\ndamage.damage_callback.damage_events|1\ndamage.damage_callback.hp_delta|1\ndamage.t002.time|0.032\ndamage.t002.a_combat|1\ndamage.t002.t_combat|1\ndamage.t002.a_action|65535\ndamage.t002.t_action|65535\ndamage.t002.spells|0\ndamage.t002.damage_events|1\ndamage.t002.hp_delta|1\ndamage.t005.time|0.063\ndamage.t005.a_combat|1\ndamage.t005.t_combat|1\ndamage.t005.a_action|65535\ndamage.t005.t_action|65535\ndamage.t005.spells|0\ndamage.t005.damage_events|1\ndamage.t005.hp_delta|1\ndamage.t010.time|0.125\ndamage.t010.a_combat|1\ndamage.t010.t_combat|1\ndamage.t010.a_action|65535\ndamage.t010.t_action|65535\ndamage.t010.spells|0\ndamage.t010.damage_events|1\ndamage.t010.hp_delta|1\nhostile.t050.time|0.500\nhostile.t050.a_combat|1\nhostile.t050.t_combat|1\nhostile.t050.a_action|65535\nhostile.t050.t_action|65535\nhostile.t050.spells|1\nhostile.t050.damage_events|0\nhostile.t050.hp_delta|0\nfriendly.t050.time|0.500\nfriendly.t050.a_combat|0\nfriendly.t050.t_combat|0\nfriendly.t050.a_action|65535\nfriendly.t050.t_action|65535\nfriendly.t050.spells|1\nfriendly.t050.damage_events|0\nfriendly.t050.hp_delta|0\nnoop.t050.time|0.500\nnoop.t050.a_combat|0\nnoop.t050.t_combat|0\nnoop.t050.a_action|65535\nnoop.t050.t_action|65535\nnoop.t050.spells|0\nnoop.t050.damage_events|0\nnoop.t050.hp_delta|0\ndamage.t050.time|0.517\ndamage.t050.a_combat|1\ndamage.t050.t_combat|1\ndamage.t050.a_action|65535\ndamage.t050.t_action|65535\ndamage.t050.spells|0\ndamage.t050.damage_events|1\ndamage.t050.hp_delta|1\nhostile.t600.time|6.002\nhostile.t600.a_combat|1\nhostile.t600.t_combat|1\nhostile.t600.a_action|65535\nhostile.t600.t_action|65535\nhostile.t600.spells|1\nhostile.t600.damage_events|0\nhostile.t600.hp_delta|0\nfriendly.t600.time|6.002\nfriendly.t600.a_combat|0\nfriendly.t600.t_combat|0\nfriendly.t600.a_action|65535\nfriendly.t600.t_action|65535\nfriendly.t600.spells|1\nfriendly.t600.damage_events|0\nfriendly.t600.hp_delta|0\nnoop.t600.time|6.002\nnoop.t600.a_combat|0\nnoop.t600.t_combat|0\nnoop.t600.a_action|65535\nnoop.t600.t_action|65535\nnoop.t600.spells|0\nnoop.t600.damage_events|0\nnoop.t600.hp_delta|0\ndamage.t600.time|6.003\ndamage.t600.a_combat|1\ndamage.t600.t_combat|1\ndamage.t600.a_action|65535\ndamage.t600.t_action|65535\ndamage.t600.spells|0\ndamage.t600.damage_events|1\ndamage.t600.hp_delta|1\nhostile.t700.time|7.024\nhostile.t700.a_combat|1\nhostile.t700.t_combat|1\nhostile.t700.a_action|65535\nhostile.t700.t_action|65535\nhostile.t700.spells|1\nhostile.t700.damage_events|0\nhostile.t700.hp_delta|0\nhostile.poll_active_gate|1\nhostile.poll_start_absolute|1572.076\nfriendly.t700.time|7.024\nfriendly.t700.a_combat|0\nfriendly.t700.t_combat|0\nfriendly.t700.a_action|65535\nfriendly.t700.t_action|65535\nfriendly.t700.spells|1\nfriendly.t700.damage_events|0\nfriendly.t700.hp_delta|0\nnoop.t700.time|7.024\nnoop.t700.a_combat|0\nnoop.t700.t_combat|0\nnoop.t700.a_action|65535\nnoop.t700.t_action|65535\nnoop.t700.spells|0\nnoop.t700.damage_events|0\nnoop.t700.hp_delta|0\ndamage.t700.time|7.009\ndamage.t700.a_combat|1\ndamage.t700.t_combat|1\ndamage.t700.a_action|65535\ndamage.t700.t_action|65535\ndamage.t700.spells|0\ndamage.t700.damage_events|1\ndamage.t700.hp_delta|1\ndamage.poll_active_gate|1\ndamage.poll_start_absolute|1572.436\nhostile.t750.time|7.510\nhostile.t750.a_combat|1\nhostile.t750.t_combat|1\nhostile.t750.a_action|65535\nhostile.t750.t_action|65535\nhostile.t750.spells|1\nhostile.t750.damage_events|0\nhostile.t750.hp_delta|0\nfriendly.t750.time|7.510\nfriendly.t750.a_combat|0\nfriendly.t750.t_combat|0\nfriendly.t750.a_action|65535\nfriendly.t750.t_action|65535\nfriendly.t750.spells|1\nfriendly.t750.damage_events|0\nfriendly.t750.hp_delta|0\nnoop.t750.time|7.510\nnoop.t750.a_combat|0\nnoop.t750.t_combat|0\nnoop.t750.a_action|65535\nnoop.t750.t_action|65535\nnoop.t750.spells|0\nnoop.t750.damage_events|0\nnoop.t750.hp_delta|0\ndamage.t750.time|7.510\ndamage.t750.a_combat|1\ndamage.t750.t_combat|1\ndamage.t750.a_action|65535\ndamage.t750.t_action|65535\ndamage.t750.spells|0\ndamage.t750.damage_events|1\ndamage.t750.hp_delta|1\nhostile.t800.time|8.013\nhostile.t800.a_combat|1\nhostile.t800.t_combat|1\nhostile.t800.a_action|65535\nhostile.t800.t_action|65535\nhostile.t800.spells|1\nhostile.t800.damage_events|0\nhostile.t800.hp_delta|0\nfriendly.t800.time|8.013\nfriendly.t800.a_combat|0\nfriendly.t800.t_combat|0\nfriendly.t800.a_action|65535\nfriendly.t800.t_action|65535\nfriendly.t800.spells|1\nfriendly.t800.damage_events|0\nfriendly.t800.hp_delta|0\nnoop.t800.time|8.013\nnoop.t800.a_combat|0\nnoop.t800.t_combat|0\nnoop.t800.a_action|65535\nnoop.t800.t_action|65535\nnoop.t800.spells|0\nnoop.t800.damage_events|0\nnoop.t800.hp_delta|0\nhostile.a_expiry_relative|8.029\nhostile.a_expiry_absolute|1573.081\nhostile.a_last_active_absolute|1573.048\nhostile.t_expiry_relative|8.029\nhostile.t_expiry_absolute|1573.081\nhostile.t_last_active_absolute|1573.048\nhostile.poll_completed|1\nhostile.t825.time|8.265\nhostile.t825.a_combat|0\nhostile.t825.t_combat|0\nhostile.t825.a_action|65535\nhostile.t825.t_action|65535\nhostile.t825.spells|1\nhostile.t825.damage_events|0\nhostile.t825.hp_delta|0\nfriendly.t825.time|8.265\nfriendly.t825.a_combat|0\nfriendly.t825.t_combat|0\nfriendly.t825.a_action|65535\nfriendly.t825.t_action|65535\nfriendly.t825.spells|1\nfriendly.t825.damage_events|0\nfriendly.t825.hp_delta|0\nnoop.t825.time|8.265\nnoop.t825.a_combat|0\nnoop.t825.t_combat|0\nnoop.t825.a_action|65535\nnoop.t825.t_action|65535\nnoop.t825.spells|0\nnoop.t825.damage_events|0\nnoop.t825.hp_delta|0\ndamage.t800.time|8.001\ndamage.t800.a_combat|1\ndamage.t800.t_combat|1\ndamage.t800.a_action|65535\ndamage.t800.t_action|65535\ndamage.t800.spells|0\ndamage.t800.damage_events|1\ndamage.t800.hp_delta|1\ndamage.a_expiry_relative|8.033\ndamage.a_expiry_absolute|1573.460\ndamage.a_last_active_absolute|1573.428\ndamage.t_expiry_relative|8.033\ndamage.t_expiry_absolute|1573.460\ndamage.t_last_active_absolute|1573.428\ndamage.poll_completed|1\nhostile.t850.time|8.503\nhostile.t850.a_combat|0\nhostile.t850.t_combat|0\nhostile.t850.a_action|65535\nhostile.t850.t_action|65535\nhostile.t850.spells|1\nhostile.t850.damage_events|0\nhostile.t850.hp_delta|0\nfriendly.t850.time|8.503\nfriendly.t850.a_combat|0\nfriendly.t850.t_combat|0\nfriendly.t850.a_action|65535\nfriendly.t850.t_action|65535\nfriendly.t850.spells|1\nfriendly.t850.damage_events|0\nfriendly.t850.hp_delta|0\nnoop.t850.time|8.503\nnoop.t850.a_combat|0\nnoop.t850.t_combat|0\nnoop.t850.a_action|65535\nnoop.t850.t_action|65535\nnoop.t850.spells|0\nnoop.t850.damage_events|0\nnoop.t850.hp_delta|0\ndamage.t825.time|8.252\ndamage.t825.a_combat|0\ndamage.t825.t_combat|0\ndamage.t825.a_action|65535\ndamage.t825.t_action|65535\ndamage.t825.spells|0\ndamage.t825.damage_events|1\ndamage.t825.hp_delta|1\ndamage.t850.time|8.504\ndamage.t850.a_combat|0\ndamage.t850.t_combat|0\ndamage.t850.a_action|65535\ndamage.t850.t_action|65535\ndamage.t850.spells|0\ndamage.t850.damage_events|1\ndamage.t850.hp_delta|1\nhostile.t900.time|9.006\nhostile.t900.a_combat|0\nhostile.t900.t_combat|0\nhostile.t900.a_action|65535\nhostile.t900.t_action|65535\nhostile.t900.spells|1\nhostile.t900.damage_events|0\nhostile.t900.hp_delta|0\nfriendly.t900.time|9.006\nfriendly.t900.a_combat|0\nfriendly.t900.t_combat|0\nfriendly.t900.a_action|65535\nfriendly.t900.t_action|65535\nfriendly.t900.spells|1\nfriendly.t900.damage_events|0\nfriendly.t900.hp_delta|0\nnoop.t900.time|9.006\nnoop.t900.a_combat|0\nnoop.t900.t_combat|0\nnoop.t900.a_action|65535\nnoop.t900.t_action|65535\nnoop.t900.spells|0\nnoop.t900.damage_events|0\nnoop.t900.hp_delta|0\ndamage.t900.time|9.006\ndamage.t900.a_combat|0\ndamage.t900.t_combat|0\ndamage.t900.a_action|65535\ndamage.t900.t_action|65535\ndamage.t900.spells|0\ndamage.t900.damage_events|1\ndamage.t900.hp_delta|1\nhostile.t1000.time|10.020\nhostile.t1000.a_combat|0\nhostile.t1000.t_combat|0\nhostile.t1000.a_action|65535\nhostile.t1000.t_action|65535\nhostile.t1000.spells|1\nhostile.t1000.damage_events|0\nhostile.t1000.hp_delta|0\nfriendly.t1000.time|10.020\nfriendly.t1000.a_combat|0\nfriendly.t1000.t_combat|0\nfriendly.t1000.a_action|65535\nfriendly.t1000.t_action|65535\nfriendly.t1000.spells|1\nfriendly.t1000.damage_events|0\nfriendly.t1000.hp_delta|0\nnoop.t1000.time|10.020\nnoop.t1000.a_combat|0\nnoop.t1000.t_combat|0\nnoop.t1000.a_action|65535\nnoop.t1000.t_action|65535\nnoop.t1000.spells|0\nnoop.t1000.damage_events|0\nnoop.t1000.hp_delta|0\ndamage.t1000.time|10.003\ndamage.t1000.a_combat|0\ndamage.t1000.t_combat|0\ndamage.t1000.a_action|65535\ndamage.t1000.t_action|65535\ndamage.t1000.spells|0\ndamage.t1000.damage_events|1\ndamage.t1000.hp_delta|1\nhostile.t1200.time|12.015\nhostile.t1200.a_combat|0\nhostile.t1200.t_combat|0\nhostile.t1200.a_action|65535\nhostile.t1200.t_action|65535\nhostile.t1200.spells|1\nhostile.t1200.damage_events|0\nhostile.t1200.hp_delta|0\nfriendly.t1200.time|12.015\nfriendly.t1200.a_combat|0\nfriendly.t1200.t_combat|0\nfriendly.t1200.a_action|65535\nfriendly.t1200.t_action|65535\nfriendly.t1200.spells|1\nfriendly.t1200.damage_events|0\nfriendly.t1200.hp_delta|0\nnoop.t1200.time|12.015\nnoop.t1200.a_combat|0\nnoop.t1200.t_combat|0\nnoop.t1200.a_action|65535\nnoop.t1200.t_action|65535\nnoop.t1200.spells|0\nnoop.t1200.damage_events|0\nnoop.t1200.hp_delta|0\ndamage.t1200.time|12.015\ndamage.t1200.a_combat|0\ndamage.t1200.t_combat|0\ndamage.t1200.a_action|65535\ndamage.t1200.t_action|65535\ndamage.t1200.spells|0\ndamage.t1200.damage_events|1\ndamage.t1200.hp_delta|1\nhostile.t1400.time|14.023\nhostile.t1400.a_combat|0\nhostile.t1400.t_combat|0\nhostile.t1400.a_action|65535\nhostile.t1400.t_action|65535\nhostile.t1400.spells|1\nhostile.t1400.damage_events|0\nhostile.t1400.hp_delta|0\nfriendly.t1400.time|14.023\nfriendly.t1400.a_combat|0\nfriendly.t1400.t_combat|0\nfriendly.t1400.a_action|65535\nfriendly.t1400.t_action|65535\nfriendly.t1400.spells|1\nfriendly.t1400.damage_events|0\nfriendly.t1400.hp_delta|0\nnoop.t1400.time|14.023\nnoop.t1400.a_combat|0\nnoop.t1400.t_combat|0\nnoop.t1400.a_action|65535\nnoop.t1400.t_action|65535\nnoop.t1400.spells|0\nnoop.t1400.damage_events|0\nnoop.t1400.hp_delta|0\ndamage.t1400.time|14.007\ndamage.t1400.a_combat|0\ndamage.t1400.t_combat|0\ndamage.t1400.a_action|65535\ndamage.t1400.t_action|65535\ndamage.t1400.spells|0\ndamage.t1400.damage_events|1\ndamage.t1400.hp_delta|1\nnoop.final.time|15.024\nnoop.final.a_combat|0\nnoop.final.t_combat|0\nnoop.final.a_action|65535\nnoop.final.t_action|65535\nnoop.final.spells|0\nnoop.final.damage_events|0\nnoop.final.hp_delta|0\nnoop.stationary|1\ndamage.final.time|14.649\ndamage.final.a_combat|0\ndamage.final.t_combat|0\ndamage.final.a_action|65535\ndamage.final.t_action|65535\ndamage.final.spells|0\ndamage.final.damage_events|1\ndamage.final.hp_delta|1\ndamage.stationary|1\nfriendly.final.time|15.024\nfriendly.final.a_combat|0\nfriendly.final.t_combat|0\nfriendly.final.a_action|65535\nfriendly.final.t_action|65535\nfriendly.final.spells|1\nfriendly.final.damage_events|0\nfriendly.final.hp_delta|0\nfriendly.stationary|1\nhostile.final.time|15.024\nhostile.final.a_combat|0\nhostile.final.t_combat|0\nhostile.final.a_action|65535\nhostile.final.t_action|65535\nhostile.final.spells|1\nhostile.final.damage_events|0\nhostile.final.hp_delta|0\nhostile.stationary|1\n__done__|1\n",
+  "finalPollBounds": {
+    "hostile": {
+      "triggerAbsolute": 1565.052,
+      "lastActiveAbsolute": 1573.048,
+      "firstClearAbsolute": 1573.081,
+      "lastActiveRelative": 7.996,
+      "firstClearRelative": 8.029,
+      "attackerTargetAgree": true,
+      "activeGate": 1.0,
+      "completed": 1.0
+    },
+    "damage": {
+      "triggerAbsolute": 1565.427,
+      "lastActiveAbsolute": 1573.428,
+      "firstClearAbsolute": 1573.46,
+      "lastActiveRelative": 8.001,
+      "firstClearRelative": 8.033,
+      "attackerTargetAgree": true,
+      "activeGate": 1.0,
+      "completed": 1.0
+    }
+  },
+  "finalPollConclusion": "Hostile7.996..8.029s and damage8.001..8.033s relativeexpiry; separated absolute intervals track.375s triggerstagger with.379s expiryseparation, excluding one commoncoarse boundary. Consistent8s relative lifetime at~.032s observation/tickresolution; exactsubtick timestamp unavailable.",
+  "priorRefinementLimits": [
+    "Native hostile-event activation occurs after callback but by+.031s; exact scheduling instant not measured.",
+    "Expiry is consistentwith8s relative time but bounded7.5..8.0; actual stagger.386s leaves~.124s absolute bracket overlap, so one globalcoarse boundary is not rigorously excluded.",
+    "First Debug baseline predates added refinementpoints; its18 combatflag differences concern first-run sharedsamples only.",
+    "Only quiet ordinary NPC pairs with specified public event/damage calls; self/dead/invalid actors,players,ongoing attacks and repeated refreshes are not measured.",
+    "No model ready-animation identity is inferred from GetIsInCombat."
+  ],
+  "implementedComparison": {
+    "nativeReadings": "noop.trigger_absolute|1565.071\nnoop.valid|1\nnoop.position|1\nnoop.distance|6.000\nnoop.seen|1\nnoop.sees_other0|0\nnoop.sees_other1|0\nnoop.sees_other2|0\nnoop.before.time|0.000\nnoop.before.a_combat|0\nnoop.before.t_combat|0\nnoop.before.a_action|65535\nnoop.before.t_action|65535\nnoop.before.spells|0\nnoop.before.damage_events|0\nnoop.before.hp_delta|0\nnoop.after_call.time|0.000\nnoop.after_call.a_combat|0\nnoop.after_call.t_combat|0\nnoop.after_call.a_action|65535\nnoop.after_call.t_action|65535\nnoop.after_call.spells|0\nnoop.after_call.damage_events|0\nnoop.after_call.hp_delta|0\nfriendly.trigger_absolute|1565.071\nfriendly.valid|1\nfriendly.position|1\nfriendly.distance|6.000\nfriendly.seen|1\nfriendly.sees_other0|0\nfriendly.sees_other2|0\nfriendly.sees_other3|0\nfriendly.before.time|0.000\nfriendly.before.a_combat|0\nfriendly.before.t_combat|0\nfriendly.before.a_action|65535\nfriendly.before.t_action|65535\nfriendly.before.spells|0\nfriendly.before.damage_events|0\nfriendly.before.hp_delta|0\nfriendly.after_call.time|0.000\nfriendly.after_call.a_combat|0\nfriendly.after_call.t_combat|0\nfriendly.after_call.a_action|65535\nfriendly.after_call.t_action|65535\nfriendly.after_call.spells|0\nfriendly.after_call.damage_events|0\nfriendly.after_call.hp_delta|0\nhostile.trigger_absolute|1565.071\nhostile.valid|1\nhostile.position|1\nhostile.distance|6.000\nhostile.seen|1\nhostile.sees_other1|0\nhostile.sees_other2|0\nhostile.sees_other3|0\nhostile.before.time|0.000\nhostile.before.a_combat|0\nhostile.before.t_combat|0\nhostile.before.a_action|65535\nhostile.before.t_action|65535\nhostile.before.spells|0\nhostile.before.damage_events|0\nhostile.before.hp_delta|0\nhostile.after_call.time|0.000\nhostile.after_call.a_combat|0\nhostile.after_call.t_combat|0\nhostile.after_call.a_action|65535\nhostile.after_call.t_action|65535\nhostile.after_call.spells|0\nhostile.after_call.damage_events|0\nhostile.after_call.hp_delta|0\nfriendly.callback_caster|1\nfriendly.callback_spell|601\nfriendly.callback_harmful|0\nfriendly.spell_callback.time|0.000\nfriendly.spell_callback.a_combat|0\nfriendly.spell_callback.t_combat|0\nfriendly.spell_callback.a_action|65535\nfriendly.spell_callback.t_action|65535\nfriendly.spell_callback.spells|1\nfriendly.spell_callback.damage_events|0\nfriendly.spell_callback.hp_delta|0\nhostile.callback_caster|1\nhostile.callback_spell|601\nhostile.callback_harmful|1\nhostile.spell_callback.time|0.000\nhostile.spell_callback.a_combat|0\nhostile.spell_callback.t_combat|0\nhostile.spell_callback.a_action|65535\nhostile.spell_callback.t_action|65535\nhostile.spell_callback.spells|1\nhostile.spell_callback.damage_events|0\nhostile.spell_callback.hp_delta|0\nhostile.t002.time|0.031\nhostile.t002.a_combat|1\nhostile.t002.t_combat|1\nhostile.t002.a_action|65535\nhostile.t002.t_action|65535\nhostile.t002.spells|1\nhostile.t002.damage_events|0\nhostile.t002.hp_delta|0\nfriendly.t002.time|0.031\nfriendly.t002.a_combat|0\nfriendly.t002.t_combat|0\nfriendly.t002.a_action|65535\nfriendly.t002.t_action|65535\nfriendly.t002.spells|1\nfriendly.t002.damage_events|0\nfriendly.t002.hp_delta|0\nnoop.t002.time|0.031\nnoop.t002.a_combat|0\nnoop.t002.t_combat|0\nnoop.t002.a_action|65535\nnoop.t002.t_action|65535\nnoop.t002.spells|0\nnoop.t002.damage_events|0\nnoop.t002.hp_delta|0\nhostile.t005.time|0.062\nhostile.t005.a_combat|1\nhostile.t005.t_combat|1\nhostile.t005.a_action|65535\nhostile.t005.t_action|65535\nhostile.t005.spells|1\nhostile.t005.damage_events|0\nhostile.t005.hp_delta|0\nfriendly.t005.time|0.062\nfriendly.t005.a_combat|0\nfriendly.t005.t_combat|0\nfriendly.t005.a_action|65535\nfriendly.t005.t_action|65535\nfriendly.t005.spells|1\nfriendly.t005.damage_events|0\nfriendly.t005.hp_delta|0\nnoop.t005.time|0.062\nnoop.t005.a_combat|0\nnoop.t005.t_combat|0\nnoop.t005.a_action|65535\nnoop.t005.t_action|65535\nnoop.t005.spells|0\nnoop.t005.damage_events|0\nnoop.t005.hp_delta|0\nhostile.t010.time|0.108\nhostile.t010.a_combat|1\nhostile.t010.t_combat|1\nhostile.t010.a_action|65535\nhostile.t010.t_action|65535\nhostile.t010.spells|1\nhostile.t010.damage_events|0\nhostile.t010.hp_delta|0\nfriendly.t010.time|0.108\nfriendly.t010.a_combat|0\nfriendly.t010.t_combat|0\nfriendly.t010.a_action|65535\nfriendly.t010.t_action|65535\nfriendly.t010.spells|1\nfriendly.t010.damage_events|0\nfriendly.t010.hp_delta|0\nnoop.t010.time|0.108\nnoop.t010.a_combat|0\nnoop.t010.t_combat|0\nnoop.t010.a_action|65535\nnoop.t010.t_action|65535\nnoop.t010.spells|0\nnoop.t010.damage_events|0\nnoop.t010.hp_delta|0\ndamage.trigger_absolute|1565.413\ndamage.valid|1\ndamage.position|1\ndamage.distance|6.000\ndamage.seen|1\ndamage.sees_other0|0\ndamage.sees_other1|0\ndamage.sees_other3|0\ndamage.before.time|0.000\ndamage.before.a_combat|0\ndamage.before.t_combat|0\ndamage.before.a_action|65535\ndamage.before.t_action|65535\ndamage.before.spells|0\ndamage.before.damage_events|0\ndamage.before.hp_delta|0\ndamage.after_call.time|0.000\ndamage.after_call.a_combat|0\ndamage.after_call.t_combat|0\ndamage.after_call.a_action|65535\ndamage.after_call.t_action|65535\ndamage.after_call.spells|0\ndamage.after_call.damage_events|0\ndamage.after_call.hp_delta|0\ndamage.damage_caster|1\ndamage.damage_amount|1\ndamage.damage_callback.time|0.000\ndamage.damage_callback.a_combat|1\ndamage.damage_callback.t_combat|1\ndamage.damage_callback.a_action|65535\ndamage.damage_callback.t_action|65535\ndamage.damage_callback.spells|0\ndamage.damage_callback.damage_events|1\ndamage.damage_callback.hp_delta|1\ndamage.t002.time|0.032\ndamage.t002.a_combat|1\ndamage.t002.t_combat|1\ndamage.t002.a_action|65535\ndamage.t002.t_action|65535\ndamage.t002.spells|0\ndamage.t002.damage_events|1\ndamage.t002.hp_delta|1\ndamage.t005.time|0.064\ndamage.t005.a_combat|1\ndamage.t005.t_combat|1\ndamage.t005.a_action|65535\ndamage.t005.t_action|65535\ndamage.t005.spells|0\ndamage.t005.damage_events|1\ndamage.t005.hp_delta|1\ndamage.t010.time|0.109\ndamage.t010.a_combat|1\ndamage.t010.t_combat|1\ndamage.t010.a_action|65535\ndamage.t010.t_action|65535\ndamage.t010.spells|0\ndamage.t010.damage_events|1\ndamage.t010.hp_delta|1\nhostile.t050.time|0.514\nhostile.t050.a_combat|1\nhostile.t050.t_combat|1\nhostile.t050.a_action|65535\nhostile.t050.t_action|65535\nhostile.t050.spells|1\nhostile.t050.damage_events|0\nhostile.t050.hp_delta|0\nfriendly.t050.time|0.514\nfriendly.t050.a_combat|0\nfriendly.t050.t_combat|0\nfriendly.t050.a_action|65535\nfriendly.t050.t_action|65535\nfriendly.t050.spells|1\nfriendly.t050.damage_events|0\nfriendly.t050.hp_delta|0\nnoop.t050.time|0.514\nnoop.t050.a_combat|0\nnoop.t050.t_combat|0\nnoop.t050.a_action|65535\nnoop.t050.t_action|65535\nnoop.t050.spells|0\nnoop.t050.damage_events|0\nnoop.t050.hp_delta|0\ndamage.t050.time|0.509\ndamage.t050.a_combat|1\ndamage.t050.t_combat|1\ndamage.t050.a_action|65535\ndamage.t050.t_action|65535\ndamage.t050.spells|0\ndamage.t050.damage_events|1\ndamage.t050.hp_delta|1\nhostile.t600.time|6.000\nhostile.t600.a_combat|1\nhostile.t600.t_combat|1\nhostile.t600.a_action|65535\nhostile.t600.t_action|65535\nhostile.t600.spells|1\nhostile.t600.damage_events|0\nhostile.t600.hp_delta|0\nfriendly.t600.time|6.000\nfriendly.t600.a_combat|0\nfriendly.t600.t_combat|0\nfriendly.t600.a_action|65535\nfriendly.t600.t_action|65535\nfriendly.t600.spells|1\nfriendly.t600.damage_events|0\nfriendly.t600.hp_delta|0\nnoop.t600.time|6.000\nnoop.t600.a_combat|0\nnoop.t600.t_combat|0\nnoop.t600.a_action|65535\nnoop.t600.t_action|65535\nnoop.t600.spells|0\nnoop.t600.damage_events|0\nnoop.t600.hp_delta|0\ndamage.t600.time|6.000\ndamage.t600.a_combat|1\ndamage.t600.t_combat|1\ndamage.t600.a_action|65535\ndamage.t600.t_action|65535\ndamage.t600.spells|0\ndamage.t600.damage_events|1\ndamage.t600.hp_delta|1\nhostile.t700.time|7.009\nhostile.t700.a_combat|1\nhostile.t700.t_combat|1\nhostile.t700.a_action|65535\nhostile.t700.t_action|65535\nhostile.t700.spells|1\nhostile.t700.damage_events|0\nhostile.t700.hp_delta|0\nhostile.poll_active_gate|1\nhostile.poll_start_absolute|1572.080\nfriendly.t700.time|7.009\nfriendly.t700.a_combat|0\nfriendly.t700.t_combat|0\nfriendly.t700.a_action|65535\nfriendly.t700.t_action|65535\nfriendly.t700.spells|1\nfriendly.t700.damage_events|0\nfriendly.t700.hp_delta|0\nnoop.t700.time|7.009\nnoop.t700.a_combat|0\nnoop.t700.t_combat|0\nnoop.t700.a_action|65535\nnoop.t700.t_action|65535\nnoop.t700.spells|0\nnoop.t700.damage_events|0\nnoop.t700.hp_delta|0\ndamage.t700.time|7.014\ndamage.t700.a_combat|1\ndamage.t700.t_combat|1\ndamage.t700.a_action|65535\ndamage.t700.t_action|65535\ndamage.t700.spells|0\ndamage.t700.damage_events|1\ndamage.t700.hp_delta|1\ndamage.poll_active_gate|1\ndamage.poll_start_absolute|1572.427\nhostile.t750.time|7.511\nhostile.t750.a_combat|1\nhostile.t750.t_combat|1\nhostile.t750.a_action|65535\nhostile.t750.t_action|65535\nhostile.t750.spells|1\nhostile.t750.damage_events|0\nhostile.t750.hp_delta|0\nfriendly.t750.time|7.511\nfriendly.t750.a_combat|0\nfriendly.t750.t_combat|0\nfriendly.t750.a_action|65535\nfriendly.t750.t_action|65535\nfriendly.t750.spells|1\nfriendly.t750.damage_events|0\nfriendly.t750.hp_delta|0\nnoop.t750.time|7.511\nnoop.t750.a_combat|0\nnoop.t750.t_combat|0\nnoop.t750.a_action|65535\nnoop.t750.t_action|65535\nnoop.t750.spells|0\nnoop.t750.damage_events|0\nnoop.t750.hp_delta|0\ndamage.t750.time|7.513\ndamage.t750.a_combat|1\ndamage.t750.t_combat|1\ndamage.t750.a_action|65535\ndamage.t750.t_action|65535\ndamage.t750.spells|0\ndamage.t750.damage_events|1\ndamage.t750.hp_delta|1\nhostile.t800.time|8.013\nhostile.t800.a_combat|0\nhostile.t800.t_combat|0\nhostile.t800.a_action|65535\nhostile.t800.t_action|65535\nhostile.t800.spells|1\nhostile.t800.damage_events|0\nhostile.t800.hp_delta|0\nfriendly.t800.time|8.013\nfriendly.t800.a_combat|0\nfriendly.t800.t_combat|0\nfriendly.t800.a_action|65535\nfriendly.t800.t_action|65535\nfriendly.t800.spells|1\nfriendly.t800.damage_events|0\nfriendly.t800.hp_delta|0\nnoop.t800.time|8.013\nnoop.t800.a_combat|0\nnoop.t800.t_combat|0\nnoop.t800.a_action|65535\nnoop.t800.t_action|65535\nnoop.t800.spells|0\nnoop.t800.damage_events|0\nnoop.t800.hp_delta|0\nhostile.a_expiry_relative|8.028\nhostile.a_expiry_absolute|1573.099\nhostile.a_last_active_absolute|1573.068\nhostile.t_expiry_relative|8.028\nhostile.t_expiry_absolute|1573.099\nhostile.t_last_active_absolute|1573.068\nhostile.poll_completed|1\nhostile.t825.time|8.251\nhostile.t825.a_combat|0\nhostile.t825.t_combat|0\nhostile.t825.a_action|65535\nhostile.t825.t_action|65535\nhostile.t825.spells|1\nhostile.t825.damage_events|0\nhostile.t825.hp_delta|0\nfriendly.t825.time|8.251\nfriendly.t825.a_combat|0\nfriendly.t825.t_combat|0\nfriendly.t825.a_action|65535\nfriendly.t825.t_action|65535\nfriendly.t825.spells|1\nfriendly.t825.damage_events|0\nfriendly.t825.hp_delta|0\nnoop.t825.time|8.251\nnoop.t825.a_combat|0\nnoop.t825.t_combat|0\nnoop.t825.a_action|65535\nnoop.t825.t_action|65535\nnoop.t825.spells|0\nnoop.t825.damage_events|0\nnoop.t825.hp_delta|0\ndamage.t800.time|8.005\ndamage.t800.a_combat|1\ndamage.t800.t_combat|1\ndamage.t800.a_action|65535\ndamage.t800.t_action|65535\ndamage.t800.spells|0\ndamage.t800.damage_events|1\ndamage.t800.hp_delta|1\ndamage.a_expiry_relative|8.035\ndamage.a_expiry_absolute|1573.448\ndamage.a_last_active_absolute|1573.418\ndamage.t_expiry_relative|8.035\ndamage.t_expiry_absolute|1573.448\ndamage.t_last_active_absolute|1573.418\ndamage.poll_completed|1\nhostile.t850.time|8.501\nhostile.t850.a_combat|0\nhostile.t850.t_combat|0\nhostile.t850.a_action|65535\nhostile.t850.t_action|65535\nhostile.t850.spells|1\nhostile.t850.damage_events|0\nhostile.t850.hp_delta|0\nfriendly.t850.time|8.501\nfriendly.t850.a_combat|0\nfriendly.t850.t_combat|0\nfriendly.t850.a_action|65535\nfriendly.t850.t_action|65535\nfriendly.t850.spells|1\nfriendly.t850.damage_events|0\nfriendly.t850.hp_delta|0\nnoop.t850.time|8.501\nnoop.t850.a_combat|0\nnoop.t850.t_combat|0\nnoop.t850.a_action|65535\nnoop.t850.t_action|65535\nnoop.t850.spells|0\nnoop.t850.damage_events|0\nnoop.t850.hp_delta|0\ndamage.t825.time|8.253\ndamage.t825.a_combat|0\ndamage.t825.t_combat|0\ndamage.t825.a_action|65535\ndamage.t825.t_action|65535\ndamage.t825.spells|0\ndamage.t825.damage_events|1\ndamage.t825.hp_delta|1\ndamage.t850.time|8.504\ndamage.t850.a_combat|0\ndamage.t850.t_combat|0\ndamage.t850.a_action|65535\ndamage.t850.t_action|65535\ndamage.t850.spells|0\ndamage.t850.damage_events|1\ndamage.t850.hp_delta|1\nhostile.t900.time|9.018\nhostile.t900.a_combat|0\nhostile.t900.t_combat|0\nhostile.t900.a_action|65535\nhostile.t900.t_action|65535\nhostile.t900.spells|1\nhostile.t900.damage_events|0\nhostile.t900.hp_delta|0\nfriendly.t900.time|9.018\nfriendly.t900.a_combat|0\nfriendly.t900.t_combat|0\nfriendly.t900.a_action|65535\nfriendly.t900.t_action|65535\nfriendly.t900.spells|1\nfriendly.t900.damage_events|0\nfriendly.t900.hp_delta|0\nnoop.t900.time|9.018\nnoop.t900.a_combat|0\nnoop.t900.t_combat|0\nnoop.t900.a_action|65535\nnoop.t900.t_action|65535\nnoop.t900.spells|0\nnoop.t900.damage_events|0\nnoop.t900.hp_delta|0\ndamage.t900.time|9.007\ndamage.t900.a_combat|0\ndamage.t900.t_combat|0\ndamage.t900.a_action|65535\ndamage.t900.t_action|65535\ndamage.t900.spells|0\ndamage.t900.damage_events|1\ndamage.t900.hp_delta|1\nhostile.t1000.time|10.000\nhostile.t1000.a_combat|0\nhostile.t1000.t_combat|0\nhostile.t1000.a_action|65535\nhostile.t1000.t_action|65535\nhostile.t1000.spells|1\nhostile.t1000.damage_events|0\nhostile.t1000.hp_delta|0\nfriendly.t1000.time|10.000\nfriendly.t1000.a_combat|0\nfriendly.t1000.t_combat|0\nfriendly.t1000.a_action|65535\nfriendly.t1000.t_action|65535\nfriendly.t1000.spells|1\nfriendly.t1000.damage_events|0\nfriendly.t1000.hp_delta|0\nnoop.t1000.time|10.000\nnoop.t1000.a_combat|0\nnoop.t1000.t_combat|0\nnoop.t1000.a_action|65535\nnoop.t1000.t_action|65535\nnoop.t1000.spells|0\nnoop.t1000.damage_events|0\nnoop.t1000.hp_delta|0\ndamage.t1000.time|10.021\ndamage.t1000.a_combat|0\ndamage.t1000.t_combat|0\ndamage.t1000.a_action|65535\ndamage.t1000.t_action|65535\ndamage.t1000.spells|0\ndamage.t1000.damage_events|1\ndamage.t1000.hp_delta|1\nhostile.t1200.time|12.006\nhostile.t1200.a_combat|0\nhostile.t1200.t_combat|0\nhostile.t1200.a_action|65535\nhostile.t1200.t_action|65535\nhostile.t1200.spells|1\nhostile.t1200.damage_events|0\nhostile.t1200.hp_delta|0\nfriendly.t1200.time|12.006\nfriendly.t1200.a_combat|0\nfriendly.t1200.t_combat|0\nfriendly.t1200.a_action|65535\nfriendly.t1200.t_action|65535\nfriendly.t1200.spells|1\nfriendly.t1200.damage_events|0\nfriendly.t1200.hp_delta|0\nnoop.t1200.time|12.006\nnoop.t1200.a_combat|0\nnoop.t1200.t_combat|0\nnoop.t1200.a_action|65535\nnoop.t1200.t_action|65535\nnoop.t1200.spells|0\nnoop.t1200.damage_events|0\nnoop.t1200.hp_delta|0\ndamage.t1200.time|12.011\ndamage.t1200.a_combat|0\ndamage.t1200.t_combat|0\ndamage.t1200.a_action|65535\ndamage.t1200.t_action|65535\ndamage.t1200.spells|0\ndamage.t1200.damage_events|1\ndamage.t1200.hp_delta|1\nhostile.t1400.time|14.010\nhostile.t1400.a_combat|0\nhostile.t1400.t_combat|0\nhostile.t1400.a_action|65535\nhostile.t1400.t_action|65535\nhostile.t1400.spells|1\nhostile.t1400.damage_events|0\nhostile.t1400.hp_delta|0\nfriendly.t1400.time|14.010\nfriendly.t1400.a_combat|0\nfriendly.t1400.t_combat|0\nfriendly.t1400.a_action|65535\nfriendly.t1400.t_action|65535\nfriendly.t1400.spells|1\nfriendly.t1400.damage_events|0\nfriendly.t1400.hp_delta|0\nnoop.t1400.time|14.010\nnoop.t1400.a_combat|0\nnoop.t1400.t_combat|0\nnoop.t1400.a_action|65535\nnoop.t1400.t_action|65535\nnoop.t1400.spells|0\nnoop.t1400.damage_events|0\nnoop.t1400.hp_delta|0\ndamage.t1400.time|14.009\ndamage.t1400.a_combat|0\ndamage.t1400.t_combat|0\ndamage.t1400.a_action|65535\ndamage.t1400.t_action|65535\ndamage.t1400.spells|0\ndamage.t1400.damage_events|1\ndamage.t1400.hp_delta|1\nnoop.final.time|14.993\nnoop.final.a_combat|0\nnoop.final.t_combat|0\nnoop.final.a_action|65535\nnoop.final.t_action|65535\nnoop.final.spells|0\nnoop.final.damage_events|0\nnoop.final.hp_delta|0\nnoop.stationary|1\ndamage.final.time|14.651\ndamage.final.a_combat|0\ndamage.final.t_combat|0\ndamage.final.a_action|65535\ndamage.final.t_action|65535\ndamage.final.spells|0\ndamage.final.damage_events|1\ndamage.final.hp_delta|1\ndamage.stationary|1\nfriendly.final.time|14.993\nfriendly.final.a_combat|0\nfriendly.final.t_combat|0\nfriendly.final.a_action|65535\nfriendly.final.t_action|65535\nfriendly.final.spells|1\nfriendly.final.damage_events|0\nfriendly.final.hp_delta|0\nfriendly.stationary|1\nhostile.final.time|14.993\nhostile.final.a_combat|0\nhostile.final.t_combat|0\nhostile.final.a_action|65535\nhostile.final.t_action|65535\nhostile.final.spells|1\nhostile.final.damage_events|0\nhostile.final.hp_delta|0\nhostile.stationary|1\n__done__|1\n",
+    "openwinterReadings": "noop.trigger_absolute|1565.000\nnoop.valid|1\nnoop.position|1\nnoop.distance|6.000\nnoop.seen|1\nnoop.sees_other0|0\nnoop.sees_other1|0\nnoop.sees_other2|0\nnoop.before.time|0.000\nnoop.before.a_combat|0\nnoop.before.t_combat|0\nnoop.before.a_action|65535\nnoop.before.t_action|65535\nnoop.before.spells|0\nnoop.before.damage_events|0\nnoop.before.hp_delta|0\nnoop.after_call.time|0.000\nnoop.after_call.a_combat|0\nnoop.after_call.t_combat|0\nnoop.after_call.a_action|65535\nnoop.after_call.t_action|65535\nnoop.after_call.spells|0\nnoop.after_call.damage_events|0\nnoop.after_call.hp_delta|0\nfriendly.trigger_absolute|1565.000\nfriendly.valid|1\nfriendly.position|1\nfriendly.distance|6.000\nfriendly.seen|1\nfriendly.sees_other0|0\nfriendly.sees_other2|0\nfriendly.sees_other3|0\nfriendly.before.time|0.000\nfriendly.before.a_combat|0\nfriendly.before.t_combat|0\nfriendly.before.a_action|65535\nfriendly.before.t_action|65535\nfriendly.before.spells|0\nfriendly.before.damage_events|0\nfriendly.before.hp_delta|0\nfriendly.after_call.time|0.000\nfriendly.after_call.a_combat|0\nfriendly.after_call.t_combat|0\nfriendly.after_call.a_action|65535\nfriendly.after_call.t_action|65535\nfriendly.after_call.spells|0\nfriendly.after_call.damage_events|0\nfriendly.after_call.hp_delta|0\nhostile.trigger_absolute|1565.000\nhostile.valid|1\nhostile.position|1\nhostile.distance|6.000\nhostile.seen|1\nhostile.sees_other1|0\nhostile.sees_other2|0\nhostile.sees_other3|0\nhostile.before.time|0.000\nhostile.before.a_combat|0\nhostile.before.t_combat|0\nhostile.before.a_action|65535\nhostile.before.t_action|65535\nhostile.before.spells|0\nhostile.before.damage_events|0\nhostile.before.hp_delta|0\nhostile.after_call.time|0.000\nhostile.after_call.a_combat|0\nhostile.after_call.t_combat|0\nhostile.after_call.a_action|65535\nhostile.after_call.t_action|65535\nhostile.after_call.spells|0\nhostile.after_call.damage_events|0\nhostile.after_call.hp_delta|0\nfriendly.callback_caster|1\nfriendly.callback_spell|601\nfriendly.callback_harmful|0\nfriendly.spell_callback.time|0.000\nfriendly.spell_callback.a_combat|0\nfriendly.spell_callback.t_combat|0\nfriendly.spell_callback.a_action|65535\nfriendly.spell_callback.t_action|65535\nfriendly.spell_callback.spells|1\nfriendly.spell_callback.damage_events|0\nfriendly.spell_callback.hp_delta|0\nhostile.callback_caster|1\nhostile.callback_spell|601\nhostile.callback_harmful|1\nhostile.spell_callback.time|0.000\nhostile.spell_callback.a_combat|0\nhostile.spell_callback.t_combat|0\nhostile.spell_callback.a_action|65535\nhostile.spell_callback.t_action|65535\nhostile.spell_callback.spells|1\nhostile.spell_callback.damage_events|0\nhostile.spell_callback.hp_delta|0\nhostile.t002.time|0.033\nhostile.t002.a_combat|1\nhostile.t002.t_combat|1\nhostile.t002.a_action|65535\nhostile.t002.t_action|65535\nhostile.t002.spells|1\nhostile.t002.damage_events|0\nhostile.t002.hp_delta|0\nfriendly.t002.time|0.033\nfriendly.t002.a_combat|0\nfriendly.t002.t_combat|0\nfriendly.t002.a_action|65535\nfriendly.t002.t_action|65535\nfriendly.t002.spells|1\nfriendly.t002.damage_events|0\nfriendly.t002.hp_delta|0\nnoop.t002.time|0.033\nnoop.t002.a_combat|0\nnoop.t002.t_combat|0\nnoop.t002.a_action|65535\nnoop.t002.t_action|65535\nnoop.t002.spells|0\nnoop.t002.damage_events|0\nnoop.t002.hp_delta|0\nhostile.t005.time|0.066\nhostile.t005.a_combat|1\nhostile.t005.t_combat|1\nhostile.t005.a_action|65535\nhostile.t005.t_action|65535\nhostile.t005.spells|1\nhostile.t005.damage_events|0\nhostile.t005.hp_delta|0\nfriendly.t005.time|0.066\nfriendly.t005.a_combat|0\nfriendly.t005.t_combat|0\nfriendly.t005.a_action|65535\nfriendly.t005.t_action|65535\nfriendly.t005.spells|1\nfriendly.t005.damage_events|0\nfriendly.t005.hp_delta|0\nnoop.t005.time|0.066\nnoop.t005.a_combat|0\nnoop.t005.t_combat|0\nnoop.t005.a_action|65535\nnoop.t005.t_action|65535\nnoop.t005.spells|0\nnoop.t005.damage_events|0\nnoop.t005.hp_delta|0\nhostile.t010.time|0.100\nhostile.t010.a_combat|1\nhostile.t010.t_combat|1\nhostile.t010.a_action|65535\nhostile.t010.t_action|65535\nhostile.t010.spells|1\nhostile.t010.damage_events|0\nhostile.t010.hp_delta|0\nfriendly.t010.time|0.100\nfriendly.t010.a_combat|0\nfriendly.t010.t_combat|0\nfriendly.t010.a_action|65535\nfriendly.t010.t_action|65535\nfriendly.t010.spells|1\nfriendly.t010.damage_events|0\nfriendly.t010.hp_delta|0\nnoop.t010.time|0.100\nnoop.t010.a_combat|0\nnoop.t010.t_combat|0\nnoop.t010.a_action|65535\nnoop.t010.t_action|65535\nnoop.t010.spells|0\nnoop.t010.damage_events|0\nnoop.t010.hp_delta|0\ndamage.trigger_absolute|1565.400\ndamage.valid|1\ndamage.position|1\ndamage.distance|6.000\ndamage.seen|1\ndamage.sees_other0|0\ndamage.sees_other1|0\ndamage.sees_other3|0\ndamage.before.time|0.000\ndamage.before.a_combat|0\ndamage.before.t_combat|0\ndamage.before.a_action|65535\ndamage.before.t_action|65535\ndamage.before.spells|0\ndamage.before.damage_events|0\ndamage.before.hp_delta|0\ndamage.after_call.time|0.000\ndamage.after_call.a_combat|0\ndamage.after_call.t_combat|0\ndamage.after_call.a_action|65535\ndamage.after_call.t_action|65535\ndamage.after_call.spells|0\ndamage.after_call.damage_events|0\ndamage.after_call.hp_delta|0\ndamage.damage_caster|1\ndamage.damage_amount|1\ndamage.damage_callback.time|0.000\ndamage.damage_callback.a_combat|1\ndamage.damage_callback.t_combat|1\ndamage.damage_callback.a_action|65535\ndamage.damage_callback.t_action|65535\ndamage.damage_callback.spells|0\ndamage.damage_callback.damage_events|1\ndamage.damage_callback.hp_delta|1\ndamage.t002.time|0.033\ndamage.t002.a_combat|1\ndamage.t002.t_combat|1\ndamage.t002.a_action|65535\ndamage.t002.t_action|65535\ndamage.t002.spells|0\ndamage.t002.damage_events|1\ndamage.t002.hp_delta|1\ndamage.t005.time|0.066\ndamage.t005.a_combat|1\ndamage.t005.t_combat|1\ndamage.t005.a_action|65535\ndamage.t005.t_action|65535\ndamage.t005.spells|0\ndamage.t005.damage_events|1\ndamage.t005.hp_delta|1\nhostile.t050.time|0.500\nhostile.t050.a_combat|1\nhostile.t050.t_combat|1\nhostile.t050.a_action|65535\nhostile.t050.t_action|65535\nhostile.t050.spells|1\nhostile.t050.damage_events|0\nhostile.t050.hp_delta|0\nfriendly.t050.time|0.500\nfriendly.t050.a_combat|0\nfriendly.t050.t_combat|0\nfriendly.t050.a_action|65535\nfriendly.t050.t_action|65535\nfriendly.t050.spells|1\nfriendly.t050.damage_events|0\nfriendly.t050.hp_delta|0\nnoop.t050.time|0.500\nnoop.t050.a_combat|0\nnoop.t050.t_combat|0\nnoop.t050.a_action|65535\nnoop.t050.t_action|65535\nnoop.t050.spells|0\nnoop.t050.damage_events|0\nnoop.t050.hp_delta|0\ndamage.t010.time|0.100\ndamage.t010.a_combat|1\ndamage.t010.t_combat|1\ndamage.t010.a_action|65535\ndamage.t010.t_action|65535\ndamage.t010.spells|0\ndamage.t010.damage_events|1\ndamage.t010.hp_delta|1\ndamage.t050.time|0.500\ndamage.t050.a_combat|1\ndamage.t050.t_combat|1\ndamage.t050.a_action|65535\ndamage.t050.t_action|65535\ndamage.t050.spells|0\ndamage.t050.damage_events|1\ndamage.t050.hp_delta|1\nhostile.t600.time|6.000\nhostile.t600.a_combat|1\nhostile.t600.t_combat|1\nhostile.t600.a_action|65535\nhostile.t600.t_action|65535\nhostile.t600.spells|1\nhostile.t600.damage_events|0\nhostile.t600.hp_delta|0\nfriendly.t600.time|6.000\nfriendly.t600.a_combat|0\nfriendly.t600.t_combat|0\nfriendly.t600.a_action|65535\nfriendly.t600.t_action|65535\nfriendly.t600.spells|1\nfriendly.t600.damage_events|0\nfriendly.t600.hp_delta|0\nnoop.t600.time|6.000\nnoop.t600.a_combat|0\nnoop.t600.t_combat|0\nnoop.t600.a_action|65535\nnoop.t600.t_action|65535\nnoop.t600.spells|0\nnoop.t600.damage_events|0\nnoop.t600.hp_delta|0\ndamage.t600.time|6.000\ndamage.t600.a_combat|1\ndamage.t600.t_combat|1\ndamage.t600.a_action|65535\ndamage.t600.t_action|65535\ndamage.t600.spells|0\ndamage.t600.damage_events|1\ndamage.t600.hp_delta|1\nhostile.t700.time|7.000\nhostile.t700.a_combat|1\nhostile.t700.t_combat|1\nhostile.t700.a_action|65535\nhostile.t700.t_action|65535\nhostile.t700.spells|1\nhostile.t700.damage_events|0\nhostile.t700.hp_delta|0\nhostile.poll_active_gate|1\nhostile.poll_start_absolute|1572.000\nfriendly.t700.time|7.000\nfriendly.t700.a_combat|0\nfriendly.t700.t_combat|0\nfriendly.t700.a_action|65535\nfriendly.t700.t_action|65535\nfriendly.t700.spells|1\nfriendly.t700.damage_events|0\nfriendly.t700.hp_delta|0\nnoop.t700.time|7.000\nnoop.t700.a_combat|0\nnoop.t700.t_combat|0\nnoop.t700.a_action|65535\nnoop.t700.t_action|65535\nnoop.t700.spells|0\nnoop.t700.damage_events|0\nnoop.t700.hp_delta|0\ndamage.t700.time|7.000\ndamage.t700.a_combat|1\ndamage.t700.t_combat|1\ndamage.t700.a_action|65535\ndamage.t700.t_action|65535\ndamage.t700.spells|0\ndamage.t700.damage_events|1\ndamage.t700.hp_delta|1\ndamage.poll_active_gate|1\ndamage.poll_start_absolute|1572.400\nhostile.t750.time|7.500\nhostile.t750.a_combat|1\nhostile.t750.t_combat|1\nhostile.t750.a_action|65535\nhostile.t750.t_action|65535\nhostile.t750.spells|1\nhostile.t750.damage_events|0\nhostile.t750.hp_delta|0\nfriendly.t750.time|7.500\nfriendly.t750.a_combat|0\nfriendly.t750.t_combat|0\nfriendly.t750.a_action|65535\nfriendly.t750.t_action|65535\nfriendly.t750.spells|1\nfriendly.t750.damage_events|0\nfriendly.t750.hp_delta|0\nnoop.t750.time|7.500\nnoop.t750.a_combat|0\nnoop.t750.t_combat|0\nnoop.t750.a_action|65535\nnoop.t750.t_action|65535\nnoop.t750.spells|0\nnoop.t750.damage_events|0\nnoop.t750.hp_delta|0\ndamage.t750.time|7.500\ndamage.t750.a_combat|1\ndamage.t750.t_combat|1\ndamage.t750.a_action|65535\ndamage.t750.t_action|65535\ndamage.t750.spells|0\ndamage.t750.damage_events|1\ndamage.t750.hp_delta|1\nhostile.t800.time|8.000\nhostile.t800.a_combat|1\nhostile.t800.t_combat|1\nhostile.t800.a_action|65535\nhostile.t800.t_action|65535\nhostile.t800.spells|1\nhostile.t800.damage_events|0\nhostile.t800.hp_delta|0\nfriendly.t800.time|8.000\nfriendly.t800.a_combat|0\nfriendly.t800.t_combat|0\nfriendly.t800.a_action|65535\nfriendly.t800.t_action|65535\nfriendly.t800.spells|1\nfriendly.t800.damage_events|0\nfriendly.t800.hp_delta|0\nnoop.t800.time|8.000\nnoop.t800.a_combat|0\nnoop.t800.t_combat|0\nnoop.t800.a_action|65535\nnoop.t800.t_action|65535\nnoop.t800.spells|0\nnoop.t800.damage_events|0\nnoop.t800.hp_delta|0\nhostile.a_expiry_relative|8.033\nhostile.a_expiry_absolute|1573.033\nhostile.a_last_active_absolute|1573.000\nhostile.t_expiry_relative|8.033\nhostile.t_expiry_absolute|1573.033\nhostile.t_last_active_absolute|1573.000\nhostile.poll_completed|1\nhostile.t825.time|8.266\nhostile.t825.a_combat|0\nhostile.t825.t_combat|0\nhostile.t825.a_action|65535\nhostile.t825.t_action|65535\nhostile.t825.spells|1\nhostile.t825.damage_events|0\nhostile.t825.hp_delta|0\nfriendly.t825.time|8.266\nfriendly.t825.a_combat|0\nfriendly.t825.t_combat|0\nfriendly.t825.a_action|65535\nfriendly.t825.t_action|65535\nfriendly.t825.spells|1\nfriendly.t825.damage_events|0\nfriendly.t825.hp_delta|0\nnoop.t825.time|8.266\nnoop.t825.a_combat|0\nnoop.t825.t_combat|0\nnoop.t825.a_action|65535\nnoop.t825.t_action|65535\nnoop.t825.spells|0\nnoop.t825.damage_events|0\nnoop.t825.hp_delta|0\ndamage.t800.time|8.000\ndamage.t800.a_combat|1\ndamage.t800.t_combat|1\ndamage.t800.a_action|65535\ndamage.t800.t_action|65535\ndamage.t800.spells|0\ndamage.t800.damage_events|1\ndamage.t800.hp_delta|1\ndamage.a_expiry_relative|8.033\ndamage.a_expiry_absolute|1573.433\ndamage.a_last_active_absolute|1573.400\ndamage.t_expiry_relative|8.033\ndamage.t_expiry_absolute|1573.433\ndamage.t_last_active_absolute|1573.400\ndamage.poll_completed|1\nhostile.t850.time|8.500\nhostile.t850.a_combat|0\nhostile.t850.t_combat|0\nhostile.t850.a_action|65535\nhostile.t850.t_action|65535\nhostile.t850.spells|1\nhostile.t850.damage_events|0\nhostile.t850.hp_delta|0\nfriendly.t850.time|8.500\nfriendly.t850.a_combat|0\nfriendly.t850.t_combat|0\nfriendly.t850.a_action|65535\nfriendly.t850.t_action|65535\nfriendly.t850.spells|1\nfriendly.t850.damage_events|0\nfriendly.t850.hp_delta|0\nnoop.t850.time|8.500\nnoop.t850.a_combat|0\nnoop.t850.t_combat|0\nnoop.t850.a_action|65535\nnoop.t850.t_action|65535\nnoop.t850.spells|0\nnoop.t850.damage_events|0\nnoop.t850.hp_delta|0\ndamage.t825.time|8.266\ndamage.t825.a_combat|0\ndamage.t825.t_combat|0\ndamage.t825.a_action|65535\ndamage.t825.t_action|65535\ndamage.t825.spells|0\ndamage.t825.damage_events|1\ndamage.t825.hp_delta|1\ndamage.t850.time|8.500\ndamage.t850.a_combat|0\ndamage.t850.t_combat|0\ndamage.t850.a_action|65535\ndamage.t850.t_action|65535\ndamage.t850.spells|0\ndamage.t850.damage_events|1\ndamage.t850.hp_delta|1\nhostile.t900.time|9.000\nhostile.t900.a_combat|0\nhostile.t900.t_combat|0\nhostile.t900.a_action|65535\nhostile.t900.t_action|65535\nhostile.t900.spells|1\nhostile.t900.damage_events|0\nhostile.t900.hp_delta|0\nfriendly.t900.time|9.000\nfriendly.t900.a_combat|0\nfriendly.t900.t_combat|0\nfriendly.t900.a_action|65535\nfriendly.t900.t_action|65535\nfriendly.t900.spells|1\nfriendly.t900.damage_events|0\nfriendly.t900.hp_delta|0\nnoop.t900.time|9.000\nnoop.t900.a_combat|0\nnoop.t900.t_combat|0\nnoop.t900.a_action|65535\nnoop.t900.t_action|65535\nnoop.t900.spells|0\nnoop.t900.damage_events|0\nnoop.t900.hp_delta|0\ndamage.t900.time|9.000\ndamage.t900.a_combat|0\ndamage.t900.t_combat|0\ndamage.t900.a_action|65535\ndamage.t900.t_action|65535\ndamage.t900.spells|0\ndamage.t900.damage_events|1\ndamage.t900.hp_delta|1\nhostile.t1000.time|10.000\nhostile.t1000.a_combat|0\nhostile.t1000.t_combat|0\nhostile.t1000.a_action|65535\nhostile.t1000.t_action|65535\nhostile.t1000.spells|1\nhostile.t1000.damage_events|0\nhostile.t1000.hp_delta|0\nfriendly.t1000.time|10.000\nfriendly.t1000.a_combat|0\nfriendly.t1000.t_combat|0\nfriendly.t1000.a_action|65535\nfriendly.t1000.t_action|65535\nfriendly.t1000.spells|1\nfriendly.t1000.damage_events|0\nfriendly.t1000.hp_delta|0\nnoop.t1000.time|10.000\nnoop.t1000.a_combat|0\nnoop.t1000.t_combat|0\nnoop.t1000.a_action|65535\nnoop.t1000.t_action|65535\nnoop.t1000.spells|0\nnoop.t1000.damage_events|0\nnoop.t1000.hp_delta|0\ndamage.t1000.time|10.000\ndamage.t1000.a_combat|0\ndamage.t1000.t_combat|0\ndamage.t1000.a_action|65535\ndamage.t1000.t_action|65535\ndamage.t1000.spells|0\ndamage.t1000.damage_events|1\ndamage.t1000.hp_delta|1\nhostile.t1200.time|12.000\nhostile.t1200.a_combat|0\nhostile.t1200.t_combat|0\nhostile.t1200.a_action|65535\nhostile.t1200.t_action|65535\nhostile.t1200.spells|1\nhostile.t1200.damage_events|0\nhostile.t1200.hp_delta|0\nfriendly.t1200.time|12.000\nfriendly.t1200.a_combat|0\nfriendly.t1200.t_combat|0\nfriendly.t1200.a_action|65535\nfriendly.t1200.t_action|65535\nfriendly.t1200.spells|1\nfriendly.t1200.damage_events|0\nfriendly.t1200.hp_delta|0\nnoop.t1200.time|12.000\nnoop.t1200.a_combat|0\nnoop.t1200.t_combat|0\nnoop.t1200.a_action|65535\nnoop.t1200.t_action|65535\nnoop.t1200.spells|0\nnoop.t1200.damage_events|0\nnoop.t1200.hp_delta|0\ndamage.t1200.time|12.000\ndamage.t1200.a_combat|0\ndamage.t1200.t_combat|0\ndamage.t1200.a_action|65535\ndamage.t1200.t_action|65535\ndamage.t1200.spells|0\ndamage.t1200.damage_events|1\ndamage.t1200.hp_delta|1\nhostile.t1400.time|14.000\nhostile.t1400.a_combat|0\nhostile.t1400.t_combat|0\nhostile.t1400.a_action|65535\nhostile.t1400.t_action|65535\nhostile.t1400.spells|1\nhostile.t1400.damage_events|0\nhostile.t1400.hp_delta|0\nfriendly.t1400.time|14.000\nfriendly.t1400.a_combat|0\nfriendly.t1400.t_combat|0\nfriendly.t1400.a_action|65535\nfriendly.t1400.t_action|65535\nfriendly.t1400.spells|1\nfriendly.t1400.damage_events|0\nfriendly.t1400.hp_delta|0\nnoop.t1400.time|14.000\nnoop.t1400.a_combat|0\nnoop.t1400.t_combat|0\nnoop.t1400.a_action|65535\nnoop.t1400.t_action|65535\nnoop.t1400.spells|0\nnoop.t1400.damage_events|0\nnoop.t1400.hp_delta|0\ndamage.t1400.time|14.000\ndamage.t1400.a_combat|0\ndamage.t1400.t_combat|0\ndamage.t1400.a_action|65535\ndamage.t1400.t_action|65535\ndamage.t1400.spells|0\ndamage.t1400.damage_events|1\ndamage.t1400.hp_delta|1\nnoop.final.time|15.000\nnoop.final.a_combat|0\nnoop.final.t_combat|0\nnoop.final.a_action|65535\nnoop.final.t_action|65535\nnoop.final.spells|0\nnoop.final.damage_events|0\nnoop.final.hp_delta|0\nnoop.stationary|1\ndamage.final.time|14.600\ndamage.final.a_combat|0\ndamage.final.t_combat|0\ndamage.final.a_action|65535\ndamage.final.t_action|65535\ndamage.final.spells|0\ndamage.final.damage_events|1\ndamage.final.hp_delta|1\ndamage.stationary|1\nfriendly.final.time|15.000\nfriendly.final.a_combat|0\nfriendly.final.t_combat|0\nfriendly.final.a_action|65535\nfriendly.final.t_action|65535\nfriendly.final.spells|1\nfriendly.final.damage_events|0\nfriendly.final.hp_delta|0\nfriendly.stationary|1\nhostile.final.time|15.000\nhostile.final.a_combat|0\nhostile.final.t_combat|0\nhostile.final.a_action|65535\nhostile.final.t_action|65535\nhostile.final.spells|1\nhostile.final.damage_events|0\nhostile.final.hp_delta|0\nhostile.stationary|1\n__done__|1\n",
+    "matched": 621,
+    "differing": 9,
+    "missing": 0,
+    "classification": {
+      "absoluteClockDiagnostics": 7,
+      "eightSecondBoundaryFlags": 2
+    },
+    "log": "out/combat-hostile-fixed.txt",
+    "tolerancesUnchanged": true
+  },
+  "refreshFollowup": {
+    "suite": "combat_hostile_refresh",
+    "evidence": "../combat_hostile_refresh/evidence.json",
+    "matched": 302,
+    "differing": 0,
+    "missing": 0,
+    "result": "Repeated harmful signal and direct one-point damage refresh both actors; nonhostile signal does not. All actor, stationary position, isolation, callback, HP and idle action gates pass."
+  }
+}

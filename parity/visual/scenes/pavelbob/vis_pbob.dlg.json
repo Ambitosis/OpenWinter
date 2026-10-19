@@ -1,0 +1,4 @@
+{ "preventZoomIn": true, "starts": [0], "entries": [
+  { "text": "Silent line.", "replies": [0] },
+  { "text": "Voiced line.", "sound": "vs_hhenchm1_069", "replies": [1] } ],
+  "replies": [ { "text": "Speak.", "entries": [1] }, { "text": "Goodbye." } ] }

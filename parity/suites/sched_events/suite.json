@@ -1,0 +1,34 @@
+{
+ "seconds": 50,
+ "tile": 4,
+ "size": 8,
+ "areas": [
+  { "resref": "se_a", "tag": "SE_A", "size": 8 },
+  { "resref": "se_b", "tag": "SE_B", "size": 8 },
+  { "resref": "se_c", "tag": "SE_C", "size": 8 }
+ ],
+ "templates": {
+  "se_c": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "se_conv",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "SE_C",
+    "PerceptionRange": 10
+   }
+  },
+  "se_p": { "from": "plc_chair", "type": "utp", "set": { "Tag": "SE_P" } }
+ }
+}

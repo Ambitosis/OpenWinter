@@ -1,0 +1,8 @@
+2DA V2.0
+
+Label Name School Range VS MetaMagic TargetType ImpactScript Innate ConjTime ConjAnim CastAnim CastTime Proj ProjModel ProjType ProjSpwnPoint ProjOrientation UserType UseConcentration HostileSetting
+0 Control **** V L vs 0x3f 0x2f pp_impact 1 1500 hand area 1000 0 **** **** **** **** 1 0 0
+1 Bounce **** V L vs 0x3f 0x2f pp_impact 1 1500 hand area 1000 1 vpr_fireball bounce hand path 1 0 0
+2 Linked **** V L vs 0x3f 0x2f pp_impact 1 1500 hand area 1000 1 vpr_fireball linked hand path 1 0 0
+3 Default **** V L vs 0x3f 0x2f pp_impact 1 1500 hand area 1000 1 vpr_fireball **** hand path 1 0 0
+4 Ballistic **** V L vs 0x3f 0x2f pp_impact 1 1500 hand area 1000 1 vpr_fireball ballistic hand path 1 0 0

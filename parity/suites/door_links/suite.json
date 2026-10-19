@@ -1,0 +1,10 @@
+{
+  "seconds": 15, "tile": 4,
+  "templates": {
+    "dl_door": { "from": "nw_door_strong", "type": "utd", "set": { "OnDeath": "", "OnOpen": "dl_open", "OnClosed": "dl_close" } }
+  },
+  "instances": [
+    { "type": "utd", "from": "dl_door", "x": 15, "y": 15, "set": { "Tag": "A", "LinkedTo": "B", "LinkedToFlags": 1, "Locked": 0 } },
+    { "type": "utd", "from": "dl_door", "x": 25, "y": 15, "set": { "Tag": "B", "Locked": 1 } }
+  ]
+}

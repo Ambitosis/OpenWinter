@@ -1,0 +1,1 @@
+void main(){if(GetTotalDamageDealt()>0)SetLocalInt(GetModule(),"cue_hits",GetLocalInt(GetModule(),"cue_hits")+1);WriteTimestampedLogEntry("VISUAL|note|damage_event."+IntToString(GetTotalDamageDealt()));}

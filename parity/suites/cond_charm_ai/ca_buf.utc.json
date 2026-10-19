@@ -1,0 +1,40 @@
+{
+ "template": "nw_bandit001",
+ "classLevels": [
+  {
+   "class": 10,
+   "level": 1,
+   "knownSpells": {
+    "0": [
+     37,
+     100,
+     144,
+     151
+    ],
+    "1": [
+     102
+    ]
+   },
+   "memorizedSpells": {
+    "0": [
+     {
+      "spell": 151
+     }
+    ],
+    "1": [
+     {
+      "spell": 102
+     },
+     {
+      "spell": 102
+     }
+    ]
+   }
+  }
+ ],
+ "abilities": {
+  "intelligence": 16,
+  "wisdom": 16
+ },
+ "equipment": []
+}

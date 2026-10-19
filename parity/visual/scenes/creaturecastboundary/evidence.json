@@ -1,0 +1,197 @@
+{
+  "command": "python tools/visual/visual.py run creaturecastboundary --only nwn --native-framebuffer --tag _reference",
+  "exitCode": 0,
+  "sourceHashes": {
+    "cl_impact.nss": "220f7cb0ec9f74a3cad4c8de19856a2d240242f3aab2e254769d1b917cc6411f",
+    "cl_inc.nss": "b8a85c6de30d459a105154cd669f083d4b89de7968d8cdd597e8cdafee3e5910",
+    "scene.json": "8ee7c943f1ce1f037ed0af5b61f5146f35bb69b810c2ce4d8e0f066d685656c1",
+    "spells.2da": "b22207369ff1dc22369bdc87ea5d81af64bc0ed4c7ec43610d5b95e6c0ecc763",
+    "vis_main.nss": "3c9440d541235742bf6cfe31c2dc53eae529efcee2db502785253c79e066b76f"
+  },
+  "nativeNotes": "VISUAL|note|creaturecastboundary|table_conjure=1000|table_cast=3500|animation=out|replacement=RELEASE:ccastout->cdead,LOOP:ccastoutlp->cdead\nVISUAL|note|creaturecastboundary|stage=a_idle|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.990\nVISUAL|note|creaturecastboundary|stage=a_idle|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.990\nVISUAL|note|creaturecastboundary|stage=a_idle|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=1563.990\nVISUAL|note|creaturecastboundary|stage=request|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastboundary|stage=request|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastboundary|stage=request|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=0|finished=0|elapsed=0.000\nVISUAL|note|creaturecastboundary|stage=b_release_110|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.108\nVISUAL|note|creaturecastboundary|stage=b_release_110|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.108\nVISUAL|note|creaturecastboundary|stage=b_release_110|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.108\nVISUAL|note|creaturecastboundary|stage=c_boundary_135|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.359\nVISUAL|note|creaturecastboundary|stage=c_boundary_135|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.359\nVISUAL|note|creaturecastboundary|stage=c_boundary_135|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.359\nVISUAL|note|creaturecastboundary|impact=LOOP|spell=0|caster_matches=1|target_matches=1|elapsed=1.523\nVISUAL|note|creaturecastboundary|stage=impact|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.523\nVISUAL|note|creaturecastboundary|stage=d_boundary_155|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.554\nVISUAL|note|creaturecastboundary|stage=d_boundary_155|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=0|finished=0|elapsed=1.554\nVISUAL|note|creaturecastboundary|stage=d_boundary_155|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.554\nVISUAL|note|creaturecastboundary|impact=STOCK|spell=0|caster_matches=1|target_matches=1|elapsed=1.554\nVISUAL|note|creaturecastboundary|stage=impact|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.554\nVISUAL|note|creaturecastboundary|impact=RELEASE|spell=0|caster_matches=1|target_matches=1|elapsed=1.585\nVISUAL|note|creaturecastboundary|stage=impact|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.585\nVISUAL|note|creaturecastboundary|stage=e_boundary_175|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.774\nVISUAL|note|creaturecastboundary|stage=e_boundary_175|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.774\nVISUAL|note|creaturecastboundary|stage=e_boundary_175|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=1.774\nVISUAL|note|creaturecastboundary|stage=f_recovery_240|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.403\nVISUAL|note|creaturecastboundary|stage=f_recovery_240|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.403\nVISUAL|note|creaturecastboundary|stage=f_recovery_240|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=4|impacts=1|finished=0|elapsed=2.403\nVISUAL|note|creaturecastboundary|stage=queue_finished|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.026\nVISUAL|note|creaturecastboundary|stage=queue_finished|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.026\nVISUAL|note|creaturecastboundary|stage=queue_finished|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.026\nVISUAL|note|creaturecastboundary|stage=g_finished_560|caster=STOCK|valid=1|appearance=386|rat=1|stationary=1|pos=18.600,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.615\nVISUAL|note|creaturecastboundary|stage=g_finished_560|caster=RELEASE|valid=1|appearance=386|rat=1|stationary=1|pos=20.000,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.615\nVISUAL|note|creaturecastboundary|stage=g_finished_560|caster=LOOP|valid=1|appearance=386|rat=1|stationary=1|pos=21.400,19.000,0.000|facing=270.00|action=65535|impacts=1|finished=1|elapsed=5.615\n",
+  "framebuffer": [
+    {
+      "shot": "a_idle",
+      "source": "vis_creaturecastboun_0000.tga",
+      "requestedUnixSeconds": 1791685702.784276,
+      "latencySeconds": 0.14826069999253377,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "293e72bbb164485c10bfcb43c97b12c6cc4121ee54f7bcb50f1ed3b3d592d66b",
+      "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+      "nonblack": true
+    },
+    {
+      "shot": "b_release_110",
+      "source": "vis_creaturecastboun_0001.tga",
+      "requestedUnixSeconds": 1791685705.8871174,
+      "latencySeconds": 0.12052679999032989,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "debab0356e6f43088305d61677a36285f23dc7e560ea5226f5c9700b2dafae1f",
+      "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+      "nonblack": true
+    },
+    {
+      "shot": "c_boundary_135",
+      "source": "vis_creaturecastboun_0002.tga",
+      "requestedUnixSeconds": 1791685706.1392367,
+      "latencySeconds": 0.11756769998464733,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "4ef4b1d31e267562cfb74cf84a5e0e2a44be344b374716692a842c8e4744e4a5",
+      "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+      "nonblack": true
+    },
+    {
+      "shot": "d_boundary_155",
+      "source": "vis_creaturecastboun_0003.tga",
+      "requestedUnixSeconds": 1791685706.394807,
+      "latencySeconds": 0.11541450000368059,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "8c271e9be06a49985d8a8cc68b8a636ee3d04a5bdd3ade786a20678649b81e0b",
+      "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+      "nonblack": true
+    },
+    {
+      "shot": "e_boundary_175",
+      "source": "vis_creaturecastboun_0004.tga",
+      "requestedUnixSeconds": 1791685706.6502314,
+      "latencySeconds": 0.1205383000196889,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "1a6356f354449624e201ee4bb57724e832d784b3b5cac1a1ba3ee1ea27780e5f",
+      "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+      "nonblack": true
+    },
+    {
+      "shot": "f_recovery_240",
+      "source": "vis_creaturecastboun_0005.tga",
+      "requestedUnixSeconds": 1791685707.1521559,
+      "latencySeconds": 0.11957779998192564,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "4a5a9940fda385a5ef35b453e53bef3afac863bc15c5030f6a2a42744126f6cc",
+      "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+      "nonblack": true
+    },
+    {
+      "shot": "g_finished_560",
+      "source": "vis_creaturecastboun_0006.tga",
+      "requestedUnixSeconds": 1791685710.3978395,
+      "latencySeconds": 0.11973889998625964,
+      "size": [
+        1280,
+        720
+      ],
+      "rawSha256": "de6fc8f395bad0ae0d51b3c808459ee0730c40eaa7ac52b064d80321c6eecd6a",
+      "windowSha256": "b0ee6fa43183e6faae1b69e6b34c495330f99427c62a0852a72695e0c40a0191",
+      "nonblack": true
+    }
+  ],
+  "pngSha256": {
+    "a_idle.png": "39c2f4c613d7e2dd5fd36d96e18ef811bb3999b81525783b537c87e8672737a2",
+    "b_release_110.png": "a1cbc0374852ab37559687108fa595703dcf8963bab140a5cfa89d808fd39384",
+    "c_boundary_135.png": "2ff58ff2e14105cb1639ac865722a93d3aa254502b4086d16e8440d6cc990a80",
+    "d_boundary_155.png": "1767077d49a929ba9aea2a5594a3d1e2fce852f73a48221d07af671bf589501d",
+    "e_boundary_175.png": "443fe74548f702b4bcb4597ba8e23bfbd4d941a8dcfee393185e849339dafeec",
+    "f_recovery_240.png": "6970a354221c667f41af75a9cd267fa88bdff11fed8cb7810a932f647b59af8a",
+    "g_finished_560.png": "86d0f333c779d698141f0ffd51e6db89c0e9dbbf755e3f96030c802a86dc71b3"
+  },
+  "gates": {
+    "stateRows": 30,
+    "allValidRat386Stationary": true,
+    "allFaces270": true,
+    "impactRows": [
+      {
+        "impact": "LOOP",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.523"
+      },
+      {
+        "impact": "STOCK",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.554"
+      },
+      {
+        "impact": "RELEASE",
+        "spell": "0",
+        "caster_matches": "1",
+        "target_matches": "1",
+        "elapsed": "1.585"
+      }
+    ],
+    "finishedRows": [
+      {
+        "stage": "queue_finished",
+        "caster": "RELEASE",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "20.000,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.026"
+      },
+      {
+        "stage": "queue_finished",
+        "caster": "LOOP",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "21.400,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.026"
+      },
+      {
+        "stage": "queue_finished",
+        "caster": "STOCK",
+        "valid": "1",
+        "appearance": "386",
+        "rat": "1",
+        "stationary": "1",
+        "pos": "18.600,19.000,0.000",
+        "facing": "270.00",
+        "action": "65535",
+        "impacts": "1",
+        "finished": "1",
+        "elapsed": "5.026"
+      }
+    ]
+  },
+  "inspection": {
+    "b_release_110": "Center RELEASE prone, right LOOP in release movement.",
+    "c_boundary_135": "Center RELEASE still prone, right LOOP not prone.",
+    "d_boundary_155": "Center RELEASE upright, right LOOP prone: opposite ownership markers have switched.",
+    "e_boundary_175": "Center upright, right prone.",
+    "f_recovery_240": "Center upright, right prone.",
+    "g_finished_560": "All actors normal idle."
+  },
+  "conclusion": "Release-to-recovery handoff is consistent with the public half-second release phase, and occurs before waiting the full1s authored ccastout/cdead length after1s conjuring. Native compression versus truncation and exactsubtick transition remain unresolved.",
+  "timingCaution": "Script note time is not framebuffer time: add measured capture latency plus log polling/queued capture delay. Closely spaced requests are serialized; source notes and full capture timestamps are retained separately. GDI/window images are not pose evidence.",
+  "provenance": "Authored public spells.2da and ReplaceObjectAnimation in sandbox original client; installed rat model clip names/lengths from prior out/label-rat-model.txt. No game assets copied."
+}

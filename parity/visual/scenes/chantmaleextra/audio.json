@@ -1,0 +1,20 @@
+{
+  "scene": "chantmaleextra",
+  "gender": 0,
+  "rows": [
+    {
+      "id": 31,
+      "label": "Cure_Critical_Wounds",
+      "start": 4,
+      "span": 6,
+      "expected": "vs_chant_conj_hm"
+    },
+    {
+      "id": 38,
+      "label": "Death_Ward",
+      "start": 10,
+      "span": 6,
+      "expected": "vs_chant_necr_hm"
+    }
+  ]
+}

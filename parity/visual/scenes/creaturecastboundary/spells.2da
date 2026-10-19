@@ -1,0 +1,4 @@
+2DA V2.0
+
+Label Name School Range VS MetaMagic TargetType ImpactScript Innate ConjTime ConjAnim CastAnim CastTime Proj UserType UseConcentration HostileSetting
+0 CreatureLoop **** V L vs 0x3f 0x2f cl_impact 1 1000 hand out 3500 0 1 0 0

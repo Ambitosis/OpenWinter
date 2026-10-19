@@ -1,0 +1,40 @@
+{
+  "starts": [
+    0
+  ],
+  "preventZoomIn": true,
+  "entries": [
+    {
+      "text": "Welcome, traveler. The quick brown fox jumps over the lazy dog. Bring 123 gold pieces, and we can begin.",
+      "replies": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "text": "Very well. Watch the narrow letters: minimum, little, willing. Look at the rounded letters: courage, moon, doorway.",
+      "replies": [
+        2
+      ]
+    }
+  ],
+  "replies": [
+    {
+      "text": "Tell me more about this place and the people who live here.",
+      "entries": [
+        1
+      ]
+    },
+    {
+      "text": "<StartAction>Examine the map.</Start> What lies beyond the northern gate?",
+      "entries": [
+        1
+      ]
+    },
+    {
+      "text": "Goodbye. I will return another day.",
+      "entries": []
+    }
+  ]
+}

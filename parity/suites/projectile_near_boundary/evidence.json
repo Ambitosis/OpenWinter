@@ -1,0 +1,97 @@
+{
+  "readings": 221,
+  "failures": [],
+  "flights": {
+    "p1d3.flight": {
+      "nwn": 0.344,
+      "openwinter": 0.336
+    },
+    "p1d2.flight": {
+      "nwn": 0.668,
+      "openwinter": 0.664
+    },
+    "p2d3.flight": {
+      "nwn": 0.668,
+      "openwinter": 0.664
+    },
+    "p4d3.flight": {
+      "nwn": 0.418,
+      "openwinter": 0.469
+    },
+    "p4d2.flight": {
+      "nwn": 0.855,
+      "openwinter": 0.863
+    },
+    "p1d1.flight": {
+      "nwn": 1.34,
+      "openwinter": 1.332
+    },
+    "p2d2.flight": {
+      "nwn": 1.293,
+      "openwinter": 1.301
+    },
+    "p4d1.flight": {
+      "nwn": 1.773,
+      "openwinter": 1.801
+    },
+    "p3d1.flight": {
+      "nwn": 2.023,
+      "openwinter": 2.0
+    },
+    "p3d0.flight": {
+      "nwn": 2.008,
+      "openwinter": 2.0
+    },
+    "p3d2.flight": {
+      "nwn": 2.012,
+      "openwinter": 2.0
+    },
+    "p3d3.flight": {
+      "nwn": 2.027,
+      "openwinter": 2.0
+    },
+    "p2d1.flight": {
+      "nwn": 2.668,
+      "openwinter": 2.668
+    },
+    "p5d3.flight": {
+      "nwn": 3.184,
+      "openwinter": 3.164
+    },
+    "p5d2.flight": {
+      "nwn": 3.824,
+      "openwinter": 3.801
+    },
+    "p5d1.flight": {
+      "nwn": 5.164,
+      "openwinter": 5.168
+    },
+    "p1d0.flight": {
+      "nwn": 6.793,
+      "openwinter": 6.836
+    },
+    "p4d0.flight": {
+      "nwn": 9.086,
+      "openwinter": 9.102
+    },
+    "p2d0.flight": {
+      "nwn": 13.602,
+      "openwinter": 13.633
+    },
+    "p5d0.flight": {
+      "nwn": 16.125,
+      "openwinter": 16.133
+    }
+  },
+  "source_sha256": {
+    "parity_main.nss": "d8844df3a21f0925c5106795946a5bd3e3f22fa26512ac8d9c24537175669aa3",
+    "pb_impact.nss": "c79d992258c87f3e1003c83fdf6c3856fe8aeb2659225ac5f0b81c15b8cb7a7a",
+    "spells.2da": "6984965358e79640612c1a3d7ba23517d1e047984140d1c88798d917719b3111",
+    "suite.json": "f62fcc594cc0c19aa57ec6383e5b9ae9136bbb4a407d57c27c7fd9f6527c14aa"
+  },
+  "raw_sha256": {
+    "openwinter.txt": "e3f32ff7874056cdb6599a703e746a96f45a3acaa69a9dbe45313efd51ab80b4",
+    "nwn.txt": "208c09cabd768292ebddcce3a88913a0d1b664bd414c7d0a87f1be54c0507a8d"
+  },
+  "limits": "Only 0.52/0.55/0.6/0.75m are native measured. The 60-second guard near the pole is an intentional safety bound, not a native timing claim."
+}

@@ -1,0 +1,6 @@
+{"template": "nw_bandit001", "tag": "CD_EMB",
+ "equipment": [{"slot": 1, "resref": "nw_aarcl009", "embed": true}, {"slot": 4, "resref": "nw_wswls001", "dropable": 1, "embed": true},
+               {"slot": 5, "resref": "nw_ashsw001", "pickpocketable": 1, "embed": true}, {"slot": 0, "resref": "nw_arhe001", "dropable": 0, "embed": true}],
+ "items": [{"resref": "nw_it_mpotion001", "embed": true}, {"resref": "nw_it_mpotion002", "dropable": 1, "embed": true},
+           {"resref": "nw_it_mpotion003", "dropable": 0, "embed": true}, {"resref": "nw_it_mpotion004", "pickpocketable": 1, "embed": true},
+           {"resref": "nw_it_mpotion005", "dropable": 1, "pickpocketable": 0, "embed": true}]}

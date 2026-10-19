@@ -1,0 +1,41 @@
+{
+ "seconds": 40,
+ "tile": 4,
+ "size": 12,
+ "factions": "Prelude",
+ "areas": [
+  {
+   "resref": "sn_a0",
+   "tag": "SN_A0",
+   "size": 8
+  },
+  {
+   "resref": "sn_a1",
+   "tag": "SN_A1",
+   "size": 8
+  }
+ ],
+ "templates": {
+  "pl_c": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "",
+    "ScriptHeartbeat": "",
+    "ScriptUserDefine": "",
+    "ScriptDeath": "",
+    "ScriptOnNotice": "pl_percept",
+    "ScriptAttacked": "",
+    "ScriptDamaged": "",
+    "ScriptDialogue": "",
+    "ScriptDisturbed": "",
+    "ScriptEndRound": "",
+    "ScriptOnBlocked": "",
+    "ScriptRested": "",
+    "ScriptSpellAt": "",
+    "Tag": "PL_C",
+    "PerceptionRange": 8
+   }
+  }
+ }
+}

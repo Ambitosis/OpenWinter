@@ -1,0 +1,27 @@
+{
+  "scene": "restpresentation",
+  "source_sha256": {
+    "rp_inc.nss": "9e0be57f46f977ac2b9528378af3960bdf5890d391e1dfd3705e95f4d6a8e61a",
+    "rp_rest.nss": "4484eb2912c5696cc0ca167b37f9cd09ab78e3ec040e4e08f73df34dbd79f1c2",
+    "scene.json": "99cfbe8e593a1743b277ac5abf8a67f5c694dd7be0a0ff52867645fcb3102b3e",
+    "vis_main.nss": "dd1fc5f28e693a851d6f3be87fe926e73cee2262f9e760f21c76cc75c67a075b"
+  },
+  "native_folder": "out/visual/shots/vis_restpresentation_reference/nwn",
+  "artifact_sha256": {
+    "notes.txt": "7c31a53845270b821e4704286876939c615a6fff8106d25e7f90ee0b7ccc4bdd",
+    "shots.txt": "fa74caffb502835e117aa58e8b71e00e0cf58c621a6488384d83e2bcf5195190",
+    "native-framebuffer.jsonl": "0021beb2950bf5999701f8c6b0957025377f3d81e514145c113dff0964409d50"
+  },
+  "frames": [
+    "a_before",
+    "b_entry",
+    "c_entry",
+    "d_loop",
+    "e_loop",
+    "f_late",
+    "g_exit",
+    "h_exit",
+    "i_finished"
+  ],
+  "scope": "Actual-PC visual/state observations; limitations and rejected contexts in README.md. No complete rest-rules parity claim."
+}

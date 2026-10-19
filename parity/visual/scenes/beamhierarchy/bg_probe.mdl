@@ -1,0 +1,97 @@
+# Authored beam hierarchy and animation control, no copied geometry.
+newmodel bg_probe
+setsupermodel bg_probe NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom bg_probe
+node dummy bg_probe
+ parent NULL
+endnode
+node dummy offset
+ parent bg_probe
+ position 0 0 1
+ orientation 0 0 1 1.5707963
+endnode
+node emitter red
+ parent bg_probe
+ position 0 0 0
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ birthrate 20
+ lifeExp 0.1
+ velocity 0
+ sizeStart 0.2
+ sizeEnd 0.2
+ colorStart 1 0 0
+ colorEnd 1 0 0
+ alphaStart 1
+ alphaEnd 1
+endnode
+node emitter green
+ parent offset
+ position 0 0 0
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ birthrate 20
+ lifeExp 0.1
+ velocity 0
+ sizeStart 0.2
+ sizeEnd 0.2
+ colorStart 0 1 0
+ colorEnd 0 1 0
+ alphaStart 1
+ alphaEnd 1
+endnode
+node emitter blue
+ parent offset
+ position 1 0 0
+ update Fountain
+ render Normal
+ blend Normal
+ texture fxpa_white
+ birthrate 20
+ lifeExp 0.1
+ velocity 0
+ sizeStart 0.2
+ sizeEnd 0.2
+ colorStart 0 0 1
+ colorEnd 0 0 1
+ alphaStart 1
+ alphaEnd 1
+endnode
+endmodelgeom bg_probe
+newanim cast01 bg_probe
+ length 2
+ transtime 0
+ animroot bg_probe
+ node dummy bg_probe
+  parent NULL
+ endnode
+ node emitter red
+  parent bg_probe
+  positionkey 3
+   0 0 0 2
+   1 0 1 2
+   2 0 0 2
+ endnode
+doneanim cast01 bg_probe
+newanim impact bg_probe
+ length 2
+ transtime 0
+ animroot bg_probe
+ node dummy bg_probe
+  parent NULL
+ endnode
+ node emitter red
+  parent bg_probe
+  positionkey 3
+   0 0 0 -1
+   1 0 1 -1
+   2 0 0 -1
+ endnode
+doneanim impact bg_probe
+donemodel bg_probe

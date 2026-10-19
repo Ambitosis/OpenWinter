@@ -1,0 +1,9 @@
+#include "parity_inc"
+#include "parity_time"
+void Quiet(object o){int i;for(i=5000;i<=5012;i++)SetEventScript(o,i,"");SetAILevel(o,AI_LEVEL_NORMAL);SetPlotFlag(o,TRUE);}
+void Finish(object c){string k=GetLocalString(c,"case");PLogF(k+".finish",PNow()-GetLocalFloat(c,"start"),0.10);}
+void Cast(int id,int path){object c=GetLocalObject(GetModule(),"c"+IntToString(id));object t=GetLocalObject(GetModule(),"t"+IntToString(id));string k="path"+IntToString(path)+".d"+IntToString(id);SetLocalString(c,"case",k);SetLocalInt(c,"impacts",0);SetLocalInt(c,"path",path);PLogI(k+".valid",GetIsObjectValid(c)&&GetIsObjectValid(t));PLogF(k+".distance",GetDistanceBetweenLocations(GetLocation(c),GetLocalLocation(c,"target")),0.02);SetLocalFloat(c,"start",PNow());AssignCommand(c,ActionCastSpellAtLocation(path==0?0:1,GetLocalLocation(c,"target"),METAMAGIC_NONE,TRUE,path));AssignCommand(c,ActionDoCommand(Finish(c)));}
+void Verify(int path){int i;for(i=0;i<10;i++){object c=GetLocalObject(GetModule(),"c"+IntToString(i));PLogI("path"+IntToString(path)+".d"+IntToString(i)+".executed",GetLocalInt(c,"impacts"));}}
+void Wave(int path){int i;for(i=0;i<10;i++)DelayCommand(IntToFloat(i)*0.03,Cast(i,path));DelayCommand(6.0,Verify(path));}
+void Make(int id,float distance){float y=8.0+IntToFloat(id)*12.0;object a=GetObjectByTag("PARITY_AREA");object c=CreateObject(OBJECT_TYPE_CREATURE,"nw_bandit001",Location(a,Vector(12.0,y,0.0),0.0));object t=c;SetLocalLocation(c,"target",Location(a,Vector(12.0+distance,y,0.0),0.0));Quiet(c);Quiet(t);SetLocalObject(GetModule(),"c"+IntToString(id),c);SetLocalObject(GetModule(),"t"+IntToString(id),t);}
+void main(){Make(0,0.01);Make(1,0.1);Make(2,0.25);Make(3,0.5);Make(4,0.75);Make(5,1.0);Make(6,1.5);Make(7,2.0);Make(8,2.25);Make(9,2.5);DelayCommand(9.0,Wave(0));DelayCommand(16.0,Wave(1));DelayCommand(23.0,Wave(2));DelayCommand(30.0,Wave(3));DelayCommand(37.0,Wave(4));DelayCommand(45.0,PDone());}

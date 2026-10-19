@@ -1,0 +1,7 @@
+#include "parity_inc"
+#include "parity_time"
+void Finish(object c){PLogF(GetLocalString(c,"case")+".finish"+IntToString(GetLocalInt(c,"wave")),PNow()-GetLocalFloat(c,"start"),.1);}
+void Cast(object c,int spell){SetLocalInt(c,"wave",spell==0?0:1);SetLocalInt(c,"hits",0);SetLocalFloat(c,"start",PNow());AssignCommand(c,ActionCastSpellAtLocation(spell,GetLocalLocation(c,"target"),METAMAGIC_NONE,TRUE));AssignCommand(c,ActionDoCommand(Finish(c)));}
+void Verify(object c,int wave){PLogI(GetLocalString(c,"case")+".hits"+IntToString(wave),GetLocalInt(c,"hits"));}
+void Make(int path,int index,float distance){object area=GetObjectByTag("PARITY_AREA");float x=12.0+IntToFloat(path)*12.0;float y=12.0+IntToFloat(index)*12.0;object c=CreateObject(OBJECT_TYPE_CREATURE,"nw_bandit001",Location(area,Vector(x,y,0.0),0.0));int i;for(i=5000;i<=5013;i++)SetEventScript(c,i,"");SetAILevel(c,AI_LEVEL_NORMAL);SetPlotFlag(c,TRUE);SetLocalLocation(c,"target",Location(area,Vector(x+distance,y,0.0),0.0));string k="p"+IntToString(path)+"d"+IntToString(index);SetLocalString(c,"case",k);PLogI(k+".valid",GetIsObjectValid(c));PLogF(k+".distance",GetDistanceBetweenLocations(GetLocation(c),GetLocalLocation(c,"target")),.001);float offset=IntToFloat(path*4+index)*.03;DelayCommand(3.0+offset,Cast(c,0));DelayCommand(9.0+offset,Verify(c,0));DelayCommand(11.0+offset,Cast(c,path));DelayCommand(40.0+offset,Verify(c,1));}
+void main(){int path;for(path=1;path<=5;path++){Make(path,0,.52);Make(path,1,.55);Make(path,2,.6);Make(path,3,.75);}DelayCommand(43.0,PDone());}

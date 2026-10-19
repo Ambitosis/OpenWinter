@@ -1,0 +1,16 @@
+{
+  "seconds": 40,
+  "events": { "OnHeartbeat": "ev_hb", "OnUsrDefined": "ev_ud" },
+  "areaEvents": { "OnHeartbeat": "ev_hb", "OnEnter": "ev_enter", "OnExit": "ev_exit" },
+  "templates": {
+    "p_crit": { "from": "nw_goblina", "type": "utc", "set": {
+      "Tag": "P_CRIT", "ScriptSpawn": "ev_spawn", "ScriptHeartbeat": "ev_hb", "ScriptUserDefine": "ev_ud",
+      "ScriptOnNotice": "", "ScriptAttacked": "", "ScriptDamaged": "", "ScriptDeath": "", "ScriptDialogue": "",
+      "ScriptDisturbed": "", "ScriptEndRound": "", "ScriptOnBlocked": "", "ScriptRested": "", "ScriptSpellAt": "" } },
+    "p_hbplc": { "from": "plc_chair", "type": "utp", "set": { "Tag": "P_PLC", "OnHeartbeat": "ev_hb", "OnUserDefined": "ev_ud" } }
+  },
+  "instances": [
+    { "type": "utc", "from": "p_crit", "x": 14, "y": 20, "set": { "Tag": "GIT_CRIT" } },
+    { "type": "utp", "from": "p_hbplc", "x": 26, "y": 20, "set": { "Tag": "GIT_PLC" } }
+  ]
+}

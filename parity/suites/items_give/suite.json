@@ -1,0 +1,1 @@
+{ "seconds": 200, "tile": 4, "size": 6, "events": { "OnAcquirItem": "pe_acq", "OnUnAqreItem": "pe_unacq", "OnPlrEqItm": "pe_eq", "OnPlrUnEqItm": "pe_uneq" } }

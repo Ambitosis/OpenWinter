@@ -1,0 +1,4 @@
+{ "preventZoomIn": true, "starts": [0], "entries": [
+  { "text": "Silent control line.", "replies": [0] },
+  { "text": "Pavel's voiced line, with default animation 0.", "sound": "vs_hhenchm1_069", "replies": [1] } ],
+  "replies": [ { "text": "Speak.", "entries": [1] }, { "text": "Goodbye." } ] }

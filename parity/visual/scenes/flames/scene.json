@@ -1,0 +1,2 @@
+{ "tileset": "tic01", "tile": 36, "size": 3, "pc": [15, 15, 0], "facing": 90, "seconds": 40,
+  "are": { "Flags": 1, "IsNight": 1, "MoonAmbientColor": 2105376, "MoonDiffuseColor": 0, "MoonShadows": 0, "MoonFogAmount": 0 } }

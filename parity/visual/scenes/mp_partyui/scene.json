@@ -1,0 +1,2 @@
+{ "tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 600, "gui": true, "chatLog": true,
+  "multiplayer": { "players": [{ "name": "MPA", "character": "fighter" }] } }

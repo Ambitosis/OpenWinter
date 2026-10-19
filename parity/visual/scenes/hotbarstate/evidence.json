@@ -1,0 +1,58 @@
+{
+  "scope": "Client hotbar state; intentional retained-zero design, not native parity",
+  "runtimeCommits": [
+    "8bd5e23",
+    "5b09268",
+    "02f40d0",
+    "02c0bb9"
+  ],
+  "character": "Eayle Smithdaughter",
+  "modes": {
+    "classic": {
+      "path": "out/visual/shots/vis_hotbarstate_classic_stock/openwinter",
+      "excludedImages": [
+        "00_ready.png"
+      ],
+      "files": {
+        "00_ready.png": "ad3a4c68e924bb83e0cd09c7722169c111a1061b61871f9d1f08f693978387a3",
+        "01_spell_spent.png": "45441955cbe1db957f83043a70dc2fb4e1802c77cf8d85c38f82e9bccc66b325",
+        "02_rested.png": "90404c80b0aebebad67c54b7d3ac6a103a210767de821e279cc8c0331e6147b1",
+        "03_potion_2.png": "9e28c759d64aeb0d153c045cb0dd6001275d620a93da0ca26897f367ef008177",
+        "04_potion_1.png": "215413239ec895f92cdf5cc3d43c79f87311f55e9a9f56ef45591560427752f5",
+        "05_potion_0.png": "35e6c19ae7fc4b0ff7cfe330d8586c961a8566ce3aacaf3ca20bf2087bd5f80c",
+        "06_replenished.png": "55c85e0c6528b3fa9d6e85722b0eaef0324744fa9f1cb6ea7679fdc86a96bef2",
+        "state.json": "2c804d45f37e27348b8601d0ba229bd90689019e7d114ebc25d16e8626a9be2a"
+      }
+    },
+    "modern": {
+      "path": "out/visual/shots/vis_hotbarstate_modern_stock/openwinter",
+      "excludedImages": [],
+      "files": {
+        "00_ready.png": "a5d62f9a0f76d0ad7e60c0704f4abdd366bd1544229114a19b181f30d5c85fc4",
+        "01_spell_spent.png": "e4b8f3f4a00e2480a42d104798c2e622ea2417f603bbc9ec881ec2430d67f0ef",
+        "02_rested.png": "fdbce4bb0982e4d94c953366c4b3e10bdf49e0f64738d93c6a664f9b8bb2d993",
+        "03_potion_2.png": "5109bff8fa5ccbee775522cb36b3a46709a2659f8845c6f864799c8b5130c82e",
+        "04_potion_1.png": "66aa9ebdb89f4cba76c8a9b3d5fdc1ec529c1004e16ef7d50de0b5b6e517596b",
+        "05_potion_0.png": "92aac0984f74eb3bc55b63ca8e97bfa4e362f6cf9dc98489bde9043877636e6f",
+        "06_replenished.png": "2d0b29c6fb7980ac96934709c31a1e88db063f343f08f2eceb8731f3304d2e72",
+        "state.json": "2c804d45f37e27348b8601d0ba229bd90689019e7d114ebc25d16e8626a9be2a"
+      }
+    }
+  },
+  "independentConsumable": {
+    "runtime": "9d871c304cb4e69d7dfa669f63a7ac0f6911210b",
+    "path": "out/visual/shots/vis_hotbarstate_classic_items/openwinter",
+    "framesInspected": 7,
+    "scope": "Items only; no spell cast claims",
+    "files": {
+      "00_ready.png": "0a3b3a7fde5a4bfe5755104d7381494c52fe82389aa02de48da4b10a3c13712b",
+      "03_potion_2.png": "88d89a0251440bd5c5c104baee312d13799503f90b02f1f73cae5afdb0ae2f20",
+      "04_potion_1.png": "e21ec636bdaff7f65d0c3afd23d8143b5e1c9e527a4ab41ed04b9e3f6defaee1",
+      "05_potion_0.png": "eb5d5448b1a397bcdb195c28f1cca46cfc398fd1f434bcbc9f2dd7552f87d9a4",
+      "06_replenished.png": "fe8cc382913dbed28330c1258e4a08c6dfcf12dfdf53bbf9010d43301b1cea78",
+      "07_owned_mutated.png": "80d0195f8efc53b897551c060bc6638ab55d08ffaba52e54af876dfe3448ce08",
+      "08_power_removed.png": "f421c2506f8752ff46dfa5c50aa1e7cbd463cd8085d2c61c0d938c336e863eb4",
+      "state.json": "44b0143e2c10d2f39722ecc784183a29deffa9cd18e896164d4720fc49617798"
+    }
+  }
+}

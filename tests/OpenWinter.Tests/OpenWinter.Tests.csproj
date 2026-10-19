@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenWinter.Game\OpenWinter.Game.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\OpenWinter.Tools\ParityResultGuard.cs" Link="Tools\ParityResultGuard.cs" />
+    <!-- Godot-free client code under test (the client project itself needs Godot). -->
+    <Compile Include="..\..\client\UI\Nui\Model\*.cs" Link="ClientNui\%(Filename)%(Extension)" />
+    <!-- Godot-free client logic (world presentation) tested here; the client project compiles it too. -->
+    <Compile Include="..\..\client\Views\WorldFx\Logic\*.cs" Link="ClientLogic\%(Filename)%(Extension)" />
+    <!-- Godot-free settings model (options, key bindings). -->
+    <Compile Include="..\..\client\Settings\Model\*.cs" Link="ClientSettings\%(Filename)%(Extension)" />
+    <!-- Godot-free control logic (camera modes, radial numpad, tooltip latch, quick groups). -->
+    <Compile Include="..\..\client\Gameplay\Logic\*.cs" Link="ClientGameplay\%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

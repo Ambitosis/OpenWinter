@@ -1,0 +1,11 @@
+2DA V2.0
+
+ Label Name School Range VS MetaMagic TargetType ImpactScript Innate ConjTime ConjAnim CastAnim CastTime Proj UserType UseConcentration HostileSetting HasProjectile
+0 Test0 **** V P vs 0x3f 0x2F cc_impact 1 1500 hand area 0 0 1 1 0 0
+1 Test1 **** V P vs 0x3f 0x2F cc_impact 1 1500 hand area 200 0 1 1 0 0
+2 Test2 **** V P vs 0x3f 0x2F cc_impact 1 1500 hand area 2000 0 1 1 0 0
+3 Test3 **** V P vs 0x3f 0x2F cc_impact 1 1500 hand area 4000 0 1 1 0 0
+4 Test4 **** V P vs 0x3f 0x2F cc_impact 1 200 hand area 1000 0 1 1 0 0
+5 Test5 **** V P vs 0x3f 0x2F cc_impact 1 4000 hand area 1000 0 1 1 0 0
+6 Test6 **** V P vs 0x3f 0x2F cc_impact 1 **** **** creature 3100 0 1 1 0 0
+7 Test7 **** V P vs 0x3f 0x2F cc_impact 1 0 **** attack 0 0 1 1 0 0

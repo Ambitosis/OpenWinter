@@ -1,0 +1,6 @@
+{ "preventZoomIn": true, "starts": [0], "entries": [
+  { "text": "Torch, animation 0.", "replies": [0] },
+  { "text": "Torch, animation 38.", "animation": 38, "replies": [1] },
+  { "text": "Torch, animation 40.", "animation": 40, "replies": [2] },
+  { "text": "Torch, animation 41.", "animation": 41, "replies": [3] } ],
+  "replies": [ { "text": "", "entries": [1] }, { "text": "", "entries": [2] }, { "text": "", "entries": [3] }, { "text": "Goodbye." } ] }

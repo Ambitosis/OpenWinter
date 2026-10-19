@@ -1,0 +1,21 @@
+{"tileset": "tde01", "tile": 4, "size": 8, "pc": [40, 40, 0], "facing": 180, "seconds": 160, "chatLog": true,
+ "are": {"DayNightCycle": 1}, "hour": 13,
+ "areaProperties": {"AmbientSndDay": 1, "AmbientSndNight": 2, "AmbientSndDayVol": 127, "AmbientSndNitVol": 64, "EnvAudio": 0},
+ "sounds": [
+   {"tag": "S_FALL", "sound": "ow_falloff", "position": [20, 40, 0], "positional": true,
+    "set": {"Looping": 1, "Continuous": 1, "MinDistance": 3.0, "MaxDistance": 15.0}},
+   {"tag": "S_FLAT", "sound": "ow_flat", "position": [70, 70, 0], "set": {"Looping": 1, "Continuous": 1}},
+   {"tag": "S_INT", "sound": "ow_interval", "position": [40, 40, 0], "set": {"Continuous": 1, "Interval": 2000}},
+   {"tag": "S_VARY", "sound": "ow_vary", "position": [40, 40, 0],
+    "set": {"Continuous": 1, "Interval": 1000, "IntervalVrtn": 800, "PitchVariation": 0.3, "VolumeVrtn": 40}},
+   {"tag": "S_ONCE", "sounds": ["ow_once1", "ow_once2", "ow_once3"], "position": [40, 40, 0], "set": {"Interval": 1000}},
+   {"tag": "S_DAY", "sound": "ow_day", "position": [40, 40, 0], "set": {"Active": 1, "Looping": 1, "Continuous": 1, "Times": 1, "Volume": 64}},
+   {"tag": "S_NIGHT", "sound": "ow_night", "position": [40, 40, 0], "set": {"Active": 1, "Looping": 1, "Continuous": 1, "Times": 2, "Volume": 64}},
+   {"tag": "S_HOURS", "sound": "ow_hours", "position": [40, 40, 0], "set": {"Active": 1, "Looping": 1, "Continuous": 1, "Times": 0, "Hours": 2097152, "Volume": 64}},
+   {"tag": "S_CLICK", "sound": "ow_click", "position": [40, 40, 0], "set": {"Continuous": 1, "Interval": 1500}}
+ ],
+ "extraAreas": [
+   {"resref": "envroom", "tag": "ENVROOM", "tileset": "tde01", "tile": 4, "size": 4, "are": {"DayNightCycle": 1}, "onEnter": "so_env",
+    "areaProperties": {"EnvAudio": 8, "AmbientSndDay": 0, "AmbientSndNight": 0},
+    "sounds": [{"tag": "S_CLICK2", "sound": "ow_click", "position": [20, 20, 0], "set": {"Continuous": 1, "Interval": 1500}}]}
+ ]}

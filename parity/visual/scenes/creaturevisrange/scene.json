@@ -1,0 +1,1 @@
+{ "tileset": "tde01", "tile": 4, "size": 9, "pc": [40, 40, 0], "facing": 90, "are": { "FogClipDist": 100 }, "gui": true, "seconds": 75 }

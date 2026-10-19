@@ -1,0 +1,206 @@
+[
+  {
+    "index": 0,
+    "path": "VWE",
+    "slot": 0,
+    "label": "Attack"
+  },
+  {
+    "index": 1,
+    "path": "VWR",
+    "slot": 1,
+    "label": "Battle cry"
+  },
+  {
+    "index": 2,
+    "path": "VWD",
+    "slot": 4,
+    "label": "Heal me"
+  },
+  {
+    "index": 3,
+    "path": "VWW",
+    "slot": 5,
+    "label": "Help"
+  },
+  {
+    "index": 4,
+    "path": "VWA",
+    "slot": 6,
+    "label": "Enemies sighted"
+  },
+  {
+    "index": 5,
+    "path": "VWS",
+    "slot": 7,
+    "label": "Flee"
+  },
+  {
+    "index": 6,
+    "path": "VWT",
+    "slot": 8,
+    "label": "Taunt"
+  },
+  {
+    "index": 7,
+    "path": "VWF",
+    "slot": 9,
+    "label": "Guard me"
+  },
+  {
+    "index": 8,
+    "path": "VWX",
+    "slot": 10,
+    "label": "Hold"
+  },
+  {
+    "index": 9,
+    "path": "VEE",
+    "slot": 22,
+    "label": "Follow me"
+  },
+  {
+    "index": 10,
+    "path": "VEW",
+    "slot": 23,
+    "label": "Look here"
+  },
+  {
+    "index": 11,
+    "path": "VED",
+    "slot": 24,
+    "label": "Group party"
+  },
+  {
+    "index": 12,
+    "path": "VES",
+    "slot": 25,
+    "label": "Move over"
+  },
+  {
+    "index": 13,
+    "path": "VDW",
+    "slot": 26,
+    "label": "Pick lock"
+  },
+  {
+    "index": 14,
+    "path": "VDE",
+    "slot": 27,
+    "label": "Search"
+  },
+  {
+    "index": 15,
+    "path": "VDS",
+    "slot": 28,
+    "label": "Go stealthy"
+  },
+  {
+    "index": 16,
+    "path": "VDC",
+    "slot": 29,
+    "label": "Can do"
+  },
+  {
+    "index": 17,
+    "path": "VDX",
+    "slot": 30,
+    "label": "Cannot do"
+  },
+  {
+    "index": 18,
+    "path": "VDA",
+    "slot": 31,
+    "label": "Task complete"
+  },
+  {
+    "index": 19,
+    "path": "VSS",
+    "slot": 34,
+    "label": "Hello"
+  },
+  {
+    "index": 20,
+    "path": "VSD",
+    "slot": 35,
+    "label": "Yes"
+  },
+  {
+    "index": 21,
+    "path": "VSW",
+    "slot": 36,
+    "label": "No"
+  },
+  {
+    "index": 22,
+    "path": "VSE",
+    "slot": 37,
+    "label": "Stop"
+  },
+  {
+    "index": 23,
+    "path": "VSC",
+    "slot": 38,
+    "label": "Rest"
+  },
+  {
+    "index": 24,
+    "path": "VSX",
+    "slot": 39,
+    "label": "Bored"
+  },
+  {
+    "index": 25,
+    "path": "VSA",
+    "slot": 40,
+    "label": "Goodbye"
+  },
+  {
+    "index": 26,
+    "path": "VXX",
+    "slot": 41,
+    "label": "Thank you"
+  },
+  {
+    "index": 27,
+    "path": "VXW",
+    "slot": 42,
+    "label": "Laugh"
+  },
+  {
+    "index": 28,
+    "path": "VXC",
+    "slot": 43,
+    "label": "Cuss"
+  },
+  {
+    "index": 29,
+    "path": "VXD",
+    "slot": 44,
+    "label": "Cheer"
+  },
+  {
+    "index": 30,
+    "path": "VXS",
+    "slot": 45,
+    "label": "Something to say"
+  },
+  {
+    "index": 31,
+    "path": "VXA",
+    "slot": 46,
+    "label": "Good idea"
+  },
+  {
+    "index": 32,
+    "path": "VXZ",
+    "slot": 47,
+    "label": "Bad idea"
+  },
+  {
+    "index": 33,
+    "path": "VXE",
+    "slot": 48,
+    "label": "Threaten"
+  }
+]

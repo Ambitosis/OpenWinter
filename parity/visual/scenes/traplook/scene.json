@@ -1,0 +1,1 @@
+{"tileset": "ttr01", "tile": 109, "size": 6, "pc": [30, 30, 0], "facing": 90, "seconds": 100, "gui": true, "largeFont": false, "chatLog": true, "characterFixture": {"name": "Trap Look Probe", "skillRanks": {"2": 10, "14": 10, "15": 10}}}

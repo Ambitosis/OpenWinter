@@ -1,0 +1,15 @@
+{
+  "seconds": 25,
+  "tile": 4,
+  "size": 6,
+  "templates": {
+    "p_trap": { "from": "nw_mspiketrap001", "type": "utt", "set": { "Tag": "GIT_TRAP", "TrapDetectDC": 12, "DisarmDC": 23, "TrapActive": 0, "OnTrapTriggered": "tp_trig", "OnDisarm": "tp_disarm" } },
+    "p_door": { "from": "nw_door_metal", "type": "utd", "set": { "Tag": "GIT_DOOR", "TrapFlag": 1, "TrapType": 16, "TrapDetectDC": 30, "DisarmDC": 40, "TrapOneShot": 0, "TrapRecoverable": 0, "TrapDisarmable": 0, "TrapDetectable": 1 } },
+    "p_chest": { "from": "plc_chest1", "type": "utp", "set": { "Tag": "GIT_CHEST", "TrapFlag": 1, "TrapType": 4, "TrapDetectDC": 5, "DisarmDC": 6, "TrapDetectable": 0, "TrapRecoverable": 0 } }
+  },
+  "instances": [
+    { "type": "utt", "from": "p_trap", "x": 40, "y": 40, "w": 4, "h": 2 },
+    { "type": "utd", "from": "p_door", "x": 50, "y": 10, "facing": 90 },
+    { "type": "utp", "from": "p_chest", "x": 50, "y": 30 }
+  ]
+}

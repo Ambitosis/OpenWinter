@@ -1,0 +1,33 @@
+{
+  "tileset": "ttr01",
+  "tile": 109,
+  "size": 6,
+  "pc": [
+    30,
+    25,
+    0
+  ],
+  "facing": 90,
+  "seconds": 120,
+  "gui": true,
+  "softwareCursor": true,
+  "largeFont": false,
+  "character": "paladin",
+  "characterFixture": {
+    "name": "Armour Hak"
+  },
+  "copyResources": {
+    "ipf_chest300.plt": "ipf_chest186",
+    "ipf_chest1000.plt": "ipf_chest016",
+    "ipf_chest100.plt": "ipf_chest039",
+    "ipf_chest000.plt": "ipf_chest001",
+    "ipf_pelvis300.plt": "ipf_pelvis186",
+    "ipf_robe050.plt": "ipf_robe030",
+    "ipm_chest300.plt": "ipm_chest186",
+    "ipm_chest1000.plt": "ipm_chest016",
+    "ipm_chest100.plt": "ipm_chest039",
+    "ipm_chest000.plt": "ipm_chest001",
+    "ipm_pelvis300.plt": "ipm_pelvis186",
+    "ipm_robe050.plt": "ipm_robe030"
+  }
+}

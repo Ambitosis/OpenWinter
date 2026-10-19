@@ -1,0 +1,383 @@
+{
+  "source": "sandbox native nwmain stock ActionUseFeat451 with real x1_s2_seeker impact",
+  "actors": {
+    "SA_STOCK": {
+      "requestGate": {
+        "t": 10.009,
+        "stage": "cast_request",
+        "caster": "SA_STOCK",
+        "valid": "1",
+        "x": "18.000",
+        "y": "18.000",
+        "tx": "18.000",
+        "ty": "24.000",
+        "distance": "6.000",
+        "seen": "1",
+        "action": "65535",
+        "aa": "4",
+        "feat": "1",
+        "uses": "1",
+        "bow": "8",
+        "arrows": "20",
+        "attacks": "1",
+        "events": "0",
+        "hp": "199"
+      },
+      "finishAfterRequest": 1.503,
+      "stockEventAfterRequest": 3.82,
+      "spellEventValid": "1",
+      "final": {
+        "t": 15.004,
+        "stage": "i_impact_done",
+        "caster": "SA_STOCK",
+        "valid": "1",
+        "x": "18.000",
+        "y": "18.000",
+        "tx": "18.000",
+        "ty": "24.000",
+        "distance": "6.000",
+        "seen": "1",
+        "action": "65535",
+        "aa": "4",
+        "feat": "0",
+        "uses": "0",
+        "bow": "8",
+        "arrows": "20",
+        "attacks": "1",
+        "events": "1",
+        "hp": "181"
+      }
+    },
+    "SA_REPLACED": {
+      "requestGate": {
+        "t": 10.009,
+        "stage": "cast_request",
+        "caster": "SA_REPLACED",
+        "valid": "1",
+        "x": "22.000",
+        "y": "18.000",
+        "tx": "22.000",
+        "ty": "24.000",
+        "distance": "6.000",
+        "seen": "1",
+        "action": "65535",
+        "aa": "4",
+        "feat": "1",
+        "uses": "1",
+        "bow": "8",
+        "arrows": "20",
+        "attacks": "1",
+        "events": "0",
+        "hp": "192"
+      },
+      "finishAfterRequest": 1.503,
+      "stockEventAfterRequest": 3.82,
+      "spellEventValid": "1",
+      "final": {
+        "t": 15.004,
+        "stage": "i_impact_done",
+        "caster": "SA_REPLACED",
+        "valid": "1",
+        "x": "22.000",
+        "y": "18.000",
+        "tx": "22.000",
+        "ty": "24.000",
+        "distance": "6.000",
+        "seen": "1",
+        "action": "65535",
+        "aa": "4",
+        "feat": "0",
+        "uses": "0",
+        "bow": "8",
+        "arrows": "20",
+        "attacks": "1",
+        "events": "1",
+        "hp": "180"
+      }
+    }
+  },
+  "nativeFramebufferLatencySeconds": [
+    0.11889880005037412,
+    0.15275390003807843
+  ],
+  "poseInspection": {
+    "b_attack_030": "ordinary attack control: different stock/replaced arm poses",
+    "e_cast_030": "stock bow draw/aim; replaced salute",
+    "f_cast_085": "both returned to bow-ready posture",
+    "g_cast_135": "both ready despite current action4",
+    "i_impact_done": "both stock601 events and additional HP loss"
+  },
+  "limits": [
+    "Only equipped longbow601 measured; other attack rows and weapon types are not claimed matched.",
+    "Capture labels are requested times; native framebuffer latency plus polling prevents exact body phase boundary claims.",
+    "Fixture is an authored ability-qualified NPC, not a player character-creation/progression test.",
+    "ActionUseFeat consumes the use before the projectile reaches the target; action completion is not stock impact time.",
+    "Native GetHasFeat returns0 once the one-use feat is spent; request gate is the ability availability check.",
+    "Native GetIsEnemy0 in preflight does not invalidate the actual successful public feat execution, and autonomous AI target selection is not tested.",
+    "Pre-existing unmatched projectile/impact timing: baseline client stock event at+1.367s vs native+3.820s at6m; actionfinish1.500 vs1.503 matches. Animation-only implementation must not claim impact timing parity."
+  ],
+  "baseline": {
+    "SA_STOCK": {
+      "request": {
+        "t": "10.000",
+        "stage": "cast_request",
+        "caster": "SA_STOCK",
+        "valid": "1",
+        "x": "18.000",
+        "y": "18.000",
+        "tx": "18.000",
+        "ty": "24.000",
+        "distance": "6.000",
+        "seen": "1",
+        "action": "65535",
+        "aa": "4",
+        "feat": "1",
+        "uses": "1",
+        "bow": "8",
+        "arrows": "20",
+        "attacks": "1",
+        "events": "0",
+        "hp": "192"
+      },
+      "eventAfterRequest": 1.367,
+      "finishAfterRequest": 1.5,
+      "final": {
+        "t": "15.000",
+        "stage": "i_impact_done",
+        "caster": "SA_STOCK",
+        "valid": "1",
+        "x": "18.000",
+        "y": "18.000",
+        "tx": "18.000",
+        "ty": "24.000",
+        "distance": "6.000",
+        "seen": "1",
+        "action": "65535",
+        "aa": "4",
+        "feat": "0",
+        "uses": "0",
+        "bow": "8",
+        "arrows": "20",
+        "attacks": "1",
+        "events": "1",
+        "hp": "180"
+      }
+    },
+    "SA_REPLACED": {
+      "request": {
+        "t": "10.000",
+        "stage": "cast_request",
+        "caster": "SA_REPLACED",
+        "valid": "1",
+        "x": "22.000",
+        "y": "18.000",
+        "tx": "22.000",
+        "ty": "24.000",
+        "distance": "6.000",
+        "seen": "1",
+        "action": "65535",
+        "aa": "4",
+        "feat": "1",
+        "uses": "1",
+        "bow": "8",
+        "arrows": "20",
+        "attacks": "1",
+        "events": "0",
+        "hp": "198"
+      },
+      "eventAfterRequest": 1.367,
+      "finishAfterRequest": 1.5,
+      "final": {
+        "t": "15.000",
+        "stage": "i_impact_done",
+        "caster": "SA_REPLACED",
+        "valid": "1",
+        "x": "22.000",
+        "y": "18.000",
+        "tx": "22.000",
+        "ty": "24.000",
+        "distance": "6.000",
+        "seen": "1",
+        "action": "65535",
+        "aa": "4",
+        "feat": "0",
+        "uses": "0",
+        "bow": "8",
+        "arrows": "20",
+        "attacks": "1",
+        "events": "1",
+        "hp": "178"
+      }
+    }
+  },
+  "baselineActions": {
+    "a_idle": [
+      null,
+      null
+    ],
+    "b_attack_030": [
+      {
+        "Clip": "bowshot",
+        "Position": 0.03657362962962818,
+        "Remaining": 0.9634263703703718,
+        "Loop": 0,
+        "CastLoop": "",
+        "UntilCastLoop": -4.834435296296258,
+        "MoveGrace": 0.26342642
+      },
+      {
+        "Clip": "bowshot",
+        "Position": 0.03657362962962818,
+        "Remaining": 0.4634263703703718,
+        "Loop": 0,
+        "CastLoop": "",
+        "UntilCastLoop": -4.834435296296258,
+        "MoveGrace": 0.26342642
+      }
+    ],
+    "c_attack_085": [
+      {
+        "Clip": "bowshot",
+        "Position": 0.5850818888888858,
+        "Remaining": 0.4149181111111142,
+        "Loop": 0,
+        "CastLoop": "",
+        "UntilCastLoop": -5.382943555555515,
+        "MoveGrace": -0.28508177
+      },
+      null
+    ],
+    "d_attack_140": [
+      null,
+      null
+    ],
+    "e_cast_030": [
+      null,
+      null
+    ],
+    "f_cast_085": [
+      null,
+      null
+    ],
+    "g_cast_135": [
+      null,
+      null
+    ],
+    "h_recovered": [
+      null,
+      null
+    ],
+    "i_impact_done": [
+      null,
+      null
+    ]
+  },
+  "clientFixed": {
+    "directory": "out/visual/shots/vis_seekerarrow_fixed/openwinter",
+    "checks": "pass",
+    "actions": {
+      "a_idle": [
+        null,
+        null
+      ],
+      "b_attack_030": [
+        {
+          "Clip": "bowshot",
+          "Position": 0.04411174074073898,
+          "Remaining": 0.955888259259261,
+          "Loop": 0,
+          "CastLoop": "",
+          "UntilCastLoop": -4.86694674074074,
+          "MoveGrace": 0.2558883
+        },
+        {
+          "Clip": "bowshot",
+          "Position": 0.04411174074073898,
+          "Remaining": 0.455888259259261,
+          "Loop": 0,
+          "CastLoop": "",
+          "UntilCastLoop": -4.86694674074074,
+          "MoveGrace": 0.2558883
+        }
+      ],
+      "c_attack_085": [
+        {
+          "Clip": "bowshot",
+          "Position": 0.6170273333333354,
+          "Remaining": 0.38297266666666463,
+          "Loop": 0,
+          "CastLoop": "",
+          "UntilCastLoop": -5.439862333333337,
+          "MoveGrace": -0.31702712
+        },
+        null
+      ],
+      "d_attack_140": [
+        null,
+        null
+      ],
+      "e_cast_030": [
+        {
+          "Clip": "bowshot",
+          "Position": 0.31942400000003346,
+          "Remaining": 0.6805759999999665,
+          "Loop": 0,
+          "CastLoop": "",
+          "UntilCastLoop": -9.843745000000165,
+          "MoveGrace": -0.019424016
+        },
+        {
+          "Clip": "bowshot",
+          "Position": 0.31942400000003346,
+          "Remaining": 0.18057599999996654,
+          "Loop": 0,
+          "CastLoop": "",
+          "UntilCastLoop": -9.843745000000165,
+          "MoveGrace": -0.019424016
+        }
+      ],
+      "f_cast_085": [
+        {
+          "Clip": "bowshot",
+          "Position": 0.8798163333333342,
+          "Remaining": 0.1201836666666658,
+          "Loop": 0,
+          "CastLoop": "",
+          "UntilCastLoop": -10.404137333333466,
+          "MoveGrace": -0.5798161
+        },
+        null
+      ],
+      "g_cast_135": [
+        null,
+        null
+      ],
+      "h_recovered": [
+        null,
+        null
+      ],
+      "i_impact_done": [
+        null,
+        null
+      ]
+    },
+    "impactSecondsAfterRequest": 1.367,
+    "finishSecondsAfterRequest": 1.5,
+    "limits": "Body playback corrected; native impact3.820 remains unmatched here. Bow-ready and passive target stance also differ. No exact pose timing or full audiovisual approval.",
+    "hashes": {
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/notes.txt": "f49ce74bd0e2f6493a8f3d7e89229417b6dcb1ba9d33710979cf5276c93b78d7",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/state.jsonl": "4bf8528c86a340b7b32ff23997f2db61562581f3c5552ce2d511ee999527c197",
+      "client/Views/SpellFx.cs": "b5a33708f24c845739dcb081438a5235e33c206bc5e691387bd5e8099a909a40",
+      "src/OpenWinter.Game/Spells/CastSpellAction.cs": "5203421445cae4d8f9f401518baec558ab0dd9fa600d4146eeca50e2607f9491",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/a_idle.png": "3194e9946ae9ca1e727ec33e6e4bbf21ca4038edad2e381067672bdf471a1cfa",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/b_attack_030.png": "1cb036e047801641de67073826c2ee61579e4291a58e418df893b9dce7502aea",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/c_attack_085.png": "02721536cde4c9575e87dfcfca80d0c32555f8067ee9e0d74ab2f7eff07cdbc6",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/d_attack_140.png": "2da24370ae3791a4e2d92db13c89117959a97d1d4c22bdf5f03e9db1f7bbf9b1",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/e_cast_030.png": "5950d3f38c4342441430cd7b964b7ea7717889a8a45177f9828ab0e2571d1b2f",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/f_cast_085.png": "9ce2d86d51f11819fea8ef931b5b2400ad85529a830355fc14ad12e359a76b99",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/g_cast_135.png": "6e0037d6f4e715de172645baaf0016b2d1f89911880877cc3f059efc220e412c",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/h_recovered.png": "6669bc7effb52136feb7bca482430c372c0ba1deec37b03aaf191d8e99ce48b3",
+      "out/visual/shots/vis_seekerarrow_fixed/openwinter/i_impact_done.png": "2e74a53c5fd5990f1384c2f9174d991881031b731aa087a30c4b5ad6727f3a85"
+    }
+  }
+}

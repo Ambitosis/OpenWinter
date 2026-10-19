@@ -1,0 +1,12 @@
+{
+  "purpose": "Wholly authored zero-radius beam width transfer; no runtime correction assumed",
+  "sizes": [
+    0.01,
+    0.04,
+    0.15,
+    0.3
+  ],
+  "radius": 0,
+  "scale": 0,
+  "rate": 3
+}

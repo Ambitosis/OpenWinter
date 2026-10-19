@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-16",
+  "engine": "original NWN via sandbox harness",
+  "tag": null,
+  "inputs_sha256": {
+    "parity/suites/rest_start_effects/parity_main.nss": "0212a4f12e29b06b757fcbffd8cd6578582787b45f0988ae759528712094cf8c",
+    "parity/suites/rest_start_effects/rs_inc.nss": "326140f664d7d2aebf4702b7d98ee205df0887ba2764c51581adcced9b0482d6",
+    "parity/suites/rest_start_effects/rs_rested.nss": "3849f2bd12a9d24630996753268576d5ab91c533172d95d208625f304ce35b18",
+    "parity/suites/rest_start_effects/suite.json": "28c5464ccf83dbf690c399b1425962cf7af6f0c58ddf1e84c8bb0c41ae651c78"
+  },
+  "artifacts_sha256": {
+    "out/parity/results/rest_start_effects/nwn.txt": "e99fb967a50f27b3240c243f9803955c995daef3a6d951a5e43b57b1571a6e4b"
+  },
+  "interpretation": "See README.md for accepted gates, rejected controls and limits. Re-run with Prelude's faction table (suite.json \"factions\"), so that reject.enemy=1.",
+  "reading_count": 475,
+  "rejected_artifacts": [
+    "out/rest-start-effects-first-rejected-readings.txt",
+    "out/rest-start-effects-first-rejected-log.txt"
+  ]
+}

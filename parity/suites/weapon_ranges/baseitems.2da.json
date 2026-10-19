@@ -1,0 +1,25 @@
+{
+  "rows": [
+    {
+      "row": 8,
+      "values": {
+        "MaxRange": 12,
+        "PrefAttackDist": 5
+      }
+    },
+    {
+      "row": 7,
+      "values": {
+        "MaxRange": 40,
+        "PrefAttackDist": 5
+      }
+    },
+    {
+      "row": 61,
+      "values": {
+        "MaxRange": 12,
+        "PrefAttackDist": 9
+      }
+    }
+  ]
+}

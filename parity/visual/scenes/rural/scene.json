@@ -1,0 +1,1 @@
+{ "source": { "module": "Chapter1", "area": "graveyard" }, "pc": [40, 40, 0], "facing": 90, "variants": { "day": { "are": { "DayNightCycle": 0, "IsNight": 0 } }, "night": { "are": { "DayNightCycle": 0, "IsNight": 1 } } } }

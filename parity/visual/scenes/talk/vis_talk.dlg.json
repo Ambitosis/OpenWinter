@@ -1,0 +1,26 @@
+{
+  "preventZoomIn": true,
+  "starts": [0],
+  "entries": [
+    { "text": "Animation 0 with a voice sound.", "animation": 0, "sound": "vs_favhen3m_061", "replies": [0] },
+    { "text": "Animation 37, looping.", "animation": 37, "loop": 1, "replies": [1] },
+    { "text": "Animation 38, looping.", "animation": 38, "loop": 1, "replies": [2] },
+    { "text": "Animation 39, looping.", "animation": 39, "loop": 1, "replies": [3] },
+    { "text": "Animation 40, looping.", "animation": 40, "loop": 1, "replies": [4] },
+    { "text": "Animation 39, not looping.", "animation": 39, "loop": 0, "replies": [5] },
+    { "text": "Animation 35.", "animation": 35, "replies": [6] },
+    { "text": "Animation 29.", "animation": 29, "replies": [7] },
+    { "text": "Animation 28.", "animation": 28, "replies": [8] }
+  ],
+  "replies": [
+    { "text": "", "entries": [1] },
+    { "text": "A reply, animation 0.", "entries": [2] },
+    { "text": "A reply, animation 39.", "animation": 39, "entries": [3] },
+    { "text": "", "entries": [4] },
+    { "text": "", "entries": [5] },
+    { "text": "", "entries": [6] },
+    { "text": "", "entries": [7] },
+    { "text": "", "entries": [8] },
+    { "text": "Goodbye." }
+  ]
+}

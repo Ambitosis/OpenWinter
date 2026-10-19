@@ -1,0 +1,5 @@
+#include "visual_inc"
+void Note(string k,string v){WriteTimestampedLogEntry("VISUAL|note|"+k+"|"+v);}
+void Quiet(object o){int i;for(i=5000;i<=5012;i++)SetEventScript(o,i,"");SetCommandable(FALSE,o);SetPlotFlag(o,TRUE);}
+void Beam(object s,object t,int v,string label){Note(label+".objects",IntToString(GetIsObjectValid(s))+"."+IntToString(GetIsObjectValid(t)));ApplyEffectToObject(DURATION_TYPE_TEMPORARY,EffectBeam(v,s,BODY_NODE_CHEST),t,2.5);DelayCommand(.4,VShot(label+"_040"));DelayCommand(1.2,VShot(label+"_120"));DelayCommand(3.0,VShot(label+"_clear"));}
+void main(){object pc=GetEnteringObject();if(!GetIsPC(pc))return;VBegin(pc);Note("stock_model",Get2DAString("progfx","Param1",600));Note("authored_model",Get2DAString("progfx","Param1",601));object s=VSpawn(pc,"nw_skeleton",-2.0,0.0,0.0);object t=VSpawn(pc,"nw_bandit001",2.0,0.0,180.0);Quiet(s);Quiet(t);DelayCommand(1.0,VCamera(pc,270.0,7.0,65.0));DelayCommand(2.0,VShot("baseline"));DelayCommand(3.0,Beam(s,t,210,"stock"));DelayCommand(7.0,Beam(s,t,211,"authored_rate3"));DelayCommand(11.0,VDone());}

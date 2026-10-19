@@ -1,0 +1,8 @@
+{
+  "tileset": "tic01", "tile": 36, "size": 3, "pc": [15, 13, 0], "facing": 90, "seconds": 35,
+  "are": { "Flags": 1, "IsNight": 0, "SunFogAmount": 0, "SunShadows": 0 },
+  "variants": {
+    "lit": { "are": { "SunAmbientColor": 6316128, "SunDiffuseColor": 10526880 } },
+    "dark": { "are": { "SunAmbientColor": 0, "SunDiffuseColor": 0, "MoonAmbientColor": 0, "MoonDiffuseColor": 0 } }
+  }
+}

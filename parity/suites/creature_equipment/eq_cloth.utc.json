@@ -1,0 +1,21 @@
+{
+  "template": "nw_bandit001",
+  "hitPoints": 100,
+  "classLevels": [
+    {
+      "class": 3,
+      "level": 20
+    },
+    {
+      "class": 34,
+      "level": 10
+    }
+  ],
+  "feats": [],
+  "equipment": [
+    {
+      "resref": "nw_cloth001",
+      "slot": 1
+    }
+  ]
+}

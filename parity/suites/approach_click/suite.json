@@ -1,0 +1,361 @@
+{
+ "seconds": 70,
+ "tile": 4,
+ "templates": {
+  "ac_trig": {
+   "from": "newgeneric",
+   "type": "utt",
+   "set": {
+    "ScriptOnEnter": "ac_enter",
+    "OnClick": "ac_click"
+   }
+  },
+  "ac_tr": {
+   "from": "newtransition",
+   "type": "utt"
+  },
+  "ac_trc": {
+   "from": "newtransition",
+   "type": "utt",
+   "set": {
+    "OnClick": "ac_click"
+   }
+  },
+  "ac_door": {
+   "from": "nw_door_normal",
+   "type": "utd",
+   "set": {
+    "OnDeath": ""
+   }
+  },
+  "ac_wp": {
+   "from": "nw_waypoint001",
+   "type": "utw"
+  },
+  "ac_trign": {
+   "from": "newgeneric",
+   "type": "utt",
+   "set": {
+    "ScriptOnEnter": "ac_enter"
+   }
+  }
+ },
+ "areas": [
+  {
+   "resref": "ac_a",
+   "tag": "AC_A",
+   "size": 10,
+   "instances": [
+    {
+     "type": "utt",
+     "from": "ac_tr",
+     "x": 60,
+     "y": 32,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "TR_PLAIN",
+      "LinkedTo": "B_WP1",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trc",
+     "x": 75,
+     "y": 32,
+     "w": 4,
+     "h": 2,
+     "set": {
+      "Tag": "TR_CLICK",
+      "LinkedTo": "B_WP2",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ac_door",
+     "x": 40,
+     "y": 55,
+     "facing": 0,
+     "set": {
+      "Tag": "DR_SHUT",
+      "LinkedTo": "B_WP3",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utd",
+     "from": "ac_door",
+     "x": 55,
+     "y": 55,
+     "facing": 0,
+     "set": {
+      "Tag": "DR_OPEN",
+      "LinkedTo": "B_WP4",
+      "LinkedToFlags": 2
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trig",
+     "x": 10,
+     "y": 10,
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       6,
+       0
+      ],
+      [
+       6,
+       6
+      ],
+      [
+       0,
+       6
+      ]
+     ],
+     "set": {
+      "Tag": "TG_C01"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trig",
+     "x": 22,
+     "y": 10,
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       6,
+       0
+      ],
+      [
+       6,
+       6
+      ],
+      [
+       0,
+       6
+      ]
+     ],
+     "set": {
+      "Tag": "TG_C10"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trig",
+     "x": 34,
+     "y": 10,
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       6,
+       0
+      ],
+      [
+       6,
+       6
+      ],
+      [
+       0,
+       6
+      ]
+     ],
+     "set": {
+      "Tag": "TG_C50"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trign",
+     "x": 46,
+     "y": 10,
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       6,
+       0
+      ],
+      [
+       6,
+       6
+      ],
+      [
+       0,
+       6
+      ]
+     ],
+     "set": {
+      "Tag": "TG_N01"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trign",
+     "x": 58,
+     "y": 10,
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       6,
+       0
+      ],
+      [
+       6,
+       6
+      ],
+      [
+       0,
+       6
+      ]
+     ],
+     "set": {
+      "Tag": "TG_N10"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trign",
+     "x": 70,
+     "y": 10,
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       6,
+       0
+      ],
+      [
+       6,
+       6
+      ],
+      [
+       0,
+       6
+      ]
+     ],
+     "set": {
+      "Tag": "TG_N50"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trig",
+     "x": 10,
+     "y": 30,
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       12,
+       0
+      ],
+      [
+       12,
+       12
+      ],
+      [
+       0,
+       12
+      ]
+     ],
+     "set": {
+      "Tag": "TG_IN"
+     }
+    },
+    {
+     "type": "utt",
+     "from": "ac_trign",
+     "x": 30,
+     "y": 30,
+     "points": [
+      [
+       0,
+       0
+      ],
+      [
+       12,
+       0
+      ],
+      [
+       12,
+       12
+      ],
+      [
+       0,
+       12
+      ]
+     ],
+     "set": {
+      "Tag": "TG_INN"
+     }
+    }
+   ]
+  },
+  {
+   "resref": "ac_b",
+   "tag": "AC_B",
+   "size": 3,
+   "instances": [
+    {
+     "type": "utw",
+     "from": "ac_wp",
+     "x": 5,
+     "y": 5,
+     "set": {
+      "Tag": "B_WP1"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ac_wp",
+     "x": 15,
+     "y": 5,
+     "set": {
+      "Tag": "B_WP2"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ac_wp",
+     "x": 5,
+     "y": 20,
+     "set": {
+      "Tag": "B_WP3"
+     }
+    },
+    {
+     "type": "utw",
+     "from": "ac_wp",
+     "x": 15,
+     "y": 20,
+     "set": {
+      "Tag": "B_WP4"
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+void main(){WriteTimestampedLogEntry("VISUAL|note|nested_enter|event="+IntToString(GetCurrentlyRunningEvent())+"|direct="+IntToString(GetCurrentlyRunningEvent(FALSE)));if(GetIsPossessedFamiliar(GetPCChatSpeaker())){SetPCChatMessage("EDITED_FAMILIAR");SetPCChatVolume(TALKVOLUME_WHISPER);}else if(GetPCChatMessage()=="MASTER_BEFORE"){SetPCChatMessage("EDITED_MASTER");}}

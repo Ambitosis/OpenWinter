@@ -1,0 +1,1107 @@
+{
+ "tileset": "tde01",
+ "tile": 4,
+ "size": 16,
+ "pc": [
+  4,
+  4,
+  0
+ ],
+ "facing": 90,
+ "seconds": 300,
+ "gui": true,
+ "chatLog": true,
+ "encounters": [
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_D0",
+   "x": 10,
+   "y": 10,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 0,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     15,
+     15,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_D1",
+   "x": 26,
+   "y": 10,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 1,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     31,
+     15,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_D2",
+   "x": 42,
+   "y": 10,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     47,
+     15,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_D3",
+   "x": 58,
+   "y": 10,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 3,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     63,
+     15,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_D4",
+   "x": 74,
+   "y": 10,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     79,
+     15,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_C025",
+   "x": 90,
+   "y": 10,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 0.25,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     95,
+     15,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_C05",
+   "x": 10,
+   "y": 26,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 0.5,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     15,
+     31,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_C2",
+   "x": 26,
+   "y": 26,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 2,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     31,
+     31,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_C3",
+   "x": 42,
+   "y": 26,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 3,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     47,
+     31,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_C5",
+   "x": 58,
+   "y": 26,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 5,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     63,
+     31,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_C5R3",
+   "x": 74,
+   "y": 26,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 3,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 5,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     79,
+     31,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_M4",
+   "x": 90,
+   "y": 26,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 4,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 0.25,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     95,
+     31,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_MIX",
+   "x": 10,
+   "y": 42,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 0.5,
+     "single": 0
+    },
+    {
+     "resref": "es_b",
+     "cr": 1,
+     "single": 0
+    },
+    {
+     "resref": "es_c",
+     "cr": 2,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     15,
+     47,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_UNIQ",
+   "x": 26,
+   "y": 42,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 3,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 1
+    }
+   ],
+   "spawnPoints": [
+    [
+     31,
+     47,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_UNIQ2",
+   "x": 42,
+   "y": 42,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 1
+    },
+    {
+     "resref": "es_b",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     47,
+     47,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_NOSP",
+   "x": 58,
+   "y": 42,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 0.25,
+     "single": 0
+    }
+   ],
+   "spawnPoints": []
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_FACE",
+   "x": 74,
+   "y": 42,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 0.25,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     79,
+     47,
+     45
+    ],
+    [
+     69,
+     47,
+     200
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_NPC0",
+   "x": 90,
+   "y": 42,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 0,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     95,
+     47,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_NPC1",
+   "x": 10,
+   "y": 58,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     15,
+     63,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_CONT",
+   "x": 26,
+   "y": 58,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 0,
+    "Reset": 0,
+    "Respawns": 3,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     31,
+     63,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_RA",
+   "x": 42,
+   "y": 58,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 1,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb",
+    "ResetTime": 6
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     47,
+     63,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_RB",
+   "x": 58,
+   "y": 58,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 1,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb",
+    "ResetTime": 6
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     63,
+     63,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_RC",
+   "x": 74,
+   "y": 58,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 1,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb",
+    "ResetTime": 1
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     79,
+     63,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_RD",
+   "x": 90,
+   "y": 58,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 1,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb",
+    "ResetTime": 1
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     95,
+     63,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_RE",
+   "x": 10,
+   "y": 74,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     15,
+     79,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_L5",
+   "x": 26,
+   "y": 74,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     31,
+     79,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_P1",
+   "x": 42,
+   "y": 74,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     47,
+     79,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_P2",
+   "x": 58,
+   "y": 74,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 2,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     63,
+     79,
+     90
+    ]
+   ]
+  },
+  {
+   "from": "nw_goblingrp",
+   "tag": "ES_L5D4",
+   "x": 74,
+   "y": 74,
+   "w": 6,
+   "h": 6,
+   "set": {
+    "PlayerOnly": 1,
+    "Faction": 1,
+    "MaxCreatures": 20,
+    "RecCreatures": 1,
+    "SpawnOption": 1,
+    "Reset": 0,
+    "Respawns": 0,
+    "DifficultyIndex": 4,
+    "Active": 1,
+    "OnEntered": "es_enter",
+    "OnExit": "es_exit",
+    "OnExhausted": "es_exh",
+    "OnHeartbeat": "es_hb"
+   },
+   "creatures": [
+    {
+     "resref": "es_a",
+     "cr": 1,
+     "single": 0
+    }
+   ],
+   "spawnPoints": [
+    [
+     79,
+     79,
+     90
+    ]
+   ]
+  }
+ ]
+}

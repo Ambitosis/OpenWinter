@@ -1,0 +1,252 @@
+{
+  "date": "2026-10-11",
+  "native": "installed NWN EE sandbox actual-PC, silent",
+  "runtime": "be4599ea +950c9299 +6153328c +65b2a4f3 +938f1948; classic final also f8dd8134",
+  "runs": [
+    {
+      "path": "out/visual/shots/vis_familiarpossess_state/nwn",
+      "scope": "accepted identity/release",
+      "sha256": {
+        "a_ready.png": "d32795d6ac90d0e824f649a57bd0bd90ab16659a60681c8959663bced05f0ea4",
+        "b_self_root.png": "9ba3ff1957c771008f8ed8ee1a9d1d96d6be96d04e0d77e67e2a6a4f133a9bbc",
+        "c_special.png": "8a3939f7c93cda3c5c08a10e2a8744c039fcdfc1e53b95971ed3ed138eaf3bff",
+        "d_possessed.png": "2101a4d2071a96f927efa9add42a62924020e94ed9e50a9aa757c2a59a8831e8",
+        "e_release_master.png": "c8cd028a5b3a0a7b9caa144cb27c6ebd0fc131a7f5609b43b478aad346029e59",
+        "f_release_familiar.png": "33e632f3f1abfbb7125955d05dbb03498f08dd35a7e6b4b0b8535e81d4820711",
+        "native-framebuffer.jsonl": "da2d52883ecfbe0d838836a0964453f9f9fa4fe32763b359a5a307c0aa98bb4a",
+        "notes.txt": "f8bdc0af3fe19fd5c84e4b5638bd50318bb89e831f06b4b887a6f41d90e2ca50",
+        "shots.txt": "b355cb80e412bb0b7663ee51cc643444aaf07563a456eeca0455e8bc69163c86"
+      },
+      "rawTga": [
+        {
+          "shot": "a_ready",
+          "rawSha256": "bc068b615b1645326552c84809ac06514cb4a09c120ebcc85e87f3037e8c57ef"
+        },
+        {
+          "shot": "b_self_root",
+          "rawSha256": "7aae5344eb4783c1990eeca4b55b69442aaaf06168190973c7037e03febe626f"
+        },
+        {
+          "shot": "c_special",
+          "rawSha256": "f94cb9d6481ac6d16d19f1b88146259a83598a7d79aeab4377b094cc1f4ac008"
+        },
+        {
+          "shot": "d_possessed",
+          "rawSha256": "bd813b1a8b131c4a78850601fd5002cdd58085a7982457f6571c7f9d0aa16662"
+        },
+        {
+          "shot": "e_release_master",
+          "rawSha256": "4fff167f4b7d080325db62c8d0ac28a47b00ff2ac04c7e4c551b9e2842e3348e"
+        },
+        {
+          "shot": "f_release_familiar",
+          "rawSha256": "f05ebc0757f36649bcf23ea0179a905be0e22955af35523381eb9c26a5fad970"
+        }
+      ]
+    },
+    {
+      "path": "out/visual/shots/vis_familiarpossess_release/nwn",
+      "scope": "accepted release/DestroyObject",
+      "sha256": {
+        "a_ready.png": "11a415d507d9b23d7dfb34a89404cb9f5ced14cdca3adb2d50c24a52d119631e",
+        "b_self_root.png": "04994a87ccb1d6a4e49e73b0b33ca857278b3e57b67cb1810e7948e5a09a3f8c",
+        "c_special.png": "3c88e517a0411af7916429f8adf82b1d005e9d4cf53c134b1c4124816dfde4da",
+        "d_possessed.png": "f4d22213eeb92a25110d423c7e61fcfa0e97ef7e7ec63557d34981e568cad5c2",
+        "e_destroyed.png": "66f7d6786207e60c41b35b85ebc28c1e6219263349868dcd0a1f24d6fd50b23f",
+        "native-framebuffer.jsonl": "6b29ff2dc719d5a563318fd5ddb89c7a431708048e97520f9505e7911f677a45",
+        "notes.txt": "1f784197aa68faec86496f76e7380253e370d908b1ec12f5e11ad5e1912724c2",
+        "shots.txt": "8607bc6a2afa097eecbeb942f7ae2b56a3f38922f32ab0ad838e5b1ad20a99c2"
+      },
+      "rawTga": [
+        {
+          "shot": "a_ready",
+          "rawSha256": "0d847bb1e327b7631ecaf13821738e17574f8e720abb2178335fede9d90e89d1"
+        },
+        {
+          "shot": "b_self_root",
+          "rawSha256": "97bedf23dbecd85a4e7ca5e2bdd7008c04e3067a985a8f4945b3b3507e45d09f"
+        },
+        {
+          "shot": "c_special",
+          "rawSha256": "7b02646bcf8b2da19de8e280f63ec6b909328d36a5551bf010ddf9096f3280f3"
+        },
+        {
+          "shot": "d_possessed",
+          "rawSha256": "932d3e04f89499cafb22f7549166699e5453d7dd7a6efe78fd5c637063483386"
+        },
+        {
+          "shot": "e_destroyed",
+          "rawSha256": "74a65eff3297538db23b85b82884355b8e543eb0dceef91a2b8d64e98b447c41"
+        }
+      ]
+    },
+    {
+      "path": "out/visual/shots/vis_familiarpossess_death/nwn",
+      "scope": "accepted release/death",
+      "sha256": {
+        "a_ready.png": "e455ae4bd31f577d680cf717b54db17c7c77fbd1b274c8fcc2f8a0f5abcf1e34",
+        "b_self_root.png": "018a875af13dc0e8974fe359621d7511777e8e6a1c7696d4f0a2c7cf8177abd6",
+        "c_special.png": "74cb4ec49b35cd0c4c4c13cbf946cdf88a4ec87e491ab0990dfa73e0cca4a533",
+        "d_familiar_root.png": "f47bd348beebe90e1fc8caa97bd6e6b7ff0e9e7abf992514f0dd9c30680c0649",
+        "d_possessed.png": "ff7e3e29596cdd6c23b9dcf6cf37a15e277a2c21322c8ff62109607a9b0c4e5d",
+        "e_killed.png": "b956ec0559a956d34ef1ecae3d819bbea0f793c5558bcce1173775139ac8a2a2",
+        "native-framebuffer.jsonl": "9e02a1f6e5974503394af991218951c8f528ffebc095029036dbf1adb2ebe9f0",
+        "notes.txt": "433e0abc194b7d56d9cf8da51131897b19b8d3bef0ac780e8ab92c83c087ee54",
+        "shots.txt": "acdeda311c85bcf7f9ff60a274d4052d6cc668081405458c220b70322b68725c"
+      },
+      "rawTga": [
+        {
+          "shot": "a_ready",
+          "rawSha256": "61eb16d55dd48cc83bdf53bbead6cc22125a3cc849504d7a49cb1f23bbfaa002"
+        },
+        {
+          "shot": "b_self_root",
+          "rawSha256": "bc3de238d815f0f86c2fb9cb3c8c23ac151610361ed2d8a8ba9593f2d409b1a0"
+        },
+        {
+          "shot": "c_special",
+          "rawSha256": "c1f28d3800c2e357d699cb5019742fee056793f86a690a38ff7756264dd192e0"
+        },
+        {
+          "shot": "d_possessed",
+          "rawSha256": "fad6c1514c4a6c3bbe8e7313d5c3bcb0731037254468ef90000cf24a6ff73cc3"
+        },
+        {
+          "shot": "d_familiar_root",
+          "rawSha256": "d86524b5b638cb76c23c8dea0d302d3cd52ef38f2a236cb6ed6416d857c04e62"
+        },
+        {
+          "shot": "e_killed",
+          "rawSha256": "cc4b34c2473fa8b29cd08b50627467e8dd702c6d91c292aa25829dab4c8c3bbb"
+        }
+      ]
+    },
+    {
+      "path": "out/visual/shots/vis_familiarpossess_campaign_global/nwn",
+      "scope": "accepted campaign/export",
+      "sha256": {
+        "a_ready.png": "4f56f5e3fbd5c3eaba388f67cfe88685939db39cc9aa534d8bddf31a398ffc94",
+        "b_self_root.png": "62aacad30887bd58c074a9191d1422b56e255259435d27a3eb8f7c03c372c9ad",
+        "c_special.png": "0d64df33dd2e1652f775a60bbd52e59567c72ae49fbebac7257f14a43912bb53",
+        "d_possessed.png": "1a465de48a793427ae2e11170b4f669d94e78cdf6e6d96dd4406a63fb691769c",
+        "e_ui_release.png": "d7b10f460cf12fe602aa8e3b58c2ee1fe43f91f501d43ac9a0d639105e604603",
+        "native-framebuffer.jsonl": "f7fae2df2fdcd53df4bf0286380c206aaa9db66bbd0f7d22bc35a5c5d55b7506",
+        "notes.txt": "1322a3b875cda63cc9d21df25023084673e833f0a88439f9ab09de53abe75ce9",
+        "shots.txt": "09d13292a6d75cccc97a132d5fcc0365d61a850e73e561bdd793d9ba0f6acb00"
+      },
+      "rawTga": [
+        {
+          "shot": "a_ready",
+          "rawSha256": "297626e0685587167c5838e7dcc8e933dd7c26f4efa5861a08a1a5bb5ba5f857"
+        },
+        {
+          "shot": "b_self_root",
+          "rawSha256": "30e5d4ede4a59b63f29895a1e988e490c95a8ea072c7d052bacc1f5ec2f6b56a"
+        },
+        {
+          "shot": "c_special",
+          "rawSha256": "957d4927c3d55ac3a95d9a3dbccc45f5ffecb93fb2a22c5cb76b376680b92191"
+        },
+        {
+          "shot": "d_possessed",
+          "rawSha256": "26c49c2bbe3ad5a66a5ba396da9f3fa59602dbe96810926ba6e3c2d17ace8561"
+        },
+        {
+          "shot": "e_ui_release",
+          "rawSha256": "4f1482ff1eab7190265fad434c5141c83858da8b6ce49f1856b7c8ae32d94dbb"
+        }
+      ]
+    },
+    {
+      "path": "out/visual/shots/vis_familiarpossess_access2/nwn",
+      "scope": "accepted access/movement",
+      "sha256": {
+        "a_ready.png": "b0f61c9a8608b394e520bdc65566853eb16bff08a772808184790275ddd08cb5",
+        "d_possessed.png": "70d44d22daee5f0d32cf5e618dd6460ed2cd740b13a555515babfdce8fcb6c41",
+        "e_moved.png": "ac44136c613704125e8f2e402dd842e1549fe8b968a1bc28e1a289e2a27cb45a",
+        "f_inventory.png": "6279195b8f0551314ba1dc5fc16fa6ba518d375493a219ca59c2b8b519353dcc",
+        "g_character.png": "e843b01794a48a0b421e8e6f9c28642f9c82ab92aeb8647bdcc7c4686ae02219",
+        "h_familiar_root.png": "f6ae50a623973a2c15c16caa20e27db5c1d9b5ce83de21bb41b3b92dde5d7503",
+        "i_returned.png": "aaf7b55752850923008a0b5eb7f3266113aba4f1f816fffc3ac46f78e9c8db8d",
+        "native-framebuffer.jsonl": "dbc69fbcb04f5a86e8c3156ad8befebecd329cd2fa74624faa7a8e9eea86b096",
+        "notes.txt": "57d2193d22d627a903e0e3134a58df880c8df78bd307ba2f97e03f23f89ff372",
+        "shots.txt": "b175e5916c01981e1800ebda720d50fe3f0622938ebefad3285d09e88997015c"
+      },
+      "rawTga": [
+        {
+          "shot": "a_ready",
+          "rawSha256": "928a1941b88b2bb0a3d465d7b524ea8eac3af4fded49f4ae55b64a4c2f246282"
+        },
+        {
+          "shot": "d_possessed",
+          "rawSha256": "768e290f3f2c29e8ef9fab4b80313afb5f876e6a9ffb3741ea687832751aeea0"
+        },
+        {
+          "shot": "e_moved",
+          "rawSha256": "35c2524af7d26f130d0b13321c675605cce779a0c9fcd45ae7b63ceb6f2366e3"
+        },
+        {
+          "shot": "f_inventory",
+          "rawSha256": "93d2d48deea25095fba3a5ce134b6a79fb56d2a58ef640c081d2de4cc7091655"
+        },
+        {
+          "shot": "g_character",
+          "rawSha256": "0011cab54b9323176256d2dbf0128bbbe8ccec982353bf651f61b8ebdd3e3b54"
+        },
+        {
+          "shot": "h_familiar_root",
+          "rawSha256": "603694dc42c2747ff43bda1ae50c0fe488f76149c131ec71cdbe518b2d18701a"
+        },
+        {
+          "shot": "i_returned",
+          "rawSha256": "d8814f3672074287d83bc50a8facb818d57297b1f08032e4c660f203061fbcc0"
+        }
+      ]
+    },
+    {
+      "path": "out/visual/shots/vis_familiarpossess_classic_final/openwinter",
+      "scope": "accepted final UI",
+      "sha256": {
+        "a_ready.png": "7859e626feb56f460bb83600c2571dc512f7ea4fa2f87766c231af19da8e454f",
+        "d_possessed.png": "e37f69929f2240c9d5009cf9e536b4634a4ecafc4feb486ae7a4c74c6ef06899",
+        "e_moved.png": "5e5ffeafa58b6c5edbf444dc078fdee7174f405a67b7d265d7578f8ea81e561d",
+        "f_inventory.png": "f2c4b7bb3521cf9f81e33ae4c615d7830c7861690e72fc7129c49d8a777b607e",
+        "g_character.png": "f727111be4c6571db3709a66b9dab4a265ab41e0a0e3966615cd38a24f8ba47e",
+        "h_familiar_root.png": "cf3b82ed8398209c4c045eefaba757ecfdd3cbccc24abb8f71924eac3b9b005e",
+        "i_returned.png": "ba72641b92065a1629fdd0c1caf5ab7ac869ed65d02843ea1fe9ad841237373e",
+        "notes.txt": "571bcddda69b1def1e8cb6dd4a2087bd7b17d579d9fc8c1d8f1b92f785a45333",
+        "shots.txt": "c026179fd0a60ae7419ecd5f3b70b49278b84a2f9d02144103fc21ab03bfa805",
+        "state.jsonl": "d56d0163527fd50d6a6e01c7db19d801574c896a6c3883936470d72c06312059"
+      },
+      "rawTga": []
+    },
+    {
+      "path": "out/visual/shots/vis_familiarpossess_modern_final/openwinter",
+      "scope": "accepted final UI",
+      "sha256": {
+        "a_ready.png": "dd9b6aaf3ab43af680db6caf678cd80fa1b8ca3d03c0ecd416339681aea8d470",
+        "d_possessed.png": "f79ac05c935d8d8a1c9ec1f40399b4302ba856ca5ab1879e5f4cc6f38873a917",
+        "e_moved.png": "c9933ccfd3435ac7dc218106f4157b8941249ddcdd9a0bffe66c44e02f985d50",
+        "f_inventory.png": "4372a3e9a93d850a178691c5291961128c08ac8bb99c76cc160f847c4b012610",
+        "g_character.png": "012f29e76bc0da244db292da68c159fcb43fab6794bc9633d68663898ddb69c1",
+        "h_familiar_root.png": "8bebfb7f2e538d80834056a7d844f34220961d1664975f9708575a336f394a44",
+        "i_returned.png": "c2f89696a7dbbcba7984913b8e821671358f72943434ebd20fb94864e442b385",
+        "notes.txt": "571bcddda69b1def1e8cb6dd4a2087bd7b17d579d9fc8c1d8f1b92f785a45333",
+        "shots.txt": "c026179fd0a60ae7419ecd5f3b70b49278b84a2f9d02144103fc21ab03bfa805",
+        "state.jsonl": "57bfd19e505e70f6134658ace909f6d805cc45fd463f8286a7c6e8c5982fe5ba"
+      },
+      "rawTga": []
+    }
+  ],
+  "excluded": [
+    "access: possession gate failed; W moved original master",
+    "classic/modern initial: stale camera/duplicate party/stale return HUD",
+    "portrait/arrow/world/discovery: input activation not established"
+  ],
+  "limits": [
+    "native bat AC12/attack+2 versus client AC14/attack+4",
+    "classic sheet damage differs: native1-2 (crit1-4), client1-1 (crit1-2)",
+    "no native possession save/reload or module-transfer equivalence claim",
+    "silent voice resource tests do not establish audible playback identity"
+  ]
+}
