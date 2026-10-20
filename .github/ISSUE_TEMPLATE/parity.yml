@@ -1,0 +1,42 @@
+name: Differs from the original
+description: "Something plays, looks or sounds different from Neverwinter Nights: Enhanced Edition."
+labels: [parity]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        OpenWinter aims to behave exactly like the original. The most useful reports compare the same thing in both
+        games, ideally with screenshots or the combat log from each.
+  - type: input
+    id: version
+    attributes:
+      label: OpenWinter version
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: Module and area
+    validations:
+      required: true
+  - type: textarea
+    id: original
+    attributes:
+      label: In the original
+      description: What NWN:EE does. Screenshots, video or combat log lines help.
+    validations:
+      required: true
+  - type: textarea
+    id: openwinter
+    attributes:
+      label: In OpenWinter
+      description: What OpenWinter does instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to see it
+      placeholder: |
+        1. With a level 3 fighter, ...
+        2. ...

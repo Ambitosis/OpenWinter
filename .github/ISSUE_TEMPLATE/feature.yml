@@ -1,0 +1,19 @@
+name: Feature request
+description: Something OpenWinter could add, beyond matching the original.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you want to do
+      description: The problem or use case, for example as a player, module builder or server owner.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed solution
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds

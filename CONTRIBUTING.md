@@ -1,6 +1,7 @@
 # Contributing to OpenWinter
 
-Thanks for helping. Bug reports, parity measurements and code are all welcome.
+Thanks for helping. Bug reports, parity measurements and code are all welcome. Everyone taking part follows the
+[code of conduct](CODE_OF_CONDUCT.md). Report security problems privately ([SECURITY.md](SECURITY.md)).
 
 ## Ground rules
 

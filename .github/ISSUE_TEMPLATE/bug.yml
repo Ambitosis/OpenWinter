@@ -1,0 +1,59 @@
+name: Bug report
+description: Something crashes, breaks or doesn't work.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For something that works but behaves differently from Neverwinter Nights: Enhanced Edition, use
+        **Differs from the original** instead.
+  - type: input
+    id: version
+    attributes:
+      label: OpenWinter version
+      description: Shown at the bottom of the main menu, or in the zip's name (for example 0.1.0 or 0.1.0-dev.12).
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Single player
+        - Multiplayer client
+        - Dedicated server
+        - Building from source
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: Module
+      description: Module name, and where to get it if it isn't an official one.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start a new game in ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: |
+        Client: attach `%APPDATA%\Godot\app_userdata\OpenWinter\logs\godot.log`.
+        Server: paste the console output around the problem.
+  - type: textarea
+    id: system
+    attributes:
+      label: System
+      description: Windows version and graphics card.

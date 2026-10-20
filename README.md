@@ -76,11 +76,12 @@ installation the same way the client does, or reads `gameRoot` from `config\loca
 ### Reporting bugs
 
 OpenWinter is an early pre-release, so expect rough edges. Please report problems on the
-[issue tracker](https://github.com/Ambitosis/openwinter/issues) with:
+[issue tracker](https://github.com/Ambitosis/OpenWinter/issues/new/choose): **Bug report** for something broken,
+**Differs from the original** for something that plays, looks or sounds different from NWN:EE. Include the module,
+the log (`%APPDATA%\Godot\app_userdata\OpenWinter\logs\godot.log`) and, if you can, a save game.
 
-- what you did, what happened, and what the original game does instead;
-- the module and, if you can, a save game;
-- the log: `%APPDATA%\Godot\app_userdata\OpenWinter\logs\godot.log`.
+Questions and ideas go in [Discussions](https://github.com/Ambitosis/OpenWinter/discussions). Report security
+problems privately, as described in [SECURITY.md](SECURITY.md).
 
 ## Status and roadmap
 

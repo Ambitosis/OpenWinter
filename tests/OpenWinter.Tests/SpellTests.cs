@@ -446,7 +446,8 @@ public class SpellTests
         {
             f.Tick(6f); // Each DC comparison is a separate eligible cast.
             if (feat) f.Pc.Feats.Add(7); else f.Pc.Feats.Remove(7);
-            foe.Position = f.Pc.Position + new Vector3(distance, 0, 0);
+            // It fights between casts and can walk through a transition; place it back in the caster's area.
+            f.World.Jump(foe, new Location(f.Pc.Area!.Id, f.Pc.Position + new Vector3(distance, 0, 0), 0));
             wizard.Memorized[1].Clear();
             wizard.Memorized[1].Add((SpellMagicMissile, 0, true));
             f.Drain();
