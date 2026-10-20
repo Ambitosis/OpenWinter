@@ -61,16 +61,18 @@ If OpenWinter can't find the game (a custom install folder, for example), create
 
 Every change to the `dev` branch is packaged automatically. To try the newest work before a release, open the
 latest successful [Build run](https://github.com/Ambitosis/OpenWinter/actions/workflows/build.yml?query=branch%3Adev)
-and download `OpenWinter-windows-x64` under **Artifacts** (needs a GitHub login). Test builds can be less stable
+and download `OpenWinter` under **Artifacts** (needs a GitHub login). Test builds can be less stable
 than releases.
 
 ### Host a server
 
 1. Download `OpenWinter-Server-0.1.1-windows-x64.zip` from the same release and unzip it.
-2. Run `openwinter-server.exe --module "<path to a .mod file or module folder>"`. It listens on UDP port 5121
-   (`--port` changes it) and writes `server.json` with its settings on the first run; edit that file for the
-   server name, PvP, difficulty, DM password and more. The server vault and databases are kept in `userdata`
-   next to the server.
+   On Linux, use `OpenWinter-Server-<version>-linux-x64.tar.gz` (`tar xzf` it) and see its README.txt for
+   pointing it at the game data.
+2. Run `openwinter-server.exe --module "<path to a .mod file or module folder>"` (`./openwinter-server` on Linux).
+   It listens on UDP port 5121 (`--port` changes it) and writes `server.json` with its settings on the first run;
+   edit that file for the server name, PvP, difficulty, DM password and more. The server vault and databases are
+   kept in `userdata` next to the server.
 3. Players choose **Multiplayer**, enter the server's address (`host:5121`) and press **Connect**. Haks and TLKs
    they're missing download automatically.
 
@@ -219,7 +221,7 @@ parity/                  rule suites and visual scenes compared against the orig
 1. Install the .NET 10 SDK and Godot 4.7 **.NET** (`winget install GodotEngine.GodotEngine.Mono`).
 2. Copy `config/local.example.json` to `config/local.json` and set your game, user and module paths.
 3. `dotnet build OpenWinter.slnx`
-4. `python build/package.py` builds the release zips into `out/dist` ([docs/RELEASING.md](docs/RELEASING.md)).
+4. `python build/package.py` builds the release archives into `out/dist` ([docs/RELEASING.md](docs/RELEASING.md)).
 
 Optional `config/local.json` keys:
 

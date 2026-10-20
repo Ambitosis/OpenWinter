@@ -28,7 +28,7 @@ the editor and export templates, so `GODOT_VERSION`, the checksums and `Godot.NE
 ## Test builds
 
 `.github/workflows/build.yml` packages every push to `dev` with Godot and its export templates, using
-`build/package.py`. The zips are versioned `<version>-dev.<run number>` and attached to the workflow run under
+`build/package.py`: the Windows client and the Windows and Linux servers. They are versioned `<version>-dev.<run number>` and attached to the workflow run under
 **Actions → Build** (signed-in GitHub users can download them for 30 days). A test client only connects to a
 server from the same build.
 
@@ -48,7 +48,7 @@ server from the same build.
    ```
 
 4. The tag's build checks that it matches `VersionPrefix`, packages the client and server, and creates a draft
-   pre-release with the zips, `SHA256SUMS.txt` and the CHANGELOG entry as notes. Review it and publish.
+   pre-release with the archives, `SHA256SUMS.txt` and the CHANGELOG entry as notes. Review it and publish.
 
 To package locally: `python build/package.py` (needs Godot 4.7 .NET with its Windows export templates; set `GODOT`
 to the console executable if it isn't the winget install). Output goes to `out/dist`.

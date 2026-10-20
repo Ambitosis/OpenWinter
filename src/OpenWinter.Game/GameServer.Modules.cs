@@ -23,8 +23,7 @@ public sealed partial class GameServer
         foreach (var folder in folders.OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase))
             foreach (var suffix in Path.HasExtension(name) ? new[] { "" } : new[] { ".mod", ".nwm" })
             {
-                var path = Path.Combine(folder, name + suffix);
-                if (File.Exists(path)) return path;
+                if (GamePaths.Find(folder, name + suffix) is { } path) return path;
             }
         return null;
     }

@@ -16,13 +16,18 @@ public sealed class LocalConfig
     /// <summary>Optional folder holding the neverwinter.nim tools (nwn_gff, nwn_erf); tests that cross-check against them skip without it.</summary>
     public string? NimTools { get; set; }
 
-    /// <summary>The folder development runs write user data into: &lt;repo&gt;/out/sandbox-userdata.</summary>
+    /// <summary>
+    /// The folder user data is written into: &lt;repo&gt;/out/sandbox-userdata in a source checkout, otherwise
+    /// userdata beside config/.
+    /// </summary>
     public string? SandboxFolder { get; private set; }
 
     static LocalConfig WithSandbox(LocalConfig c, string configPath)
     {
-        var repo = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(configPath)))!;
-        c.SandboxFolder = Path.Combine(repo, "out", "sandbox-userdata");
+        var root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(configPath)))!;
+        c.SandboxFolder = File.Exists(Path.Combine(root, "OpenWinter.slnx"))
+            ? Path.Combine(root, "out", "sandbox-userdata")
+            : Path.Combine(root, "userdata");
         return c;
     }
 

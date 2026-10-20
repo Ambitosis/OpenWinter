@@ -1,7 +1,7 @@
 name: Build
 
 # Pushes to dev produce test builds (workflow artifacts, versioned <version>-dev.<run>).
-# A v* tag produces the release zips and a draft GitHub release with the CHANGELOG entry.
+# A v* tag produces the release archives and a draft GitHub release with the CHANGELOG entry.
 
 on:
   push:
@@ -84,8 +84,10 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: OpenWinter-windows-x64
-          path: out/dist/*.zip
+          name: OpenWinter
+          path: |
+            out/dist/*.zip
+            out/dist/*.tar.gz
           retention-days: 30
 
       - name: Draft the release
@@ -96,5 +98,7 @@ jobs:
         run: |
           $version = "${{ github.ref_name }}".Substring(1)
           python build/release_notes.py $version > notes.md
-          Get-ChildItem out/dist/*.zip | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content out/dist/SHA256SUMS.txt
-          gh release create "${{ github.ref_name }}" out/dist/*.zip out/dist/SHA256SUMS.txt --draft --prerelease --title "OpenWinter $version" --notes-file notes.md
+          $files = Get-ChildItem out/dist/*.zip, out/dist/*.tar.gz
+          $sums = $files | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())  $($_.Name)`n" }
+          [IO.File]::WriteAllText("$PWD/out/dist/SHA256SUMS.txt", -join $sums)
+          gh release create "${{ github.ref_name }}" $files out/dist/SHA256SUMS.txt --draft --prerelease --title "OpenWinter $version" --notes-file notes.md

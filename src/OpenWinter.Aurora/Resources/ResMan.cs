@@ -6,17 +6,24 @@ namespace OpenWinter.Aurora.Resources;
 /// <summary>Where a game install and a user's content folder live.</summary>
 public sealed record GamePaths(string GameRoot, string UserRoot, string Language = "en")
 {
-    public string Hak(string name)
-    {
-        var user = Path.Combine(UserRoot, "hak", name + ".hak");
-        return File.Exists(user) ? user : Path.Combine(GameRoot, "data", "hak", name + ".hak");
-    }
+    public string Hak(string name) =>
+        Find(Path.Combine(UserRoot, "hak"), name + ".hak")
+        ?? Find(Path.Combine(GameRoot, "data", "hak"), name + ".hak")
+        ?? Path.Combine(GameRoot, "data", "hak", name + ".hak");
 
-    public string? Tlk(string name)
+    public string? Tlk(string name) =>
+        Find(Path.Combine(UserRoot, "tlk"), name + ".tlk") ?? Find(Path.Combine(GameRoot, "data", "tlk"), name + ".tlk");
+
+    /// <summary>
+    /// A file in a folder, matched without regard to case as modules name haks, TLKs and modules by resref
+    /// while the files on disk keep whatever case they were made with. Null when missing.
+    /// </summary>
+    public static string? Find(string folder, string file)
     {
-        foreach (var p in new[] { Path.Combine(UserRoot, "tlk", name + ".tlk"), Path.Combine(GameRoot, "data", "tlk", name + ".tlk") })
-            if (File.Exists(p)) return p;
-        return null;
+        var exact = Path.Combine(folder, file);
+        if (File.Exists(exact)) return exact;
+        if (OperatingSystem.IsWindows() || !Directory.Exists(folder)) return null;
+        return Directory.EnumerateFiles(folder).FirstOrDefault(f => string.Equals(Path.GetFileName(f), file, StringComparison.OrdinalIgnoreCase));
     }
 
     public string BaseTlk => Path.Combine(GameRoot, "lang", Language, "data", "dialog.tlk");

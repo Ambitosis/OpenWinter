@@ -33,6 +33,13 @@ world.EnableScripts();
 MultiplayerHarness? harness = null;
 if (opts.TryGetValue("harness", out var harnessDir)) world.Scripts!.Log = line => { Console.WriteLine(line); harness?.OnLog(line); };
 world.LoadModule();
+// Game data older than the engine expects fails here rather than on the first tick.
+try { _ = OpenWinter.Game.Scripting.EffectConstants.Of(world); }
+catch (KeyNotFoundException e)
+{
+    Console.Error.WriteLine($"[server] {e.Message}");
+    Environment.Exit(1);
+}
 world.Pvp = settings.PvpSetting;
 world.GameDifficulty = settings.Difficulty;
 world.ItemLevelRestrictions = settings.ItemLevelRestrictions;

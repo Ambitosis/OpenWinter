@@ -3,6 +3,14 @@
 OpenWinter follows [semantic versioning](https://semver.org). Until 1.0, minor versions may change behaviour,
 save formats and the network protocol; clients and servers must run the same build to connect.
 
+## Unreleased
+
+- **Linux server:** a self-contained `linux-x64` server download alongside the Windows one.
+- Haks, TLKs and modules are found whatever the case of their file names, as Linux file systems are case-sensitive.
+- An installed client or server with a `config/local.json` keeps its user data in `userdata` beside it.
+- A server given game data older than it needs says so at startup instead of crashing on its first tick.
+- NuGet updates, including LiteNetLib 2.1.
+
 ## 0.1.1 (2026-10-20)
 
 A maintenance release: no gameplay changes. Clients and servers must both be 0.1.1 to connect.

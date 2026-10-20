@@ -117,7 +117,8 @@ public sealed class NssDefinitions
 
     /// <summary>Integer value of an int constant (e.g. OBJECT_TYPE_CREATURE), for implementations that want names.</summary>
     public int Int(string name) =>
-        Constants.TryGetValue(name, out var c) && c.Type == NssType.Int ? ParseInt(c.Value) : throw new KeyNotFoundException(name);
+        Constants.TryGetValue(name, out var c) && c.Type == NssType.Int ? ParseInt(c.Value)
+            : throw new KeyNotFoundException($"{name} is not in nwscript.nss: the game data is older than OpenWinter needs; update Neverwinter Nights: Enhanced Edition");
 
     static int ParseInt(string v)
     {
