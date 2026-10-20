@@ -76,8 +76,11 @@ public sealed partial class GameServer
         foreach (var obj in area.Objects) SendSpawn(s, obj);
         SendSpawn(s, pc); // private preview; it is not in the world yet
         s.Send(new ControlObjectMessage { ObjectId = pc.Id }.Write());
-        s.Send(new NotifyMessage { Kind = "area-snapshot-ready", Subject = area.Id,
-            Json = JsonSerializer.Serialize(new { token = s.LoadToken }) }.Write());
+        s.Send(new NotifyMessage
+        {
+            Kind = "area-snapshot-ready", Subject = area.Id,
+            Json = JsonSerializer.Serialize(new { token = s.LoadToken })
+        }.Write());
     }
 
     void CompleteAreaEntry(PlayerSession s, string json)

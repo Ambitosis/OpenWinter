@@ -117,8 +117,11 @@ public partial class ClassicJournal : ClassicWindow
         // the radios: the list is clipped at its Viewport0 node, the bottom of its view.
         if (_worldList is { Frame: { } frame } && frame.Node("Viewport0") is { } bottom && _worldList.GetParent() is { } parent)
         {
-            var clip = new Control { Name = "QuestBoxClip", ClipContents = true, MouseFilter = Control.MouseFilterEnum.Pass,
-                Position = _worldList.Position, Size = new Vector2(_worldList.Size.X, bottom.Y) };
+            var clip = new Control
+            {
+                Name = "QuestBoxClip", ClipContents = true, MouseFilter = Control.MouseFilterEnum.Pass,
+                Position = _worldList.Position, Size = new Vector2(_worldList.Size.X, bottom.Y)
+            };
             parent.AddChild(clip);
             parent.MoveChild(clip, _worldList.GetIndex());
             _worldList.Reparent(clip, false);

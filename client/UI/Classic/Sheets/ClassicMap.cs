@@ -292,14 +292,14 @@ public partial class MapCanvas : Control, IClassicHover
         float s = Scale;
         int ppt = Map.PixelsPerTile;
         for (int ty = 0; ty < Map.Height; ty++)
-        for (int tx = 0; tx < Map.Width; tx++)
-        {
-            if (!Map.IsExplored(tx, ty)) continue;
-            var at = WorldToScreen(new Vector2(tx, ty + 1) * AreaMap.TileSize);
-            var r = new Rect2(at, new Vector2(s, s));
-            if (!r.Intersects(new Rect2(Vector2.Zero, Size))) continue;
-            DrawTextureRectRegion(tiles, r, new Rect2(tx * ppt, (Map.Height - 1 - ty) * ppt, ppt, ppt));
-        }
+            for (int tx = 0; tx < Map.Width; tx++)
+            {
+                if (!Map.IsExplored(tx, ty)) continue;
+                var at = WorldToScreen(new Vector2(tx, ty + 1) * AreaMap.TileSize);
+                var r = new Rect2(at, new Vector2(s, s));
+                if (!r.Intersects(new Rect2(Vector2.Zero, Size))) continue;
+                DrawTextureRectRegion(tiles, r, new Rect2(tx * ppt, (Map.Height - 1 - ty) * ppt, ppt, ppt));
+            }
         // Pins.
         var pinModel = Assets.Model("ctl_map_pin");
         string hovered = "";

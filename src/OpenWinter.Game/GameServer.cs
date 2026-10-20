@@ -1094,9 +1094,12 @@ public sealed partial class GameServer : IWorldOutput
             var spawn = BuildSpawn(o);
             if (o is Creature) _pendingLooks.Add(o.Id);
             var update = o is Creature c
-                ? new UpdateMessage { ObjectId = c.Id, Position = c.Position, Facing = spawn.Facing, Speed = c.Speed, Mode = c.Mode, InCombat = c.InCombat, Flags = spawn.Flags,
+                ? new UpdateMessage
+                {
+                    ObjectId = c.Id, Position = c.Position, Facing = spawn.Facing, Speed = c.Speed, Mode = c.Mode, InCombat = c.InCombat, Flags = spawn.Flags,
                     Surface = c.Area?.Walkmesh.SurfaceAt(c.Position) ?? 0,
-                    FootstepType = c.FootstepOverride >= 0 ? c.FootstepOverride : World.Resources.TwoDA("appearance").GetInt(c.AppearanceType, "FOOTSTEPTYPE", -1) }
+                    FootstepType = c.FootstepOverride >= 0 ? c.FootstepOverride : World.Resources.TwoDA("appearance").GetInt(c.AppearanceType, "FOOTSTEPTYPE", -1)
+                }
                 : new UpdateMessage { ObjectId = o.Id, Position = o.Position, Facing = spawn.Facing, Flags = spawn.Flags };
             byte[]? bytes = null;
             foreach (var s in _sessions)

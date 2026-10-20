@@ -314,9 +314,12 @@ public sealed partial class InventorySystem
             }
             case Store s when area != null:
             {
-                var c = new Store { ResRef = s.ResRef, Tag = s.Tag, Name = s.Name.Clone(), Template = s.Template, InventoryLoaded = true,
+                var c = new Store
+                {
+                    ResRef = s.ResRef, Tag = s.Tag, Name = s.Name.Clone(), Template = s.Template, InventoryLoaded = true,
                     Gold = s.Gold, MaxBuyPrice = s.MaxBuyPrice, IdentifyPrice = s.IdentifyPrice, MarkUp = s.MarkUp, MarkDown = s.MarkDown,
-                    BlackMarket = s.BlackMarket, BlackMarketMarkDown = s.BlackMarketMarkDown };
+                    BlackMarket = s.BlackMarket, BlackMarketMarkDown = s.BlackMarketMarkDown
+                };
                 c.WillNotBuy.UnionWith(s.WillNotBuy);
                 c.WillOnlyBuy.UnionWith(s.WillOnlyBuy);
                 foreach (var kv in s.Scripts) c.Scripts[kv.Key] = kv.Value;

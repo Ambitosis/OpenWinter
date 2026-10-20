@@ -316,8 +316,8 @@ public static class GameTheme
         img.LoadSvgFromString(svg, 2f);
         if (modulate is { } m)
             for (int y = 0; y < img.GetHeight(); y++)
-            for (int x = 0; x < img.GetWidth(); x++)
-                img.SetPixel(x, y, img.GetPixel(x, y) * m);
+                for (int x = 0; x < img.GetWidth(); x++)
+                    img.SetPixel(x, y, img.GetPixel(x, y) * m);
         var tex = ImageTexture.CreateFromImage(img);
         tex.SetSizeOverride(new Vector2I(img.GetWidth() / 2, img.GetHeight() / 2));
         return tex;

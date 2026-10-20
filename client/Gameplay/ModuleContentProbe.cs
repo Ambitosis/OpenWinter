@@ -27,8 +27,11 @@ public static class ModuleContentProbe
         var interaction = new Interaction { Session = session }; presentation.AddChild(interaction);
         var dialog = new UI.DialogPanel(); presentation.AddChild(dialog);
         var chat = new UI.ChatLog(); presentation.AddChild(chat);
-        var fx = new UI.PlayerFx { Session = session, Hud = hud, Input_ = input,
-            Interaction = interaction, Dialog = dialog, Chat = chat };
+        var fx = new UI.PlayerFx
+        {
+            Session = session, Hud = hud, Input_ = input,
+            Interaction = interaction, Dialog = dialog, Chat = chat
+        };
         presentation.AddChild(fx);
         void Check(bool value, string label)
         {
@@ -38,7 +41,7 @@ public static class ModuleContentProbe
         void Send(byte[] data) => server.Send(data);
         void Tick() => session._Process(0);
         void Notice(string kind, object data) => Send(new NotifyMessage
-            { Kind = kind, Subject = 77, Json = JsonSerializer.Serialize(data) }.Write());
+        { Kind = kind, Subject = 77, Json = JsonSerializer.Serialize(data) }.Write());
         try
         {
             var oldWindow = new UI.UiTheme.Window { Visible = true };

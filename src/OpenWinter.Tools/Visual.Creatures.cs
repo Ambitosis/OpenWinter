@@ -126,8 +126,12 @@ static partial class Visual
             {
                 string label = ability.Name switch
                 {
-                    "strength" => "Str", "dexterity" => "Dex", "constitution" => "Con",
-                    "intelligence" => "Int", "wisdom" => "Wis", "charisma" => "Cha",
+                    "strength" => "Str",
+                    "dexterity" => "Dex",
+                    "constitution" => "Con",
+                    "intelligence" => "Int",
+                    "wisdom" => "Wis",
+                    "charisma" => "Cha",
                     _ => throw new InvalidDataException($"Unknown fixture ability: {ability.Name}"),
                 };
                 actor.SetByte(label, Bounded(ability.Value, 1, 255, ability.Name));

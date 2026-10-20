@@ -87,11 +87,16 @@ static class VisualCharacter
                         item.SetWord("StackSize", stack);
                     }
                     int index = items.IndexOf(matches[0]);
-                    itemChanges.Add(new { index, x, y, sourceBase = matches[0].GetInt("BaseItem"),
+                    itemChanges.Add(new
+                    {
+                        index, x, y, sourceBase = matches[0].GetInt("BaseItem"),
                         sourceTag = matches[0].GetString("Tag"), resref, targetBase = item.GetInt("BaseItem"),
                         targetTag = item.GetString("Tag"), stack = item.GetInt("StackSize"),
-                        properties = item.GetList("PropertiesList").Select((p, slot) => new {
-                            slot, type = p.GetInt("PropertyName"), subtype = p.GetInt("Subtype"), cost = p.GetInt("CostValue") }).ToArray() });
+                        properties = item.GetList("PropertiesList").Select((p, slot) => new
+                        {
+                            slot, type = p.GetInt("PropertyName"), subtype = p.GetInt("Subtype"), cost = p.GetInt("CostValue")
+                        }).ToArray()
+                    });
                     items[index] = item;
                 }
             pc.SetList("ItemList", items);
@@ -141,9 +146,11 @@ static class VisualCharacter
                 vaultResRef = "000_fixture", expectedIdentity = "VISUAL|note|character-fixture|" + expectedName + "|pc=1", source, sourceSha256 = Convert.ToHexString(SHA256.HashData(original)).ToLowerInvariant(),
                 generatedSha256 = Convert.ToHexString(SHA256.HashData(data)).ToLowerInvariant(), profile, itemChanges,
                 quickbarItems = pc.GetList("QBList").Select((q, slot) => new { q, slot })
-                    .Where(x => x.q.GetInt("QBObjectType") == 1).Select(x => new {
+                    .Where(x => x.q.GetInt("QBObjectType") == 1).Select(x => new
+                    {
                         x.slot, x = x.q.GetInt("QBItemReposX", -1), y = x.q.GetInt("QBItemReposY", -1),
-                        property = x.q.GetInt("QBCastPropIndex", -1), equipped = x.q.GetInt("QBItemInvSlot", -1) }).ToArray(),
+                        property = x.q.GetInt("QBCastPropIndex", -1), equipped = x.q.GetInt("QBItemInvSlot", -1)
+                    }).ToArray(),
             }, new JsonSerializerOptions { WriteIndented = true }));
         else if (File.Exists(metadata)) File.Delete(metadata);
     }

@@ -17,9 +17,19 @@ public sealed record SpellProjectile(string Model, string Orientation, string Pa
             programs.GetInt(row, "Param3") switch { 1 => "target", 2 => "path", _ => "none" },
             programs.GetInt(row, "Param4") switch
             {
-                2 => "ballistic", 3 => "highballistic", 4 => "burstup", 5 => "accelerating",
-                6 => "spiral", 7 => "linked", 8 => "bounce", 9 => "burst", 10 => "linkedburstup",
-                11 => "triplehit", 12 => "triplemiss", 13 => "doubleballistic", _ => "homing",
+                2 => "ballistic",
+                3 => "highballistic",
+                4 => "burstup",
+                5 => "accelerating",
+                6 => "spiral",
+                7 => "linked",
+                8 => "bounce",
+                9 => "burst",
+                10 => "linkedburstup",
+                11 => "triplehit",
+                12 => "triplemiss",
+                13 => "doubleballistic",
+                _ => "homing",
             }, programs.Get(row, "Param5").ToLowerInvariant());
     }
 

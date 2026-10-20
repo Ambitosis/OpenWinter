@@ -176,16 +176,16 @@ public class RequestTests
         Assert.NotEmpty(items);
         int found = 0, total = 0;
         foreach (var item in items)
-        foreach (var icon in item.GetProperty("icon").EnumerateArray().Select(i => i.GetString()!))
-        {
-            total++;
-            bool exists = icon.StartsWith("iconplt:", StringComparison.Ordinal)
-                ? icon.Split(':') is { Length: 3 } parts && parts[2].Length == 20 && parts[2].All(Uri.IsHexDigit)
-                    && world.Resources.Contains(parts[1], OpenWinter.Aurora.Resources.ResType.Plt)
-                : world.Resources.Contains(icon, OpenWinter.Aurora.Resources.ResType.Tga) || world.Resources.Contains(icon, OpenWinter.Aurora.Resources.ResType.Dds);
-            if (exists) found++;
-            else _out.WriteLine($"missing icon {icon} for {item.GetProperty("name")}");
-        }
+            foreach (var icon in item.GetProperty("icon").EnumerateArray().Select(i => i.GetString()!))
+            {
+                total++;
+                bool exists = icon.StartsWith("iconplt:", StringComparison.Ordinal)
+                    ? icon.Split(':') is { Length: 3 } parts && parts[2].Length == 20 && parts[2].All(Uri.IsHexDigit)
+                        && world.Resources.Contains(parts[1], OpenWinter.Aurora.Resources.ResType.Plt)
+                    : world.Resources.Contains(icon, OpenWinter.Aurora.Resources.ResType.Tga) || world.Resources.Contains(icon, OpenWinter.Aurora.Resources.ResType.Dds);
+                if (exists) found++;
+                else _out.WriteLine($"missing icon {icon} for {item.GetProperty("name")}");
+            }
         _out.WriteLine($"{found}/{total} icons found");
         Assert.True(found >= total * 0.8, $"only {found}/{total} icons resolve");
     }

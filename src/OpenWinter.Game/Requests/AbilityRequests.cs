@@ -294,12 +294,18 @@ public static class AbilityRequests
     {
         int strref = mode switch
         {
-            ModeDetect => on ? 58275 : 58276, ModeStealth => on ? 58277 : 58278,
-            ModeParry => on ? 58279 : 58280, ModePowerAttack => on ? 58281 : 58282,
-            ModeImprovedPowerAttack => on ? 58283 : 58284, ModeFlurry => on ? 63811 : 63812,
-            ModeRapidShot => on ? 63809 : 63810, ModeExpertise => on ? 1758 : 1759,
-            ModeImprovedExpertise => on ? 1760 : 1761, ModeDefensiveCast => on ? 1766 : 1767,
-            ModeDirtyFighting => on ? 3873 : 3876, _ => -1,
+            ModeDetect => on ? 58275 : 58276,
+            ModeStealth => on ? 58277 : 58278,
+            ModeParry => on ? 58279 : 58280,
+            ModePowerAttack => on ? 58281 : 58282,
+            ModeImprovedPowerAttack => on ? 58283 : 58284,
+            ModeFlurry => on ? 63811 : 63812,
+            ModeRapidShot => on ? 63809 : 63810,
+            ModeExpertise => on ? 1758 : 1759,
+            ModeImprovedExpertise => on ? 1760 : 1761,
+            ModeDefensiveCast => on ? 1766 : 1767,
+            ModeDirtyFighting => on ? 3873 : 3876,
+            _ => -1,
         };
         w.Output?.Notify("action-mode", c, new
         {

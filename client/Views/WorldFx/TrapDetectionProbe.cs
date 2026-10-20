@@ -28,7 +28,7 @@ public static class TrapDetectionProbe
         {
             var view = new ObjectView { ObjectId = id };
             var mesh = new MeshInstance3D { Mesh = new BoxMesh() };
-            view.AddChild(mesh);objects.Add(view);session.Objects[id] = view;
+            view.AddChild(mesh); objects.Add(view); session.Objects[id] = view;
             return mesh;
         }
         try
@@ -43,34 +43,34 @@ public static class TrapDetectionProbe
             Check(mesh.MaterialOverlay == null && fx.Count == 0, "undetect clears tint and state");
             Notify("trap-detected", 2);
             Notify("trap-disarmed", 2);
-            var disarmed = Add(2);fx._Process(0);
+            var disarmed = Add(2); fx._Process(0);
             Check(disarmed.MaterialOverlay == null, "disarm before spawn prevents later tint");
             Notify("trap-detected", 3);
             Notify("trap-detected", 3, false);
-            var hidden = Add(3);fx._Process(0);
+            var hidden = Add(3); fx._Process(0);
             Check(hidden.MaterialOverlay == null, "undetect before spawn prevents later tint");
-            Notify("trap-detected", 4);fx.Clear();
-            var cleared = Add(4);fx._Process(0);
+            Notify("trap-detected", 4); fx.Clear();
+            var cleared = Add(4); fx._Process(0);
             Check(cleared.MaterialOverlay == null && fx.Count == 0, "area clear removes pending detections");
-            var delayed = new ObjectView { ObjectId = 5 };objects.Add(delayed);session.Objects[5] = delayed;
-            Notify("trap-detected", 5);fx._Process(0);
-            var child = new MeshInstance3D { Mesh = new BoxMesh() };delayed.AddChild(child);fx._Process(0);
+            var delayed = new ObjectView { ObjectId = 5 }; objects.Add(delayed); session.Objects[5] = delayed;
+            Notify("trap-detected", 5); fx._Process(0);
+            var child = new MeshInstance3D { Mesh = new BoxMesh() }; delayed.AddChild(child); fx._Process(0);
             Check(child.MaterialOverlay != null, "late model receives retained tint");
-            var foreign = new StandardMaterial3D();child.MaterialOverlay = foreign;
-            fx._Process(0);fx.Clear();
+            var foreign = new StandardMaterial3D(); child.MaterialOverlay = foreign;
+            fx._Process(0); fx.Clear();
             Check(child.MaterialOverlay == foreign, "clearing preserves another overlay owner");
-            child.MaterialOverlay = null;foreign.Dispose();
+            child.MaterialOverlay = null; foreign.Dispose();
             File.WriteAllText(Path.Combine(directory, "result.json"), JsonSerializer.Serialize(new { checks }, new JsonSerializerOptions { WriteIndented = true }));
             GD.Print($"[trap-detection] {checks.Count} checks passed");
             return 0;
         }
         catch (Exception e)
         {
-            File.WriteAllText(Path.Combine(directory, "failure.txt"), e.ToString());GD.PrintErr(e);return 2;
+            File.WriteAllText(Path.Combine(directory, "failure.txt"), e.ToString()); GD.PrintErr(e); return 2;
         }
         finally
         {
-            fx.Clear();fx.Free();foreach (var view in objects) view.Free();session.Free();
+            fx.Clear(); fx.Free(); foreach (var view in objects) view.Free(); session.Free();
         }
     }
 }

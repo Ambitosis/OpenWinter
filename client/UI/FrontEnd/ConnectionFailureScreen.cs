@@ -28,7 +28,7 @@ public partial class ConnectionFailureScreen : CanvasLayer
         center.AddChild(card);
         var column = Ui.VBox(Palette.Space6);
         card.AddChild(column);
-        column.AddChild(Ui.Text(net.Joined ? "Disconnected from server" : "Unable to join server",Ui.TextStyle.Title, Palette.Accent));
+        column.AddChild(Ui.Text(net.Joined ? "Disconnected from server" : "Unable to join server", Ui.TextStyle.Title, Palette.Accent));
         var message = Ui.Text(reason, Ui.TextStyle.Body);
         message.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         message.CustomMinimumSize = new Vector2(600, 0);

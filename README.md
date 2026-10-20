@@ -1,5 +1,7 @@
 # OpenWinter
 
+[![CI](https://github.com/Ambitosis/OpenWinter/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Ambitosis/OpenWinter/actions/workflows/ci.yml)
+
 An open-source engine for Neverwinter Nights, written in C# (.NET 8) with a Godot 4.7 client.
 
 ## What OpenWinter is
@@ -50,6 +52,13 @@ If OpenWinter can't find the game (a custom install folder, for example), create
 ```json
 { "gameRoot": "D:/Games/Neverwinter Nights" }
 ```
+
+### Test builds
+
+Every change to the `dev` branch is packaged automatically. To try the newest work before a release, open the
+latest successful [Build run](https://github.com/Ambitosis/OpenWinter/actions/workflows/build.yml?query=branch%3Adev)
+and download `OpenWinter-windows-x64` under **Artifacts** (needs a GitHub login). Test builds can be less stable
+than releases.
 
 ### Host a server
 
@@ -205,6 +214,7 @@ parity/                  rule suites and visual scenes compared against the orig
 1. Install the .NET 8 SDK and Godot 4.7 **.NET** (`winget install GodotEngine.GodotEngine.Mono`).
 2. Copy `config/local.example.json` to `config/local.json` and set your game, user and module paths.
 3. `dotnet build OpenWinter.slnx`
+4. `python build/package.py` builds the release zips into `out/dist` ([docs/RELEASING.md](docs/RELEASING.md)).
 
 Optional `config/local.json` keys:
 

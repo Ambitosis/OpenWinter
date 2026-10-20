@@ -239,7 +239,9 @@ public static class StdRegex
                             _out.Append(')');
                             canRepeat = true;
                             continue;
-                        case '*': case '+': case '?':
+                        case '*':
+                        case '+':
+                        case '?':
                             if (!canRepeat) throw new RegexError("error_badrepeat");
                             _out.Append(ch);
                             if (_i < _p.Length && _p[_i] == '?') { _out.Append('?'); _i++; }
@@ -254,7 +256,9 @@ public static class StdRegex
                         case '|': _out.Append('|'); canRepeat = false; continue;
                         case '^': _out.Append((_flags & NotBol) != 0 ? @"(?<=\n)" : "(?m:^)"); canRepeat = false; continue;
                         case '$': _out.Append((_flags & NotEol) != 0 ? @"(?=\n)" : "(?m:$)"); canRepeat = false; continue;
-                        case '.': _out.Append(@"[^\n\r  ]"); canRepeat = true; continue;
+                        case '.': _out.Append(@"[^\n\r
+
+]"); canRepeat = true; continue;
                         default: _out.Append(Regex.Escape(ch.ToString())); canRepeat = true; continue;
                     }
                 }
@@ -278,7 +282,14 @@ public static class StdRegex
                                 Interval('}', 2);
                                 canRepeat = false;
                                 break;
-                            case '.': case '[': case ']': case '\\': case '*': case '^': case '$': case '}':
+                            case '.':
+                            case '[':
+                            case ']':
+                            case '\\':
+                            case '*':
+                            case '^':
+                            case '$':
+                            case '}':
                                 _out.Append(Regex.Escape(e.ToString()));
                                 canRepeat = true;
                                 break;

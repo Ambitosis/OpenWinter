@@ -56,13 +56,13 @@ public static class ClientRequests
     {
         var map = new Dictionary<string, Action<Request>>(StringComparer.Ordinal);
         foreach (var type in typeof(ClientRequests).Assembly.GetTypes())
-        foreach (var m in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-        {
-            var attr = m.GetCustomAttribute<ClientRequestAttribute>();
-            if (attr == null) continue;
-            if (map.ContainsKey(attr.Kind)) throw new InvalidOperationException($"Client request '{attr.Kind}' is handled twice ({type.Name}.{m.Name})");
-            map[attr.Kind] = m.CreateDelegate<Action<Request>>();
-        }
+            foreach (var m in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                var attr = m.GetCustomAttribute<ClientRequestAttribute>();
+                if (attr == null) continue;
+                if (map.ContainsKey(attr.Kind)) throw new InvalidOperationException($"Client request '{attr.Kind}' is handled twice ({type.Name}.{m.Name})");
+                map[attr.Kind] = m.CreateDelegate<Action<Request>>();
+            }
         return map;
     }
 

@@ -20,7 +20,14 @@ public class WorldFxTests
     // ---- visual transforms: the client must follow the server's curves exactly ----
 
     [Theory]
-    [InlineData(0)] [InlineData(1)] [InlineData(2)] [InlineData(3)] [InlineData(4)] [InlineData(5)] [InlineData(6)] [InlineData(7)]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(7)]
     public void VisualTransformLerpsMatchServer(int lerp)
     {
         foreach (var (behavior, repeats) in new[] { (0, 0), (0, 2), (1, 3), (1, -1), (0, -1) })
@@ -135,16 +142,16 @@ public class WorldFxTests
     {
         var start = new Vector3(13, -7, 2);
         foreach (var direction in new[] { Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ, Vector3.Normalize(new Vector3(2, 3, -1)) })
-        foreach (float distance in new[] { 0.1f, 4f, 30f })
-        foreach (int seed in new[] { 1, 7, 31 })
-        {
-            var end = start + direction * distance;
-            var path = FxMath.BeamPath(start, end, 12, 0, new Random(seed));
-            Assert.Equal(start, path[0]);
-            Assert.True(Vector3.Distance(end, path[^1]) < 0.00001f);
-            for (int i = 0; i < path.Length; i++)
-                Assert.True(Vector3.Distance(Vector3.Lerp(start, end, i / 12f), path[i]) < 0.00001f);
-        }
+            foreach (float distance in new[] { 0.1f, 4f, 30f })
+                foreach (int seed in new[] { 1, 7, 31 })
+                {
+                    var end = start + direction * distance;
+                    var path = FxMath.BeamPath(start, end, 12, 0, new Random(seed));
+                    Assert.Equal(start, path[0]);
+                    Assert.True(Vector3.Distance(end, path[^1]) < 0.00001f);
+                    for (int i = 0; i < path.Length; i++)
+                        Assert.True(Vector3.Distance(Vector3.Lerp(start, end, i / 12f), path[i]) < 0.00001f);
+                }
     }
 
     [Fact]

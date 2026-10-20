@@ -343,8 +343,12 @@ static partial class Parity
                     .SetFloat("XOrientation", MathF.Cos(facing)).SetFloat("YOrientation", MathF.Sin(facing));
             (gff.StructType, string listName) = bp.Type switch
             {
-                "utd" => (8u, "Door List"), "utp" => (9u, "Placeable List"), "utc" => (4u, "Creature List"), "utw" => (5u, "WaypointList"),
-                "utt" => (1u, "TriggerList"), "uts" => (6u, "SoundList"),
+                "utd" => (8u, "Door List"),
+                "utp" => (9u, "Placeable List"),
+                "utc" => (4u, "Creature List"),
+                "utw" => (5u, "WaypointList"),
+                "utt" => (1u, "TriggerList"),
+                "uts" => (6u, "SoundList"),
                 "uti" => (0u, "List"),
                 _ => throw new InvalidOperationException("can't place a " + bp.Type),
             };

@@ -12,8 +12,11 @@ public class BeamModelLayoutTests
     {
         var model = new ModelData();
         model.Parts.Add(new ModelPart { Name = "root", Parent = -1, Position = new(5, 0, 0) });
-        model.Parts.Add(new ModelPart { Name = "offset", Parent = 0, Position = new(1, 2, 3),
-            Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, MathF.PI / 2) });
+        model.Parts.Add(new ModelPart
+        {
+            Name = "offset", Parent = 0, Position = new(1, 2, 3),
+            Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, MathF.PI / 2)
+        });
         var marker = new EmitterData { Update = "Fountain" };
         model.Parts.Add(new ModelPart { Name = "marker", Parent = 1, Position = new(2, 0, 0), Emitter = marker });
         model.Parts.Add(new ModelPart { Name = "bolt", Parent = 0, Emitter = new() { Update = "Lightning" } });

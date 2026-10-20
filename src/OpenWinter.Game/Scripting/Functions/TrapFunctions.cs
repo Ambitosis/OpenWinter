@@ -29,7 +29,8 @@ static class TrapFunctions
     [NwFunc("SetTrapRecoverable")] static object? SetRecoverable(Call c) { if (Trap(c, 0) is { } t) { t.Trap.Recoverable = c.I(1) != 0; Changed(c); } return null; }
     [NwFunc("GetTrapActive")] static object? Active(Call c) => Trap(c, 0) is { } t ? (t.Trap.Active ? 1 : 0) : 1;
     [NwFunc("SetTrapActive")] static object? SetActive(Call c) { if (Trap(c, 0) is { } t) { t.Trap.Active = c.I(1) != 0; Changed(c); } return null; }
-    [NwFunc("GetTrapCreator")] static object? Creator(Call c) =>
+    [NwFunc("GetTrapCreator")]
+    static object? Creator(Call c) =>
         Trap(c, 0) is { } t && c.World.Get(t.Trap.Creator) != null ? t.Trap.Creator : GameObject.InvalidId;
     [NwFunc("GetTrapKeyTag")] static object? KeyTag(Call c) => Trap(c, 0)?.Trap.KeyTag ?? "";
     [NwFunc("SetTrapKeyTag")] static object? SetKeyTag(Call c) { if (Trap(c, 0) is { } t) t.Trap.KeyTag = c.S(1); return null; }
@@ -45,12 +46,14 @@ static class TrapFunctions
     }
 
     // Flagging doesn't count: a flagged trap is seen by everyone, but GetTrapDetectedBy stays FALSE (trap_disarm FLAG).
-    [NwFunc("GetTrapDetectedBy")] static object? DetectedBy(Call c) =>
+    [NwFunc("GetTrapDetectedBy")]
+    static object? DetectedBy(Call c) =>
         Trap(c, 0) is { } t && t.Trap.DetectedBy.Contains(c.O(1)) ? 1 : 0;
 
     // TRUE when the object can hold a trap and the detector is a creature, unless clearing a trap it hadn't detected.
     // SetTrapDetectedBy doesn't change GetLastTrapDetected.
-    [NwFunc("SetTrapDetectedBy")] static object? SetDetectedBy(Call c)
+    [NwFunc("SetTrapDetectedBy")]
+    static object? SetDetectedBy(Call c)
     {
         if (c.Obj(0) is not ITrappable t || c.Obj<Creature>(1) is not { } cr) return 0;
         bool detected = c.I(2) != 0;
@@ -59,12 +62,14 @@ static class TrapFunctions
         return 1;
     }
 
-    [NwFunc("GetLastTrapDetected")] static object? LastDetected(Call c) =>
+    [NwFunc("GetLastTrapDetected")]
+    static object? LastDetected(Call c) =>
         c.ObjOrSelf(0) is Creature cr && c.World.Get(cr.LastTrapDetected) != null ? cr.LastTrapDetected : GameObject.InvalidId;
 
     // The trap goes on the event queue: OnDisarm runs (GetLastDisarmed() = the caller) once the script is done, a trap
     // trigger is destroyed after it (trap_api disabled.*).
-    [NwFunc("SetTrapDisabled")] static object? Disable(Call c)
+    [NwFunc("SetTrapDisabled")]
+    static object? Disable(Call c)
     {
         if (c.Obj(0) is not { } o || o is not ITrappable { IsTrapped: true }) return null;
         var world = c.World;
@@ -73,7 +78,8 @@ static class TrapFunctions
         return null;
     }
 
-    [NwFunc("GetLastDisarmed")] static object? LastDisarmed(Call c)
+    [NwFunc("GetLastDisarmed")]
+    static object? LastDisarmed(Call c)
     {
         if (c.Self is not ITrappable t) return GameObject.InvalidId;
         uint id = c.Event.Obj("Disarmer");
@@ -81,7 +87,8 @@ static class TrapFunctions
         return c.World.Get(t.Trap.LastDisarmedBy) != null ? t.Trap.LastDisarmedBy : GameObject.InvalidId;
     }
 
-    [NwFunc("GetNearestTrapToObject")] static object? NearestTrap(Call c)
+    [NwFunc("GetNearestTrapToObject")]
+    static object? NearestTrap(Call c)
     {
         var target = c.ObjOrSelf(0);
         if (target?.Area is not { } area) return GameObject.InvalidId;
@@ -103,7 +110,8 @@ static class TrapFunctions
 
     // Fails (OBJECT_INVALID) below size 1.0 and for a type traps.2da lacks. The trigger is named after the trap
     // (traps.2da TrapName), faces 0 and has no creator.
-    [NwFunc("CreateTrapAtLocation")] static object? CreateAt(Call c)
+    [NwFunc("CreateTrapAtLocation")]
+    static object? CreateAt(Call c)
     {
         // int nTrapType, location lLocation, float fSize, string sTag, int nFaction, string sOnDisarmScript, string sOnTrapTriggeredScript
         int type = c.I(0);
@@ -115,7 +123,8 @@ static class TrapFunctions
     }
 
     // Only on doors and placeables without a trap already.
-    [NwFunc("CreateTrapOnObject")] static object? CreateOn(Call c)
+    [NwFunc("CreateTrapOnObject")]
+    static object? CreateOn(Call c)
     {
         // int nTrapType, object oObject, int nFaction, string sOnDisarmScript, string sOnTrapTriggeredScript
         if (c.Obj(1) is (Door or Placeable) and ITrappable { IsTrapped: false } && TrapSystem.IsTrapType(c.World, c.I(0)))

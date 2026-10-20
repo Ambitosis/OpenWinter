@@ -74,11 +74,11 @@ public partial class Cursors : Node
             {
                 var c = tint ?? Palette.Text;
                 for (int y = 0; y < glyph.GetHeight(); y++)
-                for (int x = 0; x < glyph.GetWidth(); x++)
-                {
-                    var p = glyph.GetPixel(x, y);
-                    glyph.SetPixel(x, y, new Color(c.R, c.G, c.B, p.A));
-                }
+                    for (int x = 0; x < glyph.GetWidth(); x++)
+                    {
+                        var p = glyph.GetPixel(x, y);
+                        glyph.SetPixel(x, y, new Color(c.R, c.G, c.B, p.A));
+                    }
                 img.BlendRect(glyph, new Rect2I(0, 0, glyph.GetWidth(), glyph.GetHeight()), new Vector2I(17, 17));
             }
         }
@@ -173,7 +173,11 @@ public partial class Cursors : Node
     {
         int bit = v.Kind switch
         {
-            ObjectKind.Creature => 1, ObjectKind.Item => 2, ObjectKind.Door => 8, ObjectKind.Placeable => 64, _ => 0,
+            ObjectKind.Creature => 1,
+            ObjectKind.Item => 2,
+            ObjectKind.Door => 8,
+            ObjectKind.Placeable => 64,
+            _ => 0,
         };
         return bit == 0 || (TargetTypes & bit) != 0;
     }

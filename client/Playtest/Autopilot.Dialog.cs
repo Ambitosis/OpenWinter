@@ -26,7 +26,7 @@ public partial class Autopilot
     /// <summary>Something the last speaker told the player to do (tutorials): attack them, rest, open a window.</summary>
     (string What, uint Speaker, string Name)? _instruction;
 
-    static readonly System.Text.RegularExpressions.Regex AttackMe = new(@"\b(attack|punch|hit|strike|fight)\b[^.!?]*\bme\b",System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    static readonly System.Text.RegularExpressions.Regex AttackMe = new(@"\b(attack|punch|hit|strike|fight)\b[^.!?]*\bme\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
     static readonly System.Text.RegularExpressions.Regex HitTarget = new(@"\b(hit|attack|shoot|strike|destroy)\b[^.!?]*\b(target|dummy|dummies)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     static readonly System.Text.RegularExpressions.Regex Ranged = new(@"\b(missile|ranged|bow|crossbow|sling|throw)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
@@ -77,8 +77,11 @@ public partial class Autopilot
             {
                 string action = todo.What switch
                 {
-                    "inventory" => Preferences.ActionCatalog.Inventory, "journal" => Preferences.ActionCatalog.Journal, "map" => Preferences.ActionCatalog.Map,
-                    "character" => Preferences.ActionCatalog.Character, _ => Preferences.ActionCatalog.Spellbook,
+                    "inventory" => Preferences.ActionCatalog.Inventory,
+                    "journal" => Preferences.ActionCatalog.Journal,
+                    "map" => Preferences.ActionCatalog.Map,
+                    "character" => Preferences.ActionCatalog.Character,
+                    _ => Preferences.ActionCatalog.Spellbook,
                 };
                 PressAction(action);
                 await Wait(1.5);

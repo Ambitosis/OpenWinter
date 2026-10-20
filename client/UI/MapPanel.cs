@@ -220,7 +220,7 @@ public partial class MapPanel : UiTheme.Window
                 else
                 {
                     if (_dragging && !_dragMoved && mb.ButtonIndex == MouseButton.Left && _view.PinAt(mb.Position) is var pin and >= 0)
-                        {
+                    {
                         if (_map.Pins[pin].Personal) EditPin(_map.Pins[pin]);
                         else GlideTo(_map.Pins[pin].Position);
                     }

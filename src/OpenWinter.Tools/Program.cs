@@ -1022,17 +1022,17 @@ switch (cmd)
             break;
         }
         foreach (var root in roots.Where(Directory.Exists))
-        foreach (var f in Directory.GetFiles(root, "*.bic", SearchOption.AllDirectories))
-        {
-            files++;
-            var g = Gff.Read(File.ReadAllBytes(f));
-            if (args.Contains("--bags"))
+            foreach (var f in Directory.GetFiles(root, "*.bic", SearchOption.AllDirectories))
             {
-                // Only what is inside container items (bags, boxes).
-                foreach (var bag in g.GetList("ItemList").Where(e => e.GetList("ItemList").Count > 0)) Scan(bag.GetList("ItemList"), "bag", Path.GetFileName(f));
+                files++;
+                var g = Gff.Read(File.ReadAllBytes(f));
+                if (args.Contains("--bags"))
+                {
+                    // Only what is inside container items (bags, boxes).
+                    foreach (var bag in g.GetList("ItemList").Where(e => e.GetList("ItemList").Count > 0)) Scan(bag.GetList("ItemList"), "bag", Path.GetFileName(f));
+                }
+                else Scan(g.GetList("ItemList"), "inventory", Path.GetFileName(f));
             }
-            else Scan(g.GetList("ItemList"), "inventory", Path.GetFileName(f));
-        }
         Console.WriteLine($"{files} characters: max PosX {maxX}, max PosY {maxY}, right edge {maxRight}, bottom edge {maxBottom}, overlaps {overlaps}");
         Console.WriteLine("items per row: " + string.Join(" ", rows.Select(kv => $"{kv.Key}:{kv.Value}")));
         // An item never straddles two pages, so the page height is one no item crosses.

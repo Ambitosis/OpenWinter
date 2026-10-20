@@ -20,27 +20,32 @@ public static class CassowaryFunctions
     /// <summary>Script floats can't hold CASSOWARY_STRENGTH_REQUIRED exactly; snap it back.</summary>
     static double Strength(float f) => Math.Abs(f - CassowarySolver.Required) < 1000 ? CassowarySolver.Required : f;
 
-    [NwFunc("GetLocalCassowary")] static object? GetLocal(Call c) =>
+    [NwFunc("GetLocalCassowary")]
+    static object? GetLocal(Call c) =>
         c.Obj(0)?.LocalCassowaries.GetValueOrDefault(c.S(1)) ?? new Cassowary();
-    [NwFunc("SetLocalCassowary")] static object? SetLocal(Call c)
+    [NwFunc("SetLocalCassowary")]
+    static object? SetLocal(Call c)
     {
         if (c.Obj(0) is { } o) o.LocalCassowaries[c.S(1)] = c.C(2);
         return null;
     }
-    [NwFunc("DeleteLocalCassowary")] static object? DeleteLocal(Call c)
+    [NwFunc("DeleteLocalCassowary")]
+    static object? DeleteLocal(Call c)
     {
         c.Obj(0)?.LocalCassowaries.Remove(c.S(1));
         return null;
     }
 
-    [NwFunc("CassowaryReset")] static object? Reset(Call c)
+    [NwFunc("CassowaryReset")]
+    static object? Reset(Call c)
     {
         var h = c.C(0);
         Solver(h).Reset();
         h.Values.Clear();
         return null;
     }
-    [NwFunc("CassowaryConstrain")] static object? Constrain(Call c)
+    [NwFunc("CassowaryConstrain")]
+    static object? Constrain(Call c)
     {
         var h = c.C(0);
         var s = Solver(h);
@@ -48,7 +53,8 @@ public static class CassowaryFunctions
         Sync(h, s);
         return err;
     }
-    [NwFunc("CassowarySuggestValue")] static object? Suggest(Call c)
+    [NwFunc("CassowarySuggestValue")]
+    static object? Suggest(Call c)
     {
         var h = c.C(0);
         var s = Solver(h);

@@ -67,7 +67,9 @@ public static class ItemPropertyRules
     /// <summary>iprp_damagetype.2da row (IP_CONST_DAMAGETYPE_*) to DAMAGE_TYPE_* bits (physical = all three weapon types).</summary>
     public static int DamageTypeBits(int iprpRow) => iprpRow switch
     {
-        0 => 1, 1 => 2, 2 => 4,
+        0 => 1,
+        1 => 2,
+        2 => 4,
         4 => 7,
         >= 5 and <= 13 => 8 << (iprpRow - 5),
         _ => 0,
@@ -85,8 +87,17 @@ public static class ItemPropertyRules
         if (ip.Type != k["ITEM_PROPERTY_IMMUNITY_MISCELLANEOUS"]) return false;
         string misc = ip.SubType switch
         {
-            0 => "SNEAK_ATTACK", 1 => "NEGATIVE_LEVEL", 2 => "MIND_SPELLS", 3 => "POISON", 4 => "DISEASE",
-            5 => "FEAR", 6 => "KNOCKDOWN", 7 => "PARALYSIS", 8 => "CRITICAL_HIT", 9 => "DEATH", _ => "",
+            0 => "SNEAK_ATTACK",
+            1 => "NEGATIVE_LEVEL",
+            2 => "MIND_SPELLS",
+            3 => "POISON",
+            4 => "DISEASE",
+            5 => "FEAR",
+            6 => "KNOCKDOWN",
+            7 => "PARALYSIS",
+            8 => "CRITICAL_HIT",
+            9 => "DEATH",
+            _ => "",
         };
         if (misc.Length == 0) return false;
         if (ip.SubType == 1 && immunityType == k["IMMUNITY_TYPE_ABILITY_DECREASE"]) return true;

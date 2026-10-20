@@ -22,10 +22,12 @@ static class LocalFunctions
     [NwFunc("GetLocalFloat")] static object? GetFloat(Call c) => NwnxPop(c, Nwnx.NwnxType.Float, out var n) ? n : Vars(c, 0)?.Floats.GetValueOrDefault(c.S(1)) ?? 0f;
     [NwFunc("GetLocalString")] static object? GetString(Call c) => NwnxPop(c, Nwnx.NwnxType.String, out var n) ? n : Vars(c, 0)?.Strings.GetValueOrDefault(c.S(1)) ?? "";
     /// <summary>The stored id even once that object is gone (it is then simply not valid).</summary>
-    [NwFunc("GetLocalObject")] static object? GetObject(Call c) =>
+    [NwFunc("GetLocalObject")]
+    static object? GetObject(Call c) =>
         NwnxPop(c, Nwnx.NwnxType.Object, out var n) ? n : Vars(c, 0)?.Objects.GetValueOrDefault(c.S(1), GameObject.InvalidId) ?? GameObject.InvalidId;
     [NwFunc("GetLocalLocation")] static object? GetLocation(Call c) => NwnxPop(c, Nwnx.NwnxType.Location, out var n) ? n : Vars(c, 0)?.Locations.GetValueOrDefault(c.S(1), Location.Invalid) ?? Location.Invalid;
-    [NwFunc("GetLocalJson")] static object? GetJson(Call c) =>
+    [NwFunc("GetLocalJson")]
+    static object? GetJson(Call c) =>
         NwnxPop(c, Nwnx.NwnxType.Json, out var n) ? n ?? JsonValue.Null : Vars(c, 0)?.Jsons.GetValue(c.S(1)) ?? JsonValue.Null;
 
     [NwFunc("SetLocalInt")] static object? SetInt(Call c) { if (NwnxPush(c, Nwnx.NwnxValue.Int(c.I(2)))) return null; if (Vars(c, 0) is { } v) v.Ints[c.S(1)] = c.I(2); return null; }
@@ -43,7 +45,8 @@ static class LocalFunctions
     [NwFunc("DeleteLocalJson")] static object? DelJson(Call c) { Vars(c, 0)?.Jsons.Remove(c.S(1)); return null; }
 
     // EE: enumerate locals (GetLocalVariableCount / GetLocalVariableByPosition use the "struct" helpers in nw_inc_*).
-    [NwFunc("GetLocalVariableCount")] static object? Count(Call c)
+    [NwFunc("GetLocalVariableCount")]
+    static object? Count(Call c)
     {
         var v = Vars(c, 0);
         return v == null ? 0 : v.Ints.Count + v.Floats.Count + v.Strings.Count + v.Objects.Count + v.Locations.Count + v.Jsons.Count;

@@ -348,7 +348,12 @@ public static class BarCatalog
     /// <summary>The voice-chat command each associate order sends (sound-set slots, as the Issue Command ring).</summary>
     public static int AssociateVoice(string command) => command switch
     {
-        "attacknearest" => 0, "follow" => 22, "standground" => 10, "guardme" => 9, "healme" => 4, _ => -1,
+        "attacknearest" => 0,
+        "follow" => 22,
+        "standground" => 10,
+        "guardme" => 9,
+        "healme" => 4,
+        _ => -1,
     };
 
     public static string EmoteName(string key) => OpenWinter.Content.Emotes.Find(key)?.Name ?? key;
@@ -357,7 +362,11 @@ public static class BarCatalog
     /// <summary>Kit glyph for a mode without a game icon.</summary>
     public static string ModeGlyph(int mode) => mode switch
     {
-        0 => "search", 1 => "stealth", 2 => "shield", 10 => "magic", _ => "aura",
+        0 => "search",
+        1 => "stealth",
+        2 => "shield",
+        10 => "magic",
+        _ => "aura",
     };
 }
 
@@ -615,7 +624,7 @@ public sealed class AbilityUser
                     return new SlotLook((item?.Name ?? mainDescription?.Name ?? s.Name) + " / " + (secondary?.Name ?? description?.Name ?? "Item"),
                         item?.Icon ?? mainDescription?.Icon ?? s.ItemIcons, "bag", -1, equipped, available, "Paired equipment",
                         !available ? "An item in the pair is missing" : equipped ? "Equipped · click to take off both" : "Click to equip both")
-                        { SecondaryIcons = secondary?.Icon ?? description?.Icon ?? [] };
+                    { SecondaryIcons = secondary?.Icon ?? description?.Icon ?? [] };
                 }
                 if (item == null && (s.ItemHasPower || s.Prop >= 0) && Book.Loaded)
                     return new SlotLook(s.Name.Length > 0 ? s.Name : "Item", s.ItemIcons, "potion", 0, false, false, "Item", "None left");

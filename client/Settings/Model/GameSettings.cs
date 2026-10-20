@@ -150,7 +150,13 @@ public sealed class AudioSettings
 
     public float Get(string bus) => bus switch
     {
-        "Master" => Master, "Music" => Music, "Ambient" => Ambient, "Effects" => Effects, "Voice" => Voice, "Interface" => Interface, _ => 1f,
+        "Master" => Master,
+        "Music" => Music,
+        "Ambient" => Ambient,
+        "Effects" => Effects,
+        "Voice" => Voice,
+        "Interface" => Interface,
+        _ => 1f,
     };
 
     public void Set(string bus, float v)

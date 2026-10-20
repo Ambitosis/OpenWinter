@@ -39,7 +39,8 @@ public sealed class ContentSync : IDisposable
     };
     static string Extension(ContentKind kind) => kind switch
     {
-        ContentKind.Hak => ".hak", ContentKind.Tlk => ".tlk",
+        ContentKind.Hak => ".hak",
+        ContentKind.Tlk => ".tlk",
         ContentKind.ModuleResources => ".erf",
         _ => throw new InvalidDataException("Unknown content kind")
     };

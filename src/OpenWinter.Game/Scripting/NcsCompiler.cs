@@ -42,7 +42,9 @@ public static class NcsCompiler
             var ins = code[i];
             switch (ins.Op)
             {
-                case 0x1D: case 0x1F: case 0x25:
+                case 0x1D:
+                case 0x1F:
+                case 0x25:
                     leaders[program.IndexAt(ins.A)] = true;
                     leaders[i + 1] = true;
                     break;
@@ -116,7 +118,8 @@ public static class NcsCompiler
                 case 0x08: Call(il, "IncOr"); break;
                 case 0x09: Call(il, "ExcOr"); break;
                 case 0x0A: Call(il, "BoolAnd"); break;
-                case 0x0B: case 0x0C:
+                case 0x0B:
+                case 0x0C:
                     il.Emit(OpCodes.Ldarg_0);
                     il.Emit(OpCodes.Ldc_I4, (int)ins.Type);
                     il.Emit(OpCodes.Ldc_I4, ins.A);

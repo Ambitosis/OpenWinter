@@ -70,7 +70,7 @@ public sealed class GroundInventoryPlacementTests
             Client.Send(new ClientRequestMessage { Kind = kind, Json = JsonSerializer.Serialize(data) }.Write()); Tick();
         }
         public void Drop(Item item, Vector3 point, uint? area = null) => Request("drop", new
-            { item = item.Id, area = area ?? Area.Id, position = new[] { point.X, point.Y, point.Z } });
+        { item = item.Id, area = area ?? Area.Id, position = new[] { point.X, point.Y, point.Z } });
     }
 
     [DataFact]

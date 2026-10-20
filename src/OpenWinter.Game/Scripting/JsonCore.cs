@@ -99,7 +99,7 @@ public static class JsonCore
         foreach (char ch in s)
             if (ch >= 0x80) goto convert;
         return s;
-        convert:
+    convert:
         var bytes = Aurora.Text.Windows1252.GetBytes(s);
         var sb = new StringBuilder(bytes.Length);
         foreach (var b in bytes) sb.Append((char)b);
@@ -112,7 +112,7 @@ public static class JsonCore
         foreach (char ch in s)
             if (ch >= 0x80) goto convert;
         return s;
-        convert:
+    convert:
         var bytes = new List<byte>(s.Length);
         for (int i = 0; i < s.Length; i++)
         {

@@ -152,7 +152,7 @@ public class QuickbarPersistenceTests
         Assert.NotEqual(wrong.Id, replacement.Id);
         // Explicitly placing another stack on the bar is the only way to replace the exhausted binding.
         ClientRequests.Handle(world, restored, "quickbar-set", JsonSerializer.Serialize(new
-            { index = 24, slot = new QuickbarSlot { Kind = "item", Item = replacement.Id } }));
+        { index = 24, slot = new QuickbarSlot { Kind = "item", Item = replacement.Id } }));
         Assert.Equal(replacement.Id, QuickbarRequests.Read(world, restored, _ => { })![24]!.Item);
     }
 
@@ -165,7 +165,7 @@ public class QuickbarPersistenceTests
         var original = QuickbarRequests.Read(world, pc, _ => { })![6]!;
         var potion = world.Get<Item>(original.Item)!;
         ClientRequests.Handle(world, pc, "quickbar-set", JsonSerializer.Serialize(new
-            { index = 24, slot = new QuickbarSlot { Kind = "item", Item = potion.Id, Prop = original.Prop } }));
+        { index = 24, slot = new QuickbarSlot { Kind = "item", Item = potion.Id, Prop = original.Prop } }));
         var before = QuickbarRequests.Read(world, pc, _ => { })![24]!;
         var selected = potion.Properties[before.Prop];
         potion.Identified = !potion.Identified;

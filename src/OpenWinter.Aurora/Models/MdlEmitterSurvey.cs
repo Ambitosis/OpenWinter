@@ -123,7 +123,13 @@ public sealed partial class MdlBinaryReader
 
     static string MeshControllerName(int type) => type switch
     {
-        8 => "position", 20 => "orientation", 36 => "scale", 100 => "selfillumcolor", 128 => "alpha", 132 => "alpha", _ => "ctrl" + type,
+        8 => "position",
+        20 => "orientation",
+        36 => "scale",
+        100 => "selfillumcolor",
+        128 => "alpha",
+        132 => "alpha",
+        _ => "ctrl" + type,
     };
 
     static string ControllerName(int type) => EmitterControllerNames.TryGetValue(type, out var n) ? n : "ctrl" + type;

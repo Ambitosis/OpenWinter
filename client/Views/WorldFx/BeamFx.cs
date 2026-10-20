@@ -175,8 +175,11 @@ public partial class BeamFx : Node
         if (stream == null) return null;
         // Native cold-beam PCM preserves the installed waveform. Godot's default
         // distance low-pass changes it; disable that extra filtering for beams.
-        var player = new AudioStreamPlayer3D { Stream = stream, UnitSize = 6, MaxDistance = 40,
-            AttenuationFilterCutoffHz = 20500, Bus = OpenWinter.Client.Preferences.AudioBuses.Effects3D };
+        var player = new AudioStreamPlayer3D
+        {
+            Stream = stream, UnitSize = 6, MaxDistance = 40,
+            AttenuationFilterCutoffHz = 20500, Bus = OpenWinter.Client.Preferences.AudioBuses.Effects3D
+        };
         if (oneShot) player.Finished += player.QueueFree;
         parent.AddChild(player);
         player.Play();

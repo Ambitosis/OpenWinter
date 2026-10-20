@@ -24,12 +24,12 @@ public static class EmitterBuilder
     /// </summary>
     public static EmitterOptions OptionsFor(ModelPart part, IEnumerable<ModelAnimation>? animations, MaterialFactory materials,
         Func<string, ModelData?>? models, bool warm = false, bool burstUnkeyed = false) => new()
-    {
-        Range = EmitterRange.Of(part.Emitter!, part.Name, animations),
-        Warm = warm,
-        BurstUnkeyed = burstUnkeyed,
-        Chunk = models == null ? null : name => ChunkMesh(name, materials, models),
-    };
+        {
+            Range = EmitterRange.Of(part.Emitter!, part.Name, animations),
+            Warm = warm,
+            BurstUnkeyed = burstUnkeyed,
+            Chunk = models == null ? null : name => ChunkMesh(name, materials, models),
+        };
 
     static readonly Dictionary<string, (Mesh, Material?)?> Chunks = new(StringComparer.OrdinalIgnoreCase);
 

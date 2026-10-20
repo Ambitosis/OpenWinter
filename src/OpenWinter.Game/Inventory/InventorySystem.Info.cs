@@ -45,7 +45,12 @@ public sealed partial class InventorySystem
                 damage = $"{dice}d{die}" + (enh > 0 ? $" +{enh}" : "");
                 damageType = bi.GetInt(item.BaseItem, "WeaponType") switch
                 {
-                    1 => "Piercing", 2 => "Bludgeoning", 3 => "Slashing", 4 => "Piercing / Slashing", 5 => "Bludgeoning / Piercing", _ => "",
+                    1 => "Piercing",
+                    2 => "Bludgeoning",
+                    3 => "Slashing",
+                    4 => "Piercing / Slashing",
+                    5 => "Bludgeoning / Piercing",
+                    _ => "",
                 };
                 int threat = Math.Max(1, bi.GetInt(item.BaseItem, "CritThreat", 1)), mult = Math.Max(2, bi.GetInt(item.BaseItem, "CritHitMult", 2));
                 critical = (threat > 1 ? $"{21 - threat}–20" : "20") + $" / ×{mult}";

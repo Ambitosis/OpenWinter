@@ -21,7 +21,7 @@ public class ProjectileNearBoundaryTests
         };
         for (int p = 0; p < paths.Length; p++)
             for (int d = 0; d < distances.Length; d++)
-                Assert.InRange(SpellTable.ProjectileFlightTime(distances[d], paths[p]), observed[p,d] - .09f, observed[p,d] + .09f);
+                Assert.InRange(SpellTable.ProjectileFlightTime(distances[d], paths[p]), observed[p, d] - .09f, observed[p, d] + .09f);
     }
 
     [Fact]

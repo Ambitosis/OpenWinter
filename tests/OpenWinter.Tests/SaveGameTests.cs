@@ -422,8 +422,11 @@ public sealed class SaveGameTests : IDisposable
             OpenWinter.Game.Rules.CreatureRules.EnsureInit(world, c);
             return c;
         }
-        Effect Curse(bool ignore = false) => new() { Type = NwRules.EffectCurse, IgnoreImmunity = ignore,
-            Ints = { [0] = 2, [1] = 2, [2] = 2, [3] = 2, [4] = 2, [5] = 2 } };
+        Effect Curse(bool ignore = false) => new()
+        {
+            Type = NwRules.EffectCurse, IgnoreImmunity = ignore,
+            Ints = { [0] = 2, [1] = 2, [2] = 2, [3] = 2, [4] = 2, [5] = 2 }
+        };
         Effect Immunity() => new() { Type = NwRules.EffectImmunity, Ints = { [0] = NwRules.ImmunityAbilityDecrease } };
         var expired = Target("save_expired_immunity", 5);
         var late = Target("save_late_immunity", 10);

@@ -77,14 +77,28 @@ public sealed class GffStruct
 
     public long GetInt(string label, long fallback = 0) => Field(label)?.Value switch
     {
-        byte v => v, sbyte v => v, ushort v => v, short v => v, uint v => v, int v => v,
-        ulong v => (long)v, long v => v, float v => (long)v, double v => (long)v,
+        byte v => v,
+        sbyte v => v,
+        ushort v => v,
+        short v => v,
+        uint v => v,
+        int v => v,
+        ulong v => (long)v,
+        long v => v,
+        float v => (long)v,
+        double v => (long)v,
         _ => fallback,
     };
 
     public float GetFloat(string label, float fallback = 0f) => Field(label)?.Value switch
     {
-        float v => v, double v => (float)v, byte v => v, short v => v, int v => v, uint v => v, ushort v => v,
+        float v => v,
+        double v => (float)v,
+        byte v => v,
+        short v => v,
+        int v => v,
+        uint v => v,
+        ushort v => v,
         _ => fallback,
     };
 

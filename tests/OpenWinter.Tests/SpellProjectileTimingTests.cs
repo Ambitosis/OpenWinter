@@ -19,7 +19,7 @@ public class SpellProjectileTimingTests
             (.25f, "homing", .016f), (.75f, "homing", .332f),
             (1.5f, "ballistic", .465f), (.5f, "accelerating", .008f),
         })
-            Assert.InRange(SpellTable.ProjectileFlightTime(distance, path), measured-.08f, measured+.08f);
+            Assert.InRange(SpellTable.ProjectileFlightTime(distance, path), measured - .08f, measured + .08f);
     }
 
     [Fact]

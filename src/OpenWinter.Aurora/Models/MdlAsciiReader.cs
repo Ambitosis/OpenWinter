@@ -82,7 +82,7 @@ public sealed partial class MdlAsciiReader
                 case "donemodel": goto done;
             }
         }
-        done:
+    done:
         if (m.AnimationScale <= 0) m.AnimationScale = 1f;
         Resolve(m, raw);
         return m;
@@ -216,8 +216,13 @@ public sealed partial class MdlAsciiReader
         e.Update = Str("update", Sel("update_sel") switch { 2 => "Explosion", 3 => "Single", 4 => "Lightning", _ => "Fountain" });
         e.Render = Str("render", Sel("render_sel") switch
         {
-            2 => "Linked", 3 => "Billboard_to_Local_Z", 4 => "Billboard_to_World_Z", 5 => "Aligned_to_World_Z",
-            6 => "Aligned_to_Particle_Dir", 7 => "Motion_Blur", _ => "Normal",
+            2 => "Linked",
+            3 => "Billboard_to_Local_Z",
+            4 => "Billboard_to_World_Z",
+            5 => "Aligned_to_World_Z",
+            6 => "Aligned_to_Particle_Dir",
+            7 => "Motion_Blur",
+            _ => "Normal",
         });
         e.Blend = Str("blend", Sel("blend_sel") switch { 2 => "Punch-Through", 3 => "Lighten", _ => "Normal" });
         e.Chunk = Str("chunkName", "");

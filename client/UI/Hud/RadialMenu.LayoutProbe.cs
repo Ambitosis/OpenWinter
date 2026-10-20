@@ -17,8 +17,11 @@ public partial class RadialMenu
         var interaction = new Interaction { Session = session };
         var casting = new SpellCasting { Session = session, Interaction = interaction };
         var book = new AbilityBook(session);
-        var menu = new RadialMenu { Session = session, Casting = casting, _book = book,
-            _user = new AbilityUser { Session = session, Casting = casting, Book = book } };
+        var menu = new RadialMenu
+        {
+            Session = session, Casting = casting, _book = book,
+            _user = new AbilityUser { Session = session, Casting = casting, Book = book }
+        };
         var target = new ObjectView { ObjectId = 42 };
         long selected = -1;
         interaction.MenuChosen = (id, obj) => { if (obj == target) selected = id; };

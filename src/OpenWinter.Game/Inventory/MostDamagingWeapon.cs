@@ -140,7 +140,10 @@ public static class MostDamagingWeapon
 
     static int PhysicalBits(int weaponType) => weaponType switch
     {
-        1 => CombatK.DamagePiercing, 3 => CombatK.DamageSlashing, 4 => CombatK.DamageSlashing, 5 => CombatK.DamageBludgeoning,
+        1 => CombatK.DamagePiercing,
+        3 => CombatK.DamageSlashing,
+        4 => CombatK.DamageSlashing,
+        5 => CombatK.DamageBludgeoning,
         _ => CombatK.DamageBludgeoning,
     };
 

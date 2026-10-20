@@ -111,8 +111,11 @@ public partial class ClassicLoading : Control
                 float extra = Math.Max(0, right - left - (end - left)) * Math.Clamp(_shown, 0, 1);
                 // Three authored quads: fixed-width end caps surround a nearly zero-width
                 // centre. Move only the right half; scaling the whole mesh inflates the caps.
-                var stretched = fill with { Points = fill.Points.Select(p =>
-                    new Vector2(p.X > middle ? p.X + extra : p.X, p.Y)).ToArray() };
+                var stretched = fill with
+                {
+                    Points = fill.Points.Select(p =>
+                    new Vector2(p.X > middle ? p.X + extra : p.X, p.Y)).ToArray()
+                };
                 GuiDraw.Model(this, _assets, new GuiModel.Pose([stretched], new(), new Rect2()), barOrigin, Colors.White);
             }
         }

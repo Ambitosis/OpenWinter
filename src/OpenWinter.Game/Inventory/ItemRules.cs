@@ -97,7 +97,15 @@ public sealed class ItemRules
     {
         // IPRP_DAMAGECOST rows: 1..5 flat, then dice; approximate the average.
         <= 5 => costValue,
-        6 => 3.5f, 7 => 7, 8 => 10.5f, 9 => 14, 10 => 6, 11 => 4.5f, 12 => 4, 13 => 9, 14 => 5.5f,
+        6 => 3.5f,
+        7 => 7,
+        8 => 10.5f,
+        9 => 14,
+        10 => 6,
+        11 => 4.5f,
+        12 => 4,
+        13 => 9,
+        14 => 5.5f,
         _ => costValue - 10,
     };
 
@@ -145,7 +153,10 @@ public sealed class ItemRules
         if (item.BaseItem == BaseItemArmor)
             return BaseAC(item) switch
             {
-                <= 1 => "it_materialcloth", <= 3 => "it_armorleather", <= 5 => "it_armorchain", _ => "it_armorplate",
+                <= 1 => "it_materialcloth",
+                <= 3 => "it_armorleather",
+                <= 5 => "it_armorchain",
+                _ => "it_armorplate",
             };
         int row = BaseItems.GetInt(item.BaseItem, "InvSoundType", -1);
         return _world.Resources.TwoDA("inventorysnds").Get(row, "InventorySound");

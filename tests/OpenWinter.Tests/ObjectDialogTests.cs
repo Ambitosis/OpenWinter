@@ -40,11 +40,11 @@ public sealed class ObjectDialogTests
             var resources = new ResMan(TestData.Paths); resources.Add(memory); resources.AddBaseGame(includeUserOverride: false);
             World = new World(resources); World.Register(World.Module); World.EnableScripts();
             Area = new AreaLoader(World).Load("objectdialog"); World.Areas.Add(Area);
-            Area.Walkmesh.Add(new(0,0,0), new(40,0,0), new(40,40,0), 3, true);
-            Area.Walkmesh.Add(new(0,0,0), new(40,40,0), new(0,40,0), 3, true);
+            Area.Walkmesh.Add(new(0, 0, 0), new(40, 0, 0), new(40, 40, 0), 3, true);
+            Area.Walkmesh.Add(new(0, 0, 0), new(40, 40, 0), new(0, 40, 0), 3, true);
             var (_, server) = LoopbackConnection.CreatePair();
             Pc = new Creature { Tag = "PC", Player = new PlayerSession { Connection = server } };
-            World.AddToArea(Pc, Area, new Vector3(1,1,0), 0, exact: true);
+            World.AddToArea(Pc, Area, new Vector3(1, 1, 0), 0, exact: true);
             Conversations = World.System<ConversationService>();
             Script("hook", "void main(){SetLocalInt(OBJECT_SELF,\"count\",GetLocalInt(OBJECT_SELF,\"count\")+1);SetLocalInt(OBJECT_SELF,\"speaker\",GetIsObjectValid(GetLastSpeaker()));SetLocalInt(OBJECT_SELF,\"pcspeaker\",GetIsObjectValid(GetPCSpeaker()));if(GetLocalInt(OBJECT_SELF,\"begin\"))SetLocalInt(OBJECT_SELF,\"began\",BeginConversation());}");
         }

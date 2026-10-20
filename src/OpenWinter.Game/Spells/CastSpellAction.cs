@@ -96,14 +96,20 @@ public sealed class CastSpellAction : GameAction
                 // that cap; this is deliberately not an earliest-ever deadline.
                 if (_selfConjureLifetime && previousConjure != _conjureSeconds)
                     world.System<SpellSystem>().Notify("spell-conjure-lifetime", owner,
-                        new { spell = Spell, presentation = _presentationId,
-                            remaining = Math.Max(0, Math.Min(_initialConjureLifetime, _round) - _sinceConjure) });
+                        new
+                        {
+                            spell = Spell, presentation = _presentationId,
+                            remaining = Math.Max(0, Math.Min(_initialConjureLifetime, _round) - _sinceConjure)
+                        });
                 // The measured self-cast body pose follows current recovery, independently
                 // of the initial cap on hand models. Do not restart its release movement.
                 if (_selfConjureLifetime && _phase is Phase.Cast or Phase.Recover && previousConjure != _conjureSeconds)
                     world.System<SpellSystem>().Notify("spell-cast-timing", owner,
-                        new { spell = Spell, presentation = _presentationId,
-                            remaining = Math.Max(0, _round - _sinceConjure) });
+                        new
+                        {
+                            spell = Spell, presentation = _presentationId,
+                            remaining = Math.Max(0, _round - _sinceConjure)
+                        });
             }
         }
         for (int guard = 0; guard < 8; guard++)
@@ -508,7 +514,7 @@ public sealed class CastSpellAction : GameAction
 
     bool StartCast(World world, GameObject owner)
     {
-        if (!CanAct(world, owner)) return Lose(world, owner, "interrupted") ;
+        if (!CanAct(world, owner)) return Lose(world, owner, "interrupted");
         // A target destroyed while the caster conjured: the cast stops as conjuring ends, with nothing spent
         // (cast_provoke selfat: the victim destroyed mid-conjure took no impact).
         if (Target != GameObject.InvalidId && world.Get(Target) == null) return false;

@@ -10,32 +10,38 @@ static class CreatureAbilityFunctions
 
     // ---------------------------------------------------------------- feats
 
-    [NwFunc("GetHasFeat")] static object? HasFeat(Call c) =>
+    [NwFunc("GetHasFeat")]
+    static object? HasFeat(Call c) =>
         Cr(c, 1) is { } cr && CreatureRules.HasFeat(c.World, cr, c.I(0), c.I(2) != 0) ? 1 : 0;
 
-    [NwFunc("GetFeatRemainingUses")] static object? FeatUses(Call c) =>
+    [NwFunc("GetFeatRemainingUses")]
+    static object? FeatUses(Call c) =>
         Cr(c, 1) is { } cr ? CreatureRules.RemainingFeatUses(c.World, cr, c.I(0)) : 0;
 
-    [NwFunc("DecrementRemainingFeatUses")] static object? DecFeat(Call c)
+    [NwFunc("DecrementRemainingFeatUses")]
+    static object? DecFeat(Call c)
     {
         if (Cr(c, 0) is { } cr) CreatureRules.AdjustFeatUses(c.World, cr, c.I(1), -1);
         return null;
     }
 
-    [NwFunc("IncrementRemainingFeatUses")] static object? IncFeat(Call c)
+    [NwFunc("IncrementRemainingFeatUses")]
+    static object? IncFeat(Call c)
     {
         if (Cr(c, 0) is { } cr) CreatureRules.AdjustFeatUses(c.World, cr, c.I(1), +1);
         return null;
     }
 
-    [NwFunc("GetHasFeatEffect")] static object? HasFeatEffect(Call c)
+    [NwFunc("GetHasFeatEffect")]
+    static object? HasFeatEffect(Call c)
     {
         if (c.Obj(1) is not { } o) return 0;
         int spell = c.World.Resources.TwoDA("feat").GetInt(c.I(0), "SPELLID", -1);
         return spell >= 0 && CreatureRules.Effects(o).Any(e => e.SpellId == spell) ? 1 : 0;
     }
 
-    [NwFunc("ActionUseFeat")] static object? UseFeat(Call c)
+    [NwFunc("ActionUseFeat")]
+    static object? UseFeat(Call c)
     {
         // int nFeat, object oTarget, int nSubFeat, location lTarget
         if (c.Self is Creature self && self.Commandable)
@@ -46,23 +52,27 @@ static class CreatureAbilityFunctions
     // ---------------------------------------------------------------- skills
 
     /// <summary>Only skills one of the creature's classes can take count, even with ranks (a fighter has no Perform), as in the original.</summary>
-    [NwFunc("GetHasSkill")] static object? HasSkill(Call c) =>
+    [NwFunc("GetHasSkill")]
+    static object? HasSkill(Call c) =>
         Cr(c, 1) is { } cr && CreatureRules.HasSkill(c.World, cr, c.I(0))
         && cr.Classes.Any(k => k.Level > 0 && Progression.ProgressionRules.CanBuySkill(c.World, k.Class, c.I(0))) ? 1 : 0;
 
     // A skill the creature can't use (untrained-only with no ranks) reads 0 in the original, not -1.
-    [NwFunc("GetSkillRank")] static object? SkillRank(Call c) => Cr(c, 1) is { } cr
+    [NwFunc("GetSkillRank")]
+    static object? SkillRank(Call c) => Cr(c, 1) is { } cr
         ? CreatureRules.HasSkill(c.World, cr, c.I(0)) || c.I(2) != 0 ? CreatureRules.SkillRank(c.World, cr, c.I(0), c.I(2) != 0) : 0
         : -1;
 
-    [NwFunc("GetIsSkillSuccessful")] static object? SkillCheck(Call c) =>
+    [NwFunc("GetIsSkillSuccessful")]
+    static object? SkillCheck(Call c) =>
         Cr(c, 0) is { } cr && CreatureRules.SkillCheck(c.World, cr, c.I(1), c.I(2)) ? 1 : 0;
 
     // ---------------------------------------------------------------- spells
 
     [NwFunc("GetHasSpell")] static object? HasSpell(Call c) => Cr(c, 1) is { } cr ? CreatureRules.SpellCount(c.World, cr, c.I(0)) : 0;
 
-    [NwFunc("DecrementRemainingSpellUses")] static object? DecSpell(Call c)
+    [NwFunc("DecrementRemainingSpellUses")]
+    static object? DecSpell(Call c)
     {
         if (Cr(c, 0) is { } cr) CreatureRules.SpendSpell(c.World, cr, c.I(1));
         return null;
@@ -70,10 +80,12 @@ static class CreatureAbilityFunctions
 
     [NwFunc("GetSpellLevelByClass")] static object? SpellLevel(Call c) => CreatureRules.SpellLevelForClass(c.World, c.I(0), c.I(1));
 
-    [NwFunc("GetSpellUsesLeft")] static object? SpellUsesLeft(Call c) =>
+    [NwFunc("GetSpellUsesLeft")]
+    static object? SpellUsesLeft(Call c) =>
         Cr(c, 0) is { } cr ? CreatureRules.SpellUsesLeft(c.World, cr, c.I(1), c.I(2), c.I(3), c.I(4)) : 0;
 
-    [NwFunc("ReadySpellLevel")] static object? ReadyLevel(Call c)
+    [NwFunc("ReadySpellLevel")]
+    static object? ReadyLevel(Call c)
     {
         if (Cr(c, 0) is { } cr) CreatureRules.ReadySpellLevel(c.World, cr, c.I(1), c.I(2, NwRules.ClassInvalid), c.I(3, 255));
         return null;
@@ -81,23 +93,27 @@ static class CreatureAbilityFunctions
 
     static CreatureClass? Class(Call c, Creature cr, int cls) => cr.Classes.FirstOrDefault(x => x.Class == cls);
 
-    [NwFunc("GetKnownSpellCount")] static object? KnownCount(Call c)
+    [NwFunc("GetKnownSpellCount")]
+    static object? KnownCount(Call c)
     {
         int lvl = c.I(2);
         return Cr(c, 0) is { } cr && Class(c, cr, c.I(1)) is { } cc && lvl >= 0 && lvl < 10 ? cc.KnownSpells[lvl].Count : 0;
     }
 
-    [NwFunc("GetKnownSpellId")] static object? KnownId(Call c)
+    [NwFunc("GetKnownSpellId")]
+    static object? KnownId(Call c)
     {
         int lvl = c.I(2), idx = c.I(3);
         if (Cr(c, 0) is not { } cr || Class(c, cr, c.I(1)) is not { } cc || lvl < 0 || lvl > 9) return -1;
         return idx >= 0 && idx < cc.KnownSpells[lvl].Count ? cc.KnownSpells[lvl][idx] : -1;
     }
 
-    [NwFunc("GetIsInKnownSpellList")] static object? InKnownList(Call c) =>
+    [NwFunc("GetIsInKnownSpellList")]
+    static object? InKnownList(Call c) =>
         Cr(c, 0) is { } cr && Class(c, cr, c.I(1)) is { } cc && cc.KnownSpells.Any(l => l.Contains(c.I(2))) ? 1 : 0;
 
-    [NwFunc("GetMemorizedSpellCountByLevel")] static object? MemCount(Call c) =>
+    [NwFunc("GetMemorizedSpellCountByLevel")]
+    static object? MemCount(Call c) =>
         Cr(c, 0) is { } cr ? CreatureRules.MemorizedSlotCount(c.World, cr, c.I(1), c.I(2)) : 0;
 
     /// <summary>A memorised slot (creature, class, level, index args), or null when the slot doesn't exist.</summary>
@@ -114,10 +130,12 @@ static class CreatureAbilityFunctions
     [NwFunc("GetMemorizedSpellId")] static object? MemId(Call c) => Slot(c) is { } s && s.Slot.Spell >= 0 ? s.Slot.Spell : -1;
     [NwFunc("GetMemorizedSpellReady")] static object? MemReady(Call c) => Slot(c) is { } s && s.Slot.Spell >= 0 ? (s.Slot.Ready ? 1 : 0) : -1;
     [NwFunc("GetMemorizedSpellMetaMagic")] static object? MemMeta(Call c) => Slot(c) is { } s && s.Slot.Spell >= 0 ? s.Slot.Meta : -1;
-    [NwFunc("GetMemorizedSpellIsDomainSpell")] static object? MemDomain(Call c) =>
+    [NwFunc("GetMemorizedSpellIsDomainSpell")]
+    static object? MemDomain(Call c) =>
         Slot(c) is { } s && s.Slot.Spell >= 0 ? (s.Creature.DomainSlots.Contains((s.ClassIndex, s.Level, s.Index)) ? 1 : 0) : -1;
 
-    [NwFunc("SetMemorizedSpell")] static object? SetMem(Call c)
+    [NwFunc("SetMemorizedSpell")]
+    static object? SetMem(Call c)
     {
         // object oCreature, int nClassType, int nSpellLevel, int nIndex, int nSpellId, int bReady, int nMetaMagic, int bIsDomainSpell
         if (Cr(c, 0) is not { } cr || !CreatureRules.EnsureSlot(c.World, cr, c.I(1), c.I(2), c.I(3))) return null;
@@ -128,7 +146,8 @@ static class CreatureAbilityFunctions
         return null;
     }
 
-    [NwFunc("SetMemorizedSpellReady")] static object? SetMemReady(Call c)
+    [NwFunc("SetMemorizedSpellReady")]
+    static object? SetMemReady(Call c)
     {
         if (Slot(c) is not { } s || s.Slot.Spell < 0) return null;
         var list = s.Creature.Classes[s.ClassIndex].Memorized[s.Level];
@@ -136,7 +155,8 @@ static class CreatureAbilityFunctions
         return null;
     }
 
-    [NwFunc("ClearMemorizedSpell")] static object? ClearMem(Call c)
+    [NwFunc("ClearMemorizedSpell")]
+    static object? ClearMem(Call c)
     {
         if (Slot(c) is not { } s) return null;
         var list = s.Creature.Classes[s.ClassIndex].Memorized[s.Level];
@@ -145,7 +165,8 @@ static class CreatureAbilityFunctions
         return null;
     }
 
-    [NwFunc("ClearMemorizedSpellBySpellId")] static object? ClearMemById(Call c)
+    [NwFunc("ClearMemorizedSpellBySpellId")]
+    static object? ClearMemById(Call c)
     {
         if (Cr(c, 0) is not { } cr) return null;
         int ci = CreatureRules.ClassIndex(cr, c.I(1));
@@ -169,7 +190,8 @@ static class CreatureAbilityFunctions
         return i >= 0 && i < cr.SpellAbilities.Count ? cr.SpellAbilities[i] : null;
     }
 
-    [NwFunc("GetSpellAbilityCount")] static object? AbilityCount(Call c)
+    [NwFunc("GetSpellAbilityCount")]
+    static object? AbilityCount(Call c)
     {
         if (Cr(c, 0) is not { } cr) return 0;
         CreatureRules.EnsureInit(c.World, cr);
@@ -179,7 +201,8 @@ static class CreatureAbilityFunctions
     [NwFunc("GetSpellAbilitySpell")] static object? AbilitySpell(Call c) => Ability(c, 0, 1)?.Spell ?? -1;
     [NwFunc("GetSpellAbilityCasterLevel")] static object? AbilityCL(Call c) => Ability(c, 0, 1)?.CasterLevel ?? -1;
     [NwFunc("GetSpellAbilityReady")] static object? AbilityReady(Call c) => Ability(c, 0, 1) is { } a ? (a.Ready ? 1 : 0) : -1;
-    [NwFunc("SetSpellAbilityReady")] static object? SetAbilityReady(Call c)
+    [NwFunc("SetSpellAbilityReady")]
+    static object? SetAbilityReady(Call c)
     {
         if (Ability(c, 0, 1) is { } a) a.Ready = c.I(2) != 0;
         return null;
@@ -187,7 +210,8 @@ static class CreatureAbilityFunctions
 
     // ---------------------------------------------------------------- rest
 
-    [NwFunc("ForceRest")] static object? ForceRest(Call c)
+    [NwFunc("ForceRest")]
+    static object? ForceRest(Call c)
     {
         if (Cr(c, 0) is not { } cr || cr.IsDead) return null;
         CreatureRules.Rest(c.World, cr);
@@ -203,13 +227,16 @@ static class CreatureAbilityFunctions
     [NwFunc("GetTypeFromTalent")] static object? TalentType(Call c) => c.T(0).Valid ? c.T(0).Type : -1;
     [NwFunc("GetIdFromTalent")] static object? TalentId(Call c) => c.T(0).Valid ? c.T(0).Id : -1;
 
-    [NwFunc("GetCreatureHasTalent")] static object? HasTalent(Call c) =>
+    [NwFunc("GetCreatureHasTalent")]
+    static object? HasTalent(Call c) =>
         Cr(c, 1) is { } cr && CreatureRules.HasTalent(c.World, cr, c.T(0)) ? 1 : 0;
 
-    [NwFunc("GetCreatureTalentRandom")] static object? RandomTalent(Call c) =>
+    [NwFunc("GetCreatureTalentRandom")]
+    static object? RandomTalent(Call c) =>
         Cr(c, 1) is { } cr ? CreatureRules.RandomTalent(c.World, cr, c.I(0)) : new Talent { Type = -1 };
 
-    [NwFunc("GetCreatureTalentBest")] static object? BestTalent(Call c) =>
+    [NwFunc("GetCreatureTalentBest")]
+    static object? BestTalent(Call c) =>
         Cr(c, 2) is { } cr ? CreatureRules.BestTalent(c.World, cr, c.I(0), c.I(1)) : new Talent { Type = -1 };
 }
 

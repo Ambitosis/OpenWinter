@@ -40,16 +40,26 @@ static class SpellPresentationSurvey
             {
                 int p = visuals.GetInt(i, c, -1);
                 int type = programs.GetInt(p, "Type", -1);
-                return new { phase = c, row = p, type, label = programs.Get(p, "Label"),
+                return new
+                {
+                    phase = c, row = p, type, label = programs.Get(p, "Label"),
                     route = p < 0 ? "none" : type switch
                     {
-                        1 => "skin", 4 => "light-partial", 5 => "alpha-tint", 7 => "EffectBeam-only",
-                        10 => "script-projectile", _ => "unimplemented",
-                    } };
+                        1 => "skin",
+                        4 => "light-partial",
+                        5 => "alpha-tint",
+                        7 => "EffectBeam-only",
+                        10 => "script-projectile",
+                        _ => "unimplemented",
+                    }
+                };
             }).Where(p => p.row >= 0).ToArray(),
         }).ToArray();
-        var report = new { note = "Resource inventory only. Native per-spell visual/rule parity is not implied.",
-            spellRows = spells.RowCount, spells = rows, visualEffects = vfx, missingResources = missing };
+        var report = new
+        {
+            note = "Resource inventory only. Native per-spell visual/rule parity is not implied.",
+            spellRows = spells.RowCount, spells = rows, visualEffects = vfx, missingResources = missing
+        };
         string json = JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true });
         if (output != null) File.WriteAllText(output, json + "\n", new System.Text.UTF8Encoding(false));
         Console.WriteLine($"{rows.Length}/{spells.RowCount} named spells; {vfx.Length} named visual effects; {missing.Count} unresolved spell resources.");

@@ -26,8 +26,11 @@ public partial class Main
                 var meshes = view.FindChildren("*", "GeometryInstance3D", true, false).OfType<GeometryInstance3D>().ToArray();
                 bool ok = view.Visible == expectedVisible && Math.Abs(view.PresentationAlpha - alpha) < .001f
                     && meshes.Length > 0 && meshes.All(g => Math.Abs(g.Transparency - (1 - alpha)) < .001f);
-                readings.Add(new { shot, id = actor.Id, actor.Tag, stage, expectedVisible, visible = view.Visible,
-                    state.seen, state.heard, alpha = view.PresentationAlpha, meshes = meshes.Length, ok });
+                readings.Add(new
+                {
+                    shot, id = actor.Id, actor.Tag, stage, expectedVisible, visible = view.Visible,
+                    state.seen, state.heard, alpha = view.PresentationAlpha, meshes = meshes.Length, ok
+                });
                 if (!ok) throw new InvalidOperationException($"Visibility capture {shot}/{actor.Tag}/{stage}");
             }
             Check("stream", expectedAlpha);

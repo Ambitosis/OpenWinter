@@ -58,7 +58,7 @@ public class EncumbranceVoiceTests
         Assert.Single(output.Voices);
         Load(world, pc, 10);
         Assert.Single(output.Voices);
-        var last = Load(world, pc, heavy-normal-10);
+        var last = Load(world, pc, heavy - normal - 10);
         Assert.Equal(2, world.Inventory.Rules.Encumbrance(pc));
         Assert.Equal(2, output.Voices.Count);
         world.Destroy(last);
@@ -107,12 +107,12 @@ public class EncumbranceVoiceTests
     public void UnmeasuredNpcAndNestedMutationRoutesDoNotGainAutomaticVoices()
     {
         var (world, npc, output) = Make(player: false);
-        Load(world, npc, world.Resources.TwoDA("encumbrance").GetInt(10, "Heavy")+1);
+        Load(world, npc, world.Resources.TwoDA("encumbrance").GetInt(10, "Heavy") + 1);
         foreach (var item in npc.Inventory.ToArray()) world.Destroy(item);
         Assert.Empty(output.Voices);
         var (pcWorld, pc, pcOutput) = Make();
         var bag = pcWorld.Inventory.CreateOn("nw_it_contain001", pc, 1, "")!;
-        for (int i=0; i<3; i++) pcWorld.Inventory.CreateOn("nw_ashto001", bag, 1, "");
+        for (int i = 0; i < 3; i++) pcWorld.Inventory.CreateOn("nw_ashto001", bag, 1, "");
         Assert.Equal(2, pcWorld.Inventory.Rules.Encumbrance(pc));
         foreach (var item in bag.Inventory.ToArray()) pcWorld.Destroy(item);
         Assert.Empty(pcOutput.Voices);

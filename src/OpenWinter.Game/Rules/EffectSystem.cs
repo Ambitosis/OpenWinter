@@ -1108,8 +1108,12 @@ public sealed partial class EffectSystem : IWorldSystem
         // invisibility SEEINVISIBILITY (visual scene conditionai).
         typeName = typeName switch
         {
-            "BLINDNESS" => "BLIND", "ETHEREAL" => "ETHEREALNESS", "PETRIFY" => "PETRIFIED", "NEGATIVELEVEL" => "LEVELDRAIN",
-            "SEEINVISIBLE" => "SEEINVISIBILITY", _ => typeName,
+            "BLINDNESS" => "BLIND",
+            "ETHEREAL" => "ETHEREALNESS",
+            "PETRIFY" => "PETRIFIED",
+            "NEGATIVELEVEL" => "LEVELDRAIN",
+            "SEEINVISIBLE" => "SEEINVISIBILITY",
+            _ => typeName,
         };
         if (typeName is "ABILITY_INCREASE" or "ABILITY_DECREASE" && e.Ints.Length > 0)
             typeName += e.Ints[0] switch { 0 => "_STR", 1 => "_DEX", 2 => "_CON", 3 => "_INT", 4 => "_WIS", _ => "_CHA" };

@@ -12,7 +12,8 @@ static class CreatureStateFunctions
 
     // ---------------------------------------------------------------- AI level, combat, resting
 
-    [NwFunc("GetAILevel")] static object? AILevel(Call c)
+    [NwFunc("GetAILevel")]
+    static object? AILevel(Call c)
     {
         // A placeable reads AI_LEVEL_VERY_LOW, in an area without players (nwserver ai_level_auto) and with one (nwmain
         // playerai).
@@ -29,7 +30,8 @@ static class CreatureStateFunctions
     /// values below -1 to AI_LEVEL_VERY_LOW, which they then lock (nwserver ai_level_auto: 9 read HIGH; -5 read VERY_LOW
     /// and stayed there in a fight).
     /// </summary>
-    [NwFunc("SetAILevel")] static object? SetAILevel(Call c)
+    [NwFunc("SetAILevel")]
+    static object? SetAILevel(Call c)
     {
         if (Cr(c, 0) is { IsPC: false } cr)
         {
@@ -46,7 +48,8 @@ static class CreatureStateFunctions
 
     const int ModeDetect = 0, ModeStealth = 1, ModeDefensiveCast = 10;
 
-    [NwFunc("GetActionMode")] static object? GetMode(Call c)
+    [NwFunc("GetActionMode")]
+    static object? GetMode(Call c)
     {
         if (Cr(c, 0) is not { } cr) return 0;
         CreatureRules.EnsureInit(c.World, cr);
@@ -58,7 +61,8 @@ static class CreatureStateFunctions
         };
     }
 
-    [NwFunc("SetActionMode")] static object? SetMode(Call c)
+    [NwFunc("SetActionMode")]
+    static object? SetMode(Call c)
     {
         if (Cr(c, 0) is not { } cr) return null;
         CreatureRules.EnsureInit(c.World, cr);
@@ -77,7 +81,8 @@ static class CreatureStateFunctions
     [NwFunc("GetStealthMode")] static object? StealthMode(Call c) => Cr(c, 0)?.StealthMode == true ? 1 : 0;
     [NwFunc("GetDetectMode")] static object? DetectMode(Call c) => Cr(c, 0) is { } cr ? Skills.SkillSystem.DetectModeValue(c.World, cr) : 0;
 
-    [NwFunc("GetDefensiveCastingMode")] static object? DefensiveCasting(Call c)
+    [NwFunc("GetDefensiveCastingMode")]
+    static object? DefensiveCasting(Call c)
     {
         if (Cr(c, 0) is not { } cr) return 0;
         CreatureRules.EnsureInit(c.World, cr);
@@ -86,7 +91,8 @@ static class CreatureStateFunctions
 
     // ---------------------------------------------------------------- death and corpse flags
 
-    [NwFunc("SetIsDestroyable")] static object? SetDestroyable(Call c)
+    [NwFunc("SetIsDestroyable")]
+    static object? SetDestroyable(Call c)
     {
         // int bDestroyable, int bRaiseable, int bSelectableWhenDead, object oObject
         if ((c.World.Get(c.O(3)) ?? c.Self) is Creature cr)
@@ -103,14 +109,16 @@ static class CreatureStateFunctions
     [NwFunc("GetIsDestroyable")] static object? Destroyable(Call c) => Cr(c, 0)?.IsDestroyable == true ? 1 : 0;
     [NwFunc("GetIsRaiseable")] static object? Raiseable(Call c) => Cr(c, 0)?.IsRaiseable == true ? 1 : 0;
 
-    [NwFunc("GetIsSelectableWhenDead")] static object? SelectableWhenDead(Call c)
+    [NwFunc("GetIsSelectableWhenDead")]
+    static object? SelectableWhenDead(Call c)
     {
         if (Cr(c, 0) is not { } cr) return 0;
         CreatureRules.EnsureInit(c.World, cr);
         return cr.SelectableWhenDead ? 1 : 0;
     }
 
-    [NwFunc("SetLootable")] static object? SetLootable(Call c)
+    [NwFunc("SetLootable")]
+    static object? SetLootable(Call c)
     {
         if (Cr(c, 0) is { IsPC: false, IsDead: false } cr) cr.Lootable = c.I(1) != 0;
         return null;
@@ -118,7 +126,8 @@ static class CreatureStateFunctions
 
     [NwFunc("GetLootable")] static object? Lootable(Call c) => Cr(c, 0)?.Lootable == true ? 1 : 0;
 
-    [NwFunc("SetImmortal")] static object? SetImmortal(Call c)
+    [NwFunc("SetImmortal")]
+    static object? SetImmortal(Call c)
     {
         if (Cr(c, 0) is { } cr) cr.IsImmortal = c.I(1) != 0;
         return null;
@@ -126,14 +135,16 @@ static class CreatureStateFunctions
 
     [NwFunc("GetImmortal")] static object? Immortal(Call c) => Cr(c, 0)?.IsImmortal == true ? 1 : 0;
 
-    [NwFunc("GetBodyBag")] static object? BodyBag(Call c) => c.Obj(0) switch
+    [NwFunc("GetBodyBag")]
+    static object? BodyBag(Call c) => c.Obj(0) switch
     {
         Creature cr => cr.BodyBag,
         Placeable p => (int)p.Template.GetInt("BodyBag"),
         _ => -1,
     };
 
-    [NwFunc("SetBodyBag")] static object? SetBodyBag(Call c)
+    [NwFunc("SetBodyBag")]
+    static object? SetBodyBag(Call c)
     {
         switch (c.Obj(0))
         {
@@ -143,10 +154,12 @@ static class CreatureStateFunctions
         return null;
     }
 
-    [NwFunc("GetIsCreatureDisarmable")] static object? Disarmable(Call c) =>
+    [NwFunc("GetIsCreatureDisarmable")]
+    static object? Disarmable(Call c) =>
         Cr(c, 0) is { Disarmable: true } cr && cr.Equipment.TryGetValue(EquipSlot.RightHand, out var weapon) && weapon.Droppable && !weapon.Plot ? 1 : 0;
 
-    [NwFunc("GetCreatureStartingPackage")] static object? StartingPackage(Call c)
+    [NwFunc("GetCreatureStartingPackage")]
+    static object? StartingPackage(Call c)
     {
         if (Cr(c, 0) is not { } cr) return 255;
         CreatureRules.EnsureInit(c.World, cr);
@@ -155,31 +168,38 @@ static class CreatureStateFunctions
 
     // ---------------------------------------------------------------- familiars and animal companions
 
-    [NwFunc("GetFamiliarCreatureType")] static object? FamiliarType(Call c) =>
+    [NwFunc("GetFamiliarCreatureType")]
+    static object? FamiliarType(Call c) =>
         Cr(c, 0) is { } cr && CreatureRules.HasAssociateAbility(c.World, cr, NwRules.AssociateFamiliar) ? cr.FamiliarType : 255;
 
-    [NwFunc("GetAnimalCompanionCreatureType")] static object? CompanionType(Call c) =>
+    [NwFunc("GetAnimalCompanionCreatureType")]
+    static object? CompanionType(Call c) =>
         Cr(c, 0) is { } cr && CreatureRules.HasAssociateAbility(c.World, cr, NwRules.AssociateCompanion) ? cr.CompanionType : 255;
 
-    [NwFunc("GetFamiliarName")] static object? FamiliarName(Call c) =>
+    [NwFunc("GetFamiliarName")]
+    static object? FamiliarName(Call c) =>
         Cr(c, 0) is { } cr && CreatureRules.HasAssociateAbility(c.World, cr, NwRules.AssociateFamiliar) ? cr.FamiliarName : "";
 
-    [NwFunc("GetAnimalCompanionName")] static object? CompanionName(Call c) =>
+    [NwFunc("GetAnimalCompanionName")]
+    static object? CompanionName(Call c) =>
         Cr(c, 0) is { } cr && CreatureRules.HasAssociateAbility(c.World, cr, NwRules.AssociateCompanion) ? cr.CompanionName : "";
 
-    [NwFunc("SummonAnimalCompanion")] static object? SummonCompanion(Call c)
+    [NwFunc("SummonAnimalCompanion")]
+    static object? SummonCompanion(Call c)
     {
         if ((c.World.Get(c.O(0)) ?? c.Self) is Creature master) CreatureRules.SummonAssociate(c.World, master, NwRules.AssociateCompanion);
         return null;
     }
 
-    [NwFunc("SummonFamiliar")] static object? SummonFamiliar(Call c)
+    [NwFunc("SummonFamiliar")]
+    static object? SummonFamiliar(Call c)
     {
         if ((c.World.Get(c.O(0)) ?? c.Self) is Creature master) CreatureRules.SummonAssociate(c.World, master, NwRules.AssociateFamiliar);
         return null;
     }
 
-    [NwFunc("UnpossessFamiliar")] static object? Unpossess(Call c)
+    [NwFunc("UnpossessFamiliar")]
+    static object? Unpossess(Call c)
     {
         if (c.Obj<Creature>(0) is { } creature) c.World.System<Players.FamiliarPossession>().Unpossess(creature);
         return null;
@@ -200,7 +220,8 @@ static class CreatureStateFunctions
 
     static readonly string[] AreaLightFields = { "MoonAmbientColor", "MoonDiffuseColor", "SunAmbientColor", "SunDiffuseColor" };
 
-    [NwFunc("GetFogColor")] static object? FogColor(Call c)
+    [NwFunc("GetFogColor")]
+    static object? FogColor(Call c)
     {
         if (AreaOf(c, 1) is not { } a) return 0;
         return c.I(0) switch
@@ -211,7 +232,8 @@ static class CreatureStateFunctions
         };
     }
 
-    [NwFunc("SetFogColor")] static object? SetFogColor(Call c)
+    [NwFunc("SetFogColor")]
+    static object? SetFogColor(Call c)
     {
         // int nFogType, int nFogColor, object oArea, float fFadeTime
         if (AreaOf(c, 2) is not { } a) return null;
@@ -223,14 +245,16 @@ static class CreatureStateFunctions
         return null;
     }
 
-    [NwFunc("GetAreaLightColor")] static object? AreaLight(Call c)
+    [NwFunc("GetAreaLightColor")]
+    static object? AreaLight(Call c)
     {
         int type = c.I(0);
         if (AreaOf(c, 1) is not { } a || type < 0 || type > 3) return 0;
         return (int)SwapRedBlue((uint)a.Are.GetInt(AreaLightFields[type]));
     }
 
-    [NwFunc("SetAreaLightColor")] static object? SetAreaLight(Call c)
+    [NwFunc("SetAreaLightColor")]
+    static object? SetAreaLight(Call c)
     {
         // int nColorType, int nColor, object oArea, float fFadeTime
         int type = c.I(0);
@@ -258,7 +282,8 @@ static class CreatureStateFunctions
         c.World.Output?.Notify("tile-light", a, new { x, y, mainLight1 = (int)t.MainLight1, mainLight2 = (int)t.MainLight2, sourceLight1 = (int)t.SourceLight1, sourceLight2 = (int)t.SourceLight2 });
     }
 
-    [NwFunc("SetTileMainLightColor")] static object? SetTileMain(Call c)
+    [NwFunc("SetTileMainLightColor")]
+    static object? SetTileMain(Call c)
     {
         if (Tile(c, 0) is not { } t) return null;
         t.Area.Tiles[t.Index].MainLight1 = (byte)Math.Clamp(c.I(1), 0, 255);
@@ -267,7 +292,8 @@ static class CreatureStateFunctions
         return null;
     }
 
-    [NwFunc("SetTileSourceLightColor")] static object? SetTileSource(Call c)
+    [NwFunc("SetTileSourceLightColor")]
+    static object? SetTileSource(Call c)
     {
         if (Tile(c, 0) is not { } t) return null;
         t.Area.Tiles[t.Index].SourceLight1 = (byte)Math.Clamp(c.I(1), 0, 255);

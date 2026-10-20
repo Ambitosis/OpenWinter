@@ -112,7 +112,8 @@ public sealed class PlayerActionQueueTests
         g.Request("item-use", new { item = potion.Id });
         var queue = g.Queue();
         Assert.Equal(3, queue.Length);
-        Assert.All(queue, a => {
+        Assert.All(queue, a =>
+        {
             Assert.Equal(19, a.GetProperty("action").GetInt32());
             Assert.Equal(32, a.GetProperty("spell").GetInt32());
             Assert.False(string.IsNullOrEmpty(a.GetProperty("icon").GetString()));

@@ -101,16 +101,26 @@ public sealed class NssCodeGen
             return _structs.TryGetValue(t.StructName!, out var s) ? CType.StructType(s) : throw Error(at, "UNDEFINED STRUCTURE");
         return t.Name switch
         {
-            "void" => CType.Void, "int" => CType.Int, "float" => CType.Float, "string" => CType.String, "object" => CType.Object,
-            "vector" => CType.Vector, "action" => CType.Action,
+            "void" => CType.Void,
+            "int" => CType.Int,
+            "float" => CType.Float,
+            "string" => CType.String,
+            "object" => CType.Object,
+            "vector" => CType.Vector,
+            "action" => CType.Action,
             _ => _defs.EngineStructures.IndexOf(t.Name) is var i and >= 0 ? CType.EngineType(t.Name, i) : throw Error(at, "VARIABLE DEFINED WITHOUT TYPE"),
         };
     }
 
     CType FromNss(NssType t) => t switch
     {
-        NssType.Void => CType.Void, NssType.Int => CType.Int, NssType.Float => CType.Float, NssType.String => CType.String,
-        NssType.Object => CType.Object, NssType.Vector => CType.Vector, NssType.Action => CType.Action,
+        NssType.Void => CType.Void,
+        NssType.Int => CType.Int,
+        NssType.Float => CType.Float,
+        NssType.String => CType.String,
+        NssType.Object => CType.Object,
+        NssType.Vector => CType.Vector,
+        NssType.Action => CType.Action,
         _ => CType.EngineType(_defs.EngineStructures[(int)t - (int)NssType.Effect], (int)t - (int)NssType.Effect),
     };
 
@@ -503,8 +513,16 @@ public sealed class NssCodeGen
         NameExpr n when Lookup(n.Name) == null && Constant(n.Name) is int v => v,
         BinaryExpr b when ConstantInt(b.Left) is int l && ConstantInt(b.Right) is int r => b.Op switch
         {
-            "+" => l + r, "-" => l - r, "*" => l * r, "|" => l | r, "&" => l & r, "^" => l ^ r, "<<" => l << r,
-            "/" when r != 0 => l / r, "%" when r != 0 => l % r, _ => null,
+            "+" => l + r,
+            "-" => l - r,
+            "*" => l * r,
+            "|" => l | r,
+            "&" => l & r,
+            "^" => l ^ r,
+            "<<" => l << r,
+            "/" when r != 0 => l / r,
+            "%" when r != 0 => l % r,
+            _ => null,
         },
         _ => null,
     };
@@ -532,8 +550,16 @@ public sealed class NssCodeGen
         UnaryExpr { Op: "-" } u => Evaluate(u.Operand) switch { int i => -i, float f => -f, _ => null },
         BinaryExpr { Left: var l, Right: var r } bin when Evaluate(l) is int x && Evaluate(r) is int y => bin.Op switch
         {
-            "+" => x + y, "-" => x - y, "*" => x * y, "|" => x | y, "&" => x & y, "^" => x ^ y, "<<" => x << y,
-            "/" when y != 0 => x / y, "%" when y != 0 => x % y, _ => null,
+            "+" => x + y,
+            "-" => x - y,
+            "*" => x * y,
+            "|" => x | y,
+            "&" => x & y,
+            "^" => x ^ y,
+            "<<" => x << y,
+            "/" when y != 0 => x / y,
+            "%" when y != 0 => x % y,
+            _ => null,
         },
         _ => null,
     };
@@ -616,7 +642,12 @@ public sealed class NssCodeGen
             case "LOCATION_INVALID":
                 Op(0x04, (byte)(0x10 + _defs.EngineStructures.IndexOf("location"))); I32(0); _sp += 4;
                 return CType.EngineType("location", _defs.EngineStructures.IndexOf("location"));
-            case "JSON_NULL": case "JSON_OBJECT": case "JSON_ARRAY": case "JSON_TRUE": case "JSON_FALSE": case "JSON_STRING":
+            case "JSON_NULL":
+            case "JSON_OBJECT":
+            case "JSON_ARRAY":
+            case "JSON_TRUE":
+            case "JSON_FALSE":
+            case "JSON_STRING":
             {
                 int ji = _defs.EngineStructures.IndexOf("json");
                 string text = n.Name switch { "JSON_NULL" => "null", "JSON_OBJECT" => "{}", "JSON_ARRAY" => "[]", "JSON_TRUE" => "true", "JSON_FALSE" => "false", _ => "\"\"" };

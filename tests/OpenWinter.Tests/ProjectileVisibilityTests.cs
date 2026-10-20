@@ -29,8 +29,11 @@ public class ProjectileVisibilityTests
             world.AddToArea(caster, area, new Vector3(10, 10, 0), 0);
             CreatureRules.EnsureInit(world, caster);
             var output = new Output(); world.Output = output;
-            caster.Actions.Add(new CastSpellAction { Spell = 0, Cheat = true,
-                TargetLocation = new Location(area.Id, new Vector3(30, 10, 0), 0) });
+            caster.Actions.Add(new CastSpellAction
+            {
+                Spell = 0, Cheat = true,
+                TargetLocation = new Location(area.Id, new Vector3(30, 10, 0), 0)
+            });
             world.Step(.01f);
             var projectile = Assert.Single(output.Projectiles);
             Assert.Equal(visible == true, projectile.GetProperty("showModel").GetBoolean());

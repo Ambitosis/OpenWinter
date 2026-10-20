@@ -89,7 +89,8 @@ static class ItemPropertyFunctions
     [NwFunc("ItemPropertyTrap")] static object? Trap(Call c) => P(c, "TRAP", c.I(0), c.I(1));
     [NwFunc("ItemPropertyTrueSeeing")] static object? TrueSeeing(Call c) => P(c, "TRUE_SEEING");
     // The original stores the property itself as the param (not nSpecial) when its row has a param table.
-    [NwFunc("ItemPropertyOnMonsterHitProperties")] static object? OnMonsterHit(Call c) =>
+    [NwFunc("ItemPropertyOnMonsterHitProperties")]
+    static object? OnMonsterHit(Call c) =>
         P(c, "ON_MONSTER_HIT", c.I(0), -1, c.World.Resources.TwoDA("iprp_monsterhit").IsEmpty(c.I(0), "Param1ResRef") ? -1 : c.I(0));
     [NwFunc("ItemPropertyTurnResistance")] static object? TurnResistance(Call c) => P(c, "TURN_RESISTANCE", -1, c.I(0));
     [NwFunc("ItemPropertyMassiveCritical")] static object? MassiveCritical(Call c) => P(c, "MASSIVE_CRITICALS", -1, c.I(0));
@@ -107,7 +108,8 @@ static class ItemPropertyFunctions
     [NwFunc("ItemPropertyMaterial")] static object? Material(Call c) => P(c, "MATERIAL", -1, c.I(0));
     [NwFunc("ItemPropertyQuality")] static object? Quality(Call c) => P(c, "QUALITY", -1, c.I(0));
     [NwFunc("ItemPropertyAdditional")] static object? Additional(Call c) => P(c, "ADDITIONAL", -1, c.I(0));
-    [NwFunc("ItemPropertyCustom")] static object? Custom(Call c)
+    [NwFunc("ItemPropertyCustom")]
+    static object? Custom(Call c)
     {
         var ip = ItemPropertyRules.Make(c.World, c.I(0), c.I(1, -1), c.I(2, -1), c.I(3, -1));
         if (ip.Valid) ip.Creator = c.SelfId;
@@ -125,21 +127,25 @@ static class ItemPropertyFunctions
     [NwFunc("GetItemPropertyParam1")] static object? Param1(Call c) => c.IP(0).Valid ? c.IP(0).Param1 : -1;
     [NwFunc("GetItemPropertyParam1Value")] static object? Param1Value(Call c) => c.IP(0).Valid ? c.IP(0).Param1Value : -1;
     [NwFunc("GetItemPropertyTag")] static object? Tag(Call c) => c.IP(0).Tag;
-    [NwFunc("TagItemProperty")] static object? TagProperty(Call c)
+    [NwFunc("TagItemProperty")]
+    static object? TagProperty(Call c)
     {
         var ip = c.IP(0).Clone();
         ip.Tag = c.S(1);
         return ip;
     }
-    [NwFunc("GetItemPropertyDuration")] static object? Duration(Call c) =>
+    [NwFunc("GetItemPropertyDuration")]
+    static object? Duration(Call c) =>
         c.IP(0).Valid && c.IP(0).DurationType == K(c).Temporary ? (int)c.IP(0).Duration : 0;
-    [NwFunc("GetItemPropertyDurationRemaining")] static object? DurationRemaining(Call c)
+    [NwFunc("GetItemPropertyDurationRemaining")]
+    static object? DurationRemaining(Call c)
     {
         var ip = c.IP(0);
         if (!ip.Valid || ip.DurationType != K(c).Temporary) return 0;
         return ip.ExpiresAt == 0 ? (int)ip.Duration : (int)Math.Max(0, ip.ExpiresAt - c.World.Time);
     }
-    [NwFunc("GetItemPropertyUsesPerDayRemaining")] static object? UsesPerDayRemaining(Call c)
+    [NwFunc("GetItemPropertyUsesPerDayRemaining")]
+    static object? UsesPerDayRemaining(Call c)
     {
         if (c.Obj<Item>(0) is not { } item) return 0;
         var want = c.IP(1);
@@ -150,10 +156,12 @@ static class ItemPropertyFunctions
 
     // ------------------------------------------------------------------ items
 
-    [NwFunc("GetItemHasItemProperty")] static object? HasProperty(Call c) =>
+    [NwFunc("GetItemHasItemProperty")]
+    static object? HasProperty(Call c) =>
         c.Obj<Item>(0) is { } item && item.Properties.Any(p => p.Type == c.I(1)) ? 1 : 0;
 
-    [NwFunc("AddItemProperty")] static object? Add(Call c)
+    [NwFunc("AddItemProperty")]
+    static object? Add(Call c)
     {
         // The base item's itemprops.2da column must allow the property.
         if (c.Obj<Item>(2) is not { } item || !c.World.Inventory.Rules.AllowsProperty(item.BaseItem, c.IP(1).Type)) return null;
@@ -165,7 +173,8 @@ static class ItemPropertyFunctions
         return null;
     }
 
-    [NwFunc("RemoveItemProperty")] static object? Remove(Call c)
+    [NwFunc("RemoveItemProperty")]
+    static object? Remove(Call c)
     {
         // Only the item's own property goes (got from iterating it, or the variable that was added), not an equal one built separately.
         var want = c.IP(1);
@@ -186,7 +195,8 @@ static class ItemPropertyFunctions
     /// <summary>One cursor per (script thread, item); iterates a snapshot so removing while iterating is safe.</summary>
     static readonly ConditionalWeakTable<ScriptThread, Dictionary<uint, (List<ItemProperty> List, int Index)>> _cursors = new();
 
-    [NwFunc("GetFirstItemProperty")] static object? First(Call c)
+    [NwFunc("GetFirstItemProperty")]
+    static object? First(Call c)
     {
         if (c.Obj<Item>(0) is not { } item) return new ItemProperty();
         var list = item.Properties.ToList();
@@ -194,7 +204,8 @@ static class ItemPropertyFunctions
         return Advance(item, map, list, 0);
     }
 
-    [NwFunc("GetNextItemProperty")] static object? Next(Call c)
+    [NwFunc("GetNextItemProperty")]
+    static object? Next(Call c)
     {
         if (c.Obj<Item>(0) is not { } item || !_cursors.TryGetValue(c.Thread, out var map) || !map.TryGetValue(item.Id, out var cur))
             return new ItemProperty();

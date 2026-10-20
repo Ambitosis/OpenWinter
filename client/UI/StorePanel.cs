@@ -210,7 +210,7 @@ public partial class StorePanel : UiTheme.Window
         foot.AddChild(pane.Second);
         pane.Action = Ui.Primary(merchant ? "Buy" : "Sell", merchant
             ? () => { if (_stock.FirstOrDefault(s => s.Id == _selBuy) is { } i) TryBuy(i); }
-            : () => { if (Find(_selSell) is { } i) TrySell(i); });
+        : () => { if (Find(_selSell) is { } i) TrySell(i); });
         pane.Action.CustomMinimumSize = new Vector2(96, 34);
         foot.AddChild(pane.Action);
         v.AddChild(foot);
@@ -397,8 +397,11 @@ public partial class StorePanel : UiTheme.Window
         if (Inventory.Radial is not { } radial) return;
         radial.OpenItemMenu(item, at, () => Visible && _stock.Any(s => s.Id == item.Id), () => RadialMenu.FixedRing(
             (0, new RadialEntry { Label = "Examine", Glyph = "eye", Act = () => Examine?.Invoke(item.Id) }),
-            (2, RadialMenu.Icon(new RadialEntry { Label = "Buy", Glyph = "bag", Disabled = item.Price > Inventory.Gold,
-                Act = () => TryBuy(item) }, "ir_buy"))));
+            (2, RadialMenu.Icon(new RadialEntry
+            {
+                Label = "Buy", Glyph = "bag", Disabled = item.Price > Inventory.Gold,
+                Act = () => TryBuy(item)
+            }, "ir_buy"))));
     }
 
     /// <summary>Right-click on one of your items beside the wares: its item ring, with Sell at E.</summary>

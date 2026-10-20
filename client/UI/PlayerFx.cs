@@ -145,7 +145,7 @@ public partial class PlayerFx : CanvasLayer
                 if (d.TryGetProperty("levelUpReady", out var ready) && ready.GetBoolean() && Session.Content is { } content)
                     Classic.ClassicSounds.Play(Classic.ClassicAssets.For(content), "gui_level_up");
             }
-                break;
+            break;
             case "pause":
             {
                 bool was = _playerPaused;

@@ -16,7 +16,8 @@ static class TimeFunctions
     [NwFunc("GetIsDusk")] static object? IsDusk(Call c) => c.World.Clock.IsDusk ? 1 : 0;
 
     // The clock only moves forward; delayed commands that come due on the way run at once.
-    [NwFunc("SetTime")] static object? SetTime(Call c)
+    [NwFunc("SetTime")]
+    static object? SetTime(Call c)
     {
         var k = c.World.Clock;
         long before = k.TotalMs;
@@ -24,7 +25,8 @@ static class TimeFunctions
         c.World.SkipTime((k.TotalMs - before) / 1000.0);
         return null;
     }
-    [NwFunc("SetCalendar")] static object? SetCalendar(Call c)
+    [NwFunc("SetCalendar")]
+    static object? SetCalendar(Call c)
     {
         var k = c.World.Clock;
         long before = k.TotalMs;

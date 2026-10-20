@@ -112,8 +112,11 @@ public class SpellbookTests
             Assert.NotEqual(JsonValueKind.Undefined, book.ValueKind);
             var available = LevelOf(ClassOf(book, cls), 2).GetProperty("available").EnumerateArray().Select(x => x.GetInt32());
             Assert.Equal(cls == ClassCleric, available.Contains(13)); // Animal-domain Cat's Grace.
-            client.Send(new ClientRequestMessage { Kind = "spell-memorize", Json = JsonSerializer.Serialize(
-                new { @class = cls, level = 2, slot = 0, spell = 13, meta = 0 }) }.Write());
+            client.Send(new ClientRequestMessage
+            {
+                Kind = "spell-memorize", Json = JsonSerializer.Serialize(
+                new { @class = cls, level = 2, slot = 0, spell = 13, meta = 0 })
+            }.Write());
             server.Tick(1f / 30);
             Assert.Equal(cls == ClassCleric, pc.Classes[0].Memorized[2][0].Spell == 13);
         }
@@ -210,7 +213,7 @@ public class SpellbookTests
         Assert.Equal(SpellBless, pc.Classes.Single(c => c.Class == ClassCleric).Memorized[1][0].Spell);
     }
 
-    [Theory]
+    [DataTheory]
     [InlineData(false)]
     [InlineData(true)]
     public void FirstSpellbookRequestKeepsEarlyScriptChangesLive(bool requestAbilitiesAfterMutation)
@@ -281,8 +284,11 @@ public class SpellbookTests
             Assert.Null(SpellbookRequests.Memorize(w, pc, ClassCleric, 1, 0, SpellBless, 0));
             CreatureRules.RestoreSpells(w, pc);
             void Tick(float seconds) { for (int i = 0; i < (int)(seconds * 30) + 1; i++) server.Tick(1f / 30); }
-            void Cast() => client.Send(new ClientRequestMessage { Kind = "cast-spell", Json = JsonSerializer.Serialize(
-                new { spell = SpellBless, @class = ClassCleric, meta, target = pc.Id }) }.Write());
+            void Cast() => client.Send(new ClientRequestMessage
+            {
+                Kind = "cast-spell", Json = JsonSerializer.Serialize(
+                new { spell = SpellBless, @class = ClassCleric, meta, target = pc.Id })
+            }.Write());
             CreatureRules.SyncHitPoints(w, pc); // Settle the fixture class/ability changes before concentration.
             Tick(1);
             Cast(); Tick(4);

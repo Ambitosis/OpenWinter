@@ -19,7 +19,8 @@ static class ObjectFunctions
     [NwFunc("GetObjectType")] static object? Type(Call c) => c.Obj(0) is Sound ? TypeAll : NwType(c.Obj(0));
     [NwFunc("GetTag")] static object? Tag(Call c) => c.Obj(0)?.Tag ?? "";
     /// <summary>Does nothing on the module; tags keep at most 63 characters.</summary>
-    [NwFunc("SetTag")] static object? SetTag(Call c)
+    [NwFunc("SetTag")]
+    static object? SetTag(Call c)
     {
         if (c.Obj(0) is { } o and not Objects.Module) { var t = CleanTag(c.S(1)); c.World.SetTag(o, t.Length > 63 ? t[..63] : t); }
         return null;
@@ -34,10 +35,12 @@ static class ObjectFunctions
     }
     /// <summary>Sound objects keep neither their blueprint's resref nor their name (audio_scripts).</summary>
     [NwFunc("GetResRef")] static object? ResRef(Call c) => c.Obj(0) is Sound ? "" : c.Obj(0)?.ResRef.ToLowerInvariant() ?? "";
-    [NwFunc("GetName")] static object? Name(Call c) =>
+    [NwFunc("GetName")]
+    static object? Name(Call c) =>
         c.Obj(0) is Sound ? "" : c.Obj(0) is { } o ? (c.I(1) != 0 && o.OriginalName is { } orig ? orig : o.Name).Resolve(c.World.Resources.Talk) : "";
     /// <summary>Waypoints and the module keep their names; "" restores the original name.</summary>
-    [NwFunc("SetName")] static object? SetName(Call c)
+    [NwFunc("SetName")]
+    static object? SetName(Call c)
     {
         if (c.Obj(0) is { } o and not (Waypoint or Objects.Module))
         {
@@ -53,7 +56,8 @@ static class ObjectFunctions
     [NwFunc("SetPlotFlag")] static object? SetPlot(Call c) { if (c.Obj(0) is { } o) o.Plot = c.I(1) != 0; return null; }
 
     [NwFunc("GetModule")] static object? Module(Call c) => c.World.Module.Id;
-    [NwFunc("GetArea")] static object? Area(Call c) => c.Obj(0) switch
+    [NwFunc("GetArea")]
+    static object? Area(Call c) => c.Obj(0) switch
     {
         Area a => a.Id,
         { Area: { } a } => a.Id,
@@ -63,7 +67,8 @@ static class ObjectFunctions
     /// <summary>
     /// Whole degrees from the facing direction, 0..360: a facing just below 0 reads 360 (the location keeps the exact facing).
     /// </summary>
-    [NwFunc("GetFacing")] static object? Facing(Call c)
+    [NwFunc("GetFacing")]
+    static object? Facing(Call c)
     {
         if (c.Obj(0) is not { } o) return 0f;
         float x = MathF.Cos(o.Facing + o.BearingOffset), y = MathF.Sin(o.Facing + o.BearingOffset);
@@ -71,12 +76,14 @@ static class ObjectFunctions
         return MathF.Round((float)(y < 0 ? a + 360 : a), MidpointRounding.AwayFromZero);
     }
     /// <summary>Radians as a float product, as the original converts (so SetFacing(360.0) faces just past east).</summary>
-    [NwFunc("SetFacing")] static object? SetFacing(Call c)
+    [NwFunc("SetFacing")]
+    static object? SetFacing(Call c)
     {
         if (c.ObjOrSelf(1) is { } o and not (Areas.Area or Objects.Module)) { o.Facing = c.F(0) * (float)(Math.PI / 180) - o.BearingOffset; c.World.MarkChanged(o); }
         return null;
     }
-    [NwFunc("SetFacingPoint")] static object? SetFacingPoint(Call c)
+    [NwFunc("SetFacingPoint")]
+    static object? SetFacingPoint(Call c)
     {
         if (c.ObjOrSelf(1) is { } o and not (Areas.Area or Objects.Module))
         {
@@ -92,29 +99,36 @@ static class ObjectFunctions
     [NwFunc("GetFacingFromLocation")] static object? FacingFromLoc(Call c) => c.L(0).FacingDegrees;
 
     /// <summary>3D distance, even across areas; 0 for invalid objects. The module and areas sit at the origin.</summary>
-    [NwFunc("GetDistanceBetween")] static object? Distance(Call c) =>
+    [NwFunc("GetDistanceBetween")]
+    static object? Distance(Call c) =>
         c.Obj(0) is { } a && c.Obj(1) is { } b ? Vector3.Distance(a.Position, b.Position) : 0f;
     /// <summary>-1 unless both are objects in the same area (areas and the module never are).</summary>
-    [NwFunc("GetDistanceToObject")] static object? DistanceTo(Call c) =>
+    [NwFunc("GetDistanceToObject")]
+    static object? DistanceTo(Call c) =>
         c.Obj(0) is { Area: { } a } o && c.ObjOrSelf(1) is { Area: { } b } s && a == b ? Vector3.Distance(o.Position, s.Position) : -1f;
     /// <summary>3D distance; -1 when the areas differ (two invalid areas count as the same).</summary>
-    [NwFunc("GetDistanceBetweenLocations")] static object? DistanceLoc(Call c) =>
+    [NwFunc("GetDistanceBetweenLocations")]
+    static object? DistanceLoc(Call c) =>
         c.L(0).Area == c.L(1).Area ? Vector3.Distance(c.L(0).Position, c.L(1).Position) : -1f;
-    [NwFunc("GetDistanceToObject2D")] static object? DistanceTo2D(Call c) =>
+    [NwFunc("GetDistanceToObject2D")]
+    static object? DistanceTo2D(Call c) =>
         c.Obj(0) is { } o && c.Self is { } s && o.Area == s.Area ? Vector2.Distance(new(o.Position.X, o.Position.Y), new(s.Position.X, s.Position.Y)) : -1f;
 
     /// <summary>Objects a script can find by tag: exact case, newest first; the module is not among them.</summary>
     static IEnumerable<GameObject> TagLookup(Call c, string tag) =>
         c.World.ByTag(tag).Where(o => o.Tag == tag && o is not Objects.Module).OrderByDescending(o => o.Id);
 
-    [NwFunc("GetObjectByTag")] static object? ByTag(Call c)
+    [NwFunc("GetObjectByTag")]
+    static object? ByTag(Call c)
     {
         int nth = c.I(1);
         return nth >= 0 ? TagLookup(c, c.S(0)).ElementAtOrDefault(nth)?.Id ?? GameObject.InvalidId : GameObject.InvalidId;
     }
-    [NwFunc("GetWaypointByTag")] static object? WaypointByTag(Call c) =>
+    [NwFunc("GetWaypointByTag")]
+    static object? WaypointByTag(Call c) =>
         TagLookup(c, c.S(0)).OfType<Waypoint>().FirstOrDefault()?.Id ?? GameObject.InvalidId;
-    [NwFunc("GetObjectByTagInArea")] static object? ByTagInArea(Call c)
+    [NwFunc("GetObjectByTagInArea")]
+    static object? ByTagInArea(Call c)
     {
         var area = c.Self?.Area;
         var list = c.World.ByTag(c.S(0)).Where(o => o.Area == area).ToList();
@@ -144,19 +158,22 @@ static class ObjectFunctions
         return found?.Id ?? GameObject.InvalidId;
     }
 
-    [NwFunc("GetNearestObject")] static object? NearestObject(Call c)
+    [NwFunc("GetNearestObject")]
+    static object? NearestObject(Call c)
     {
         var target = c.ObjOrSelf(1);
         int filter = c.I(0, TypeAll);
         return Nearest(target?.Area, target?.Position ?? default, target, c.I(2, 1), o => Matches(o, filter));
     }
-    [NwFunc("GetNearestObjectByTag")] static object? NearestByTag(Call c)
+    [NwFunc("GetNearestObjectByTag")]
+    static object? NearestByTag(Call c)
     {
         var target = c.ObjOrSelf(1);
         string tag = c.S(0);
         return Nearest(target?.Area, target?.Position ?? default, target, c.I(2, 1), o => o.Tag == tag);
     }
-    [NwFunc("GetNearestObjectToLocation")] static object? NearestToLocation(Call c)
+    [NwFunc("GetNearestObjectToLocation")]
+    static object? NearestToLocation(Call c)
     {
         var loc = c.L(1);
         int filter = c.I(0, TypeAll);
@@ -188,7 +205,8 @@ static class ObjectFunctions
     // Shape iteration (spheres, cubes, cones, cylinders) keeps one cursor per script.
     static readonly Dictionary<ScriptThread, (List<uint> List, int Index)> _shapeCursors = new();
 
-    [NwFunc("GetFirstObjectInShape")] static object? FirstInShape(Call c)
+    [NwFunc("GetFirstObjectInShape")]
+    static object? FirstInShape(Call c)
     {
         // int nShape, float fSize, location lTarget, int bLineOfSight, int nObjectFilter, vector vOrigin
         var loc = c.L(2);
@@ -266,7 +284,8 @@ static class ObjectFunctions
         }
     }
 
-    [NwFunc("GetNextObjectInShape")] static object? NextInShape(Call c)
+    [NwFunc("GetNextObjectInShape")]
+    static object? NextInShape(Call c)
     {
         if (!_shapeCursors.TryGetValue(c.Thread, out var cur)) return GameObject.InvalidId;
         int i = cur.Index + 1;
@@ -274,13 +293,15 @@ static class ObjectFunctions
         return i < cur.List.Count ? cur.List[i] : GameObject.InvalidId;
     }
 
-    [NwFunc("GetFirstPC")] static object? FirstPC(Call c)
+    [NwFunc("GetFirstPC")]
+    static object? FirstPC(Call c)
     {
         var pcs = Pcs(c);
         _pcCursor[c.Host] = 0;
         return pcs.Count > 0 ? pcs[0].Id : GameObject.InvalidId;
     }
-    [NwFunc("GetNextPC")] static object? NextPC(Call c)
+    [NwFunc("GetNextPC")]
+    static object? NextPC(Call c)
     {
         var pcs = Pcs(c);
         int i = _pcCursor.GetValueOrDefault(c.Host) + 1;
@@ -301,7 +322,8 @@ static class ObjectFunctions
     // The connection behind a character, also while its player controls the familiar.
     static PlayerSession? Session(Call c) => c.Obj<Creature>(0) is { } pc ? Players.FamiliarPossession.SessionOf(pc) : null;
 
-    [NwFunc("DestroyObject")] static object? Destroy(Call c)
+    [NwFunc("DestroyObject")]
+    static object? Destroy(Call c)
     {
         var o = c.Obj(0);
         if (o == null || o is Area || o is Module) return null;
@@ -317,7 +339,8 @@ static class ObjectFunctions
         return null;
     }
 
-    [NwFunc("CreateObject")] static object? Create(Call c)
+    [NwFunc("CreateObject")]
+    static object? Create(Call c)
     {
         // int nObjectType, string sTemplate, location lLocation, int bUseAppearAnimation, string sNewTag
         int type = c.I(0);

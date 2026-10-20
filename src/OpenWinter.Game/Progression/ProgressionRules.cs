@@ -137,7 +137,7 @@ public static partial class ProgressionRules
                     if (i1 is >= 1 and <= 3 && CreatureRules.PrerequisiteSave(w, c, i1) < i2)
                         errors.Add(new("prereq", $"Requires a base {SaveName(i1)} save of {i2}."));
                     break;
-                // ALIGN: met (prog_prereq); any other type: ignored.
+                    // ALIGN: met (prog_prereq); any other type: ignored.
             }
         }
         foreach (var (type, g) in groups)

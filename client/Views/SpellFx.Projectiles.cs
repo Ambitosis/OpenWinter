@@ -142,8 +142,11 @@ public partial class SpellFx
         fx.Scale = Vector3.One * p.Scale;
         if (Session.Content?.Audio.Get(p.Sound) is { } stream)
         {
-            var player = new AudioStreamPlayer3D { Stream = stream, MaxDistance = 40,
-                Bus = OpenWinter.Client.Preferences.AudioBuses.Effects3D };
+            var player = new AudioStreamPlayer3D
+            {
+                Stream = stream, MaxDistance = 40,
+                Bus = OpenWinter.Client.Preferences.AudioBuses.Effects3D
+            };
             // The sound follows the missile but is not owned by its visual model:
             // native restarts ProjSound on arrival, then lets the sample finish.
             Session.Space.AddChild(player);

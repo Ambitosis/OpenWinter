@@ -32,13 +32,15 @@ static class AreaFunctions
     [NwFunc("GetTilesetResRef")] static object? Tileset(Call c) => c.Obj(0) is Area a ? a.Tileset : "";
     [NwFunc("GetAreaSize")] static object? AreaSize(Call c) => AreaArg(c, 1) is { } a ? c.I(0) switch { 0 => a.Height, 1 => a.Width, _ => 0 } : 0;
     [NwFunc("GetAreaNoRestFlag")] static object? NoRest(Call c) => AreaArg(c, 0) is { } a && Env(c, a).NoRest ? 1 : 0;
-    [NwFunc("SetAreaNoRestFlag")] static object? SetNoRest(Call c)
+    [NwFunc("SetAreaNoRestFlag")]
+    static object? SetNoRest(Call c)
     {
         if (AreaArg(c, 1) is { } a) Env(c, a).NoRest = c.I(0) != 0;
         return null;
     }
 
-    [NwFunc("GetStartingLocation")] static object? StartingLocation(Call c)
+    [NwFunc("GetStartingLocation")]
+    static object? StartingLocation(Call c)
     {
         var m = c.World.Module;
         if (c.World.FindArea(m.EntryArea) is not { } area) return Location.Invalid;
@@ -46,13 +48,15 @@ static class AreaFunctions
         return new Location(area.Id, m.EntryPosition, facing < 0 ? facing + 360f : facing);
     }
 
-    [NwFunc("GetSurfaceMaterial")] static object? SurfaceMaterial(Call c)
+    [NwFunc("GetSurfaceMaterial")]
+    static object? SurfaceMaterial(Call c)
     {
         var loc = c.L(0);
         return c.World.Get(loc.Area) is Area a ? a.Walkmesh.SurfaceAt(loc.Position) : 0;
     }
 
-    [NwFunc("GetGroundHeight")] static object? GroundHeight(Call c)
+    [NwFunc("GetGroundHeight")]
+    static object? GroundHeight(Call c)
     {
         var loc = c.L(0);
         if (c.World.Get(loc.Area) is not Area a) return -6f;
@@ -64,12 +68,14 @@ static class AreaFunctions
 
     static readonly Dictionary<ScriptHost, int> _areaCursor = new();
 
-    [NwFunc("GetFirstArea")] static object? FirstArea(Call c)
+    [NwFunc("GetFirstArea")]
+    static object? FirstArea(Call c)
     {
         _areaCursor[c.Host] = 0;
         return c.World.Areas.Count > 0 ? c.World.Areas[0].Id : GameObject.InvalidId;
     }
-    [NwFunc("GetNextArea")] static object? NextArea(Call c)
+    [NwFunc("GetNextArea")]
+    static object? NextArea(Call c)
     {
         if (!_areaCursor.TryGetValue(c.Host, out int i) || i >= c.World.Areas.Count) return GameObject.InvalidId;
         _areaCursor[c.Host] = ++i;
@@ -77,10 +83,12 @@ static class AreaFunctions
     }
 
     [NwFunc("CreateArea")] static object? CreateArea(Call c) => AreaInstancing.Create(c.World, c.S(0), ObjectFunctions.CleanTag(c.S(1)), c.S(2))?.Id ?? GameObject.InvalidId;
-    [NwFunc("CopyArea")] static object? CopyArea(Call c) =>
+    [NwFunc("CopyArea")]
+    static object? CopyArea(Call c) =>
         c.Obj(0) is Area a ? AreaInstancing.Copy(c.World, a, ObjectFunctions.CleanTag(c.S(1)), c.S(2))?.Id ?? GameObject.InvalidId : GameObject.InvalidId;
     /// <summary>The result comes at once; the area goes when the running script has finished (like DestroyObject).</summary>
-    [NwFunc("DestroyArea")] static object? DestroyArea(Call c)
+    [NwFunc("DestroyArea")]
+    static object? DestroyArea(Call c)
     {
         int result = AreaInstancing.CanDestroy(c.World, c.Obj(0));
         if (result == 1 && c.Obj(0) is Area a) c.World.After(0, () => AreaInstancing.Destroy(c.World, a));
@@ -89,10 +97,12 @@ static class AreaFunctions
 
     // ---- transitions ----
 
-    [NwFunc("GetTransitionTarget")] static object? TransitionTarget(Call c) =>
+    [NwFunc("GetTransitionTarget")]
+    static object? TransitionTarget(Call c) =>
         c.Obj(0) is { } o ? TransitionService.ResolveTarget(c.World, o)?.Id ?? GameObject.InvalidId : GameObject.InvalidId;
 
-    [NwFunc("SetTransitionTarget")] static object? SetTransitionTarget(Call c)
+    [NwFunc("SetTransitionTarget")]
+    static object? SetTransitionTarget(Call c)
     {
         if (c.Obj(0) is not { } o || o is Area) return null;
         var target = c.Obj(1);
@@ -102,7 +112,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("SetAreaTransitionBMP")] static object? TransitionBmp(Call c)
+    [NwFunc("SetAreaTransitionBMP")]
+    static object? TransitionBmp(Call c)
     {
         if (c.Self is Creature { IsPC: true } pc)
             c.World.Output?.Notify("area-transition-bmp", pc, new { predefined = c.I(0), custom = c.S(1) }, pc);
@@ -121,13 +132,16 @@ static class AreaFunctions
     [NwFunc("SetEncounterSpawnsCurrent")] static object? SetEncCurrent(Call c) { if (Enc(c, 1) is { } e) e.State.SpawnsCurrent = c.I(0); return null; }
     // Measured (encounter_events): Get returns the encdifficulty.2da VALUE of the encounter's row (Hard reads 5), and Set
     // takes the ENCOUNTER_DIFFICULTY_* row, ignoring values outside 0..4.
-    [NwFunc("GetEncounterDifficulty")] static object? EncDifficulty(Call c) =>
+    [NwFunc("GetEncounterDifficulty")]
+    static object? EncDifficulty(Call c) =>
         Enc(c, 0) is { } e ? EncounterSystem.DifficultyValue(c.World, e.State.DifficultyIndex) : 0;
     [NwFunc("SetEncounterDifficulty")] static object? SetEncDifficulty(Call c) { if (Enc(c, 1) is { } e && c.I(0) is >= 0 and <= 4) e.State.DifficultyIndex = c.I(0); return null; }
-    [NwFunc("GetIsEncounterCreature")] static object? IsEncCreature(Call c) =>
+    [NwFunc("GetIsEncounterCreature")]
+    static object? IsEncCreature(Call c) =>
         c.ObjOrSelf(0) is Creature { SpawnedByEncounter: var id } && id != GameObject.InvalidId ? 1 : 0;
 
-    [NwFunc("GetIsInSubArea")] static object? InSubArea(Call c)
+    [NwFunc("GetIsInSubArea")]
+    static object? InSubArea(Call c)
     {
         uint creature = c.O(0);
         return c.ObjOrSelf(1) switch
@@ -143,7 +157,8 @@ static class AreaFunctions
 
     // ---- map ----
 
-    [NwFunc("SetMapPinEnabled")] static object? MapPin(Call c)
+    [NwFunc("SetMapPinEnabled")]
+    static object? MapPin(Call c)
     {
         if (c.Obj(0) is Waypoint w)
         {
@@ -161,7 +176,8 @@ static class AreaFunctions
         return env.Explored[pc.Id] = new bool[Math.Max(0, a.Width * a.Height)];
     }
 
-    [NwFunc("ExploreAreaForPlayer")] static object? ExploreArea(Call c)
+    [NwFunc("ExploreAreaForPlayer")]
+    static object? ExploreArea(Call c)
     {
         if (c.Obj(0) is not Area a || c.Obj<Creature>(1) is not { IsPC: true } pc) return null;
         bool explored = c.I(2, 1) != 0;
@@ -172,7 +188,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("SetTileExplored")] static object? SetTileExplored(Call c)
+    [NwFunc("SetTileExplored")]
+    static object? SetTileExplored(Call c)
     {
         if (c.Obj<Creature>(0) is not { IsPC: true } pc || c.Obj(1) is not Area a) return -1;
         int x = c.I(2), y = c.I(3);
@@ -185,7 +202,8 @@ static class AreaFunctions
         return before ? 1 : 0;
     }
 
-    [NwFunc("GetTileExplored")] static object? GetTileExplored(Call c)
+    [NwFunc("GetTileExplored")]
+    static object? GetTileExplored(Call c)
     {
         if (c.Obj<Creature>(0) is not { IsPC: true } pc || c.Obj(1) is not Area a) return -1;
         int x = c.I(2), y = c.I(3);
@@ -195,7 +213,8 @@ static class AreaFunctions
 
     // ---- weather, fog, sky, light ----
 
-    [NwFunc("SetWeather")] static object? SetWeather(Call c)
+    [NwFunc("SetWeather")]
+    static object? SetWeather(Call c)
     {
         int weather = c.I(1);
         IEnumerable<Area> areas = c.Obj(0) switch
@@ -213,7 +232,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("GetWeather")] static object? GetWeather(Call c)
+    [NwFunc("GetWeather")]
+    static object? GetWeather(Call c)
     {
         if (c.Obj(0) is not Area a) return -1;
         var env = Env(c, a);
@@ -225,7 +245,8 @@ static class AreaFunctions
         return WeatherSystem.Current(a, env);
     }
 
-    [NwFunc("SetFogAmount")] static object? SetFog(Call c)
+    [NwFunc("SetFogAmount")]
+    static object? SetFog(Call c)
     {
         if (AreaArg(c, 2) is not { } a) return null;
         var env = Env(c, a);
@@ -236,13 +257,15 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("GetFogAmount")] static object? GetFog(Call c)
+    [NwFunc("GetFogAmount")]
+    static object? GetFog(Call c)
     {
         if (AreaArg(c, 1) is not { } a) return 0;
         return c.I(0) switch { 1 => Env(c, a).SunFog, 2 => Env(c, a).MoonFog, _ => -1 };
     }
 
-    [NwFunc("SetSkyBox")] static object? SetSkyBox(Call c)
+    [NwFunc("SetSkyBox")]
+    static object? SetSkyBox(Call c)
     {
         if (AreaArg(c, 1) is not { } a) return null;
         Env(c, a).SkyBox = c.I(0);
@@ -251,7 +274,8 @@ static class AreaFunctions
     }
     [NwFunc("GetSkyBox")] static object? GetSkyBox(Call c) => AreaArg(c, 0) is { } a ? Env(c, a).SkyBox : 0;
 
-    [NwFunc("GetAreaLightDirection")] static object? LightDirection(Call c)
+    [NwFunc("GetAreaLightDirection")]
+    static object? LightDirection(Call c)
     {
         if (AreaArg(c, 1) is not { } a) return Vector3.Zero;
         var env = Env(c, a);
@@ -265,7 +289,8 @@ static class AreaFunctions
 
     /// <summary>The original's light direction when an area sets none.</summary>
     static readonly Vector3 DefaultLightDirection = new(0.433224291f, 0.487377316f, 0.758142531f);
-    [NwFunc("SetAreaLightDirection")] static object? SetLightDirection(Call c)
+    [NwFunc("SetAreaLightDirection")]
+    static object? SetLightDirection(Call c)
     {
         if (AreaArg(c, 2) is not { } a) return null;
         var env = Env(c, a);
@@ -276,7 +301,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("SetAreaWind")] static object? SetWind(Call c)
+    [NwFunc("SetAreaWind")]
+    static object? SetWind(Call c)
     {
         if (c.Obj(0) is not Area a) return null;
         var env = Env(c, a);
@@ -288,7 +314,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("RecomputeStaticLighting")] static object? RecomputeLighting(Call c)
+    [NwFunc("RecomputeStaticLighting")]
+    static object? RecomputeLighting(Call c)
     {
         if (c.Obj(0) is not Area a) return null;
         Env(c, a).LightingDirty = false;
@@ -332,7 +359,8 @@ static class AreaFunctions
         c.World.Output?.Notify("area-tiles", a, new { tileset = a.Tileset, flags, tiles = indices.Select(i => TileData(a, i)).ToList() });
     }
 
-    [NwFunc("SetTile")] static object? SetTile(Call c)
+    [NwFunc("SetTile")]
+    static object? SetTile(Call c)
     {
         if (TileAt(c, c.L(0)) is not var (a, i)) return null;
         ref var t = ref a.Tiles[i];
@@ -343,7 +371,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("SetTileAnimationLoops")] static object? SetTileAnimLoops(Call c)
+    [NwFunc("SetTileAnimationLoops")]
+    static object? SetTileAnimLoops(Call c)
     {
         if (TileAt(c, c.L(0)) is not var (a, i)) return null;
         a.Tiles[i].AnimLoops = (byte)((c.I(1) != 0 ? 1 : 0) | (c.I(2) != 0 ? 2 : 0) | (c.I(3) != 0 ? 4 : 0));
@@ -351,7 +380,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("SetTileJson")] static object? SetTileJson(Call c)
+    [NwFunc("SetTileJson")]
+    static object? SetTileJson(Call c)
     {
         if (c.Obj(0) is not Area a || c.J(1).Node is not JsonArray list) return null;
         if (c.S(3).Length > 0) a.Tileset = c.S(3);
@@ -385,7 +415,8 @@ static class AreaFunctions
     [NwFunc("ReloadAreaGrass")] static object? ReloadGrass(Call c) => AreaReload(c, "grass");
     [NwFunc("ReloadAreaBorder")] static object? ReloadBorder(Call c) => AreaReload(c, "border");
 
-    [NwFunc("SetAreaGrassOverride")] static object? GrassOverride(Call c)
+    [NwFunc("SetAreaGrassOverride")]
+    static object? GrassOverride(Call c)
     {
         if (c.Obj(0) is not Area a || c.S(2).Length == 0) return null;
         var data = new
@@ -397,20 +428,23 @@ static class AreaFunctions
         c.World.Output?.Notify("area-grass", a, data);
         return null;
     }
-    [NwFunc("RemoveAreaGrassOverride")] static object? RemoveGrassOverride(Call c)
+    [NwFunc("RemoveAreaGrassOverride")]
+    static object? RemoveGrassOverride(Call c)
     {
         if (c.Obj(0) is Area a && Env(c, a).GrassOverrides.Remove(c.I(1)))
             c.World.Output?.Notify("area-grass", a, new { material = c.I(1), removed = true });
         return null;
     }
-    [NwFunc("SetAreaDefaultGrassDisabled")] static object? DefaultGrassDisabled(Call c)
+    [NwFunc("SetAreaDefaultGrassDisabled")]
+    static object? DefaultGrassDisabled(Call c)
     {
         if (c.Obj(0) is not Area a) return null;
         Env(c, a).DefaultGrassDisabled = c.I(1) != 0;
         c.World.Output?.Notify("area-grass", a, new { defaultDisabled = c.I(1) != 0 });
         return null;
     }
-    [NwFunc("SetAreaTileBorderDisabled")] static object? TileBorderDisabled(Call c)
+    [NwFunc("SetAreaTileBorderDisabled")]
+    static object? TileBorderDisabled(Call c)
     {
         if (c.Obj(0) is not Area a) return null;
         // Takes effect when clients next load the area.
@@ -420,9 +454,11 @@ static class AreaFunctions
 
     // Event data for the module's OnPlayerTileAction (set by whoever raises the event).
     [NwFunc("GetLastTileActionId")] static object? TileActionId(Call c) => c.Event.Int("TileActionId");
-    [NwFunc("GetLastTileActionPosition")] static object? TileActionPosition(Call c) =>
+    [NwFunc("GetLastTileActionPosition")]
+    static object? TileActionPosition(Call c) =>
         c.Event.Values.TryGetValue("TileActionPosition", out var v) && v is Vector3 p ? p : Vector3.Zero;
-    [NwFunc("GetLastPlayerToDoTileAction")] static object? TileActionPlayer(Call c)
+    [NwFunc("GetLastPlayerToDoTileAction")]
+    static object? TileActionPlayer(Call c)
     {
         uint id = c.Event.Obj("TileActionPlayer");
         return c.World.Get(id) != null ? id : GameObject.InvalidId;
@@ -444,7 +480,8 @@ static class AreaFunctions
 
     static bool CanTransform(GameObject? o) => o is Creature or Placeable or Item or Door;
 
-    [NwFunc("GetObjectVisualTransform")] static object? GetVisualTransform(Call c)
+    [NwFunc("GetObjectVisualTransform")]
+    static object? GetVisualTransform(Call c)
     {
         var o = c.Obj(0);
         int transform = c.I(1);
@@ -453,7 +490,8 @@ static class AreaFunctions
         return c.I(2) != 0 ? vt!.ValueAt(c.World.Time) : vt!.To;
     }
 
-    [NwFunc("SetObjectVisualTransform")] static object? SetVisualTransform(Call c)
+    [NwFunc("SetObjectVisualTransform")]
+    static object? SetVisualTransform(Call c)
     {
         // object oObject, int nTransform, float fValue, int nLerpType, float fLerpDuration, int bPauseWithGame, int nScope, int nBehaviorFlags, int nRepeats
         var o = c.Obj(0);
@@ -476,7 +514,8 @@ static class AreaFunctions
         return old;
     }
 
-    [NwFunc("ClearObjectVisualTransform")] static object? ClearVisualTransform(Call c)
+    [NwFunc("ClearObjectVisualTransform")]
+    static object? ClearVisualTransform(Call c)
     {
         var o = c.Obj(0);
         if (o?.VisualTransforms is not { Count: > 0 } map) return 0;
@@ -489,7 +528,8 @@ static class AreaFunctions
         return 1;
     }
 
-    [NwFunc("SetObjectVisibleDistance")] static object? SetVisibleDistance(Call c)
+    [NwFunc("SetObjectVisibleDistance")]
+    static object? SetVisibleDistance(Call c)
     {
         // TODO(server): GameServer could use this to limit which objects it sends; it currently sends whole areas.
         if (c.Obj(0) is { } o and not (Area or Module)) o.VisibleDistance = Math.Max(0f, c.F(1, 45f));
@@ -497,7 +537,8 @@ static class AreaFunctions
     }
     [NwFunc("GetObjectVisibleDistance")] static object? GetVisibleDistance(Call c) => c.Obj(0) is { } o and not (Area or Module) ? o.VisibleDistance : -1f;
 
-    [NwFunc("ReplaceObjectTexture")] static object? ReplaceTexture(Call c)
+    [NwFunc("ReplaceObjectTexture")]
+    static object? ReplaceTexture(Call c)
     {
         if (c.Obj(0) is not { } o) return null;
         o.TextureReplacements ??= new(StringComparer.OrdinalIgnoreCase);
@@ -507,7 +548,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("ReplaceObjectAnimation")] static object? ReplaceAnimation(Call c)
+    [NwFunc("ReplaceObjectAnimation")]
+    static object? ReplaceAnimation(Call c)
     {
         if (c.Obj(0) is not { } o) return null;
         o.AnimationReplacements ??= new(StringComparer.OrdinalIgnoreCase);
@@ -517,7 +559,8 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("SetTextureOverride")] static object? TextureOverride(Call c)
+    [NwFunc("SetTextureOverride")]
+    static object? TextureOverride(Call c)
     {
         var data = new { old = c.S(0), @new = c.S(1) };
         if (c.Obj<Creature>(2) is { IsPC: true } pc) c.World.Output?.Notify("texture-override", pc, data, pc);
@@ -525,17 +568,20 @@ static class AreaFunctions
         return null;
     }
 
-    [NwFunc("SetMaterialShaderUniformInt")] static object? MaterialUniformInt(Call c)
+    [NwFunc("SetMaterialShaderUniformInt")]
+    static object? MaterialUniformInt(Call c)
     {
         if (c.Obj(0) is { } o) c.World.Output?.Notify("material-uniform", o, new { material = c.S(1), param = c.S(2), type = "int", value = new[] { (float)c.I(3) } });
         return null;
     }
-    [NwFunc("SetMaterialShaderUniformVec4")] static object? MaterialUniformVec4(Call c)
+    [NwFunc("SetMaterialShaderUniformVec4")]
+    static object? MaterialUniformVec4(Call c)
     {
         if (c.Obj(0) is { } o) c.World.Output?.Notify("material-uniform", o, new { material = c.S(1), param = c.S(2), type = "vec4", value = new[] { c.F(3), c.F(4), c.F(5), c.F(6) } });
         return null;
     }
-    [NwFunc("ResetMaterialShaderUniforms")] static object? ResetMaterialUniforms(Call c)
+    [NwFunc("ResetMaterialShaderUniforms")]
+    static object? ResetMaterialUniforms(Call c)
     {
         if (c.Obj(0) is { } o) c.World.Output?.Notify("material-uniform-reset", o, new { material = c.S(1), param = c.S(2) });
         return null;

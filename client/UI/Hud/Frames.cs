@@ -37,8 +37,11 @@ public partial class PlayerFrame : PanelContainer
         portraitHolder.AddThemeStyleboxOverride("panel", ring);
         _portrait = Portraits.View(new Vector2(64, 80), 7);
         portraitHolder.AddChild(_portrait);
-        portraitHolder.GuiInput += e => { if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left }
-            && TargetPortrait?.Invoke(Session.ControlledId) != true) OpenCharacter?.Invoke(); };
+        portraitHolder.GuiInput += e =>
+        {
+            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left }
+            && TargetPortrait?.Invoke(Session.ControlledId) != true) OpenCharacter?.Invoke();
+        };
         row.AddChild(portraitHolder);
 
         var col = Ui.VBox(6);

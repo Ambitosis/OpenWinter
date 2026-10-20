@@ -148,18 +148,33 @@ public partial class RadialMenu
                 ItemRingCommand.Examine => new RadialEntry { Label = "Examine", Glyph = "eye", Act = () => Examine?.Invoke(item.Id) },
                 ItemRingCommand.CastSpell => Category("Cast Spell", "magic", () => Spells(null, false)),
                 // The original's plot items keep an ordinary Drop (it does nothing); the modern skin greys it.
-                ItemRingCommand.Drop => Icon(new RadialEntry { Label = "Drop", Glyph = "drop",
-                    Disabled = Skin == null && item.Info?.Plot == true, Act = () => drop?.Invoke(item) }, "ir_drop"),
+                ItemRingCommand.Drop => Icon(new RadialEntry
+                {
+                    Label = "Drop", Glyph = "drop",
+                    Disabled = Skin == null && item.Info?.Plot == true, Act = () => drop?.Invoke(item)
+                }, "ir_drop"),
                 ItemRingCommand.Open => Icon(new RadialEntry { Label = "Open", Glyph = "bag", Act = () => openBag?.Invoke(item) }, "ir_open"),
                 // The original shows Sell alike on stolen, plot, worn and too dear items; the modern skin greys those.
-                ItemRingCommand.Sell => Icon(new RadialEntry { Label = "Sell", Glyph = "bag",
-                    Disabled = Skin == null && _inventoryCanSell?.Invoke(item) == false, Act = () => sell?.Invoke(item) }, "ir_sell"),
-                ItemRingCommand.Equip => Icon(new RadialEntry { Label = "Equip", Glyph = "weapon",
-                    Act = () => Session.Request("equip", new { item = item.Id }) }, "ir_equip_r"),
-                ItemRingCommand.Unequip => Icon(new RadialEntry { Label = "Unequip", Glyph = "bag",
-                    Act = () => Session.Request("unequip", new { item = item.Id }) }, "ir_unequip"),
-                ItemRingCommand.EquipOffhand => Icon(new RadialEntry { Label = "Equip Offhand", Glyph = "offhand",
-                    Act = () => Session.Request("equip", new { item = item.Id, offhand = true }) }, "ir_equip_l"),
+                ItemRingCommand.Sell => Icon(new RadialEntry
+                {
+                    Label = "Sell", Glyph = "bag",
+                    Disabled = Skin == null && _inventoryCanSell?.Invoke(item) == false, Act = () => sell?.Invoke(item)
+                }, "ir_sell"),
+                ItemRingCommand.Equip => Icon(new RadialEntry
+                {
+                    Label = "Equip", Glyph = "weapon",
+                    Act = () => Session.Request("equip", new { item = item.Id })
+                }, "ir_equip_r"),
+                ItemRingCommand.Unequip => Icon(new RadialEntry
+                {
+                    Label = "Unequip", Glyph = "bag",
+                    Act = () => Session.Request("unequip", new { item = item.Id })
+                }, "ir_unequip"),
+                ItemRingCommand.EquipOffhand => Icon(new RadialEntry
+                {
+                    Label = "Equip Offhand", Glyph = "offhand",
+                    Act = () => Session.Request("equip", new { item = item.Id, offhand = true })
+                }, "ir_equip_l"),
                 ItemRingCommand.Split => Icon(new RadialEntry { Label = "Split", Glyph = "bag", Act = () => split?.Invoke(item) }, "ir_split"),
                 _ => null,
             };

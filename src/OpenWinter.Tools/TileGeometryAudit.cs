@@ -49,8 +49,11 @@ static class TileGeometryAudit
             rows.Add(new { tileset = key.ResRef, interior = set.GetInt("GENERAL", "Interior"), tiles = count, uniqueModels = unique });
         }
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
-        File.WriteAllText(output, JsonSerializer.Serialize(new { models = checkedModels.Count, totalParts, totalTriangles,
-            mirrored, blackParts, modes, tilesets = rows, missingModels, problems }, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(output, JsonSerializer.Serialize(new
+        {
+            models = checkedModels.Count, totalParts, totalTriangles,
+            mirrored, blackParts, modes, tilesets = rows, missingModels, problems
+        }, new JsonSerializerOptions { WriteIndented = true }));
         Console.WriteLine($"Tile audit: {checkedModels.Count} models, {totalParts} render parts, {totalTriangles} triangles, {blackParts} black parts, {mirrored} mirrored transforms, {missingModels.Count} missing models, {problems.Count} geometry problems");
         if (problems.Count > 0) throw new InvalidOperationException(string.Join("; ", problems.Take(10)));
     }

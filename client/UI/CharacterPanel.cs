@@ -645,15 +645,15 @@ public partial class CharacterPanel : UiTheme.Window
             string[] labels = { "LG", "NG", "CG", "LN", "N", "CN", "LE", "NE", "CE" };
             int col = LawChaos >= 70 ? 0 : LawChaos <= 30 ? 2 : 1, row = GoodEvil >= 70 ? 0 : GoodEvil <= 30 ? 2 : 1;
             for (int r = 0; r < 3; r++)
-            for (int c = 0; c < 3; c++)
-            {
-                var rect = new Rect2(c * cell + 2, r * cell + 2, cell - 4, cell - 4);
-                bool on = r == row && c == col;
-                DrawStyleBox(Styles.Box(on ? Palette.Accent with { A = 0.22f } : new Color(0, 0, 0, 0.3f), 6, on ? Palette.Accent : Palette.Line, 1), rect);
-                var s = labels[r * 3 + c];
-                var w = font.GetStringSize(s, HorizontalAlignment.Left, -1, 12).X;
-                DrawString(font, rect.GetCenter() + new Vector2(-w / 2, 4), s, HorizontalAlignment.Left, -1, 12, on ? Palette.AccentBright : Palette.TextMuted);
-            }
+                for (int c = 0; c < 3; c++)
+                {
+                    var rect = new Rect2(c * cell + 2, r * cell + 2, cell - 4, cell - 4);
+                    bool on = r == row && c == col;
+                    DrawStyleBox(Styles.Box(on ? Palette.Accent with { A = 0.22f } : new Color(0, 0, 0, 0.3f), 6, on ? Palette.Accent : Palette.Line, 1), rect);
+                    var s = labels[r * 3 + c];
+                    var w = font.GetStringSize(s, HorizontalAlignment.Left, -1, 12).X;
+                    DrawString(font, rect.GetCenter() + new Vector2(-w / 2, 4), s, HorizontalAlignment.Left, -1, 12, on ? Palette.AccentBright : Palette.TextMuted);
+                }
             // Precise position: law (100) at the left, good (100) at the top.
             var p = new Vector2((100 - LawChaos) / 100f * cell * 3, (100 - GoodEvil) / 100f * cell * 3);
             p = p.Clamp(new Vector2(6, 6), new Vector2(cell * 3 - 6, cell * 3 - 6));

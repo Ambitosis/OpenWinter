@@ -50,9 +50,12 @@ public static class EmitterShaders
         string light = lit ? "void light() {\n\tDIFFUSE_LIGHT += ATTENUATION * LIGHT_COLOR;\n}\n" : "";
         // Lighten uses the texture's authored display values. Sampling as sRGB
         // and then raising to 1/2.2 is not an inverse: it amplifies dark texels.
-        s = new Shader { Code = DrawCode.Replace("/*SOURCE_COLOR*/", blend == "add" ? "" : "source_color,")
+        s = new Shader
+        {
+            Code = DrawCode.Replace("/*SOURCE_COLOR*/", blend == "add" ? "" : "source_color,")
             .Replace("/*MODES*/", modes).Replace("/*CULL*/", twoSided ? "cull_disabled" : "cull_back")
-            .Replace("/*CUT*/", cut).Replace("/*LIGHT*/", light) };
+            .Replace("/*CUT*/", cut).Replace("/*LIGHT*/", light)
+        };
         Draw[key] = s;
         return s;
     }

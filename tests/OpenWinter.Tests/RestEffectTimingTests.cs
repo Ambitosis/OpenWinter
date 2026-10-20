@@ -65,12 +65,12 @@ public sealed class RestEffectTimingTests
         {
             var k = EffectConstants.Of(World);
             foreach (var (name, subtype) in new[] { ("m", k.Magical), ("s", k.Supernatural), ("e", k.Extraordinary), ("u", k.Unyielding) })
-            foreach (bool temporary in new[] { true, false })
-                World.System<EffectSystem>().Apply(new Effect
-                {
-                    Type = k["EFFECT_TYPE_SKILL_INCREASE"], SubType = subtype,
-                    Tag = (temporary ? "t" : "p") + name, SpellId = spell, Creator = creator, Ints = { [0] = 17, [1] = 1 },
-                }, temporary ? k.Temporary : k.Permanent, Actor, 300);
+                foreach (bool temporary in new[] { true, false })
+                    World.System<EffectSystem>().Apply(new Effect
+                    {
+                        Type = k["EFFECT_TYPE_SKILL_INCREASE"], SubType = subtype,
+                        Tag = (temporary ? "t" : "p") + name, SpellId = spell, Creator = creator, Ints = { [0] = 17, [1] = 1 },
+                    }, temporary ? k.Temporary : k.Permanent, Actor, 300);
             Assert.Equal(8, Actor.Effects.Count);
             var permanent = Assert.Single(Actor.Effects, e => e.Tag == "ps");
             Assert.Equal(k.Supernatural, permanent.SubType);
@@ -213,15 +213,15 @@ public sealed class RestEffectTimingTests
         g.World.AddToArea(other, g.Actor.Area!, new Vector3(22, 20, 0), 0, exact: true);
         var k = EffectConstants.Of(g.World);
         foreach (var target in new[] { g.Actor, other })
-        foreach (uint creator in new[] { g.Actor.Id, other.Id, g.World.Module.Id })
-        foreach (int spell in new[] { -1, 450 })
-        foreach (int duration in new[] { k.Temporary, k.Permanent })
-        foreach (int subtype in new[] { k.Magical, k.Supernatural, k.Extraordinary, k.Unyielding })
-            g.World.System<EffectSystem>().Apply(new Effect
-            {
-                Type = k["EFFECT_TYPE_SKILL_INCREASE"], Creator = creator, SpellId = spell,
-                SubType = subtype, Ints = { [0] = 17, [1] = 1 },
-            }, duration, target, 300);
+            foreach (uint creator in new[] { g.Actor.Id, other.Id, g.World.Module.Id })
+                foreach (int spell in new[] { -1, 450 })
+                    foreach (int duration in new[] { k.Temporary, k.Permanent })
+                        foreach (int subtype in new[] { k.Magical, k.Supernatural, k.Extraordinary, k.Unyielding })
+                            g.World.System<EffectSystem>().Apply(new Effect
+                            {
+                                Type = k["EFFECT_TYPE_SKILL_INCREASE"], Creator = creator, SpellId = spell,
+                                SubType = subtype, Ints = { [0] = 17, [1] = 1 },
+                            }, duration, target, 300);
         Assert.Equal(48, g.Actor.Effects.Count);
         Assert.Equal(48, other.Effects.Count);
         g.QueueRest();

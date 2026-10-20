@@ -22,9 +22,12 @@ public partial class GoldCarry : Control
         {
             Info = new ItemInfo { Width = table.GetInt(76, "InvSlotWidth", 2), Height = table.GetInt(76, "InvSlotHeight", 2) },
         };
-        var carry = new GoldCarry { Name = "GoldCarry", MouseFilter = MouseFilterEnum.Ignore,
+        var carry = new GoldCarry
+        {
+            Name = "GoldCarry", MouseFilter = MouseFilterEnum.Ignore,
             _session = session, _count = count, _active = true, _area = area.Info.AreaId,
-            _sourceArea = area, _owner = session.ControlledId, _pickGround = pickGround };
+            _sourceArea = area, _owner = session.ControlledId, _pickGround = pickGround
+        };
         PointerCarry.Add(owner, carry);
         var assets = ClassicAssets.For(content);
         var preview = ClassicItemArt.DragPreview(assets, coins, ClassicItemArt.IconSize(assets, coins) / 2);

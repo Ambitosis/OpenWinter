@@ -65,8 +65,11 @@ public sealed class CommandReticleTests
 
         public Creature Npc(bool hostile)
         {
-            var npc = new Creature { AppearanceType = 6, CurrentHitPoints = 100, MaxHitPoints = 100, Plot = true,
-                Faction = hostile ? FactionTable.Hostile : FactionTable.Commoner };
+            var npc = new Creature
+            {
+                AppearanceType = 6, CurrentHitPoints = 100, MaxHitPoints = 100, Plot = true,
+                Faction = hostile ? FactionTable.Hostile : FactionTable.Commoner
+            };
             World.AddToArea(npc, Area, new Vector3(20, 23, 0), 0);
             World.Factions.SetPersonal(npc, Pc, hostile ? 0 : 50);
             return npc;

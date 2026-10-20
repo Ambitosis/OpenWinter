@@ -176,8 +176,11 @@ public class MetamagicTests
             caster.Classes.Add(cc);
             cc.Memorized[slotLevel].Add((spell, meta, true));
             if (marker) caster.DomainSlots.Add((0, slotLevel, 0));
-            var action = new CastSpellAction { Spell = spell, Class = cc.Class, MetaMagic = meta,
-                DomainLevel = requestLevel, Target = caster.Id };
+            var action = new CastSpellAction
+            {
+                Spell = spell, Class = cc.Class, MetaMagic = meta,
+                DomainLevel = requestLevel, Target = caster.Id
+            };
             Assert.Equal(allowed ? ActionStatus.InProgress : ActionStatus.Failed, action.Step(world, caster, .01f));
             Assert.True(cc.Memorized[slotLevel][0].Ready);
             if (!allowed) { Assert.Null(action.Info); continue; }

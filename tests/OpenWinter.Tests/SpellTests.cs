@@ -124,8 +124,11 @@ public class SpellTests
         Assert.Equal(3, CreatureRules.SpellCount(f.World, f.Pc, 102));
         void Request()
         {
-            f.Client.Send(new ClientRequestMessage { Kind = "cast-spell", Json = JsonSerializer.Serialize(
-                new { spell = 102, @class = ClassCleric, meta = NwRules.MetaExtend, domain = 1 }) }.Write());
+            f.Client.Send(new ClientRequestMessage
+            {
+                Kind = "cast-spell", Json = JsonSerializer.Serialize(
+                new { spell = 102, @class = ClassCleric, meta = NwRules.MetaExtend, domain = 1 })
+            }.Write());
             f.Tick(8);
         }
         Request();
@@ -153,8 +156,11 @@ public class SpellTests
         Assert.Equal(1, CreatureRules.SpellUsesLeft(f.World, f.Pc, ClassCleric, 102, NwRules.MetaExtend, 1));
         void Request()
         {
-            f.Client.Send(new ClientRequestMessage { Kind = "cast-spell", Json = JsonSerializer.Serialize(
-                new { spell = 102, @class = ClassCleric, meta = NwRules.MetaExtend, domain = 1 }) }.Write());
+            f.Client.Send(new ClientRequestMessage
+            {
+                Kind = "cast-spell", Json = JsonSerializer.Serialize(
+                new { spell = 102, @class = ClassCleric, meta = NwRules.MetaExtend, domain = 1 })
+            }.Write());
             f.Tick(8);
         }
         Request();
@@ -180,7 +186,7 @@ public class SpellTests
             f.Pc.LastSpell = null;
             f.Pc.ActionModes.Clear();
             f.Pc.Actions.Add(new CastSpellAction
-                { Spell = 102, Target = f.Pc.Id, Class = ClassWizard, MetaMagic = NwRules.MetaNone });
+            { Spell = 102, Target = f.Pc.Id, Class = ClassWizard, MetaMagic = NwRules.MetaNone });
             f.Tick(scenario == 0 ? 1.0f : 1.7f);
             Assert.Null(f.Pc.LastSpell);
             Assert.Equal(scenario == 0, wizard.Memorized[1][0].Ready);

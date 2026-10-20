@@ -199,7 +199,7 @@ public class ScriptSemanticsTests
     [Theory]
     [InlineData("", "[json.exception.parse_error.101] parse error at line 1, column 1: syntax error while parsing value - unexpected end of input; expected '[', '{', or a literal")]
     [InlineData("{x", "[json.exception.parse_error.101] parse error at line 1, column 2: syntax error while parsing object key - invalid literal; last read: '{x'; expected string literal")]
-    [InlineData("[1,\n2,\n x]","[json.exception.parse_error.101] parse error at line 3, column 2: syntax error while parsing value - invalid literal; last read: '2,<U+000A> x'")]
+    [InlineData("[1,\n2,\n x]", "[json.exception.parse_error.101] parse error at line 3, column 2: syntax error while parsing value - invalid literal; last read: '2,<U+000A> x'")]
     [InlineData("1e400", "[json.exception.out_of_range.406] number overflow parsing '1e400'")]
     public void JsonParseErrorsMatchTheOriginal(string text, string expected) =>
         Assert.Equal(expected, Assert.Throws<JsonCore.ParseException>(() => JsonCore.Parse(text)).Message);

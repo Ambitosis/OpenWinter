@@ -70,8 +70,14 @@ public sealed partial class CombatSystem
         }
         return type switch
         {
-            "chain" => "Chain", "plate" => "Plate", "stone" or "crystal" => "Stone", "wood" => "Wood",
-            "chitin" => "Chitin", "scale" => "Scale", "ethereal" => "Ethereal", _ => "Leather",
+            "chain" => "Chain",
+            "plate" => "Plate",
+            "stone" or "crystal" => "Stone",
+            "wood" => "Wood",
+            "chitin" => "Chitin",
+            "scale" => "Scale",
+            "ethereal" => "Ethereal",
+            _ => "Leather",
         };
     }
 }

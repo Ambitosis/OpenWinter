@@ -121,7 +121,7 @@ public partial class QuickChatMenu : Control
     void DrawText(CanvasItem canvas)
     {
         if (_font == null || _assets == null) return;
-        for (int i=0;i<Count;i++)
+        for (int i = 0; i < Count; i++)
         {
             var key = _group == null ? QuickChat.Groups[i].Key : _group.Entries[i].Key;
             uint strref = _group == null ? QuickChat.Groups[i].StringRef : _group.Entries[i].StringRef;
@@ -131,7 +131,7 @@ public partial class QuickChatMenu : Control
             Font font = classic ? _font.Font : Fonts.Ui;
             int size = classic ? _font.Size : Palette.FontSmall;
             float ascent = classic ? _font.Ascent : font.GetAscent(size);
-            canvas.DrawString(font, new Vector2(classic ? 7 : 12, 2 + ascent + i * RowHeight), $"{key}: {label}", HorizontalAlignment.Left, -1, size, classic ? new Color(0.4f,0.8f,1) : Palette.Text);
+            canvas.DrawString(font, new Vector2(classic ? 7 : 12, 2 + ascent + i * RowHeight), $"{key}: {label}", HorizontalAlignment.Left, -1, size, classic ? new Color(0.4f, 0.8f, 1) : Palette.Text);
         }
     }
 }

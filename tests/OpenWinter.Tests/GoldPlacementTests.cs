@@ -42,7 +42,7 @@ public sealed class GoldPlacementTests
         }
         public void Tick(int frames = 1) { for (int i = 0; i < frames; i++) Server.Tick(1f / 30); }
         public void Drop(Vector3 point, uint? area = null, int count = 50) => Send(JsonSerializer.Serialize(new
-            { count, area = area ?? Area.Id, position = new[] { point.X, point.Y, point.Z } }));
+        { count, area = area ?? Area.Id, position = new[] { point.X, point.Y, point.Z } }));
         public void Send(string json)
         {
             Client.Send(new ClientRequestMessage { Kind = "drop-gold", Json = json }.Write());

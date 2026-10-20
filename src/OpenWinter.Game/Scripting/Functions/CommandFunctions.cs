@@ -18,23 +18,27 @@ static class CommandFunctions
         o.Actions.Add(a);
     }
 
-    [NwFunc("DelayCommand")] static object? Delay(Call c)
+    [NwFunc("DelayCommand")]
+    static object? Delay(Call c)
     {
         if (c.A(1) is { } s) c.Host.Schedule(c.F(0), s, c.SelfId);
         return null;
     }
-    [NwFunc("AssignCommand")] static object? Assign(Call c)
+    [NwFunc("AssignCommand")]
+    static object? Assign(Call c)
     {
         // Waypoints and sound objects never run assigned commands (audio_scripts).
         if (c.A(1) is { } s && c.World.Get(c.O(0)) is { } o and not (Waypoint or Sound)) c.Host.Schedule(0, s, o.Id);
         return null;
     }
-    [NwFunc("ActionDoCommand")] static object? DoCommand(Call c)
+    [NwFunc("ActionDoCommand")]
+    static object? DoCommand(Call c)
     {
         if (c.A(0) is { } s) Enqueue(c, c.Self, new DoCommandAction { Situation = s });
         return null;
     }
-    [NwFunc("ExecuteScript")] static object? Execute(Call c)
+    [NwFunc("ExecuteScript")]
+    static object? Execute(Call c)
     {
         // An invalid target still runs the script, with OBJECT_SELF invalid.
         var target = c.World.Get(c.O(1));
@@ -51,7 +55,8 @@ static class CommandFunctions
     /// Compiles and runs a chunk like ExecuteScript (as the script "!Chunk"). Returns "" on success, the compile
     /// error as the original words it, or "ERROR: FILE NOT OPENED: " when the chunk stopped on a script error.
     /// </summary>
-    [NwFunc("ExecuteScriptChunk")] static object? Chunk(Call c)
+    [NwFunc("ExecuteScriptChunk")]
+    static object? Chunk(Call c)
     {
         string chunk = c.S(0);
         string source = c.I(2, 1) != 0 ? "void main() {" + chunk + "}" : chunk;
@@ -70,51 +75,60 @@ static class CommandFunctions
     }
     [NwFunc("GetScriptParam")] static object? GetParam(Call c) => c.Event.Str("param:" + c.S(0));
     [NwFunc("SetScriptParam")] static object? SetParam(Call c) { c.Host.PendingParams[c.S(0)] = c.S(1); return null; }
-    [NwFunc("GetCurrentlyRunningEvent")] static object? RunningEvent(Call c) =>
+    [NwFunc("GetCurrentlyRunningEvent")]
+    static object? RunningEvent(Call c) =>
         c.I(0, 1) != 0 || !c.Event.Values.ContainsKey("DirectEventScriptType")
             ? c.Event.Int("EventScriptType") : c.Event.Int("DirectEventScriptType");
 
-    [NwFunc("ClearAllActions")] static object? Clear(Call c)
+    [NwFunc("ClearAllActions")]
+    static object? Clear(Call c)
     {
         if (c.Self is { } o) ActionQueues.Clear(c.World, o);
         // bClearCombatState: out of combat at once (nwscript.nss; not measurable in a player-less parity area).
         if (c.I(0) != 0 && c.Self is Creature cr) cr.InCombat = false;
         return null;
     }
-    [NwFunc("SetCommandable")] static object? SetCommandable(Call c)
+    [NwFunc("SetCommandable")]
+    static object? SetCommandable(Call c)
     {
         if ((c.World.Get(c.O(1)) ?? c.Self) is { } o) o.Commandable = c.I(0) != 0;
         return null;
     }
     [NwFunc("GetCommandable")] static object? GetCommandable(Call c) => (c.World.Get(c.O(0)) ?? c.Self)?.Commandable == true ? 1 : 0;
-    [NwFunc("GetCurrentAction")] static object? CurrentAction(Call c) =>
+    [NwFunc("GetCurrentAction")]
+    static object? CurrentAction(Call c) =>
         (c.World.Get(c.O(0)) ?? c.Self) is { Actions.Count: > 0 } o ? o.Actions[0].ActionType : 65535;
     [NwFunc("GetNumActions")] static object? NumActions(Call c) => (c.World.Get(c.O(0)) ?? c.Self)?.Actions.Count ?? 0;
 
     [NwFunc("ActionWait")] static object? Wait(Call c) { Enqueue(c, c.Self, new WaitAction { Remaining = c.F(0) }); return null; }
     [NwFunc("ActionSpeakString")] static object? ActionSpeak(Call c) { Enqueue(c, c.Self, new SpeakAction { Text = c.S(0), Volume = c.I(1) }); return null; }
-    [NwFunc("ActionSpeakStringByStrRef")] static object? ActionSpeakRef(Call c)
+    [NwFunc("ActionSpeakStringByStrRef")]
+    static object? ActionSpeakRef(Call c)
     {
         Enqueue(c, c.Self, new SpeakAction { Text = c.World.Resources.TlkString(unchecked((uint)c.I(0))), Volume = c.I(1) });
         return null;
     }
     [NwFunc("SpeakString")] static object? Speak(Call c) { if (c.Self is { } o) c.World.Output?.Speak(o, c.S(0), c.I(1)); return null; }
-    [NwFunc("SpeakStringByStrRef")] static object? SpeakRef(Call c)
+    [NwFunc("SpeakStringByStrRef")]
+    static object? SpeakRef(Call c)
     {
         if (c.Self is { } o) c.World.Output?.Speak(o, c.World.Resources.TlkString(unchecked((uint)c.I(0))), c.I(1));
         return null;
     }
-    [NwFunc("ActionPlayAnimation")] static object? ActionAnim(Call c)
+    [NwFunc("ActionPlayAnimation")]
+    static object? ActionAnim(Call c)
     {
         Enqueue(c, c.Self, new AnimationAction { Animation = c.I(0), Speed = c.F(1, 1), Duration = c.F(2) });
         return null;
     }
-    [NwFunc("PlayAnimation")] static object? Anim(Call c)
+    [NwFunc("PlayAnimation")]
+    static object? Anim(Call c)
     {
         if (c.Self is { } o) c.World.Output?.PlayAnimation(o, c.I(0), c.F(1, 1), c.F(2));
         return null;
     }
-    [NwFunc("ActionMoveToObject")] static object? MoveToObject(Call c)
+    [NwFunc("ActionMoveToObject")]
+    static object? MoveToObject(Call c)
     {
         // A target in another area: the route through doors and transition triggers (docs/INTER_AREA_MOVEMENT.md).
         if (OtherArea(c, c.Obj(0)))
@@ -157,13 +171,15 @@ static class CommandFunctions
         public override void Cancel(World world, GameObject owner) => _move?.Cancel(world, owner);
     }
 
-    [NwFunc("ActionForceFollowObject")] static object? ForceFollow(Call c)
+    [NwFunc("ActionForceFollowObject")]
+    static object? ForceFollow(Call c)
     {
         Enqueue(c, c.Self, new FollowAction { Leader = c.O(0), Distance = Math.Max(0, c.F(1)) });
         return null;
     }
 
-    [NwFunc("ActionMoveToLocation")] static object? MoveToLocation(Call c)
+    [NwFunc("ActionMoveToLocation")]
+    static object? MoveToLocation(Call c)
     {
         var loc = c.L(0);
         // The original takes a move order even from a creature that isn't commandable (SetCommandable(FALSE), charmed,
@@ -179,24 +195,28 @@ static class CommandFunctions
             Enqueue(c, c.Self, new WorldObjects.InterAreaMoveAction { Kind = WorldObjects.InterAreaMoveAction.Goal.Location, TargetLocation = loc, Run = c.I(1) != 0 });
         return null;
     }
-    [NwFunc("ActionMoveAwayFromObject")] static object? MoveAway(Call c)
+    [NwFunc("ActionMoveAwayFromObject")]
+    static object? MoveAway(Call c)
     {
         Enqueue(c, c.Self, new MoveAction { TargetObject = c.O(0), Run = c.I(1) != 0, Range = c.F(2, 40), Away = true });
         return null;
     }
-    [NwFunc("ActionMoveAwayFromLocation")] static object? MoveAwayLoc(Call c)
+    [NwFunc("ActionMoveAwayFromLocation")]
+    static object? MoveAwayLoc(Call c)
     {
         Enqueue(c, c.Self, new MoveAction { Target = c.L(0).Position, Run = c.I(1) != 0, Range = c.F(2, 40), Away = true });
         return null;
     }
-    [NwFunc("ActionForceMoveToObject")] static object? ForceMoveObj(Call c)
+    [NwFunc("ActionForceMoveToObject")]
+    static object? ForceMoveObj(Call c)
     {
         if (OtherArea(c, c.Obj(0)))
             Enqueue(c, c.Self, new WorldObjects.InterAreaMoveAction { TargetObject = c.O(0), Run = c.I(1) != 0, Range = c.F(2, 1), Timeout = c.F(3, 30), JumpOnTimeout = true });
         else Enqueue(c, c.Self, new MoveAction { TargetObject = c.O(0), Run = c.I(1) != 0, Range = c.F(2, 1), Timeout = c.F(3, 30), JumpOnTimeout = true });
         return null;
     }
-    [NwFunc("ActionForceMoveToLocation")] static object? ForceMoveLoc(Call c)
+    [NwFunc("ActionForceMoveToLocation")]
+    static object? ForceMoveLoc(Call c)
     {
         var loc = c.L(0);
         if (c.Self is Creature { Area: { } here } && loc.Area != here.Id && c.World.Get(loc.Area) is Area)
@@ -206,17 +226,20 @@ static class CommandFunctions
     }
     [NwFunc("ActionRandomWalk")] static object? RandomWalk(Call c) { Enqueue(c, c.Self, new RandomWalkAction()); return null; }
     [NwFunc("ActionJumpToLocation")] static object? ActionJumpLoc(Call c) { Enqueue(c, c.Self, new JumpAction { Destination = c.L(0) }); return null; }
-    [NwFunc("ActionJumpToObject")] static object? ActionJumpObj(Call c)
+    [NwFunc("ActionJumpToObject")]
+    static object? ActionJumpObj(Call c)
     {
         if (c.Obj(0) is { } t) Enqueue(c, c.Self, new JumpAction { Destination = c.Self is { } self ? JumpTarget(c.World, self, t) : t.Location });
         return null;
     }
-    [NwFunc("JumpToLocation")] static object? JumpLoc(Call c)
+    [NwFunc("JumpToLocation")]
+    static object? JumpLoc(Call c)
     {
         if (c.Self is { } o) { ActionQueues.Clear(c.World, o); c.World.Jump(o, c.L(0)); }
         return null;
     }
-    [NwFunc("JumpToObject")] static object? JumpObj(Call c)
+    [NwFunc("JumpToObject")]
+    static object? JumpObj(Call c)
     {
         if (c.Self is { } o && c.Obj(0) is { } t) { ActionQueues.Clear(c.World, o); c.World.Jump(o, JumpTarget(c.World, o, t)); }
         return null;
@@ -238,7 +261,8 @@ static class CommandFunctions
     [NwFunc("EventActivateItem")] static object? ActivateItemEvent(Call c) => new ScriptEvent { Type = EventActivateItem, Caster = c.O(0), Position = c.L(1).Position, Location = c.L(1), Target = c.O(2) };
     [NwFunc("GetUserDefinedEventNumber")] static object? UserEventNumber(Call c) => c.Event.Int("UserDefined");
 
-    [NwFunc("SignalEvent")] static object? Signal(Call c)
+    [NwFunc("SignalEvent")]
+    static object? Signal(Call c)
     {
         var target = c.Obj(0);
         var ev = c.Ev(1);
@@ -319,15 +343,18 @@ static class CommandFunctions
     [NwFunc("GetLastDisturbed")] static object? Disturbed(Call c) => Ev(c, "Disturber");
     [NwFunc("GetInventoryDisturbItem")] static object? DisturbItem(Call c) => Ev(c, "DisturbItem");
     [NwFunc("GetInventoryDisturbType")] static object? DisturbType(Call c) => c.Event.Int("DisturbType");
-    [NwFunc("GetLastPCToCancelCutscene")] static object? CancelCutscene(Call c) =>
+    [NwFunc("GetLastPCToCancelCutscene")]
+    static object? CancelCutscene(Call c) =>
         c.World.Get(c.World.Module.LastCutsceneCanceller)?.Id ?? GameObject.InvalidId;
     [NwFunc("GetPlaceableLastClickedBy")] static object? PlcClicked(Call c) => Ev(c, "Clicking");
     // Inside OnSpellCastAt the event's values; elsewhere what the object last received (nwserver ai_queries).
     static bool InSpellCastAt(Call c) => c.Event.Values.ContainsKey("SpellHarmful");
-    [NwFunc("GetLastSpellCaster")] static object? SpellCaster(Call c) =>
+    [NwFunc("GetLastSpellCaster")]
+    static object? SpellCaster(Call c) =>
         InSpellCastAt(c) ? Ev(c, "SpellCaster") : c.Self is { } o && c.World.Get(o.LastSpellCaster) != null ? o.LastSpellCaster : GameObject.InvalidId;
     [NwFunc("GetLastSpell")] static object? LastSpell(Call c) => InSpellCastAt(c) ? c.Event.Int("SpellId") : c.Self?.LastSpellCastAt ?? -1;
-    [NwFunc("GetLastSpellHarmful")] static object? SpellHarmful(Call c) =>
+    [NwFunc("GetLastSpellHarmful")]
+    static object? SpellHarmful(Call c) =>
         InSpellCastAt(c) ? c.Event.Int("SpellHarmful") : c.Self?.LastSpellHarmful == true ? 1 : 0;
     [NwFunc("GetModuleItemAcquired")] static object? Acquired(Call c) => Ev(c, "AcquiredItem");
     [NwFunc("GetModuleItemAcquiredFrom")] static object? AcquiredFrom(Call c) => Ev(c, "AcquiredFrom");
@@ -338,7 +365,8 @@ static class CommandFunctions
     [NwFunc("GetItemActivated")] static object? Activated(Call c) => Ev(c, "ActivatedItem");
     [NwFunc("GetItemActivator")] static object? Activator(Call c) => Ev(c, "Activator");
     [NwFunc("GetItemActivatedTarget")] static object? ActivatedTarget(Call c) => Ev(c, "ActivatedTarget");
-    [NwFunc("GetItemActivatedTargetLocation")] static object? ActivatedLocation(Call c) =>
+    [NwFunc("GetItemActivatedTargetLocation")]
+    static object? ActivatedLocation(Call c) =>
         c.Event.Values.TryGetValue("ActivatedLocation", out var l) && l is Location loc ? loc : Location.Invalid;
     [NwFunc("GetPCLevellingUp")] static object? LevellingUp(Call c) => Ev(c, "LevellingUp");
     [NwFunc("GetLastPlayerDied")] static object? PlayerDied(Call c) => Ev(c, "PlayerDied");
@@ -352,27 +380,32 @@ static class CommandFunctions
     [NwFunc("SetPCChatMessage")] static object? SetChat(Call c) { c.Event.Set("ChatMessage", c.S(0)); c.Event.Set("ChatChanged", 1); return null; }
     [NwFunc("SetPCChatVolume")] static object? SetChatVolume(Call c) { c.Event.Set("ChatVolume", c.I(0)); return null; }
 
-    [NwFunc("SendMessageToPC")] static object? Message(Call c)
+    [NwFunc("SendMessageToPC")]
+    static object? Message(Call c)
     {
         if (c.Obj<Creature>(0) is { } pc && Players.FamiliarPossession.SessionOf(pc) != null) c.World.Output?.SendMessage(pc, c.S(1));
         return null;
     }
-    [NwFunc("SendMessageToPCByStrRef")] static object? MessageRef(Call c)
+    [NwFunc("SendMessageToPCByStrRef")]
+    static object? MessageRef(Call c)
     {
         if (c.Obj<Creature>(0) is { } pc && Players.FamiliarPossession.SessionOf(pc) != null) c.World.Output?.SendMessage(pc, c.World.Resources.TlkString(unchecked((uint)c.I(1))));
         return null;
     }
-    [NwFunc("SendMessageToAllDMs")] static object? MessageDMs(Call c)
+    [NwFunc("SendMessageToAllDMs")]
+    static object? MessageDMs(Call c)
     {
         foreach (var pc in c.World.AllObjects.OfType<Creature>().Where(x => x.Player?.IsDM == true)) c.World.Output?.SendMessage(pc, c.S(0));
         return null;
     }
-    [NwFunc("FloatingTextStringOnCreature")] static object? Floating(Call c)
+    [NwFunc("FloatingTextStringOnCreature")]
+    static object? Floating(Call c)
     {
         if (c.Obj<Creature>(1) is { } cr) c.World.Output?.FloatingText(cr, c.S(0), c.I(2, 1) != 0);
         return null;
     }
-    [NwFunc("FloatingTextStrRefOnCreature")] static object? FloatingRef(Call c)
+    [NwFunc("FloatingTextStrRefOnCreature")]
+    static object? FloatingRef(Call c)
     {
         if (c.Obj<Creature>(1) is { } cr) c.World.Output?.FloatingText(cr, c.World.Resources.TlkString(unchecked((uint)c.I(0))), c.I(2, 1) != 0);
         return null;

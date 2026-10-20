@@ -861,53 +861,53 @@ public class CombatRulesTests
     public void PlayerMeleeRoundsAgainstPassiveTargetsRetainNativeHalfSecondDelay()
     {
         foreach (int count in new[] { 1, 2, 6 })
-        foreach (bool player in new[] { false, true })
-        {
-            var f = Make();
-            var actor = Make(f, Fighter, 1, new Vector3(10, 10, 0));
-            actor.BaseAttackOverride = count;
-            if (player) actor.Player = new PlayerSession { Connection = OpenWinter.Net.LoopbackConnection.CreatePair().Item1 };
-            Equip(f, actor, Dagger, EquipSlot.RightHand);
-            var target = Target(f, new Vector3(11, 10, 0));
-            target.MaxHitPoints = target.CurrentHitPoints = 10000;
-            var attacks = new List<double>();
-            f.Combat.AttackResolved += outcome =>
+            foreach (bool player in new[] { false, true })
             {
-                if (outcome.Context.Attacker == actor) attacks.Add(f.W.Time);
-            };
-            f.Combat.Attack(actor, target);
-            for (int step = 0; step < 400; step++) f.W.Step(.05f);
-            Assert.True(attacks.Count >= count * 3);
-            double expected = (count == 1 ? 5.0 : 5.5) + (player ? .5 : 0);
-            for (int i = 0; i < count * 2; i++)
-                Assert.InRange(attacks[i + count] - attacks[i], expected - .06, expected + .11);
-        }
+                var f = Make();
+                var actor = Make(f, Fighter, 1, new Vector3(10, 10, 0));
+                actor.BaseAttackOverride = count;
+                if (player) actor.Player = new PlayerSession { Connection = OpenWinter.Net.LoopbackConnection.CreatePair().Item1 };
+                Equip(f, actor, Dagger, EquipSlot.RightHand);
+                var target = Target(f, new Vector3(11, 10, 0));
+                target.MaxHitPoints = target.CurrentHitPoints = 10000;
+                var attacks = new List<double>();
+                f.Combat.AttackResolved += outcome =>
+                {
+                    if (outcome.Context.Attacker == actor) attacks.Add(f.W.Time);
+                };
+                f.Combat.Attack(actor, target);
+                for (int step = 0; step < 400; step++) f.W.Step(.05f);
+                Assert.True(attacks.Count >= count * 3);
+                double expected = (count == 1 ? 5.0 : 5.5) + (player ? .5 : 0);
+                for (int i = 0; i < count * 2; i++)
+                    Assert.InRange(attacks[i + count] - attacks[i], expected - .06, expected + .11);
+            }
     }
 
     [DataFact]
     public void ClearedPlayerMeleeRoundKeepsHalfSecondOffsetForFollowingCast()
     {
         foreach (int count in new[] { 1, 2, 6 })
-        foreach (bool player in new[] { false, true })
-        {
-            var f = Make();
-            var actor = Make(f, Fighter, 1, new Vector3(10, 10, 0));
-            actor.BaseAttackOverride = count;
-            if (player) actor.Player = new PlayerSession { Connection = OpenWinter.Net.LoopbackConnection.CreatePair().Item1 };
-            Equip(f, actor, Dagger, EquipSlot.RightHand);
-            var target = Target(f, new Vector3(11, 10, 0));
-            target.MaxHitPoints = target.CurrentHitPoints = 10000;
-            actor.Actions.Add(new AttackAction { Target = target.Id });
-            for (int i = 0; i < 20; i++) f.W.Step(.05f);
-            var state = f.Combat.State(actor);
-            Assert.Equal(count == 6 ? 2 : 1, state.NextAttack);
-            double start = state.RoundStart;
-            ActionQueues.Clear(f.W, actor);
-            f.W.Step(.05f);
-            double shortened = count == 1 ? 5 : count == 2 ? 4.5 : 3.65;
-            Assert.InRange(f.Combat.NextCastTime(actor) - start,
-                shortened + (player ? .5 : 0) - .001, shortened + (player ? .5 : 0) + .001);
-        }
+            foreach (bool player in new[] { false, true })
+            {
+                var f = Make();
+                var actor = Make(f, Fighter, 1, new Vector3(10, 10, 0));
+                actor.BaseAttackOverride = count;
+                if (player) actor.Player = new PlayerSession { Connection = OpenWinter.Net.LoopbackConnection.CreatePair().Item1 };
+                Equip(f, actor, Dagger, EquipSlot.RightHand);
+                var target = Target(f, new Vector3(11, 10, 0));
+                target.MaxHitPoints = target.CurrentHitPoints = 10000;
+                actor.Actions.Add(new AttackAction { Target = target.Id });
+                for (int i = 0; i < 20; i++) f.W.Step(.05f);
+                var state = f.Combat.State(actor);
+                Assert.Equal(count == 6 ? 2 : 1, state.NextAttack);
+                double start = state.RoundStart;
+                ActionQueues.Clear(f.W, actor);
+                f.W.Step(.05f);
+                double shortened = count == 1 ? 5 : count == 2 ? 4.5 : 3.65;
+                Assert.InRange(f.Combat.NextCastTime(actor) - start,
+                    shortened + (player ? .5 : 0) - .001, shortened + (player ? .5 : 0) + .001);
+            }
     }
 
     [DataFact]
@@ -1012,28 +1012,28 @@ public class CombatRulesTests
     public void BashApproachesPlaceablesFromEverySideAndClearingTheOrderStopsIt()
     {
         foreach (string blueprint in new[] { "plc_chest1", "plc_desk", "plc_armoire", "plc_table" })
-        for (int side = 0; side < 4; side++)
-        {
-            var f = Make();
-            f.Area.Width = f.Area.Height = 4;
-            f.Area.Walkmesh.Add(new(0, 0, 0), new(40, 0, 0), new(40, 40, 0), 4, true);
-            f.Area.Walkmesh.Add(new(0, 0, 0), new(40, 40, 0), new(0, 40, 0), 4, true);
-            var centre = new Vector3(20, 20, 0);
-            var t = new AreaLoader(f.W).CreatePlaceable(f.Area, f.W.Resources.ReadGff(blueprint, ResType.Utp)!, centre, 0);
-            t.Plot = true;
-            float angle = side * MathF.PI / 2;
-            var start = centre + new Vector3(MathF.Cos(angle) * 6, MathF.Sin(angle) * 6, 0);
-            var a = Make(f, Fighter, 5, start);
-            Equip(f, a, Longsword, EquipSlot.RightHand);
-            a.Actions.Add(new AttackAction { Target = t.Id });
-            for (int i = 0; i < 240; i++) f.W.Step(1f / 30);
-            Assert.True(f.Output.Attacks.Any(), $"{blueprint}, side {side}: no attack at {a.Position}");
-            Assert.InRange(Vector3.Distance(a.Position, centre), 1.45f, 2.01f);
-            Assert.IsType<AttackAction>(Assert.Single(a.Actions));
-            ActionQueues.Clear(f.W, a);
-            Assert.False(f.Combat.IsInCombat(a));
-            Assert.Equal(Vector3.Zero, a.MoveDirection);
-        }
+            for (int side = 0; side < 4; side++)
+            {
+                var f = Make();
+                f.Area.Width = f.Area.Height = 4;
+                f.Area.Walkmesh.Add(new(0, 0, 0), new(40, 0, 0), new(40, 40, 0), 4, true);
+                f.Area.Walkmesh.Add(new(0, 0, 0), new(40, 40, 0), new(0, 40, 0), 4, true);
+                var centre = new Vector3(20, 20, 0);
+                var t = new AreaLoader(f.W).CreatePlaceable(f.Area, f.W.Resources.ReadGff(blueprint, ResType.Utp)!, centre, 0);
+                t.Plot = true;
+                float angle = side * MathF.PI / 2;
+                var start = centre + new Vector3(MathF.Cos(angle) * 6, MathF.Sin(angle) * 6, 0);
+                var a = Make(f, Fighter, 5, start);
+                Equip(f, a, Longsword, EquipSlot.RightHand);
+                a.Actions.Add(new AttackAction { Target = t.Id });
+                for (int i = 0; i < 240; i++) f.W.Step(1f / 30);
+                Assert.True(f.Output.Attacks.Any(), $"{blueprint}, side {side}: no attack at {a.Position}");
+                Assert.InRange(Vector3.Distance(a.Position, centre), 1.45f, 2.01f);
+                Assert.IsType<AttackAction>(Assert.Single(a.Actions));
+                ActionQueues.Clear(f.W, a);
+                Assert.False(f.Combat.IsInCombat(a));
+                Assert.Equal(Vector3.Zero, a.MoveDirection);
+            }
     }
 
     [DataFact]

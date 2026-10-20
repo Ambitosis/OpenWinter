@@ -30,8 +30,8 @@ public sealed class TileActionTests
             resources.Add(memory); resources.AddBaseGame(includeUserOverride: false);
             World = new World(resources); World.Register(World.Module); World.EnableScripts();
             Area = new Area { ResRef = "tiletest", Width = 4, Height = 4 }; World.Register(Area); World.Areas.Add(Area);
-            Area.Walkmesh.Add(new(0,0,0), new(40,0,0), new(40,40,0), 3, true);
-            Area.Walkmesh.Add(new(0,0,0), new(40,40,0), new(0,40,0), 3, true);
+            Area.Walkmesh.Add(new(0, 0, 0), new(40, 0, 0), new(40, 40, 0), 3, true);
+            Area.Walkmesh.Add(new(0, 0, 0), new(40, 40, 0), new(0, 40, 0), 3, true);
             const string source = "void main(){object p=GetLastPlayerToDoTileAction();SetLocalInt(OBJECT_SELF,\"id\",GetLastTileActionId());SetLocalObject(OBJECT_SELF,\"player\",p);SetLocalLocation(OBJECT_SELF,\"point\",Location(GetArea(p),GetLastTileActionPosition(),0.0));SetLocalInt(OBJECT_SELF,\"event\",GetCurrentlyRunningEvent());SetLocalInt(OBJECT_SELF,\"count\",GetLocalInt(OBJECT_SELF,\"count\")+1);}";
             var bytes = NssCompiler.Compile(source, "tile_test", World.Scripts!.Definitions, _ => null, out var error);
             Assert.True(bytes != null, error);
@@ -39,14 +39,14 @@ public sealed class TileActionTests
             World.Module.Scripts["Mod_OnPlrTileAct"] = "tile_test";
             Server = new GameServer(World, new ServerOptions { StartArea = Area.ResRef, DefaultAppearance = 6, Vault = VaultMode.Local });
             var pair = LoopbackConnection.CreatePair(); Client = pair.Client; Server.Accept(pair.Server);
-            Client.Send(new HelloMessage { PlayerName = "Tile tester" }.Write()); Server.Tick(1f/30);
+            Client.Send(new HelloMessage { PlayerName = "Tile tester" }.Write()); Server.Tick(1f / 30);
             Pc = Server.Sessions.Single().Creature!;
-            World.Jump(Pc, new Location(Area.Id, new(20,15,0), 0)); Drain();
+            World.Jump(Pc, new Location(Area.Id, new(20, 15, 0), 0)); Drain();
         }
         public void Request(string kind, object data)
         {
             Client.Send(new ClientRequestMessage { Kind = kind, Json = JsonSerializer.Serialize(data) }.Write());
-            Server.Tick(1f/30);
+            Server.Tick(1f / 30);
         }
         public List<JsonElement> Drain()
         {
@@ -67,18 +67,18 @@ public sealed class TileActionTests
     [DataFact]
     public void AuthenticatedActionsPreserveSlotsPointPlayerAndExistingQueue()
     {
-        var g = new Game(); var point = new Vector3(22,17,0);
-        g.Request("tile-actions", new { area = g.Area.Id, position = new[]{point.X,point.Y,point.Z}, query = 42 });
+        var g = new Game(); var point = new Vector3(22, 17, 0);
+        g.Request("tile-actions", new { area = g.Area.Id, position = new[] { point.X, point.Y, point.Z }, query = 42 });
         var payload = Assert.Single(g.Drain());
         Assert.Equal(42, payload.GetProperty("query").GetInt32());
         var entries = payload.GetProperty("entries").EnumerateArray().ToArray();
-        Assert.Equal(new[]{1,2,8}, entries.Select(e => e.GetProperty("id").GetInt32()));
+        Assert.Equal(new[] { 1, 2, 8 }, entries.Select(e => e.GetProperty("id").GetInt32()));
         Assert.Equal("", entries[1].GetProperty("icon").GetString());
         Assert.Equal("Use #1", entries[0].GetProperty("name").GetString());
-        var move = new MoveAction { Target = new(35,15,0), Run = false }; g.Pc.Actions.Add(move);
-        foreach (int id in new[]{1,2,8})
+        var move = new MoveAction { Target = new(35, 15, 0), Run = false }; g.Pc.Actions.Add(move);
+        foreach (int id in new[] { 1, 2, 8 })
         {
-            g.Request("tile-action", new { id, area = g.Area.Id, position = new[]{point.X,point.Y,point.Z}, player = g.World.Module.Id });
+            g.Request("tile-action", new { id, area = g.Area.Id, position = new[] { point.X, point.Y, point.Z }, player = g.World.Module.Id });
             Assert.Equal(id, g.World.Module.Locals.Ints["id"]);
             Assert.Equal(g.Pc.Id, g.World.Module.Locals.Objects["player"]);
             Assert.Equal(point, g.World.Module.Locals.Locations["point"].Position);
@@ -92,15 +92,15 @@ public sealed class TileActionTests
     public void RejectsForeignAreaUndefinedActionsAndInvalidPositions()
     {
         var g = new Game();
-        foreach (int id in new[]{0,3,4,9})
-            g.Request("tile-action", new { id, area = g.Area.Id, position = new[]{22,17,0} });
-        g.Request("tile-action", new { id = 1, area = g.Area.Id + 100, position = new[]{22,17,0} });
-        g.Request("tile-action", new { id = 1, area = g.Area.Id, position = new[]{400,170,0} });
-        g.Request("tile-action", new { id = 1, area = g.Area.Id, position = new[]{22,17,100} });
+        foreach (int id in new[] { 0, 3, 4, 9 })
+            g.Request("tile-action", new { id, area = g.Area.Id, position = new[] { 22, 17, 0 } });
+        g.Request("tile-action", new { id = 1, area = g.Area.Id + 100, position = new[] { 22, 17, 0 } });
+        g.Request("tile-action", new { id = 1, area = g.Area.Id, position = new[] { 400, 170, 0 } });
+        g.Request("tile-action", new { id = 1, area = g.Area.Id, position = new[] { 22, 17, 100 } });
         g.Request("tile-action", new { id = 1, area = g.Area.Id });
-        g.Request("tile-action", new { id = 1, area = g.Area.Id, position = new[]{22,17} });
+        g.Request("tile-action", new { id = 1, area = g.Area.Id, position = new[] { 22, 17 } });
         Assert.False(g.World.Module.Locals.Ints.ContainsKey("count"));
-        g.Request("tile-actions", new { area = g.Area.Id+100, position = new[]{22,17,0}, query = 4 });
+        g.Request("tile-actions", new { area = g.Area.Id + 100, position = new[] { 22, 17, 0 }, query = 4 });
         Assert.Empty(Assert.Single(g.Drain()).GetProperty("entries").EnumerateArray());
     }
 }

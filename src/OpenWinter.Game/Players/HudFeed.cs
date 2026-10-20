@@ -133,9 +133,12 @@ public sealed class HudFeed : IWorldSystem
         };
         var table = Spells.SpellTable.Table(_world);
         int strref = spell >= 0 ? table.GetInt(spell, "Name", -1) : -1;
-        return (object)new { id = QueueId(a), action = a.ActionType, spell,
+        return (object)new
+        {
+            id = QueueId(a), action = a.ActionType, spell,
             icon = spell >= 0 ? table.Get(spell, "IconResRef").ToLowerInvariant() : "",
-            name = strref >= 0 ? _world.Resources.TlkString((uint)strref) : "" };
+            name = strref >= 0 ? _world.Resources.TlkString((uint)strref) : ""
+        };
     }).ToArray();
 
     /// <summary>Cancels one shown action by stable identity (legacy index accepted), or explicitly clears the queue.</summary>

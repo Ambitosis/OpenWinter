@@ -36,7 +36,7 @@ public sealed class PortalTests
         return notes;
     }
 
-    [Fact]
+    [DataFact]
     public void ServerInfoAnswersAConnectionThatHasNotLoggedIn()
     {
         var (_, server) = NewServer(new ServerOptions { ServerName = "Test Server", MaxPlayers = 8 });
@@ -65,7 +65,7 @@ public sealed class PortalTests
         Assert.Single(server.Sessions, s => s.Creature != null);
     }
 
-    [Theory]
+    [DataTheory]
     [InlineData("WP_Portal", true)]
     [InlineData("wp_portal", false)] // the tag is case sensitive
     [InlineData("", false)]

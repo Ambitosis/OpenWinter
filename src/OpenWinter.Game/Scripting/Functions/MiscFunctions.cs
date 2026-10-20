@@ -22,7 +22,8 @@ public static class MiscFunctions
     // ---- 2DA ---------------------------------------------------------------
 
     [NwFunc("Get2DAString")] static object? Get2DAString(Call c) => c.World.Resources.TwoDA(c.S(0)).Get(c.I(2), c.S(1));
-    [NwFunc("Get2DAColumn")] static object? Get2DAColumn(Call c)
+    [NwFunc("Get2DAColumn")]
+    static object? Get2DAColumn(Call c)
     {
         // Column names come back in lower case, as in the original.
         var cols = c.World.Resources.TwoDA(c.S(0)).Columns;
@@ -41,13 +42,27 @@ public static class MiscFunctions
         -1 => "names",
         0 => "animal",
         1 => "familiar",
-        2 => "dwarfm", 3 => "dwarff", 4 => "dwarfl",
-        5 => "elfm", 6 => "elff", 7 => "elfl",
-        8 => "gnomem", 9 => "gnomef", 10 => "gnomel",
-        11 => "humanm", 12 => "humanf", 13 => "halfelfl",
-        14 => "halflingm", 15 => "halflingf", 16 => "halflingl",
-        17 => "halforcm", 18 => "halforcf", 19 => "halforcl",
-        20 => "humanm", 21 => "humanf", 22 => "humanl",
+        2 => "dwarfm",
+        3 => "dwarff",
+        4 => "dwarfl",
+        5 => "elfm",
+        6 => "elff",
+        7 => "elfl",
+        8 => "gnomem",
+        9 => "gnomef",
+        10 => "gnomel",
+        11 => "humanm",
+        12 => "humanf",
+        13 => "halfelfl",
+        14 => "halflingm",
+        15 => "halflingf",
+        16 => "halflingl",
+        17 => "halforcm",
+        18 => "halforcf",
+        19 => "halforcl",
+        20 => "humanm",
+        21 => "humanf",
+        22 => "humanl",
         _ => "",
     };
 
@@ -78,19 +93,22 @@ public static class MiscFunctions
     [NwFunc("GetModuleName")] static object? ModuleName(Call c) => c.World.Module.Name.Resolve(c.World.Resources.Talk);
     [NwFunc("GetGameDifficulty")] static object? Difficulty(Call c) => c.World.GameDifficulty;
 
-    [NwFunc("StartNewModule")] static object? StartNewModule(Call c)
+    [NwFunc("StartNewModule")]
+    static object? StartNewModule(Call c)
     {
         // The server stages the replacement and transfers characters after this script/tick finishes.
         c.World.PendingModule = c.S(0);
         c.World.NotifyAllPlayers("start-module", new { module = c.S(0) });
         return null;
     }
-    [NwFunc("EndGame")] static object? EndGame(Call c)
+    [NwFunc("EndGame")]
+    static object? EndGame(Call c)
     {
         c.World.NotifyAllPlayers("end-game", new { movie = c.S(0) });
         return null;
     }
-    [NwFunc("ActivatePortal")] static object? ActivatePortal(Call c)
+    [NwFunc("ActivatePortal")]
+    static object? ActivatePortal(Call c)
     {
         if (c.Obj<Creature>(0) is { IsPC: true } pc)
             c.World.Output?.Notify("portal", pc, new { address = c.S(1), password = c.S(2), waypoint = c.S(3), seamless = c.I(4) != 0 }, pc);
@@ -100,7 +118,8 @@ public static class MiscFunctions
     [NwFunc("BadBadReplaceMeThisDoesNothing")] static object? BadBad(Call c) => new ItemProperty();
     [NwFunc("Reserved899")] static object? Reserved899(Call c) => null;
 
-    [NwFunc("SetTlkOverride")] static object? SetTlkOverride(Call c)
+    [NwFunc("SetTlkOverride")]
+    static object? SetTlkOverride(Call c)
     {
         int strref = c.I(0);
         string text = c.S(1);
@@ -110,7 +129,8 @@ public static class MiscFunctions
         return null;
     }
 
-    [NwFunc("SetGameActivePause")] static object? SetPause(Call c)
+    [NwFunc("SetGameActivePause")]
+    static object? SetPause(Call c)
     {
         int before = c.World.PauseState;
         c.World.PauseState = c.I(0) != 0 ? before | 2 : before & ~2;
@@ -179,7 +199,8 @@ public static class MiscFunctions
     /// Where a resource comes from, named as the original names it: "CURRENTGAME:&lt;module&gt;" for the module and
     /// "HD0INSTALL:data/nwn_base" (the key file) for base game data.
     /// </summary>
-    [NwFunc("ResManGetAliasFor")] static object? AliasFor(Call c)
+    [NwFunc("ResManGetAliasFor")]
+    static object? AliasFor(Call c)
     {
         var rm = c.World.Resources;
         var key = ResKey.Of(c.S(0), (ushort)c.I(1));
@@ -198,7 +219,8 @@ public static class MiscFunctions
         return "";
     }
 
-    [NwFunc("ResManFindPrefix")] static object? FindPrefix(Call c)
+    [NwFunc("ResManFindPrefix")]
+    static object? FindPrefix(Call c)
     {
         var rm = c.World.Resources;
         string prefix = c.S(0).ToLowerInvariant();
@@ -219,7 +241,8 @@ public static class MiscFunctions
         return found.Count >= nth ? found.ElementAt(nth - 1) : "";
     }
 
-    [NwFunc("ResManGetFileContents")] static object? FileContents(Call c)
+    [NwFunc("ResManGetFileContents")]
+    static object? FileContents(Call c)
     {
         var bytes = c.World.Resources.Read(c.S(0), (ushort)c.I(1));
         if (bytes == null) return "";
@@ -232,7 +255,8 @@ public static class MiscFunctions
     }
 
     /// <summary>Compiles a script and makes it available to ExecuteScript and events for the rest of the session.</summary>
-    [NwFunc("CompileScript")] static object? CompileScript(Call c)
+    [NwFunc("CompileScript")]
+    static object? CompileScript(Call c)
     {
         string name = c.S(0).ToLowerInvariant();
         string source = c.I(2) != 0 ? "void main() {" + c.S(1) + "}" : c.S(1);
@@ -244,10 +268,12 @@ public static class MiscFunctions
 
     // ---- Event script handlers --------------------------------------------
 
-    [NwFunc("GetEventScript")] static object? GetEventScript(Call c) =>
+    [NwFunc("GetEventScript")]
+    static object? GetEventScript(Call c) =>
         c.Obj(0) is { } o && EventScripts.Field(o, c.I(1)) is { } f ? o.Script(f) : "";
 
-    [NwFunc("SetEventScript")] static object? SetEventScript(Call c)
+    [NwFunc("SetEventScript")]
+    static object? SetEventScript(Call c)
     {
         if (c.Obj(0) is not { } o || EventScripts.Field(o, c.I(1)) is not { } f) return 0;
         string script = c.S(2);
@@ -263,11 +289,13 @@ public static class MiscFunctions
     /// <summary>Event context keys the effects system sets when it runs an EffectRunScript script.</summary>
     public const string RunScriptEffectKey = "RunScriptEffect", RunScriptEffectTypeKey = "RunScriptEffectScriptType";
 
-    [NwFunc("GetLastRunScriptEffect")] static object? LastRunScriptEffect(Call c) =>
+    [NwFunc("GetLastRunScriptEffect")]
+    static object? LastRunScriptEffect(Call c) =>
         c.Event.Values.TryGetValue(RunScriptEffectKey, out var e) && e is Effect eff ? eff : c.Host.DefaultEngineValue(NssType.Effect);
     [NwFunc("GetLastRunScriptEffectScriptType")] static object? LastRunScriptEffectType(Call c) => c.Event.Int(RunScriptEffectTypeKey);
 
-    [NwFunc("HideEffectIcon")] static object? HideEffectIcon(Call c)
+    [NwFunc("HideEffectIcon")]
+    static object? HideEffectIcon(Call c)
     {
         var e = c.E(0).Clone();
         EffectIcons.Hide(e);
@@ -290,13 +318,15 @@ public static class MiscFunctions
         return level >= 0 && level <= Level(c) && level < running.Count ? running[level] : null;
     }
 
-    [NwFunc("GetScriptInstructionsRemaining")] static object? InstructionsRemaining(Call c) =>
+    [NwFunc("GetScriptInstructionsRemaining")]
+    static object? InstructionsRemaining(Call c) =>
         Math.Max(0, c.Thread.VM.InstructionLimit - c.Thread.VM.InstructionsUsed);
     [NwFunc("GetScriptRecursionLevel")] static object? RecursionLevel(Call c) => Math.Max(0, Level(c));
     [NwFunc("GetScriptName")] static object? ScriptName(Call c) => ThreadAt(c, c.I(0, -1))?.Program.Name ?? "";
     [NwFunc("GetScriptChunk")] static object? ScriptChunk(Call c) => ThreadAt(c, c.I(0, -1)) is { } t ? ScriptChunks.Of(t.Program) : "";
 
-    [NwFunc("AbortRunningScript")] static object? Abort(Call c)
+    [NwFunc("AbortRunningScript")]
+    static object? Abort(Call c)
     {
         if (c.S(0).Length > 0) c.Host.Log($"[script] {c.Thread.Program.Name}: {c.S(0)}");
         c.Thread.RequestAbort();
@@ -306,7 +336,8 @@ public static class MiscFunctions
     [NwFunc("LongJmp")] static object? LongJmp(Call c) { c.Thread.RequestJump(c.S(0), c.I(1, 1)); return null; }
     [NwFunc("GetIsValidJmp")] static object? IsValidJmp(Call c) => c.Thread.HasJump(c.S(0)) ? 1 : 0;
 
-    [NwFunc("GetScriptBacktrace")] static object? Backtrace(Call c)
+    [NwFunc("GetScriptBacktrace")]
+    static object? Backtrace(Call c)
     {
         var t = c.Thread;
         var frames = new JsonArray { new JsonObject { ["ip"] = t.CallIp, ["bp"] = t.BasePointer, ["sp"] = t.StackPointer, ["file"] = t.Program.Name } };

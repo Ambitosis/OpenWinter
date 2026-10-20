@@ -50,51 +50,60 @@ static class DataPlugin
 
     static int IndexOf(List<NwnxValue> list, NwnxValue v) => list.FindIndex(x => Equals(x.Value, v.Value));
 
-    [NwnxFunc(P, "ArrayAt")] static void At(NwnxCall n)
+    [NwnxFunc(P, "ArrayAt")]
+    static void At(NwnxCall n)
     {
         var (type, list) = Head(n); int i = n.PopInt();
         n.Push(i >= 0 && i < list.Count ? list[i] : Default(type));
     }
     [NwnxFunc(P, "ArrayClear")] static void Clear(NwnxCall n) => Head(n).List.Clear();
-    [NwnxFunc(P, "ArrayContains")] static void Contains(NwnxCall n)
+    [NwnxFunc(P, "ArrayContains")]
+    static void Contains(NwnxCall n)
     {
         var (type, list) = Head(n);
         n.Push(IndexOf(list, PopElement(n, type)) >= 0);
     }
-    [NwnxFunc(P, "ArrayCopy")] static void Copy(NwnxCall n)
+    [NwnxFunc(P, "ArrayCopy")]
+    static void Copy(NwnxCall n)
     {
         int type = n.PopInt(); uint obj = n.PopObjectId(); var tag = n.PopString(); var other = n.PopString();
         var dst = Array(n, type, obj, other);
         dst.Clear();
         dst.AddRange(Array(n, type, obj, tag));
     }
-    [NwnxFunc(P, "ArrayErase")] static void Erase(NwnxCall n)
+    [NwnxFunc(P, "ArrayErase")]
+    static void Erase(NwnxCall n)
     {
         var (_, list) = Head(n); int i = n.PopInt();
         if (i >= 0 && i < list.Count) list.RemoveAt(i);
     }
-    [NwnxFunc(P, "ArrayFind")] static void Find(NwnxCall n)
+    [NwnxFunc(P, "ArrayFind")]
+    static void Find(NwnxCall n)
     {
         var (type, list) = Head(n);
         n.Push(IndexOf(list, PopElement(n, type)));
     }
-    [NwnxFunc(P, "ArrayInsert")] static void Insert(NwnxCall n)
+    [NwnxFunc(P, "ArrayInsert")]
+    static void Insert(NwnxCall n)
     {
         var (type, list) = Head(n); int i = n.PopInt(); var v = PopElement(n, type);
         if (i >= 0 && i <= list.Count) list.Insert(i, v);
     }
-    [NwnxFunc(P, "ArrayPushBack")] static void PushBack(NwnxCall n)
+    [NwnxFunc(P, "ArrayPushBack")]
+    static void PushBack(NwnxCall n)
     {
         var (type, list) = Head(n);
         list.Add(PopElement(n, type));
     }
-    [NwnxFunc(P, "ArrayResize")] static void Resize(NwnxCall n)
+    [NwnxFunc(P, "ArrayResize")]
+    static void Resize(NwnxCall n)
     {
         var (type, list) = Head(n); int size = Math.Max(0, n.PopInt());
         if (list.Count > size) list.RemoveRange(size, list.Count - size);
         while (list.Count < size) list.Add(Default(type));
     }
-    [NwnxFunc(P, "ArrayShuffle")] static void Shuffle(NwnxCall n)
+    [NwnxFunc(P, "ArrayShuffle")]
+    static void Shuffle(NwnxCall n)
     {
         var (_, list) = Head(n);
         for (int i = list.Count - 1; i > 0; i--)
@@ -113,7 +122,8 @@ static class DataPlugin
     };
     [NwnxFunc(P, "ArraySortAscending")] static void SortAsc(NwnxCall n) => Head(n).List.Sort(Compare);
     [NwnxFunc(P, "ArraySortDescending")] static void SortDesc(NwnxCall n) => Head(n).List.Sort((a, b) => Compare(b, a));
-    [NwnxFunc(P, "ArraySet")] static void Set(NwnxCall n)
+    [NwnxFunc(P, "ArraySet")]
+    static void Set(NwnxCall n)
     {
         var (type, list) = Head(n); int i = n.PopInt(); var v = PopElement(n, type);
         if (i >= 0 && i < list.Count) list[i] = v;
@@ -163,7 +173,8 @@ public static class EventsPlugin
     public static int SubscriberCount(World world, string evt) =>
         State(world.System<NwnxRegistry>()).Subscribers.TryGetValue(evt, out var l) ? l.Count : 0;
 
-    [NwnxFunc(P, "SubscribeEvent")] static void Subscribe(NwnxCall n)
+    [NwnxFunc(P, "SubscribeEvent")]
+    static void Subscribe(NwnxCall n)
     {
         var evt = n.PopString(); var script = n.PopString();
         if (evt.StartsWith("NWNX_ON_", StringComparison.Ordinal) && !evt.StartsWith("NWNX_ON_DM_", StringComparison.Ordinal)
@@ -173,17 +184,20 @@ public static class EventsPlugin
         if (!subs.TryGetValue(evt, out var list)) subs[evt] = list = new List<string>();
         if (!list.Contains(script, StringComparer.OrdinalIgnoreCase)) list.Add(script);
     }
-    [NwnxFunc(P, "UnsubscribeEvent")] static void Unsubscribe(NwnxCall n)
+    [NwnxFunc(P, "UnsubscribeEvent")]
+    static void Unsubscribe(NwnxCall n)
     {
         var evt = n.PopString(); var script = n.PopString();
         if (State(n.Registry).Subscribers.TryGetValue(evt, out var list)) list.RemoveAll(s => s.Equals(script, StringComparison.OrdinalIgnoreCase));
     }
-    [NwnxFunc(P, "PushEventData")] static void PushData(NwnxCall n)
+    [NwnxFunc(P, "PushEventData")]
+    static void PushData(NwnxCall n)
     {
         var tag = n.PopString(); var data = n.PopString();
         State(n.Registry).PendingData[tag] = data;
     }
-    [NwnxFunc(P, "SignalEvent")] static void SignalEvent(NwnxCall n)
+    [NwnxFunc(P, "SignalEvent")]
+    static void SignalEvent(NwnxCall n)
     {
         var evt = n.PopString(); var target = n.PopObject();
         var st = State(n.Registry);
@@ -193,18 +207,21 @@ public static class EventsPlugin
         if (target != null) Signal(n.World, evt, target, data);
         n.Push(any);
     }
-    [NwnxFunc(P, "GetEventData")] static void GetData(NwnxCall n)
+    [NwnxFunc(P, "GetEventData")]
+    static void GetData(NwnxCall n)
     {
         var tag = n.PopString();
         n.Push(n.Host?.CurrentEvent.Str(KeyDataPrefix + tag) ?? "");
     }
     [NwnxFunc(P, "GetCurrentEvent")] static void CurrentEvent(NwnxCall n) => n.Push(n.Host?.CurrentEvent.Str(KeyEvent) ?? "");
-    [NwnxFunc(P, "SkipEvent")] static void Skip(NwnxCall n)
+    [NwnxFunc(P, "SkipEvent")]
+    static void Skip(NwnxCall n)
     {
         var st = State(n.Registry);
         if (st.Running.Count > 0) { var top = st.Running.Pop(); st.Running.Push((true, top.Result)); }
     }
-    [NwnxFunc(P, "SetEventResult")] static void SetResult(NwnxCall n)
+    [NwnxFunc(P, "SetEventResult")]
+    static void SetResult(NwnxCall n)
     {
         var result = n.PopString();
         var st = State(n.Registry);
@@ -228,17 +245,20 @@ static class RegexPlugin
         }
     }
 
-    [NwnxFunc(P, "Search")] static void Search(NwnxCall n)
+    [NwnxFunc(P, "Search")]
+    static void Search(NwnxCall n)
     {
         var str = n.PopString(); var re = Make(n.PopString());
         n.Push(re != null && re.IsMatch(str));
     }
-    [NwnxFunc(P, "Replace")] static void Replace(NwnxCall n)
+    [NwnxFunc(P, "Replace")]
+    static void Replace(NwnxCall n)
     {
         var str = n.PopString(); var re = Make(n.PopString()); var replacement = n.PopString(); bool firstOnly = n.PopInt() != 0;
         n.Push(re == null ? str : firstOnly ? re.Replace(str, replacement, 1) : re.Replace(str, replacement));
     }
-    [NwnxFunc(P, "Match")] static void Match(NwnxCall n)
+    [NwnxFunc(P, "Match")]
+    static void Match(NwnxCall n)
     {
         var str = n.PopString(); var re = Make(n.PopString());
         var result = new JsonArray();
@@ -258,7 +278,8 @@ static class ChatPlugin
 {
     const string P = "Chat";
 
-    [NwnxFunc(P, "SendMessage")] static void SendMessage(NwnxCall n)
+    [NwnxFunc(P, "SendMessage")]
+    static void SendMessage(NwnxCall n)
     {
         int channel = n.PopInt(); var message = n.PopString(); var sender = n.PopObject(); var target = n.PopObject<Creature>();
         if (sender == null) { n.Push(0); return; }
@@ -292,13 +313,15 @@ static class FeedbackPlugin
 {
     const string P = "Feedback";
 
-    [NwnxFunc(P, "SetMessageHidden", UnsupportedReason = "hidden flag is stored but feedback messages do not consult it")] static void SetHidden(NwnxCall n)
+    [NwnxFunc(P, "SetMessageHidden", UnsupportedReason = "hidden flag is stored but feedback messages do not consult it")]
+    static void SetHidden(NwnxCall n)
     {
         uint pc = n.PopObjectId(); int type = n.PopInt(); int message = n.PopInt(); bool hidden = n.PopInt() != 0;
         // TODO(world): message senders should consult NwnxRegistry state "feedback:{type}:{message}".
         n.State(pc)[$"feedback:{type}:{message}"] = NwnxValue.Int(hidden ? 1 : 0);
     }
-    [NwnxFunc(P, "GetMessageHidden")] static void GetHidden(NwnxCall n)
+    [NwnxFunc(P, "GetMessageHidden")]
+    static void GetHidden(NwnxCall n)
     {
         uint pc = n.PopObjectId(); int type = n.PopInt(); int message = n.PopInt();
         var key = $"feedback:{type}:{message}";
@@ -306,7 +329,8 @@ static class FeedbackPlugin
             : n.State(GameObject.InvalidId).TryGetValue(key, out var g) && g.Value is int gi ? gi : 0;
         n.Push(v);
     }
-    [NwnxFunc(P, "SetFeedbackMode")] static void SetMode(NwnxCall n)
+    [NwnxFunc(P, "SetFeedbackMode")]
+    static void SetMode(NwnxCall n)
     {
         int type = n.PopInt(); bool whitelist = n.PopInt() != 0;
         n.State(GameObject.InvalidId)[$"feedbackmode:{type}"] = NwnxValue.Int(whitelist ? 1 : 0);
@@ -318,7 +342,8 @@ static class RenamePlugin
 {
     const string P = "Rename";
 
-    [NwnxFunc(P, "SetPCNameOverride")] static void SetOverride(NwnxCall n)
+    [NwnxFunc(P, "SetPCNameOverride")]
+    static void SetOverride(NwnxCall n)
     {
         var target = n.PopObject<Creature>(); var name = n.PopString(); var prefix = n.PopString(); var suffix = n.PopString();
         int playerNameState = n.PopInt(); uint observer = n.PopObjectId();
@@ -329,7 +354,8 @@ static class RenamePlugin
         if (n.World.Get(observer) is Creature { IsPC: true } obs) n.World.Output?.Notify("nwnx-player", obs, data, obs);
         else n.World.NotifyAllPlayers("nwnx-player", data);
     }
-    [NwnxFunc(P, "GetPCNameOverride")] static void GetOverride(NwnxCall n)
+    [NwnxFunc(P, "GetPCNameOverride")]
+    static void GetOverride(NwnxCall n)
     {
         var target = n.PopObject<Creature>(); uint observer = n.PopObjectId();
         if (target == null) { n.Push(""); return; }
@@ -337,7 +363,8 @@ static class RenamePlugin
         n.Push(st.TryGetValue("rename:" + observer, out var v) && v.Value is string s ? s
             : st.TryGetValue("rename:" + GameObject.InvalidId, out var g) && g.Value is string gs ? gs : "");
     }
-    [NwnxFunc(P, "ClearPCNameOverride")] static void ClearOverride(NwnxCall n)
+    [NwnxFunc(P, "ClearPCNameOverride")]
+    static void ClearOverride(NwnxCall n)
     {
         var target = n.PopObject<Creature>(); uint observer = n.PopObjectId(); bool all = n.PopInt() != 0;
         if (target == null) return;
@@ -352,7 +379,8 @@ static class VisibilityPlugin
 {
     const string P = "Visibility";
 
-    [NwnxFunc(P, "SetVisibilityOverride", UnsupportedReason = "override is stored but authoritative visibility does not consume it")] static void SetOverride(NwnxCall n)
+    [NwnxFunc(P, "SetVisibilityOverride", UnsupportedReason = "override is stored but authoritative visibility does not consume it")]
+    static void SetOverride(NwnxCall n)
     {
         uint player = n.PopObjectId(); var target = n.PopObject(); int value = n.PopInt();
         if (target == null) return;
@@ -362,7 +390,8 @@ static class VisibilityPlugin
         if (n.World.Get(player) is Creature { IsPC: true } pc) n.World.Output?.Notify("nwnx-player", pc, data, pc);
         else n.World.NotifyAllPlayers("nwnx-player", data);
     }
-    [NwnxFunc(P, "GetVisibilityOverride")] static void GetOverride(NwnxCall n)
+    [NwnxFunc(P, "GetVisibilityOverride")]
+    static void GetOverride(NwnxCall n)
     {
         uint player = n.PopObjectId(); var target = n.PopObject();
         n.Push(target != null && n.State(target).TryGetValue("visibility:" + player, out var v) && v.Value is int i ? i : -1);
@@ -374,25 +403,29 @@ static class ItemPlugin
 {
     const string P = "Item";
 
-    [NwnxFunc(P, "SetWeight", UnsupportedReason = "override is stored but inventory weight does not consume it")] static void SetWeight(NwnxCall n)
+    [NwnxFunc(P, "SetWeight", UnsupportedReason = "override is stored but inventory weight does not consume it")]
+    static void SetWeight(NwnxCall n)
     {
         var item = n.PopObject<Item>(); int weight = n.PopInt();
         // TODO(items): the weight rules should read this override (tenths of pounds).
         if (item != null) n.State(item)["weight"] = NwnxValue.Int(weight);
     }
-    [NwnxFunc(P, "SetBaseGoldPieceValue")] static void SetBaseValue(NwnxCall n)
+    [NwnxFunc(P, "SetBaseGoldPieceValue")]
+    static void SetBaseValue(NwnxCall n)
     {
         var item = n.PopObject<Item>(); int g = n.PopInt();
         if (item != null) item.Cost = g;
     }
     [NwnxFunc(P, "GetBaseGoldPieceValue")] static void GetBaseValue(NwnxCall n) => n.Push(n.PopObject<Item>()?.Cost ?? 0);
-    [NwnxFunc(P, "SetAddGoldPieceValue")] static void SetAddValue(NwnxCall n)
+    [NwnxFunc(P, "SetAddGoldPieceValue")]
+    static void SetAddValue(NwnxCall n)
     {
         var item = n.PopObject<Item>(); int g = n.PopInt();
         if (item != null) item.AddCost = g;
     }
     [NwnxFunc(P, "GetAddGoldPieceValue")] static void GetAddValue(NwnxCall n) => n.Push(n.PopObject<Item>()?.AddCost ?? 0);
-    [NwnxFunc(P, "SetBaseItemType")] static void SetBaseItem(NwnxCall n)
+    [NwnxFunc(P, "SetBaseItemType")]
+    static void SetBaseItem(NwnxCall n)
     {
         var item = n.PopObject<Item>(); int type = n.PopInt();
         if (item == null) return;
@@ -418,14 +451,16 @@ static class AreaPlugin
     [NwnxFunc(P, "SetPVPSetting")] static void Pvp(NwnxCall n) => Store(n, "pvp", c => NwnxValue.Int(c.PopInt()));
     [NwnxFunc(P, "SetNoRestingAllowed")] static void NoRest(NwnxCall n) => Store(n, "noRest", c => NwnxValue.Int(c.PopInt()));
     [NwnxFunc(P, "SetDayNightCycle")] static void DayNight(NwnxCall n) => Store(n, "dayNightCycle", c => NwnxValue.Int(c.PopInt()), notify: true);
-    [NwnxFunc(P, "SetSunMoonColors")] static void SunMoon(NwnxCall n)
+    [NwnxFunc(P, "SetSunMoonColors")]
+    static void SunMoon(NwnxCall n)
     {
         var area = n.PopObject<Areas.Area>(); int type = n.PopInt(); int color = n.PopInt();
         if (area == null) return;
         n.State(area)["sunMoon:" + type] = NwnxValue.Int(color);
         n.World.Output?.Notify("area-setting", area, new { setting = "sunMoon", type, value = color });
     }
-    [NwnxFunc(P, "TestDirectLine")] static void TestDirectLine(NwnxCall n)
+    [NwnxFunc(P, "TestDirectLine")]
+    static void TestDirectLine(NwnxCall n)
     {
         var area = n.PopObject<Areas.Area>();
         float sx = n.PopFloat(), sy = n.PopFloat(), ex = n.PopFloat(), ey = n.PopFloat();
@@ -448,16 +483,20 @@ static class DialogPlugin
     const string P = "Dialog";
     [NwnxFunc(P, "GetCurrentNodeType")] static void NodeType(NwnxCall n) => n.Push(n.Host?.CurrentEvent.Int("nwnx:dialog:nodeType") ?? 0);
     [NwnxFunc(P, "GetCurrentScriptType")] static void ScriptType(NwnxCall n) => n.Push(n.Host?.CurrentEvent.Int("nwnx:dialog:scriptType") ?? 0);
-    [NwnxFunc(P, "GetCurrentNodeID")] static void NodeId(NwnxCall n) =>
+    [NwnxFunc(P, "GetCurrentNodeID")]
+    static void NodeId(NwnxCall n) =>
         n.Push(n.Host?.CurrentEvent.Values.TryGetValue("nwnx:dialog:nodeId", out var v) == true && v is int i ? i : -1);
-    [NwnxFunc(P, "GetCurrentNodeIndex")] static void NodeIndex(NwnxCall n) =>
+    [NwnxFunc(P, "GetCurrentNodeIndex")]
+    static void NodeIndex(NwnxCall n) =>
         n.Push(n.Host?.CurrentEvent.Values.TryGetValue("nwnx:dialog:nodeIndex", out var v) == true && v is int i ? i : -1);
-    [NwnxFunc(P, "GetCurrentNodeText")] static void NodeText(NwnxCall n)
+    [NwnxFunc(P, "GetCurrentNodeText")]
+    static void NodeText(NwnxCall n)
     {
         n.PopInt(); n.PopInt();
         n.Push(n.Host?.CurrentEvent.Str("nwnx:dialog:text") ?? "");
     }
-    [NwnxFunc(P, "End", UnsupportedReason = "ending the conversation is not implemented")] static void End(NwnxCall n)
+    [NwnxFunc(P, "End", UnsupportedReason = "ending the conversation is not implemented")]
+    static void End(NwnxCall n)
     {
         // TODO(conversation): end the conversation of the given object.
         n.PopObject();
@@ -469,7 +508,8 @@ static class DamagePlugin
 {
     const string P = "Damage";
 
-    [NwnxFunc(P, "SetEventScript", UnsupportedReason = "damage/attack callbacks are stored but are not dispatched by combat")] static void SetEventScript(NwnxCall n)
+    [NwnxFunc(P, "SetEventScript", UnsupportedReason = "damage/attack callbacks are stored but are not dispatched by combat")]
+    static void SetEventScript(NwnxCall n)
     {
         var evt = n.PopString(); var script = n.PopString(); uint owner = n.PopObjectId();
         // TODO(combat): run "damage:DAMAGE"/"damage:ATTACK" scripts from the combat round, owner first then the global (InvalidId) one.
@@ -488,7 +528,8 @@ static class DamagePlugin
 /// <summary>NWNX_WebHook: outbound HTTP is not performed; messages are logged.</summary>
 static class WebHookPlugin
 {
-    [NwnxFunc("WebHook", "SendWebHookHTTPS")] static void Send(NwnxCall n)
+    [NwnxFunc("WebHook", "SendWebHookHTTPS")]
+    static void Send(NwnxCall n)
     {
         var host = n.PopString(); var path = n.PopString(); var message = n.PopString();
         n.PopString(); n.PopInt();
@@ -499,7 +540,8 @@ static class WebHookPlugin
 /// <summary>NWNX_Administration: the calls that map onto server actions.</summary>
 static class AdministrationPlugin
 {
-    [NwnxFunc("Administration", "DeletePlayerCharacter", UnsupportedReason = "boots the player but does not delete the server vault character file")] static void DeleteCharacter(NwnxCall n)
+    [NwnxFunc("Administration", "DeletePlayerCharacter", UnsupportedReason = "boots the player but does not delete the server vault character file")]
+    static void DeleteCharacter(NwnxCall n)
     {
         var pc = n.PopObject<Creature>(); n.PopInt(); var message = n.PopString();
         if (pc is not { IsPC: true }) return;

@@ -14,7 +14,8 @@ static class StoreFunctions
         return s;
     }
 
-    [NwFunc("OpenStore")] static object? Open(Call c)
+    [NwFunc("OpenStore")]
+    static object? Open(Call c)
     {
         if (StoreArg(c, 0) is { } s && c.Obj<Creature>(1) is { } pc) c.World.Inventory.OpenStore(s, pc, c.I(2), c.I(3));
         return null;

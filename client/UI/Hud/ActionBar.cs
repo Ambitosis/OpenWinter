@@ -145,14 +145,14 @@ public partial class ActionBar : Control
         string key = (k.PhysicalKeycode != Key.None ? k.PhysicalKeycode : k.Keycode).ToString();
         var bindings = Settings.Bindings;
         for (int i = 0; i < Slots; i++)
-        for (int j = 0; j < 2; j++)
-        {
-            if (bindings.Get(Preferences.ActionCatalog.Quickbar(i), j) is not { IsEmpty: false, Alt: false } b || b.Key != key) continue;
-            int page = k.CtrlPressed ? 2 : k.ShiftPressed ? 1 : _basePage;
-            UseSlot(page, i);
-            GetViewport().SetInputAsHandled();
-            return;
-        }
+            for (int j = 0; j < 2; j++)
+            {
+                if (bindings.Get(Preferences.ActionCatalog.Quickbar(i), j) is not { IsEmpty: false, Alt: false } b || b.Key != key) continue;
+                int page = k.CtrlPressed ? 2 : k.ShiftPressed ? 1 : _basePage;
+                UseSlot(page, i);
+                GetViewport().SetInputAsHandled();
+                return;
+            }
     }
 
     // ------------------------------------------------------------------ public API

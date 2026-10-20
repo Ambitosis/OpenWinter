@@ -67,10 +67,12 @@ static class JsonFunctions
     [NwFunc("JsonGetError")] static object? JError(Call c) => JsonCore.ToScript(c.J(0).Error);
     /// <summary>Members of an object or array; 0 for null, 1 for any other value.</summary>
     [NwFunc("JsonGetLength")] static object? JLength(Call c) => c.J(0).Node switch { null => 0, JsonObject o => o.Count, JsonArray a => a.Count, _ => 1 };
-    [NwFunc("JsonGetString")] static object? JGetString(Call c) =>
+    [NwFunc("JsonGetString")]
+    static object? JGetString(Call c) =>
         JsonCore.Kind(c.J(0).Node) == JsonKind.String ? JsonCore.ToScript(JsonCore.Str(c.J(0).Node!)) : "";
     /// <summary>Integers wrap to 32 bits; floats truncate (out of range gives int.MinValue); bools are 0/1; anything else 0.</summary>
-    [NwFunc("JsonGetInt")] static object? JGetInt(Call c)
+    [NwFunc("JsonGetInt")]
+    static object? JGetInt(Call c)
     {
         var n = c.J(0).Node;
         return JsonCore.Kind(n) switch
@@ -80,7 +82,8 @@ static class JsonFunctions
             _ => 0,
         };
     }
-    [NwFunc("JsonGetFloat")] static object? JGetFloat(Call c)
+    [NwFunc("JsonGetFloat")]
+    static object? JGetFloat(Call c)
     {
         var n = c.J(0).Node;
         return JsonCore.Kind(n) switch
@@ -93,28 +96,34 @@ static class JsonFunctions
         };
     }
 
-    [NwFunc("JsonObjectKeys")] static object? JKeys(Call c) =>
+    [NwFunc("JsonObjectKeys")]
+    static object? JKeys(Call c) =>
         c.J(0).Node is JsonObject o
             ? Wrap(new JsonArray(JsonCore.Sorted(o).Select(kv => (JsonNode?)System.Text.Json.Nodes.JsonValue.Create(kv.Key)).ToArray()))
             : Error(NotAnObject);
-    [NwFunc("JsonObjectGet")] static object? JObjGet(Call c) =>
+    [NwFunc("JsonObjectGet")]
+    static object? JObjGet(Call c) =>
         c.J(0).Node is JsonObject o && o.TryGetPropertyValue(JsonCore.FromScript(c.S(1)), out var v) ? Wrap(Copy(v))
             : Error("[json.exception.type_error.302] not an object or key not found");
-    [NwFunc("JsonObjectSet")] static object? JObjSet(Call c)
+    [NwFunc("JsonObjectSet")]
+    static object? JObjSet(Call c)
     {
         if (Copy(c.J(0).Node) is not JsonObject o) return Error(NotAnObject);
         o[JsonCore.FromScript(c.S(1))] = Copy(c.J(2).Node);
         return Wrap(o);
     }
-    [NwFunc("JsonObjectDel")] static object? JObjDel(Call c)
+    [NwFunc("JsonObjectDel")]
+    static object? JObjDel(Call c)
     {
         if (Copy(c.J(0).Node) is not JsonObject o) return Error(NotAnObject);
         o.Remove(JsonCore.FromScript(c.S(1)));
         return Wrap(o);
     }
-    [NwFunc("JsonArrayGet")] static object? JArrGet(Call c) =>
+    [NwFunc("JsonArrayGet")]
+    static object? JArrGet(Call c) =>
         c.J(0).Node is not JsonArray a ? Error(NotAnArray) : c.I(1) >= 0 && c.I(1) < a.Count ? Wrap(Copy(a[c.I(1)])) : Error(OutOfRange);
-    [NwFunc("JsonArraySet")] static object? JArrSet(Call c)
+    [NwFunc("JsonArraySet")]
+    static object? JArrSet(Call c)
     {
         if (Copy(c.J(0).Node) is not JsonArray a) return Error(NotAnArray);
         if (c.I(1) < 0 || c.I(1) >= a.Count) return Error(OutOfRange);
@@ -122,7 +131,8 @@ static class JsonFunctions
         return Wrap(a);
     }
     /// <summary>Index -1 appends; otherwise it must name an existing element, which the new one goes before.</summary>
-    [NwFunc("JsonArrayInsert")] static object? JArrInsert(Call c)
+    [NwFunc("JsonArrayInsert")]
+    static object? JArrInsert(Call c)
     {
         if (Copy(c.J(0).Node) is not JsonArray a) return Error(NotAnArray);
         int at = c.I(2, -1);
@@ -131,7 +141,8 @@ static class JsonFunctions
         else a.Insert(at, Copy(c.J(1).Node));
         return Wrap(a);
     }
-    [NwFunc("JsonArrayDel")] static object? JArrDel(Call c)
+    [NwFunc("JsonArrayDel")]
+    static object? JArrDel(Call c)
     {
         if (Copy(c.J(0).Node) is not JsonArray a) return Error(NotAnArray);
         if (c.I(1) < 0 || c.I(1) >= a.Count) return Error(OutOfRange);
@@ -139,21 +150,24 @@ static class JsonFunctions
         return Wrap(a);
     }
 
-    [NwFunc("JsonObjectSetInplace")] static object? ObjSetInplace(Call c)
+    [NwFunc("JsonObjectSetInplace")]
+    static object? ObjSetInplace(Call c)
     {
         var t = c.J(0);
         if (t.Node is not JsonObject o) return Fail(t, NotAnObject);
         o[JsonCore.FromScript(c.S(1))] = Copy(c.J(2).Node);
         return null;
     }
-    [NwFunc("JsonObjectDelInplace")] static object? ObjDelInplace(Call c)
+    [NwFunc("JsonObjectDelInplace")]
+    static object? ObjDelInplace(Call c)
     {
         var t = c.J(0);
         if (t.Node is not JsonObject o) return Fail(t, NotAnObject);
         o.Remove(JsonCore.FromScript(c.S(1)));
         return null;
     }
-    [NwFunc("JsonArrayInsertInplace")] static object? ArrInsertInplace(Call c)
+    [NwFunc("JsonArrayInsertInplace")]
+    static object? ArrInsertInplace(Call c)
     {
         var t = c.J(0);
         if (t.Node is not JsonArray a) return Fail(t, NotAnArray);
@@ -164,7 +178,8 @@ static class JsonFunctions
         else a.Insert(at, value);
         return null;
     }
-    [NwFunc("JsonArraySetInplace")] static object? ArrSetInplace(Call c)
+    [NwFunc("JsonArraySetInplace")]
+    static object? ArrSetInplace(Call c)
     {
         var t = c.J(0);
         if (t.Node is not JsonArray a) return Fail(t, NotAnArray);
@@ -172,7 +187,8 @@ static class JsonFunctions
         a[c.I(1)] = Copy(c.J(2).Node);
         return null;
     }
-    [NwFunc("JsonArrayDelInplace")] static object? ArrDelInplace(Call c)
+    [NwFunc("JsonArrayDelInplace")]
+    static object? ArrDelInplace(Call c)
     {
         var t = c.J(0);
         if (t.Node is not JsonArray a) return Fail(t, NotAnArray);
@@ -182,7 +198,8 @@ static class JsonFunctions
     }
 
     /// <summary>The nth (from 0) element index or object key whose value compares with the needle as asked.</summary>
-    [NwFunc("JsonFind")] static object? JFind(Call c)
+    [NwFunc("JsonFind")]
+    static object? JFind(Call c)
     {
         var needle = c.J(1).Node;
         int nth = c.I(2), cond = c.I(3);
@@ -207,7 +224,8 @@ static class JsonFunctions
     }
 
     /// <summary>RFC 7386 merge patch.</summary>
-    [NwFunc("JsonMerge")] static object? JMerge(Call c)
+    [NwFunc("JsonMerge")]
+    static object? JMerge(Call c)
     {
         static JsonNode? Merge(JsonNode? target, JsonNode? patch)
         {
@@ -224,7 +242,8 @@ static class JsonFunctions
     }
 
     /// <summary>Malformed pointers report the parse error; anything not found is "value not found".</summary>
-    [NwFunc("JsonPointer")] static object? JPointer(Call c)
+    [NwFunc("JsonPointer")]
+    static object? JPointer(Call c)
     {
         List<string> tokens;
         try { tokens = JsonCore.ParsePointer(JsonCore.FromScript(c.S(1))); }

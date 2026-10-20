@@ -42,7 +42,8 @@ static class PersistenceFunctions
     [NwFunc("GetCampaignLocation")] static object? GetLocation(Call c) => Get(c, TypeLocation, v => ParseLocation(c.World, v.Text()), Location.Invalid);
     [NwFunc("GetCampaignJson")] static object? GetJson(Call c) => Get(c, TypeJson, v => JsonFunctions.Parse(v.Text()), JsonValue.Null);
 
-    [NwFunc("DeleteCampaignVariable")] static object? Delete(Call c)
+    [NwFunc("DeleteCampaignVariable")]
+    static object? Delete(Call c)
     {
         try { CampaignDatabase.Delete(c.World, c.S(0), c.S(1), c.Obj(2)); }
         catch (Exception e) when (e is IOException or InvalidOperationException) { c.Host.Log($"[campaign] {e.Message}"); }
@@ -52,7 +53,8 @@ static class PersistenceFunctions
     [NwFunc("DestroyCampaignDatabase")] static object? DestroyDatabase(Call c) { Sys(c).DestroyCampaign(c.S(0)); return null; }
 
     // int StoreCampaignObject(string sCampaignName, string sVarName, object oObject, object oPlayer=OBJECT_INVALID, int bSaveObjectState=FALSE)
-    [NwFunc("StoreCampaignObject")] static object? StoreObject(Call c)
+    [NwFunc("StoreCampaignObject")]
+    static object? StoreObject(Call c)
     {
         // Every serializable type but areas; stored zstd-compressed in a "CPDB" buffer like the original's
         // (parity suite persist_objects: vartype 'O', compressed 1).
@@ -67,7 +69,8 @@ static class PersistenceFunctions
     }
 
     // object RetrieveCampaignObject(string sCampaignName, string sVarName, location locLocation, object oOwner = OBJECT_INVALID, object oPlayer=OBJECT_INVALID, int bLoadObjectState=FALSE)
-    [NwFunc("RetrieveCampaignObject")] static object? RetrieveObject(Call c)
+    [NwFunc("RetrieveCampaignObject")]
+    static object? RetrieveObject(Call c)
     {
         byte[]? bytes;
         try { bytes = CampaignDatabase.Get(c.World, c.S(0), c.S(1), c.Obj(4), TypeObject, v => v.Blob(), null); }
@@ -79,7 +82,8 @@ static class PersistenceFunctions
     // ---- Json / templates -------------------------------------------------------------
 
     // json ObjectToJson(object oObject, int bSaveObjectState = FALSE)
-    [NwFunc("ObjectToJson")] static object? ObjectToJson(Call c)
+    [NwFunc("ObjectToJson")]
+    static object? ObjectToJson(Call c)
     {
         var o = c.Obj(0);
         if (o == null) return new JsonValue(null) { Error = "invalid object" };
@@ -89,7 +93,8 @@ static class PersistenceFunctions
     }
 
     // object JsonToObject(json jObject, location locLocation, object oOwner = OBJECT_INVALID, int bLoadObjectState = FALSE)
-    [NwFunc("JsonToObject")] static object? JsonToObject(Call c)
+    [NwFunc("JsonToObject")]
+    static object? JsonToObject(Call c)
     {
         try
         {
@@ -110,7 +115,8 @@ static class PersistenceFunctions
     };
 
     // json TemplateToJson(string sResRef, int nResType)
-    [NwFunc("TemplateToJson")] static object? TemplateToJson(Call c)
+    [NwFunc("TemplateToJson")]
+    static object? TemplateToJson(Call c)
     {
         ushort type = (ushort)c.I(1);
         // RESTYPE_CAF of a module area reads as null in the original too (persist_objects tmpl.caf); ObjectToJson makes CAF.
@@ -129,7 +135,8 @@ static class PersistenceFunctions
     }
 
     // int JsonToTemplate(json jTemplateSpec, string sResRef, int nResType)
-    [NwFunc("JsonToTemplate")] static object? JsonToTemplate(Call c)
+    [NwFunc("JsonToTemplate")]
+    static object? JsonToTemplate(Call c)
     {
         ushort type = (ushort)c.I(2);
         if (!TemplateTypes.Contains(type) || c.S(1).Length == 0) return 0;
@@ -164,7 +171,8 @@ static class PersistenceFunctions
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { c.Host.Log($"[vault] export of {pc} failed: {e.Message}"); return false; }
     }
 
-    [NwFunc("ExportSingleCharacter")] static object? ExportSingle(Call c)
+    [NwFunc("ExportSingleCharacter")]
+    static object? ExportSingle(Call c)
     {
         if (c.Obj<Creature>(0) is { IsPC: true } pc)
         {
@@ -175,7 +183,8 @@ static class PersistenceFunctions
         return null;
     }
 
-    [NwFunc("ExportAllCharacters")] static object? ExportAll(Call c)
+    [NwFunc("ExportAllCharacters")]
+    static object? ExportAll(Call c)
     {
         foreach (var pc in Players.FamiliarPossession.Players(c.World).ToList()) Export(c, pc);
         return null;

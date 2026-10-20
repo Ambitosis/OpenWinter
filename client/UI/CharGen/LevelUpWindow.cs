@@ -246,15 +246,15 @@ public partial class LevelUpWindow : UiTheme.Window
         foreach (var c in content.GetChildren()) { content.RemoveChild(c); c.QueueFree(); }
         if (_model == null || _steps == null || _summary == null) content.AddChild(Ui.Text("Loading…", Ui.TextStyle.Secondary));
         else switch (_step)
-        {
-            case Step.Class: RenderClasses(); break;
-            case Step.Ability: RenderAbility(); break;
-            case Step.Options: content.AddChild(_steps.Options()); break;
-            case Step.Skills: content.AddChild(_steps.Skills()); break;
-            case Step.Feats: content.AddChild(_steps.Feats()); break;
-            case Step.Spells: content.AddChild(_steps.Spells()); break;
-            case Step.Confirm: RenderConfirm(); break;
-        }
+            {
+                case Step.Class: RenderClasses(); break;
+                case Step.Ability: RenderAbility(); break;
+                case Step.Options: content.AddChild(_steps.Options()); break;
+                case Step.Skills: content.AddChild(_steps.Skills()); break;
+                case Step.Feats: content.AddChild(_steps.Feats()); break;
+                case Step.Spells: content.AddChild(_steps.Spells()); break;
+                case Step.Confirm: RenderConfirm(); break;
+            }
         _f.Back.Disabled = _step == Step.Class;
         _f.Next.Text = _step == Step.Confirm ? "Level up" : "Next";
         _f.Recommend.Visible = _model?.Recommended == true && _step is Step.Skills or Step.Feats or Step.Spells;

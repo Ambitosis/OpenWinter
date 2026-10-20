@@ -7,7 +7,8 @@ namespace OpenWinter.Game.Scripting.Functions;
 static class SkillFunctions
 {
     // void ActionUseSkill(int nSkill, object oTarget, int nSubSkill=0, object oItemUsed=OBJECT_INVALID)
-    [NwFunc("ActionUseSkill")] static object? UseSkill(Call c)
+    [NwFunc("ActionUseSkill")]
+    static object? UseSkill(Call c)
     {
         if (c.Self is not Creature self || !self.Commandable) return null;
         int skill = c.I(0);

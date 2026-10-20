@@ -18,8 +18,11 @@ public static class TileOcclusionProbe
         }
         try
         {
-            var camera = new Camera3D { Current = true, Projection = Camera3D.ProjectionType.Orthogonal, Size = 6,
-                Environment = new Godot.Environment { BackgroundMode = Godot.Environment.BGMode.Color, BackgroundColor = Colors.Blue } };
+            var camera = new Camera3D
+            {
+                Current = true, Projection = Camera3D.ProjectionType.Orthogonal, Size = 6,
+                Environment = new Godot.Environment { BackgroundMode = Godot.Environment.BGMode.Color, BackgroundColor = Colors.Blue }
+            };
             owner.AddChild(camera);
             var red = new StandardMaterial3D { ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded, AlbedoColor = Colors.Red };
             var target = new MeshInstance3D { Mesh = new BoxMesh { Size = new Vector3(5, 5, .1f), Material = red }, Position = new Vector3(0, 0, -6) };
@@ -41,7 +44,7 @@ public static class TileOcclusionProbe
                 image.SavePng(Path.Combine(directory, name + ".png"));
                 return image;
             }
-            Color Centre(Image image) => image.GetPixel(image.GetWidth()/2, image.GetHeight()/2);
+            Color Centre(Image image) => image.GetPixel(image.GetWidth() / 2, image.GetHeight() / 2);
             bool Black(Color c) => c.R < .02f && c.G < .02f && c.B < .02f;
             bool Red(Color c) => c.R > .9f && c.G < .02f && c.B < .02f;
             exploration.SetExplored(true);
@@ -74,16 +77,16 @@ public static class TileOcclusionProbe
             wall.SetSurfaceOverrideMaterial(0, null); Keyhole.Apply(root);
             var replacement = new TileExploration(root, details); replacement.SetExplored(false);
             var alpha = await Shot("cutout");
-            int cx = alpha.GetWidth()/2, cy = alpha.GetHeight()/2, dx = alpha.GetHeight()/6;
-            Check(Red(alpha.GetPixel(cx-dx,cy)) && Black(alpha.GetPixel(cx+dx,cy)), "transparent texels pass scenery; solid texels occlude");
+            int cx = alpha.GetWidth() / 2, cy = alpha.GetHeight() / 2, dx = alpha.GetHeight() / 6;
+            Check(Red(alpha.GetPixel(cx - dx, cy)) && Black(alpha.GetPixel(cx + dx, cy)), "transparent texels pass scenery; solid texels occlude");
             root.Free(); target.Free(); camera.Free();
-            File.WriteAllText(Path.Combine(directory,"result.json"), JsonSerializer.Serialize(new { passed=true, checks },new JsonSerializerOptions { WriteIndented=true }));
+            File.WriteAllText(Path.Combine(directory, "result.json"), JsonSerializer.Serialize(new { passed = true, checks }, new JsonSerializerOptions { WriteIndented = true }));
             GD.Print($"[tile-occlusion] {checks.Count} checks passed");
             return 0;
         }
         catch (Exception e)
         {
-            File.WriteAllText(Path.Combine(directory,"result.json"),JsonSerializer.Serialize(new { passed=false, checks,error=e.ToString() }));
+            File.WriteAllText(Path.Combine(directory, "result.json"), JsonSerializer.Serialize(new { passed = false, checks, error = e.ToString() }));
             GD.PushError(e.ToString()); return 1;
         }
     }

@@ -19,8 +19,11 @@ public sealed class QuickbarSave<T> where T : QuickbarSlot, new()
             {
                 var spells = JsonSerializer.Deserialize<int[]?[]>(legacy);
                 if (spells == null) return null;
-                return new() { Bars = [spells.Take(12).Select(x => x is { Length: 2 }
-                    ? new T { Kind = "spell", Id = x[0], Class = x[1] } : null).ToArray()] };
+                return new()
+                {
+                    Bars = [spells.Take(12).Select(x => x is { Length: 2 }
+                    ? new T { Kind = "spell", Id = x[0], Class = x[1] } : null).ToArray()]
+                };
             }
         }
         catch (JsonException) { }

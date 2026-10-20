@@ -1,6 +1,7 @@
 using System.Text.Json;
 using OpenWinter.Net;
 namespace OpenWinter.Client.Gameplay;
+
 public partial class ClientSession
 {
     void ApplyExploration(NotifyMessage message)

@@ -247,7 +247,7 @@ public class ItemUiTests
         Assert.Equal("it_materialcloth", world.Inventory.Rules.InventorySound(cloth));
         var studded = world.Items.FromBlueprint("nw_aarcl002")!;
         studded.Properties.Add(new OpenWinter.Game.Scripting.ItemProperty
-            { Type = ItemRules.PropAcBonus, CostTableValue = 5, DurationType = ItemRules.DurationPermanent });
+        { Type = ItemRules.PropAcBonus, CostTableValue = 5, DurationType = ItemRules.DurationPermanent });
         foreach (bool identified in new[] { true, false })
         {
             studded.Identified = identified;
@@ -271,20 +271,20 @@ public class ItemUiTests
         {
             var item = world.Items.FromBlueprint(blueprint)!;
             item.Properties.Add(new OpenWinter.Game.Scripting.ItemProperty
-                { Type = ItemRules.PropAcBonus, CostTableValue = 5, DurationType = ItemRules.DurationPermanent });
+            { Type = ItemRules.PropAcBonus, CostTableValue = 5, DurationType = ItemRules.DurationPermanent });
             foreach (bool identified in new[] { false, true })
-            foreach (bool trained in new[] { false, true })
-            {
-                item.Identified = identified;
-                viewer.Feats.Clear();
-                if (trained && feat >= 0) viewer.Feats.Add(feat);
-                var info = JsonSerializer.SerializeToElement(world.Inventory.ItemInfo(item, viewer));
-                var requirements = info.GetProperty("requirements").EnumerateArray().ToArray();
-                Assert.Equal(feat >= 0 ? 1 : 0, requirements.Length);
-                bool usable = requirements.All(r => r.GetProperty("met").GetBoolean());
-                Assert.Equal(feat < 0 || trained, usable);
-                Assert.Equal(world.Inventory.HasProficiency(viewer, item), usable);
-            }
+                foreach (bool trained in new[] { false, true })
+                {
+                    item.Identified = identified;
+                    viewer.Feats.Clear();
+                    if (trained && feat >= 0) viewer.Feats.Add(feat);
+                    var info = JsonSerializer.SerializeToElement(world.Inventory.ItemInfo(item, viewer));
+                    var requirements = info.GetProperty("requirements").EnumerateArray().ToArray();
+                    Assert.Equal(feat >= 0 ? 1 : 0, requirements.Length);
+                    bool usable = requirements.All(r => r.GetProperty("met").GetBoolean());
+                    Assert.Equal(feat < 0 || trained, usable);
+                    Assert.Equal(world.Inventory.HasProficiency(viewer, item), usable);
+                }
         }
     }
 

@@ -37,15 +37,24 @@ public static class ClassicChatStyle
 
     public static Color Of(ChatChannel c) => c switch
     {
-        ChatChannel.Shout => Shout, ChatChannel.Whisper => Whisper, ChatChannel.Tell => Tell, ChatChannel.Server => Message,
-        ChatChannel.Party => Party, ChatChannel.Dm => Dm, _ => Talk,
+        ChatChannel.Shout => Shout,
+        ChatChannel.Whisper => Whisper,
+        ChatChannel.Tell => Tell,
+        ChatChannel.Server => Message,
+        ChatChannel.Party => Party,
+        ChatChannel.Dm => Dm,
+        _ => Talk,
     };
 
     /// <summary>The channel tag the original puts before the text ("[Shout]"); none for talk and server lines.</summary>
     public static string Tag(ChatChannel c) => c switch
     {
-        ChatChannel.Shout => "[Shout] ", ChatChannel.Whisper => "[Whisper] ", ChatChannel.Tell => "[Tell] ", ChatChannel.Party => "[Party] ",
-        ChatChannel.Dm => "[DM] ", _ => "",
+        ChatChannel.Shout => "[Shout] ",
+        ChatChannel.Whisper => "[Whisper] ",
+        ChatChannel.Tell => "[Tell] ",
+        ChatChannel.Party => "[Party] ",
+        ChatChannel.Dm => "[DM] ",
+        _ => "",
     };
 }
 

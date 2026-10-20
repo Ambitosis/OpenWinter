@@ -16,7 +16,8 @@ static class NwnxFunctions
     static object Pop(Call c, NwnxType type, NssType nss) => Nwnx(c).PopAs(type) ?? c.Host.DefaultEngineValue(nss);
 
     [NwFunc("NWNXGetIsAvailable")] static object? Available(Call c) => Nwnx(c).Available ? 1 : 0;
-    [NwFunc("NWNXCall")] static object? NwnxCall(Call c)
+    [NwFunc("NWNXCall")]
+    static object? NwnxCall(Call c)
     {
         Nwnx(c).Call(c.S(0), c.S(1), c.Host, c.Thread);
         return null;

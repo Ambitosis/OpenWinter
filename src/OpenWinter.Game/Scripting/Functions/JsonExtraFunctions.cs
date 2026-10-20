@@ -161,7 +161,8 @@ public static class JsonExtraFunctions
         }
     }
 
-    [NwFunc("JsonPatch")] static object? JPatch(Call c)
+    [NwFunc("JsonPatch")]
+    static object? JPatch(Call c)
     {
         try { return new JsonValue(Patch(c.J(0).Node, c.J(1).Node)); }
         catch (JsonCore.ParseException e) { return Error(e.Message); }
@@ -218,7 +219,8 @@ public static class JsonExtraFunctions
 
     // ---- arrays -------------------------------------------------------------------
 
-    [NwFunc("JsonArrayTransform")] static object? JTransform(Call c)
+    [NwFunc("JsonArrayTransform")]
+    static object? JTransform(Call c)
     {
         if (c.J(0).Node is not JsonArray src) return Error(JsonFunctions.NotAnArray);
         var items = src.Select(Copy).ToList();
@@ -255,7 +257,8 @@ public static class JsonExtraFunctions
     /// than the first element), both are clamped to the last element; an end just before begin gives [], further back
     /// fails the way the original does.
     /// </summary>
-    [NwFunc("JsonArrayGetRange")] static object? JRange(Call c)
+    [NwFunc("JsonArrayGetRange")]
+    static object? JRange(Call c)
     {
         if (c.J(0).Node is not JsonArray src) return Error(JsonFunctions.NotAnArray);
         var result = new JsonArray();
@@ -269,7 +272,8 @@ public static class JsonExtraFunctions
     }
 
     /// <summary>Set operations on the arrays as sorted sets (results come out sorted, without duplicates); SUBSET asks whether o is within v.</summary>
-    [NwFunc("JsonSetOp")] static object? JSetOp(Call c)
+    [NwFunc("JsonSetOp")]
+    static object? JSetOp(Call c)
     {
         if (c.J(0).Node is not JsonArray va || c.J(2).Node is not JsonArray oa) return Error(JsonFunctions.NotAnArrayOrObject);
         static List<JNode?> Set(JsonArray a)

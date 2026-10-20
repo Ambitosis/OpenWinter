@@ -12,7 +12,8 @@ static partial class SocietyFunctions
 
     // ---- faction membership ----
 
-    [NwFunc("GetFactionEqual")] static object? FactionEqual(Call c)
+    [NwFunc("GetFactionEqual")]
+    static object? FactionEqual(Call c)
     {
         var a = c.Obj(0);
         var b = c.Obj(1);
@@ -21,7 +22,8 @@ static partial class SocietyFunctions
         return fa != null && fa == fb ? 1 : 0;
     }
 
-    [NwFunc("ChangeFaction")] static object? ChangeFaction(Call c)
+    [NwFunc("ChangeFaction")]
+    static object? ChangeFaction(Call c)
     {
         var o = c.Obj(0);
         var member = c.Obj(1);
@@ -35,7 +37,8 @@ static partial class SocietyFunctions
         return null;
     }
 
-    [NwFunc("ChangeToStandardFaction")] static object? ChangeToStandard(Call c)
+    [NwFunc("ChangeToStandardFaction")]
+    static object? ChangeToStandard(Call c)
     {
         int f = Factions(c).StandardFaction(c.I(1));
         if (c.Obj<Creature>(0) is { IsPC: false } cr && f >= 0 && Factions(c).IsValidFaction(f)) cr.Faction = f;
@@ -50,7 +53,8 @@ static partial class SocietyFunctions
         return Service(c).FactionMembers(f, pcOnly);
     }
 
-    [NwFunc("GetFirstFactionMember")] static object? FirstMember(Call c)
+    [NwFunc("GetFirstFactionMember")]
+    static object? FirstMember(Call c)
     {
         var member = c.Obj(0);
         if (member is not Creature || Factions(c).FactionOf(member) is not int f) return GameObject.InvalidId;
@@ -59,7 +63,8 @@ static partial class SocietyFunctions
         return list.Count > 0 ? list[0] : GameObject.InvalidId;
     }
 
-    [NwFunc("GetNextFactionMember")] static object? NextMember(Call c)
+    [NwFunc("GetNextFactionMember")]
+    static object? NextMember(Call c)
     {
         var member = c.Obj(0);
         if (member is not Creature || Factions(c).FactionOf(member) is not int f) return GameObject.InvalidId;
@@ -71,7 +76,8 @@ static partial class SocietyFunctions
         return i < cur.List.Count ? cur.List[i] : GameObject.InvalidId;
     }
 
-    [NwFunc("GetFactionLeader")] static object? Leader(Call c)
+    [NwFunc("GetFactionLeader")]
+    static object? Leader(Call c)
     {
         if (c.Obj(0) is not Creature cr || Factions(c).FactionOf(cr) is not int f || !FactionTable.IsPartyFaction(f)) return GameObject.InvalidId;
         return Id(PartyService.Of(c.World).Leader(f));
@@ -139,7 +145,8 @@ static partial class SocietyFunctions
         return Id(best);
     }
 
-    [NwFunc("GetFactionGold")] static object? Gold(Call c)
+    [NwFunc("GetFactionGold")]
+    static object? Gold(Call c)
     {
         var members = Members(c, c.Obj(0));
         return members == null ? -1 : members.Sum(m => m.Gold);
@@ -157,7 +164,8 @@ static partial class SocietyFunctions
     [NwFunc("GetFactionAverageLevel")] static object? AvgLevel(Call c) => Average(c, m => m.TotalLevel);
     [NwFunc("GetFactionAverageXP")] static object? AvgXP(Call c) => Average(c, m => m.Experience);
 
-    [NwFunc("GetFactionAverageReputation")] static object? AvgReputation(Call c)
+    [NwFunc("GetFactionAverageReputation")]
+    static object? AvgReputation(Call c)
     {
         var members = Members(c, c.Obj(0));
         var target = c.Obj(1);
@@ -165,7 +173,8 @@ static partial class SocietyFunctions
         return (int)Math.Round(members.Average(m => (double)Factions(c).ReputationOf(m, target)));
     }
 
-    [NwFunc("GetFactionMostFrequentClass")] static object? FrequentClass(Call c)
+    [NwFunc("GetFactionMostFrequentClass")]
+    static object? FrequentClass(Call c)
     {
         var members = Members(c, c.Obj(0));
         if (members == null || members.Count == 0) return -1;
@@ -181,7 +190,8 @@ static partial class SocietyFunctions
 
     [NwFunc("GetReputation")] static object? Reputation(Call c) => Factions(c).ReputationOf(c.Obj(0), c.Obj(1));
 
-    [NwFunc("AdjustReputation")] static object? Adjust(Call c)
+    [NwFunc("AdjustReputation")]
+    static object? Adjust(Call c)
     {
         if (c.Obj(0) is { } target && c.Obj(1) is { } source) Factions(c).Adjust(target, source, c.I(2));
         return null;
@@ -216,11 +226,13 @@ static partial class SocietyFunctions
             && Friend(Factions(c).ReputationOf(source, target));
     }
     [NwFunc("GetIsReactionTypeFriendly")] static object? ReactFriendly(Call c) => FriendlyReaction(c) ? 1 : 0;
-    [NwFunc("GetIsReactionTypeNeutral")] static object? ReactNeutral(Call c) =>
+    [NwFunc("GetIsReactionTypeNeutral")]
+    static object? ReactNeutral(Call c) =>
         Rep(c, r => !Enemy(r)) is 1 && !FriendlyReaction(c) ? 1 : 0;
     [NwFunc("GetIsReactionTypeHostile")] static object? ReactHostile(Call c) => Rep(c, Enemy);
 
-    [NwFunc("ClearPersonalReputation")] static object? ClearPersonal(Call c)
+    [NwFunc("ClearPersonalReputation")]
+    static object? ClearPersonal(Call c)
     {
         if (c.Obj(0) is { } target && c.ObjOrSelf(1) is { } source) Factions(c).ClearPersonal(source.Id, target.Id);
         return null;
@@ -238,21 +250,24 @@ static partial class SocietyFunctions
     [NwFunc("SetIsTemporaryEnemy")] static object? TempEnemy(Call c) => Temporary(c, 0);
     [NwFunc("SetIsTemporaryNeutral")] static object? TempNeutral(Call c) => Temporary(c, 50);
 
-    [NwFunc("SetStandardFactionReputation")] static object? SetStandard(Call c)
+    [NwFunc("SetStandardFactionReputation")]
+    static object? SetStandard(Call c)
     {
         int f = Factions(c).StandardFaction(c.I(0));
         if (f >= 0 && Factions(c).IsValidFaction(f) && c.ObjOrSelf(2) is Creature cr) Factions(c).SetStanding(f, cr, c.I(1));
         return null;
     }
 
-    [NwFunc("GetStandardFactionReputation")] static object? GetStandard(Call c)
+    [NwFunc("GetStandardFactionReputation")]
+    static object? GetStandard(Call c)
     {
         int f = Factions(c).StandardFaction(c.I(0));
         if (f < 0 || !Factions(c).IsValidFaction(f) || c.ObjOrSelf(1) is not Creature cr) return -1;
         return Factions(c).Standing(f, cr);
     }
 
-    [NwFunc("GetLastHostileActor")] static object? LastHostile(Call c)
+    [NwFunc("GetLastHostileActor")]
+    static object? LastHostile(Call c)
     {
         if (c.ObjOrSelf(0) is not Creature v) return GameObject.InvalidId;
         return c.World.Get<Creature>(v.Society.LastHostileActor) is { } a && !SocietyService.IsDead(a) ? a.Id : GameObject.InvalidId;
@@ -260,13 +275,15 @@ static partial class SocietyFunctions
 
     // ---- parties ----
 
-    [NwFunc("AddToParty")] static object? AddToParty(Call c)
+    [NwFunc("AddToParty")]
+    static object? AddToParty(Call c)
     {
         if (c.Obj<Creature>(0) is { IsPC: true } pc && c.Obj<Creature>(1) is { IsPC: true } leader) PartyService.Of(c.World).Join(pc, leader);
         return null;
     }
 
-    [NwFunc("RemoveFromParty")] static object? RemoveFromParty(Call c)
+    [NwFunc("RemoveFromParty")]
+    static object? RemoveFromParty(Call c)
     {
         if (c.Obj<Creature>(0) is { IsPC: true } pc) PartyService.Of(c.World).Leave(pc);
         return null;
@@ -274,15 +291,18 @@ static partial class SocietyFunctions
 
     // ---- associates ----
 
-    [NwFunc("GetMaster")] static object? Master(Call c) =>
+    [NwFunc("GetMaster")]
+    static object? Master(Call c) =>
         c.ObjOrSelf(0) is Creature a && c.World.Get<Creature>(a.Master) is { } m ? m.Id : GameObject.InvalidId;
 
-    [NwFunc("GetAssociateType")] static object? AssociateType(Call c) =>
+    [NwFunc("GetAssociateType")]
+    static object? AssociateType(Call c) =>
         c.Obj(0) is Creature a && c.World.Get<Creature>(a.Master) != null ? a.AssociateType : AssociateService.None;
 
     [NwFunc("GetLastAssociateCommand")] static object? LastCommand(Call c) => c.ObjOrSelf(0) is Creature a ? a.Society.LastAssociateCommand : 0;
 
-    [NwFunc("SetAssociateListenPatterns")] static object? AssociatePatterns(Call c)
+    [NwFunc("SetAssociateListenPatterns")]
+    static object? AssociatePatterns(Call c)
     {
         if (c.ObjOrSelf(0) is Creature a)
         {
@@ -292,13 +312,16 @@ static partial class SocietyFunctions
         return null;
     }
 
-    [NwFunc("GetHenchman")] static object? Henchman(Call c) =>
+    [NwFunc("GetHenchman")]
+    static object? Henchman(Call c) =>
         c.ObjOrSelf(0) is Creature m ? Id(AssociateService.Get(c.World, m, AssociateService.Henchman, c.I(1, 1))) : GameObject.InvalidId;
 
-    [NwFunc("GetAssociate")] static object? Associate(Call c) =>
+    [NwFunc("GetAssociate")]
+    static object? Associate(Call c) =>
         c.ObjOrSelf(1) is Creature m ? Id(AssociateService.Get(c.World, m, c.I(0), c.I(2, 1))) : GameObject.InvalidId;
 
-    [NwFunc("AddHenchman")] static object? AddHenchman(Call c)
+    [NwFunc("AddHenchman")]
+    static object? AddHenchman(Call c)
     {
         if (c.Obj(0) is not Creature master || c.ObjOrSelf(1) is not Creature hench || hench == master) return null;
         if (hench.IsPC || hench.Player?.IsDM == true) return null;
@@ -308,14 +331,16 @@ static partial class SocietyFunctions
         return null;
     }
 
-    [NwFunc("RemoveHenchman")] static object? RemoveHenchman(Call c)
+    [NwFunc("RemoveHenchman")]
+    static object? RemoveHenchman(Call c)
     {
         if (c.Obj(0) is Creature master && c.ObjOrSelf(1) is Creature hench && hench.AssociateType == AssociateService.Henchman)
             AssociateService.Remove(c.World, master, hench);
         return null;
     }
 
-    [NwFunc("RemoveSummonedAssociate")] static object? RemoveSummoned(Call c)
+    [NwFunc("RemoveSummonedAssociate")]
+    static object? RemoveSummoned(Call c)
     {
         if (c.Obj(0) is Creature master && c.ObjOrSelf(1) is Creature assoc) AssociateService.Remove(c.World, master, assoc);
         return null;
@@ -324,6 +349,7 @@ static partial class SocietyFunctions
     [NwFunc("SetMaxHenchmen")] static object? SetMax(Call c) { Service(c).MaxHenchmen = c.I(0); return null; }
     [NwFunc("GetMaxHenchmen")] static object? GetMax(Call c) => Service(c).MaxHenchmen;
 
-    [NwFunc("LevelUpHenchman")] static object? LevelUp(Call c) =>
+    [NwFunc("LevelUpHenchman")]
+    static object? LevelUp(Call c) =>
         c.Obj(0) is Creature cr ? HenchmanLevels.LevelUp(c.World, cr, c.I(1, 255), c.I(2) != 0, c.I(3, 255)) : 0;
 }

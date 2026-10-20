@@ -486,7 +486,9 @@ public sealed partial class ScriptThread
                 Push(Cell.Int(op switch { 0 => unchecked(a + b), 1 => unchecked(a - b), 2 => unchecked(a * b), _ => a / b }));
                 break;
             }
-            case 0x21: case 0x25: case 0x26: // FF, IF, FI
+            case 0x21:
+            case 0x25:
+            case 0x26: // FF, IF, FI
             {
                 var cb = Pop();
                 var ca = Pop();

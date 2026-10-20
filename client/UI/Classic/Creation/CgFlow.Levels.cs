@@ -74,7 +74,13 @@ public abstract partial class CgFlow
 
     protected static int AbilityIndex(string label) => label.ToUpperInvariant() switch
     {
-        "STR" => 0, "DEX" => 1, "CON" => 2, "INT" => 3, "WIS" => 4, "CHA" => 5, _ => -1,
+        "STR" => 0,
+        "DEX" => 1,
+        "CON" => 2,
+        "INT" => 3,
+        "WIS" => 4,
+        "CHA" => 5,
+        _ => -1,
     };
 
     // ------------------------------------------------------------------ skills
@@ -265,10 +271,10 @@ public abstract partial class CgFlow
                         entries.Add((master.Name, () => MasterPopup(master, subs), () => ShowInfo("masterfeat", master.Id, master.Icon), master.Icon));
                     }
                     else foreach (var f in g)
-                        {
-                            int id = f;
-                            entries.Add((Model.FeatName(f), () => { Choice.Feats.Add(id); Validate(); Build(); }, () => ShowInfo("feat", id, Icon(id)), Icon(f)));
-                        }
+                    {
+                        int id = f;
+                        entries.Add((Model.FeatName(f), () => { Choice.Feats.Add(id); Validate(); Build(); }, () => ShowInfo("feat", id, Icon(id)), Icon(f)));
+                    }
                 }
                 foreach (var (name, add, info, icon) in entries.OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase))
                     available.Add(FeatRow(-1, name, icon, true, false, add, info));

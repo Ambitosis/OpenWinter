@@ -244,7 +244,8 @@ public static partial class CreatureRules
                 case NwRules.EffectAbilityDecrease when e.Ints[0] == ability: penalties.Add(e, e.Ints[1]); break;
                 // A curse's Constitution loss sets in a moment after it is applied.
                 case NwRules.EffectCurse when (e.CurseBlockedAbilities & (1 << ability)) == 0
-                    && (ability != NwRules.AbilityCon || e.AppliedAt < w.Time): dec += e.Ints[ability]; break;
+                    && (ability != NwRules.AbilityCon || e.AppliedAt < w.Time):
+                    dec += e.Ints[ability]; break;
             }
         }
         int inc = bonuses.Total;

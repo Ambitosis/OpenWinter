@@ -25,20 +25,23 @@ static class SpellFunctions
 
     // ------------------------------------------------------------------ spell context
 
-    [NwFunc("GetSpellId")] static object? SpellId(Call c)
+    [NwFunc("GetSpellId")]
+    static object? SpellId(Call c)
     {
         if (c.Event.Values.ContainsKey("SpellId") && c.Self is not AreaOfEffect) return c.Event.Int("SpellId");
         if (c.Self is AreaOfEffect aoe) return aoe.SpellId;
         return c.Self?.LastSpell?.SpellId ?? -1;
     }
 
-    [NwFunc("GetSpellTargetObject")] static object? SpellTarget(Call c)
+    [NwFunc("GetSpellTargetObject")]
+    static object? SpellTarget(Call c)
     {
         uint t = Info(c)?.Target ?? GameObject.InvalidId;
         return c.World.Get(t) != null ? t : GameObject.InvalidId;
     }
 
-    [NwFunc("GetSpellTargetLocation")] static object? SpellTargetLocation(Call c)
+    [NwFunc("GetSpellTargetLocation")]
+    static object? SpellTargetLocation(Call c)
     {
         var info = Info(c);
         if (info == null) return Location.Invalid;
@@ -53,7 +56,8 @@ static class SpellFunctions
 
     // ------------------------------------------------------------------ casting actions
 
-    [NwFunc("ActionCastSpellAtObject")] static object? CastAtObject(Call c)
+    [NwFunc("ActionCastSpellAtObject")]
+    static object? CastAtObject(Call c)
     {
         // nSpell, oTarget, nMetaMagic, bCheat, nDomainLevel, nProjectilePathType, bInstantSpell, nClass, bSpontaneousCast
         if (c.Obj(1) == null) return null;
@@ -67,7 +71,8 @@ static class SpellFunctions
         return null;
     }
 
-    [NwFunc("ActionCastSpellAtLocation")] static object? CastAtLocation(Call c)
+    [NwFunc("ActionCastSpellAtLocation")]
+    static object? CastAtLocation(Call c)
     {
         // nSpell, lTargetLocation, nMetaMagic, bCheat, nProjectilePathType, bInstantSpell, nClass, bSpontaneousCast, nDomainLevel
         var loc = c.L(1);
@@ -81,14 +86,16 @@ static class SpellFunctions
         return null;
     }
 
-    [NwFunc("ActionCastFakeSpellAtObject")] static object? FakeAtObject(Call c)
+    [NwFunc("ActionCastFakeSpellAtObject")]
+    static object? FakeAtObject(Call c)
     {
         if (c.Obj(1) == null) return null;
         Enqueue(c, new CastSpellAction { Spell = c.I(0), Target = c.O(1), ProjectilePathType = c.I(2), Fake = true, Cheat = true });
         return null;
     }
 
-    [NwFunc("ActionCastFakeSpellAtLocation")] static object? FakeAtLocation(Call c)
+    [NwFunc("ActionCastFakeSpellAtLocation")]
+    static object? FakeAtLocation(Call c)
     {
         var loc = c.L(1);
         if (c.World.Get(loc.Area) == null) return null;
@@ -96,19 +103,22 @@ static class SpellFunctions
         return null;
     }
 
-    [NwFunc("ActionCounterSpell")] static object? CounterSpell(Call c)
+    [NwFunc("ActionCounterSpell")]
+    static object? CounterSpell(Call c)
     {
         if (c.Self is Creature && c.Obj(0) is { } t) Enqueue(c, new CounterSpellAction { Target = t.Id });
         return null;
     }
 
-    [NwFunc("ActionUseTalentOnObject")] static object? TalentOnObject(Call c)
+    [NwFunc("ActionUseTalentOnObject")]
+    static object? TalentOnObject(Call c)
     {
         if (c.Obj(1) is { } t) UseTalent(c, c.T(0), t.Id, Location.Invalid);
         return null;
     }
 
-    [NwFunc("ActionUseTalentAtLocation")] static object? TalentAtLocation(Call c)
+    [NwFunc("ActionUseTalentAtLocation")]
+    static object? TalentAtLocation(Call c)
     {
         var loc = c.L(1);
         if (c.World.Get(loc.Area) != null) UseTalent(c, c.T(0), GameObject.InvalidId, loc);
@@ -127,8 +137,11 @@ static class SpellFunctions
             case NwRules.TalentSpell:
                 // Talents list every prepared spell, domain slots included; a domain-only spell
                 // needs its domain level to find that slot.
-                Enqueue(c, new CastSpellAction { Spell = t.Id, Target = target, TargetLocation = loc,
-                    DomainLevel = SpellSlots.InferDomainLevel(c.World, self, t.Id, SpellSlots.MetaAny, -1) });
+                Enqueue(c, new CastSpellAction
+                {
+                    Spell = t.Id, Target = target, TargetLocation = loc,
+                    DomainLevel = SpellSlots.InferDomainLevel(c.World, self, t.Id, SpellSlots.MetaAny, -1)
+                });
                 break;
             case NwRules.TalentFeat:
                 if (self.Commandable) UseFeatAction.Order(c.World, self, t.Id, 0, target, loc);
@@ -143,13 +156,15 @@ static class SpellFunctions
         }
     }
 
-    [NwFunc("ActionRest")] static object? Rest(Call c)
+    [NwFunc("ActionRest")]
+    static object? Rest(Call c)
     {
         if (c.Self is Creature) Enqueue(c, new RestAction { LineOfSightCheck = c.I(0) != 0 });
         return null;
     }
 
-    [NwFunc("SetSpellTargetingData")] static object? SetTargeting(Call c)
+    [NwFunc("SetSpellTargetingData")]
+    static object? SetTargeting(Call c)
     {
         if (c.Obj<Creature>(0) is { IsPC: true } pc) Spells(c).SetTargeting(pc, c.I(1), c.I(2), c.F(3), c.F(4), c.I(5));
         return null;
@@ -157,7 +172,8 @@ static class SpellFunctions
 
     // ------------------------------------------------------------------ resistance
 
-    [NwFunc("ResistSpell")] static object? ResistSpell(Call c)
+    [NwFunc("ResistSpell")]
+    static object? ResistSpell(Call c)
     {
         if (c.Obj(0) is not { } caster || c.Obj(1) is not { } target) return 0;
         return SpellDefense.Resist(c.World, caster, target, SpellDefense.InfoFor(c.Self, caster));
@@ -171,7 +187,8 @@ static class SpellFunctions
         return SpellDefense.InfoFor(c.Self, caster)?.SpellId ?? -1;
     }
 
-    [NwFunc("SpellResistanceCheck")] static object? ResistanceCheck(Call c)
+    [NwFunc("SpellResistanceCheck")]
+    static object? ResistanceCheck(Call c)
     {
         // oTarget, oCaster, nSpellId, nCasterLevel, nSpellResistance, bFeedback
         if (c.Obj(0) is not { } target || c.Obj(1) is not { } caster) return 0;
@@ -181,7 +198,8 @@ static class SpellFunctions
         return SpellDefense.ResistanceRoll(c.World, target, caster, level, c.I(4, -1), c.I(5, 1) != 0) ? 1 : 0;
     }
 
-    [NwFunc("SpellImmunityCheck")] static object? ImmunityCheck(Call c)
+    [NwFunc("SpellImmunityCheck")]
+    static object? ImmunityCheck(Call c)
     {
         // oTarget, oCaster, nSpellId, bFeedback
         if (c.Obj(0) is not { } target || c.Obj(1) is not { } caster) return 0;
@@ -212,7 +230,8 @@ static class SpellFunctions
     [NwFunc("SpellAbsorptionLimitedCheck")] static object? AbsorbLimited(Call c) => Absorption(c, limited: true);
     [NwFunc("SpellAbsorptionUnlimitedCheck")] static object? AbsorbUnlimited(Call c) => Absorption(c, limited: false);
 
-    [NwFunc("GetReflexAdjustedDamage")] static object? ReflexAdjusted(Call c)
+    [NwFunc("GetReflexAdjustedDamage")]
+    static object? ReflexAdjusted(Call c)
     {
         // nDamage, oTarget, nDC, nSaveType, oSaveVersus
         if (c.Obj(1) is not { } target) return c.I(0);

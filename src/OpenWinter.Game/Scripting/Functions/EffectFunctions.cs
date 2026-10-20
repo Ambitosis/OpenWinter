@@ -68,7 +68,8 @@ static class EffectFunctions
     [NwFunc("EffectAbilityDecrease")] static object? AbilityDec(Call c) => New(c, "ABILITY_DECREASE", Ability(c.I(0)), c.I(1));
     [NwFunc("EffectDamageResistance")] static object? DamageResist(Call c) => New(c, "DAMAGE_RESISTANCE", c.I(0), c.I(1), c.I(2), c.I(3));
     [NwFunc("EffectResurrection")] static object? Resurrection(Call c) => New(c, "RESURRECTION");
-    [NwFunc("EffectSummonCreature")] static object? Summon(Call c) =>
+    [NwFunc("EffectSummonCreature")]
+    static object? Summon(Call c) =>
         WithObjects(WithStrings(WithFloats(New(c, "SUMMON_CREATURE", c.I(1), c.I(3), c.I(4)), c.F(2)), c.S(0)), c.O(5));
     [NwFunc("EffectACIncrease")] static object? ACInc(Call c) => New(c, "AC_INCREASE", c.I(0), c.I(1), c.I(2));
     [NwFunc("EffectACDecrease")] static object? ACDec(Call c) => New(c, "AC_DECREASE", c.I(0), c.I(1), c.I(2));
@@ -97,9 +98,11 @@ static class EffectFunctions
     [NwFunc("EffectMovementSpeedIncrease")] static object? SpeedInc(Call c) => New(c, "MOVEMENT_SPEED_INCREASE", c.I(0));
     [NwFunc("EffectMovementSpeedDecrease")] static object? SpeedDec(Call c) => New(c, "MOVEMENT_SPEED_DECREASE", c.I(0));
     [NwFunc("EffectAreaOfEffect")] static object? AreaOfEffect(Call c) => WithStrings(New(c, "AREA_OF_EFFECT", c.I(0)), c.S(1), c.S(2), c.S(3));
-    [NwFunc("EffectVisualEffect")] static object? VisualEffect(Call c) =>
+    [NwFunc("EffectVisualEffect")]
+    static object? VisualEffect(Call c) =>
         WithVectors(WithFloats(New(c, "VISUALEFFECT", c.I(0), c.I(1)), c.F(2, 1f)), c.V(3), c.V(4));
-    [NwFunc("EffectBeam")] static object? Beam(Call c) =>
+    [NwFunc("EffectBeam")]
+    static object? Beam(Call c) =>
         c.I(0) < 0 ? Blank() : WithVectors(WithFloats(WithObjects(New(c, "BEAM", c.I(0), c.I(2), c.I(3)), c.O(1)), c.F(4, 1f)), c.V(5), c.V(6));
     [NwFunc("EffectSpellResistanceIncrease")] static object? SRInc(Call c) => New(c, "SPELL_RESISTANCE_INCREASE", c.I(0));
     [NwFunc("EffectSpellResistanceDecrease")] static object? SRDec(Call c) => New(c, "SPELL_RESISTANCE_DECREASE", c.I(0));
@@ -116,7 +119,8 @@ static class EffectFunctions
     [NwFunc("EffectSkillDecrease")] static object? SkillDec(Call c) => ValidSkill(c, c.I(0)) ? New(c, "SKILL_DECREASE", c.I(0), c.I(1)) : Invalid(c);
     [NwFunc("EffectTurned")] static object? Turned(Call c) => State(c, "TURNED", 4);
     [NwFunc("EffectHitPointChangeWhenDying")] static object? HpChangeDying(Call c) => c.F(0) == 0 ? Blank() : Sub(WithFloats(New(c, "HITPOINTCHANGEWHENDYING"), c.F(0)), 0);
-    [NwFunc("EffectInvisibility")] static object? Invisibility(Call c)
+    [NwFunc("EffectInvisibility")]
+    static object? Invisibility(Call c)
     {
         var k = K(c);
         int t = c.I(0);
@@ -130,7 +134,8 @@ static class EffectFunctions
     [NwFunc("EffectDispelMagicAll")] static object? DispelAll(Call c) => New(c, "DISPELMAGICALL", c.I(0));
     [NwFunc("EffectDispelMagicBest")] static object? DispelBest(Call c) => New(c, "DISPELMAGICBEST", c.I(0));
     [NwFunc("EffectUltravision")] static object? Ultravision(Call c) => New(c, "ULTRAVISION");
-    [NwFunc("EffectNegativeLevel")] static object? NegativeLevel(Call c)
+    [NwFunc("EffectNegativeLevel")]
+    static object? NegativeLevel(Call c)
     {
         if (c.I(0) > 100) return Blank();
         // The original makes it temporary already (so GetIsEffectValid is TRUE before it is applied).
@@ -144,9 +149,11 @@ static class EffectFunctions
     [NwFunc("EffectSeeInvisible")] static object? SeeInvisible(Call c) => New(c, "SEEINVISIBLE");
     [NwFunc("EffectTimeStop")] static object? TimeStop(Call c) => New(c, "TIMESTOP");
     [NwFunc("EffectBlindness")] static object? Blindness(Call c) => State(c, "BLINDNESS", 16);
-    [NwFunc("EffectSpellLevelAbsorption")] static object? SpellLevelAbsorption(Call c) =>
+    [NwFunc("EffectSpellLevelAbsorption")]
+    static object? SpellLevelAbsorption(Call c) =>
         c.I(0) is < -1 or > 9 || c.I(2) < 0 ? Blank() : New(c, "SPELLLEVELABSORPTION", c.I(0), c.I(1), c.I(2));
-    [NwFunc("EffectDisappearAppear")] static object? DisappearAppear(Call c)
+    [NwFunc("EffectDisappearAppear")]
+    static object? DisappearAppear(Call c)
     {
         var loc = c.L(0);
         return WithVectors(WithFloats(WithObjects(New(c, "DISAPPEARAPPEAR", c.I(1)), loc.Area), loc.FacingDegrees), loc.Position);
@@ -162,13 +169,15 @@ static class EffectFunctions
     [NwFunc("EffectCutsceneParalyze")] static object? CutsceneParalyze(Call c) => State(c, "CUTSCENE_PARALYZE", 20);
     [NwFunc("EffectCutsceneDominated")] static object? CutsceneDominated(Call c) => State(c, "CUTSCENE_DOMINATED", 21);
     /// <summary>Arcane-only failure is an arcane spell failure effect (it adds to GetArcaneSpellFailure).</summary>
-    [NwFunc("EffectSpellFailure")] static object? SpellFailure(Call c) =>
+    [NwFunc("EffectSpellFailure")]
+    static object? SpellFailure(Call c) =>
         c.I(2) == K(c)["SPELL_FAILURE_TYPE_ARCANE"] ? New(c, "ARCANE_SPELL_FAILURE", c.I(0)) : New(c, "SPELL_FAILURE", c.I(0), c.I(1), c.I(2));
     [NwFunc("EffectEthereal")] static object? Ethereal(Call c) => New(c, "ETHEREAL");
     [NwFunc("EffectCutsceneGhost")] static object? CutsceneGhost(Call c) => Sub(New(c, "CUTSCENEGHOST"), 0);
     [NwFunc("EffectCutsceneImmobilize")] static object? CutsceneImmobilize(Call c) => New(c, "CUTSCENEIMMOBILIZE");
     /// <summary>sData is GetEffectString(e, 0) per nwscript.nss, so Strings = [sData, sOnApplied, sOnRemoved, sOnInterval].</summary>
-    [NwFunc("EffectRunScript")] static object? RunScript(Call c) =>
+    [NwFunc("EffectRunScript")]
+    static object? RunScript(Call c) =>
         WithStrings(WithFloats(New(c, "RUNSCRIPT"), c.F(3)), c.S(4), c.S(0), c.S(1), c.S(2));
     [NwFunc("EffectIcon")] static object? Icon(Call c) => c.I(0) is < 1 or > 255 ? Blank() : New(c, "ICON", c.I(0));
     [NwFunc("EffectPacified")] static object? Pacified(Call c) => New(c, "PACIFY");
@@ -197,7 +206,8 @@ static class EffectFunctions
     [NwFunc("ExtraordinaryEffect")] static object? Extraordinary(Call c) { int s = K(c).Extraordinary; return Modify(c, e => e.SubType = s); }
     [NwFunc("UnyieldingEffect")] static object? Unyielding(Call c) { int s = K(c).Unyielding; return Modify(c, e => e.SubType = s); }
     [NwFunc("IgnoreEffectImmunity")] static object? IgnoreImmunity(Call c) => Modify(c, e => e.IgnoreImmunity = true);
-    [NwFunc("TagEffect")] static object? TagEffect(Call c)
+    [NwFunc("TagEffect")]
+    static object? TagEffect(Call c)
     {
         string t = c.S(1);
         var nwnx = c.World.System<Nwnx.NwnxRegistry>();
@@ -215,7 +225,8 @@ static class EffectFunctions
     /// </summary>
     static bool TakesVersus(Effect e) => e.Type is 15 or 40 or 41 or 42 or 43 or 46 or 47 or 50 or 51 or 54 or 55 or 56 or 57 or 63 or 72 or 81;
 
-    [NwFunc("VersusAlignmentEffect")] static object? VersusAlignment(Call c)
+    [NwFunc("VersusAlignmentEffect")]
+    static object? VersusAlignment(Call c)
     {
         var k = K(c);
         int Axis(int v) =>
@@ -225,14 +236,16 @@ static class EffectFunctions
         int lc = Axis(c.I(1)), ge = Axis(c.I(2));
         return Modify(c, e => { if (TakesVersus(e)) { e.VersusLawChaos = lc; e.VersusGoodEvil = ge; } });
     }
-    [NwFunc("VersusRacialTypeEffect")] static object? VersusRace(Call c)
+    [NwFunc("VersusRacialTypeEffect")]
+    static object? VersusRace(Call c)
     {
         int race = c.I(1) == K(c).RacialInvalid ? -1 : c.I(1);
         return Modify(c, e => { if (TakesVersus(e)) e.VersusRace = race; });
     }
     [NwFunc("VersusTrapEffect")] static object? VersusTrap(Call c) => Modify(c, e => e.VersusTraps = true);
 
-    [NwFunc("EffectLinkEffects")] static object? Link(Call c)
+    [NwFunc("EffectLinkEffects")]
+    static object? Link(Call c)
     {
         var child = c.E(0);
         var parent = c.E(1);
@@ -257,10 +270,12 @@ static class EffectFunctions
     [NwFunc("GetIsEffectValid")] static object? IsValid(Call c) => c.E(0).IsValid && c.E(0).DurationType != K(c).Instant ? 1 : 0;
     [NwFunc("GetEffectDurationType")] static object? DurationType(Call c) => c.E(0).IsValid ? c.E(0).DurationType : 0;
     [NwFunc("GetEffectSubType")] static object? SubType(Call c) => c.E(0).IsValid || c.E(0).Type == 0 ? c.E(0).SubType : 0;
-    [NwFunc("GetEffectCreator")] static object? Creator(Call c) =>
+    [NwFunc("GetEffectCreator")]
+    static object? Creator(Call c) =>
         (c.E(0).IsValid || c.E(0).Type == 0) && c.World.Get(c.E(0).Creator) != null ? c.E(0).Creator : GameObject.InvalidId;
     /// <summary>A link and a resurrection report EFFECT_TYPE_INVALIDEFFECT.</summary>
-    [NwFunc("GetEffectType")] static object? Type(Call c)
+    [NwFunc("GetEffectType")]
+    static object? Type(Call c)
     {
         var e = c.E(0);
         if (!e.IsValid || e.IsLinked || e.Type == K(c).Resurrection) return 0;
@@ -269,9 +284,11 @@ static class EffectFunctions
     [NwFunc("GetEffectSpellId")] static object? SpellId(Call c) => c.E(0).IsValid || c.E(0).Type == 0 ? c.E(0).SpellId : -1;
     [NwFunc("GetEffectTag")] static object? Tag(Call c) => c.E(0).Tag;
     [NwFunc("GetEffectCasterLevel")] static object? CasterLevel(Call c) => c.E(0).IsValid ? c.E(0).CasterLevel : 0;
-    [NwFunc("GetEffectDuration")] static object? Duration(Call c) =>
+    [NwFunc("GetEffectDuration")]
+    static object? Duration(Call c) =>
         c.E(0).IsValid && c.E(0).DurationType == K(c).Temporary ? (int)c.E(0).Duration : 0;
-    [NwFunc("GetEffectDurationRemaining")] static object? DurationRemaining(Call c)
+    [NwFunc("GetEffectDurationRemaining")]
+    static object? DurationRemaining(Call c)
     {
         var e = c.E(0);
         if (!e.IsValid || e.DurationType != K(c).Temporary) return 0;
@@ -333,28 +350,33 @@ static class EffectFunctions
     /// <summary>MISS_CHANCE_TYPE_* as the original stores it (normal 0, then ranged 2, melee 3).</summary>
     public static int MissType(EffectConstants k, int t) => t == k["MISS_CHANCE_TYPE_NORMAL"] ? 0 : t + 1;
 
-    [NwFunc("GetHasSpellEffect")] static object? HasSpellEffect(Call c) =>
+    [NwFunc("GetHasSpellEffect")]
+    static object? HasSpellEffect(Call c) =>
         c.Obj(1) is { } o && EffectQueries.HasSpell(o, c.I(0)) ? 1 : 0;
 
     // ------------------------------------------------------------------ applying / removing
 
-    [NwFunc("ApplyEffectToObject")] static object? ApplyToObject(Call c)
+    [NwFunc("ApplyEffectToObject")]
+    static object? ApplyToObject(Call c)
     {
         if (c.Obj(2) is { } target) Sys(c).Apply(c.E(1), c.I(0), target, c.F(3));
         return null;
     }
-    [NwFunc("ApplyEffectAtLocation")] static object? ApplyAtLocation(Call c)
+    [NwFunc("ApplyEffectAtLocation")]
+    static object? ApplyAtLocation(Call c)
     {
         Sys(c).ApplyAtLocation(c.E(1), c.I(0), c.L(2), c.F(3));
         return null;
     }
-    [NwFunc("RemoveEffect")] static object? Remove(Call c)
+    [NwFunc("RemoveEffect")]
+    static object? Remove(Call c)
     {
         if (c.Obj(0) is { } o) Sys(c).RemoveScripted(o, c.E(1));
         return null;
     }
 
-    [NwFunc("SetEffectIconFlashing")] static object? IconFlashing(Call c)
+    [NwFunc("SetEffectIconFlashing")]
+    static object? IconFlashing(Call c)
     {
         if (c.Obj<Creature>(0) is not { } pc) return null;
         // The client maps effects to effecticons.2da and ignores icons the creature doesn't show.
@@ -373,7 +395,8 @@ static class EffectFunctions
     sealed class Cursor { public List<Effect> List = new(); public int Index = -1; }
     static readonly ConditionalWeakTable<GameObject, Cursor> _cursors = new();
 
-    [NwFunc("GetFirstEffect")] static object? First(Call c)
+    [NwFunc("GetFirstEffect")]
+    static object? First(Call c)
     {
         if (c.Obj(0) is not { } o) return Blank();
         var cur = _cursors.GetOrCreateValue(o);
@@ -382,7 +405,8 @@ static class EffectFunctions
         return Advance(o, cur);
     }
 
-    [NwFunc("GetNextEffect")] static object? Next(Call c)
+    [NwFunc("GetNextEffect")]
+    static object? Next(Call c)
     {
         if (c.Obj(0) is not { } o) return Blank();
         var cur = _cursors.GetOrCreateValue(o);

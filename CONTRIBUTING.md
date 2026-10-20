@@ -15,15 +15,17 @@ Thanks for helping. Bug reports, parity measurements and code are all welcome.
 
 ## Workflow
 
-1. Fork the repository and create a branch from `main`.
+1. Fork the repository and create a branch from `dev`, where new work lands ([docs/RELEASING.md](docs/RELEASING.md)).
 2. Set up as described in the [README](README.md#setup).
 3. Make your change. Keep format parsing in `src/OpenWinter.Aurora`, game rules in `src/OpenWinter.Game` (which
    never references Godot), and presentation in `client/`.
 4. Check it:
-   - `dotnet build OpenWinter.slnx` and `dotnet test` pass. Data tests need `config/local.json`.
+   - `dotnet format whitespace OpenWinter.slnx` leaves nothing to change (CI checks it against `.editorconfig`).
+   - `dotnet build OpenWinter.slnx` and `dotnet test` pass. Data tests need `config/local.json`; CI skips them, so
+     run them locally.
    - For client changes, run the game or a capture (`--capture-*` flags in `client/Main.cs`) and look at the result.
    - For behaviour changes, add or update a parity suite or visual scene where you can.
-5. Open a pull request covering what changed, how you verified it, and anything that still doesn't match the
+5. Open a pull request against `dev` covering what changed, how you verified it, and anything that still doesn't match the
    original.
 
 ## Style

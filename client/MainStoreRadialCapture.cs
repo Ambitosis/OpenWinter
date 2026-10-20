@@ -30,7 +30,7 @@ public partial class Main
             Input.ParseInputEvent(new InputEventMouseMotion { Position = at, GlobalPosition = at, ButtonMask = held });
         }
         void Right(Vector2 at, bool down) => Input.ParseInputEvent(new InputEventMouseButton
-            { ButtonIndex = MouseButton.Right, Pressed = down, Position = at, GlobalPosition = at, ButtonMask = down ? MouseButtonMask.Right : 0 });
+        { ButtonIndex = MouseButton.Right, Pressed = down, Position = at, GlobalPosition = at, ButtonMask = down ? MouseButtonMask.Right : 0 });
         void Enter()
         {
             Input.ParseInputEvent(new InputEventKey { Keycode = Key.Enter, PhysicalKeycode = Key.Enter, Pressed = true });

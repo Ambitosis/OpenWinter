@@ -83,8 +83,11 @@ public class EffectsTests
         var s = Make();
         var caster = s.Spawn("caster", new Vector3(5, 5, 0));
         var target = s.Spawn("target", new Vector3(15, 5, 0));
-        var effect = new Effect { Type = s.K.VisualEffect, Creator = caster.Id,
-            Ints = { [0] = 181 }, Floats = { [0] = 1 } };
+        var effect = new Effect
+        {
+            Type = s.K.VisualEffect, Creator = caster.Id,
+            Ints = { [0] = 181 }, Floats = { [0] = 1 }
+        };
         var system = s.World.System<EffectSystem>();
         system.Apply(effect, s.K.Instant, target, 0);
         var note = Assert.Single(s.Output.Notes, n => n.Kind == "vfx");
@@ -130,27 +133,30 @@ public class EffectsTests
         var k = s.K;
         var fx = s.World.System<EffectSystem>();
         foreach (int row in new[] { 18, 181, 233 })
-        foreach (int durationType in new[] { k.Temporary, k.Permanent })
-        {
-            var target = s.Spawn($"vfx_{row}_{durationType}", new Vector3(5, 5, 0));
-            var visual = new Effect { Type = k.VisualEffect, Ints = { [0] = row }, SubType = k.Magical };
-            var buff = new Effect { Type = k["EFFECT_TYPE_ABILITY_INCREASE"],
-                Ints = { [0] = 0, [1] = 3 }, SubType = k.Magical };
-            var link = new Effect { Type = buff.Type };
-            link.Linked.Add(visual);
-            link.Linked.Add(buff);
-            fx.Apply(link, durationType, target, .5f);
-            var retained = Assert.Single(target.Effects);
-            Assert.Equal(buff.Type, retained.Type);
-            var message = Assert.Single(s.Output.Notes, n => n.Kind == "vfx" && n.Subject == target.Id);
-            using var payload = System.Text.Json.JsonDocument.Parse(message.Json);
-            Assert.Equal(row, payload.RootElement.GetProperty("vfx").GetInt32());
-            Assert.Equal(0, payload.RootElement.GetProperty("duration").GetSingle());
-            Assert.Equal(0, payload.RootElement.GetProperty("id").GetInt64());
-            fx.Remove(target, retained);
-            Assert.Empty(target.Effects);
-            Assert.Single(s.Output.Notes, n => n.Kind == "effect-removed" && n.Subject == target.Id);
-        }
+            foreach (int durationType in new[] { k.Temporary, k.Permanent })
+            {
+                var target = s.Spawn($"vfx_{row}_{durationType}", new Vector3(5, 5, 0));
+                var visual = new Effect { Type = k.VisualEffect, Ints = { [0] = row }, SubType = k.Magical };
+                var buff = new Effect
+                {
+                    Type = k["EFFECT_TYPE_ABILITY_INCREASE"],
+                    Ints = { [0] = 0, [1] = 3 }, SubType = k.Magical
+                };
+                var link = new Effect { Type = buff.Type };
+                link.Linked.Add(visual);
+                link.Linked.Add(buff);
+                fx.Apply(link, durationType, target, .5f);
+                var retained = Assert.Single(target.Effects);
+                Assert.Equal(buff.Type, retained.Type);
+                var message = Assert.Single(s.Output.Notes, n => n.Kind == "vfx" && n.Subject == target.Id);
+                using var payload = System.Text.Json.JsonDocument.Parse(message.Json);
+                Assert.Equal(row, payload.RootElement.GetProperty("vfx").GetInt32());
+                Assert.Equal(0, payload.RootElement.GetProperty("duration").GetSingle());
+                Assert.Equal(0, payload.RootElement.GetProperty("id").GetInt64());
+                fx.Remove(target, retained);
+                Assert.Empty(target.Effects);
+                Assert.Single(s.Output.Notes, n => n.Kind == "effect-removed" && n.Subject == target.Id);
+            }
         foreach (int row in new[] { 147, 73, 127 })
         {
             var target = s.Spawn($"lasting_{row}", new Vector3(5, 5, 0));
@@ -238,14 +244,20 @@ public class EffectsTests
         var fx = s.World.System<EffectSystem>();
         var source = s.Spawn("beam_source", new Vector3(5, 5, 0));
         var target = s.Spawn("beam_target", new Vector3(7, 5, 0));
-        Effect Beam() => new() { Type = k.Beam, SubType = k.Magical,
-            Objects = { [0] = source.Id }, Ints = { [0] = 73 } };
+        Effect Beam() => new()
+        {
+            Type = k.Beam, SubType = k.Magical,
+            Objects = { [0] = source.Id }, Ints = { [0] = 73 }
+        };
         fx.Apply(Beam(), k.Temporary, target, 1);
         fx.Apply(Beam(), k.Permanent, target, 0);
         var linked = new Effect { Type = k.Beam };
         linked.Linked.Add(Beam());
-        linked.Linked.Add(new Effect { Type = k["EFFECT_TYPE_ABILITY_INCREASE"],
-            SubType = k.Magical, Ints = { [0] = 0, [1] = 3 } });
+        linked.Linked.Add(new Effect
+        {
+            Type = k["EFFECT_TYPE_ABILITY_INCREASE"],
+            SubType = k.Magical, Ints = { [0] = 0, [1] = 3 }
+        });
         fx.Apply(linked, k.Permanent, target, 0);
         Assert.Equal(4, target.Effects.Count);
         HitPoints.Kill(s.World, target, source.Id);

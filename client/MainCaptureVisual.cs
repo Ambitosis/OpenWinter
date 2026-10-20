@@ -164,8 +164,11 @@ public partial class Main
                         ? new Vector2(float.Parse(xy[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(xy[1], System.Globalization.CultureInfo.InvariantCulture)) * GetViewport().GetVisibleRect().Size
                         : null;
                     if (_interaction.PointerOverride is { } pointer)
-                        Input.ParseInputEvent(new InputEventMouseMotion { Position = pointer, GlobalPosition = pointer,
-                            Relative = pointer - previous, ButtonMask = Input.GetMouseButtonMask() });
+                        Input.ParseInputEvent(new InputEventMouseMotion
+                        {
+                            Position = pointer, GlobalPosition = pointer,
+                            Relative = pointer - previous, ButtonMask = Input.GetMouseButtonMask()
+                        });
                     continue;
                 }
                 if (key[0] == "mouse" && key.Length > 3 && key[3] == "right")
@@ -196,8 +199,11 @@ public partial class Main
                     }
                     var previous = _interaction.PointerOverride ?? at;
                     _interaction.PointerOverride = at;
-                    Input.ParseInputEvent(new InputEventMouseMotion { Position = at, GlobalPosition = at,
-                        Relative = at - previous, ButtonMask = Input.GetMouseButtonMask() });
+                    Input.ParseInputEvent(new InputEventMouseMotion
+                    {
+                        Position = at, GlobalPosition = at,
+                        Relative = at - previous, ButtonMask = Input.GetMouseButtonMask()
+                    });
                     bool down = key[2] == "down";
                     if (down != visualMouseDown || button != visualMouseButton)
                     {
@@ -394,12 +400,30 @@ public partial class Main
     {
         Key key = vk switch
         {
-            96 => Key.Kp0, 97 => Key.Kp1, 98 => Key.Kp2, 99 => Key.Kp3, 100 => Key.Kp4,
-            101 => Key.Kp5, 102 => Key.Kp6, 103 => Key.Kp7, 104 => Key.Kp8, 105 => Key.Kp9,
+            96 => Key.Kp0,
+            97 => Key.Kp1,
+            98 => Key.Kp2,
+            99 => Key.Kp3,
+            100 => Key.Kp4,
+            101 => Key.Kp5,
+            102 => Key.Kp6,
+            103 => Key.Kp7,
+            104 => Key.Kp8,
+            105 => Key.Kp9,
             >= 112 and <= 135 => (Key)((int)Key.F1 + vk - 112), // Windows F1..F24.
-            27 => Key.Escape, 13 => Key.Enter, 9 => Key.Tab, 32 => Key.Space, 16 => Key.Shift,
-            37 => Key.Left, 38 => Key.Up, 39 => Key.Right, 40 => Key.Down,
-            33 => Key.Pageup, 34 => Key.Pagedown, 45 => Key.Insert, 46 => Key.Delete,
+            27 => Key.Escape,
+            13 => Key.Enter,
+            9 => Key.Tab,
+            32 => Key.Space,
+            16 => Key.Shift,
+            37 => Key.Left,
+            38 => Key.Up,
+            39 => Key.Right,
+            40 => Key.Down,
+            33 => Key.Pageup,
+            34 => Key.Pagedown,
+            45 => Key.Insert,
+            46 => Key.Delete,
             _ => (Key)vk,
         };
         Input.ParseInputEvent(new InputEventKey { Keycode = key, PhysicalKeycode = key, Pressed = pressed });
@@ -432,15 +456,21 @@ public partial class Main
             audioBias = Settings.Current.Audio.SpatialBias,
             cursor = GetTree().Root.FindChildren("*", "", true, false).OfType<UI.HudParts.Cursors>().FirstOrDefault()?.CurrentCursorId,
             marker = GetTree().Root.FindChildren("*", "", true, false).OfType<Gameplay.CommandReticle>().FirstOrDefault()?.IsShowing,
-            voice = new { sound = voice?.Sound, playing = voice?.Playing, seconds = voice?.GetPlaybackPosition(), length = voice?.Stream?.GetLength(), position = voice?.GlobalPosition.ToString(),
+            voice = new
+            {
+                sound = voice?.Sound, playing = voice?.Playing, seconds = voice?.GetPlaybackPosition(), length = voice?.Stream?.GetLength(), position = voice?.GlobalPosition.ToString(),
                 leftDb = AudioServer.GetBusPeakVolumeLeftDb(AudioServer.GetBusIndex(Preferences.AudioBuses.Voice3D), 0),
-                rightDb = AudioServer.GetBusPeakVolumeRightDb(AudioServer.GetBusIndex(Preferences.AudioBuses.Voice3D), 0) },
+                rightDb = AudioServer.GetBusPeakVolumeRightDb(AudioServer.GetBusIndex(Preferences.AudioBuses.Voice3D), 0)
+            },
             creatures = _session.Objects.Values.OfType<Views.CreatureView>().Where(v => v.GlobalPosition.DistanceTo(_session.Controlled?.GlobalPosition ?? Vector3.Zero) < 8).Select(v =>
             {
                 int head = v.Skeleton?.FindBone("head_g") ?? -1;
-                return new { id = v.ObjectId, name = v.DisplayName, position = v.Position.ToString(), facing = v.Rotation.Z,
+                return new
+                {
+                    id = v.ObjectId, name = v.DisplayName, position = v.Position.ToString(), facing = v.Rotation.Z,
                     action = v.Animator?.CaptureAction(),
-                    head = head >= 0 ? v.Skeleton!.GetBonePoseRotation(head).ToString() : "" };
+                    head = head >= 0 ? v.Skeleton!.GetBonePoseRotation(head).ToString() : ""
+                };
             }).ToArray(),
         };
         System.IO.File.AppendAllText(System.IO.Path.Combine(dir, "state.jsonl"), System.Text.Json.JsonSerializer.Serialize(state) + "\n");

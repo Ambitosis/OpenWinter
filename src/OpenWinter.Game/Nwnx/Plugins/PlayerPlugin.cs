@@ -41,7 +41,8 @@ static class PlayerPlugin
     public static NwnxValue[] Slot(NwnxCall n, Creature c, int slot) =>
         n.State(c).TryGetValue("qb:" + slot, out var v) && v.Value is NwnxValue[] values ? values : SlotLayout.Select(Empty).ToArray();
 
-    [NwnxFunc(P, "SetQuickBarSlot")] static void SetQuickBarSlot(NwnxCall n)
+    [NwnxFunc(P, "SetQuickBarSlot")]
+    static void SetQuickBarSlot(NwnxCall n)
     {
         var pc = n.PopObject<Creature>();
         int slot = n.PopInt();
@@ -52,7 +53,8 @@ static class PlayerPlugin
         if (pc.IsPC) Tell(n, pc, new { op = "quickbar", slot, type = values[2].Value, resref = values[4].Value, label = values[5].Value });
     }
 
-    [NwnxFunc(P, "GetQuickBarSlot")] static void GetQuickBarSlot(NwnxCall n)
+    [NwnxFunc(P, "GetQuickBarSlot")]
+    static void GetQuickBarSlot(NwnxCall n)
     {
         var pc = n.PopObject<Creature>();
         int slot = n.PopInt();
@@ -99,126 +101,150 @@ static class PlayerPlugin
 
     // ---- Client-side effects -----------------------------------------------------
 
-    [NwnxFunc(P, "FloatingTextStringOnCreature")] static void FloatingText(NwnxCall n)
+    [NwnxFunc(P, "FloatingTextStringOnCreature")]
+    static void FloatingText(NwnxCall n)
     {
         var pc = Pc(n); var creature = n.PopObjectId(); var text = n.PopString();
         Tell(n, pc, new { op = "floating-text", creature, text });
     }
-    [NwnxFunc(P, "SetPlaceableUsable")] static void SetPlaceableUsable(NwnxCall n)
+    [NwnxFunc(P, "SetPlaceableUsable")]
+    static void SetPlaceableUsable(NwnxCall n)
     {
         var pc = Pc(n); var placeable = n.PopObjectId(); bool usable = n.PopInt() != 0;
         Tell(n, pc, new { op = "placeable-usable", placeable, usable });
     }
-    [NwnxFunc(P, "SetCreatureNameOverride")] static void SetCreatureNameOverride(NwnxCall n)
+    [NwnxFunc(P, "SetCreatureNameOverride")]
+    static void SetCreatureNameOverride(NwnxCall n)
     {
         var pc = Pc(n); var creature = n.PopObjectId(); var name = n.PopString();
         Tell(n, pc, new { op = "name-override", target = creature, name });
     }
-    [NwnxFunc(P, "SetPlaceableNameOverride")] static void SetPlaceableNameOverride(NwnxCall n)
+    [NwnxFunc(P, "SetPlaceableNameOverride")]
+    static void SetPlaceableNameOverride(NwnxCall n)
     {
         var pc = Pc(n); var placeable = n.PopObjectId(); var name = n.PopString();
         Tell(n, pc, new { op = "name-override", target = placeable, name });
     }
-    [NwnxFunc(P, "SetObjectHiliteColorOverride")] static void SetHilite(NwnxCall n)
+    [NwnxFunc(P, "SetObjectHiliteColorOverride")]
+    static void SetHilite(NwnxCall n)
     {
         var pc = Pc(n); var target = n.PopObjectId(); int color = n.PopInt();
         Tell(n, pc, new { op = "hilite-color", target, color });
     }
-    [NwnxFunc(P, "SetObjectMouseCursorOverride")] static void SetCursor(NwnxCall n)
+    [NwnxFunc(P, "SetObjectMouseCursorOverride")]
+    static void SetCursor(NwnxCall n)
     {
         var pc = Pc(n); var target = n.PopObjectId(); int cursor = n.PopInt();
         Tell(n, pc, new { op = "mouse-cursor", target, cursor });
     }
-    [NwnxFunc(P, "SetObjectVisualTransformOverride")] static void SetTransform(NwnxCall n)
+    [NwnxFunc(P, "SetObjectVisualTransformOverride")]
+    static void SetTransform(NwnxCall n)
     {
         var pc = Pc(n); var target = n.PopObjectId(); int transform = n.PopInt(); float value = n.PopFloat();
         Tell(n, pc, new { op = "visual-transform", target, transform, value });
     }
-    [NwnxFunc(P, "PlaySound")] static void PlaySound(NwnxCall n)
+    [NwnxFunc(P, "PlaySound")]
+    static void PlaySound(NwnxCall n)
     {
         var pc = Pc(n); var sound = n.PopString(); var target = n.PopObjectId();
         Tell(n, pc, new { op = "sound", sound, target });
     }
-    [NwnxFunc(P, "ShowVisualEffect")] static void ShowVfx(NwnxCall n)
+    [NwnxFunc(P, "ShowVisualEffect")]
+    static void ShowVfx(NwnxCall n)
     {
         var pc = Pc(n); int effect = n.PopInt();
         float z = n.PopFloat(), y = n.PopFloat(), x = n.PopFloat();
         Tell(n, pc, new { op = "vfx", effect, x, y, z });
     }
-    [NwnxFunc(P, "ApplyInstantVisualEffectToObject")] static void InstantVfx(NwnxCall n)
+    [NwnxFunc(P, "ApplyInstantVisualEffectToObject")]
+    static void InstantVfx(NwnxCall n)
     {
         var pc = Pc(n); var target = n.PopObjectId(); int effect = n.PopInt();
         Tell(n, pc, new { op = "vfx", effect, target });
     }
-    [NwnxFunc(P, "ApplyLoopingVisualEffectToObject")] static void LoopingVfx(NwnxCall n)
+    [NwnxFunc(P, "ApplyLoopingVisualEffectToObject")]
+    static void LoopingVfx(NwnxCall n)
     {
         var pc = Pc(n); var target = n.PopObjectId(); int effect = n.PopInt();
         Tell(n, pc, new { op = "vfx-loop", effect, target });
     }
-    [NwnxFunc(P, "ChangeBackgroundMusic")] static void ChangeMusic(NwnxCall n)
+    [NwnxFunc(P, "ChangeBackgroundMusic")]
+    static void ChangeMusic(NwnxCall n)
     {
         var pc = Pc(n); bool day = n.PopInt() != 0; int track = n.PopInt();
         Tell(n, pc, new { op = "music", day, track });
     }
-    [NwnxFunc(P, "PlayBackgroundMusic")] static void PlayMusic(NwnxCall n)
+    [NwnxFunc(P, "PlayBackgroundMusic")]
+    static void PlayMusic(NwnxCall n)
     {
         var pc = Pc(n); bool play = n.PopInt() != 0;
         Tell(n, pc, new { op = "music-play", play });
     }
-    [NwnxFunc(P, "ChangeBattleMusic")] static void ChangeBattleMusic(NwnxCall n)
+    [NwnxFunc(P, "ChangeBattleMusic")]
+    static void ChangeBattleMusic(NwnxCall n)
     {
         var pc = Pc(n); int track = n.PopInt();
         Tell(n, pc, new { op = "battle-music", track });
     }
-    [NwnxFunc(P, "PlayBattleMusic")] static void PlayBattleMusic(NwnxCall n)
+    [NwnxFunc(P, "PlayBattleMusic")]
+    static void PlayBattleMusic(NwnxCall n)
     {
         var pc = Pc(n); bool play = n.PopInt() != 0;
         Tell(n, pc, new { op = "battle-music-play", play });
     }
-    [NwnxFunc(P, "StartGuiTimingBar")] static void StartTimingBar(NwnxCall n)
+    [NwnxFunc(P, "StartGuiTimingBar")]
+    static void StartTimingBar(NwnxCall n)
     {
         var pc = Pc(n); float seconds = n.PopFloat(); int type = n.PopInt();
         Tell(n, pc, new { op = "timing-bar", seconds, type });
     }
     [NwnxFunc(P, "StopGuiTimingBar")] static void StopTimingBar(NwnxCall n) => Tell(n, Pc(n), new { op = "timing-bar-stop" });
-    [NwnxFunc(P, "SetAlwaysWalk")] static void AlwaysWalk(NwnxCall n)
+    [NwnxFunc(P, "SetAlwaysWalk")]
+    static void AlwaysWalk(NwnxCall n)
     {
         var pc = Pc(n); bool walk = n.PopInt() != 0;
         if (pc != null) n.State(pc)["alwaysWalk"] = NwnxValue.Int(walk ? 1 : 0);
         Tell(n, pc, new { op = "always-walk", walk });
     }
-    [NwnxFunc(P, "SetRestDuration")] static void RestDuration(NwnxCall n)
+    [NwnxFunc(P, "SetRestDuration")]
+    static void RestDuration(NwnxCall n)
     {
         var pc = Pc(n); int duration = n.PopInt();
         if (pc != null) n.State(pc)["restDuration"] = NwnxValue.Int(duration);
     }
-    [NwnxFunc(P, "SetRestAnimation")] static void RestAnimation(NwnxCall n)
+    [NwnxFunc(P, "SetRestAnimation")]
+    static void RestAnimation(NwnxCall n)
     {
         var pc = Pc(n); int animation = n.PopInt();
         if (pc != null) n.State(pc)["restAnimation"] = NwnxValue.Int(animation);
     }
     [NwnxFunc(P, "UpdateCharacterSheet")] static void UpdateSheet(NwnxCall n) => Tell(n, Pc(n), new { op = "character-sheet" });
-    [NwnxFunc(P, "OpenInventory")] static void OpenInventory(NwnxCall n)
+    [NwnxFunc(P, "OpenInventory")]
+    static void OpenInventory(NwnxCall n)
     {
         var pc = Pc(n); var target = n.PopObjectId(); bool open = n.PopInt() != 0;
         Tell(n, pc, new { op = "inventory", target, open });
     }
-    [NwnxFunc(P, "ForcePlaceableExamineWindow")] static void ExamineWindow(NwnxCall n)
+    [NwnxFunc(P, "ForcePlaceableExamineWindow")]
+    static void ExamineWindow(NwnxCall n)
     {
         var pc = Pc(n); var target = n.PopObjectId();
         Tell(n, pc, new { op = "examine", target });
     }
-    [NwnxFunc(P, "ForcePlaceableInventoryWindow")] static void InventoryWindow(NwnxCall n)
+    [NwnxFunc(P, "ForcePlaceableInventoryWindow")]
+    static void InventoryWindow(NwnxCall n)
     {
         var pc = Pc(n); var target = n.PopObjectId();
         Tell(n, pc, new { op = "inventory", target, open = true });
     }
-    [NwnxFunc(P, "SetTlkOverride")] static void TlkOverride(NwnxCall n)
+    [NwnxFunc(P, "SetTlkOverride")]
+    static void TlkOverride(NwnxCall n)
     {
         var pc = Pc(n); int strref = n.PopInt(); var text = n.PopString(); n.PopInt();
         Tell(n, pc, new { op = "tlk-override", strref, text });
     }
-    [NwnxFunc(P, "SetCustomToken", UnsupportedReason = "per-player token is stored but dialogue does not consume it")] static void CustomToken(NwnxCall n)
+    [NwnxFunc(P, "SetCustomToken", UnsupportedReason = "per-player token is stored but dialogue does not consume it")]
+    static void CustomToken(NwnxCall n)
     {
         var pc = Pc(n); int token = n.PopInt(); var value = n.PopString();
         // TODO(conversation): per-player custom tokens should override SetCustomToken in dialogue text.
@@ -227,7 +253,8 @@ static class PlayerPlugin
 
     // ---- Player identity -----------------------------------------------------------
 
-    [NwnxFunc(P, "ToggleDM")] static void ToggleDM(NwnxCall n)
+    [NwnxFunc(P, "ToggleDM")]
+    static void ToggleDM(NwnxCall n)
     {
         var pc = Pc(n); bool dm = n.PopInt() != 0;
         if (pc?.Player == null) return;
@@ -237,13 +264,15 @@ static class PlayerPlugin
     }
     [NwnxFunc(P, "GetPlatformId")] static void PlatformId(NwnxCall n) => n.Push(Pc(n)?.Client.Platform ?? 0);
     [NwnxFunc(P, "GetLanguage")] static void Language(NwnxCall n) => n.Push(Pc(n)?.Client.Language ?? -1);
-    [NwnxFunc(P, "GetBicFileName")] static void BicFileName(NwnxCall n)
+    [NwnxFunc(P, "GetBicFileName")]
+    static void BicFileName(NwnxCall n)
     {
         var pc = Pc(n);
         n.Push(pc != null && n.State(pc).TryGetValue("bic", out var v) && v.Value is string s ? s : "");
     }
 
-    [NwnxFunc(P, "GetJournalEntry")] static void JournalEntry(NwnxCall n)
+    [NwnxFunc(P, "GetJournalEntry")]
+    static void JournalEntry(NwnxCall n)
     {
         var pc = Pc(n); var tag = n.PopString();
         var journal = n.World.System<JournalService>();
@@ -265,12 +294,14 @@ static class PlayerPlugin
         n.Push(1);
     }
 
-    [NwnxFunc(P, "GetAreaExplorationState")] static void GetExploration(NwnxCall n)
+    [NwnxFunc(P, "GetAreaExplorationState")]
+    static void GetExploration(NwnxCall n)
     {
         var pc = Pc(n); var area = n.PopObjectId();
         n.Push(pc != null && n.State(pc).TryGetValue("explore:" + area, out var v) && v.Value is string s ? s : "");
     }
-    [NwnxFunc(P, "SetAreaExplorationState")] static void SetExploration(NwnxCall n)
+    [NwnxFunc(P, "SetAreaExplorationState")]
+    static void SetExploration(NwnxCall n)
     {
         var pc = Pc(n); var area = n.PopObjectId(); var data = n.PopString();
         if (pc == null) return;
@@ -278,7 +309,8 @@ static class PlayerPlugin
         Tell(n, pc, new { op = "exploration", area, data });
     }
 
-    [NwnxFunc(P, "PossessCreature", UnsupportedReason = "switching the controlled creature is not implemented")] static void Possess(NwnxCall n)
+    [NwnxFunc(P, "PossessCreature", UnsupportedReason = "switching the controlled creature is not implemented")]
+    static void Possess(NwnxCall n)
     {
         // TODO(society): possession needs the server to switch the controlled object.
         Pc(n); n.PopObjectId(); n.PopInt(); n.PopInt();

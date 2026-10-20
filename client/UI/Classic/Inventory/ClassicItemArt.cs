@@ -20,9 +20,20 @@ public static partial class ClassicItemArt
     /// <summary>The silhouette shown in an empty equipment box (INVENTORY_SLOT_*).</summary>
     public static string Silhouette(int slot) => slot switch
     {
-        0 => "inv_slot_helm", 1 => "inv_slot_armor", 2 => "inv_slot_boots", 3 => "inv_slot_gloves", 4 => "inv_slot_right",
-        5 => "inv_slot_left", 6 => "inv_slot_cloak", 7 or 8 => "inv_slot_ring", 9 => "inv_slot_amulet", 10 => "inv_slot_belt",
-        11 => "inv_slot_arrow", 12 => "inv_slot_sling", 13 => "inv_slot_bolts", _ => "",
+        0 => "inv_slot_helm",
+        1 => "inv_slot_armor",
+        2 => "inv_slot_boots",
+        3 => "inv_slot_gloves",
+        4 => "inv_slot_right",
+        5 => "inv_slot_left",
+        6 => "inv_slot_cloak",
+        7 or 8 => "inv_slot_ring",
+        9 => "inv_slot_amulet",
+        10 => "inv_slot_belt",
+        11 => "inv_slot_arrow",
+        12 => "inv_slot_sling",
+        13 => "inv_slot_bolts",
+        _ => "",
     };
 
     /// <summary>The occupied icon canvas; power-of-two texture padding is outside the inventory footprint.</summary>

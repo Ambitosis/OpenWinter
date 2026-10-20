@@ -106,28 +106,28 @@ public sealed class DrivingTests
     public void ReleasedKeyboardTapsCompleteTheMeasuredStepEvenBetweenTicks()
     {
         foreach (float dt in new[] { 1f / 30, 0.17f })
-        foreach (var (axis, expected) in new[]
-        {
+            foreach (var (axis, expected) in new[]
+            {
             (new Vector3(0, 1, 0), new Vector3(21.6f, 20, 0)),
             (new Vector3(0, -1, 0), new Vector3(19.2f, 20, 0)),
             (new Vector3(-1, 0, 0), new Vector3(20, 20.8f, 0)),
             (new Vector3(1, 0, 0), new Vector3(20, 19.2f, 0)),
         })
-        {
-            var (world, pc) = Floor();
-            Driving.Receive(world, pc, new() { Active = true, Direction = axis });
-            Driving.Receive(world, pc, new());
-            for (int i = 0; i < 35; i++)
             {
-                // Idle heartbeats must not erase or extend the step already finishing.
+                var (world, pc) = Floor();
+                Driving.Receive(world, pc, new() { Active = true, Direction = axis });
                 Driving.Receive(world, pc, new());
-                Movement.Step(world, pc, dt);
+                for (int i = 0; i < 35; i++)
+                {
+                    // Idle heartbeats must not erase or extend the step already finishing.
+                    Driving.Receive(world, pc, new());
+                    Movement.Step(world, pc, dt);
+                }
+                Assert.InRange(Vector3.Distance(expected, pc.Position), 0, 0.0001f);
+                Assert.Equal(MovementMode.Stand, pc.Mode);
+                Assert.Equal(0, pc.Speed);
+                Assert.Null(pc.DriveInput);
             }
-            Assert.InRange(Vector3.Distance(expected, pc.Position), 0, 0.0001f);
-            Assert.Equal(MovementMode.Stand, pc.Mode);
-            Assert.Equal(0, pc.Speed);
-            Assert.Null(pc.DriveInput);
-        }
     }
 
     [DataFact]
@@ -269,26 +269,26 @@ public sealed class DrivingTests
     public void RapidTurnEdgesCannotExceedTheHeldRate()
     {
         foreach (float dt in new[] { 1f / 30, 1f / 120 })
-        foreach (int sign in new[] { -1, 1 })
-        foreach (var (axis, walk) in new[] { (Vector3.Zero, false), (new Vector3(0, 1, 0), false), (new Vector3(0, 1, 0), true), (new Vector3(1, 0, 0), false) })
-        {
-            var (world, pc) = Floor();
-            float rate = axis.Y > 0 && !walk ? Driving.RunningTurnRate : Driving.TurnRate;
-            for (int i = 0; i < 120; i++)
-            {
-                float before = pc.Facing;
-                // Even several input edges delivered in one server tick share its angular budget.
-                for (int packet = 0; packet < 8; packet++)
+            foreach (int sign in new[] { -1, 1 })
+                foreach (var (axis, walk) in new[] { (Vector3.Zero, false), (new Vector3(0, 1, 0), false), (new Vector3(0, 1, 0), true), (new Vector3(1, 0, 0), false) })
                 {
-                    Driving.Receive(world, pc, new() { Active = true, Turn = sign, Direction = axis, Walk = walk });
-                    Driving.Receive(world, pc, new());
+                    var (world, pc) = Floor();
+                    float rate = axis.Y > 0 && !walk ? Driving.RunningTurnRate : Driving.TurnRate;
+                    for (int i = 0; i < 120; i++)
+                    {
+                        float before = pc.Facing;
+                        // Even several input edges delivered in one server tick share its angular budget.
+                        for (int packet = 0; packet < 8; packet++)
+                        {
+                            Driving.Receive(world, pc, new() { Active = true, Turn = sign, Direction = axis, Walk = walk });
+                            Driving.Receive(world, pc, new());
+                        }
+                        Assert.Equal(before, pc.Facing);
+                        Movement.Step(world, pc, dt);
+                        float delta = MathF.IEEERemainder(pc.Facing - before, MathF.Tau);
+                        Assert.InRange(sign * delta, rate * dt - 0.00001f, rate * dt + 0.00001f);
+                    }
                 }
-                Assert.Equal(before, pc.Facing);
-                Movement.Step(world, pc, dt);
-                float delta = MathF.IEEERemainder(pc.Facing - before, MathF.Tau);
-                Assert.InRange(sign * delta, rate * dt - 0.00001f, rate * dt + 0.00001f);
-            }
-        }
     }
 
     [DataFact]
@@ -312,7 +312,10 @@ public sealed class DrivingTests
     }
 
     [Theory]
-    [InlineData(0, -1, 59)] [InlineData(1, 0, 63)] [InlineData(0, 1, 67)] [InlineData(-1, 0, 71)]
+    [InlineData(0, -1, 59)]
+    [InlineData(1, 0, 63)]
+    [InlineData(0, 1, 67)]
+    [InlineData(-1, 0, 71)]
     public void NativeArrowFramesRotateInSixteenSteps(float x, float y, int expected)
     {
         Assert.Equal(expected, Client.Gameplay.MouseDriving.Cursor(x, y, false));

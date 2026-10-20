@@ -22,7 +22,7 @@ public static class DisappearVisibilityProbe
             checks.Add(name);
         }
         void Notify(string kind, int animation) => fx.Handle(new NotifyMessage
-            { Kind = kind, Subject = view.ObjectId, Json = $"{{\"animation\":{animation}}}" });
+        { Kind = kind, Subject = view.ObjectId, Json = $"{{\"animation\":{animation}}}" });
         try
         {
             foreach (int animation in new[] { 0, 1 }) // Requested animation without a model must still hide.

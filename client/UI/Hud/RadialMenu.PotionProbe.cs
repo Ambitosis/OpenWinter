@@ -18,8 +18,11 @@ public partial class RadialMenu
         var interaction = new Interaction { Session = session };
         var casting = new SpellCasting { Session = session, Interaction = interaction };
         var book = new AbilityBook(session);
-        var menu = new RadialMenu { Session = session, Casting = casting, _book = book,
-            _user = new AbilityUser { Session = session, Casting = casting, Book = book } };
+        var menu = new RadialMenu
+        {
+            Session = session, Casting = casting, _book = book,
+            _user = new AbilityUser { Session = session, Casting = casting, Book = book }
+        };
         var other = new ObjectView { ObjectId = 99, Kind = ObjectKind.Creature };
         void Check(bool pass, string name)
         {

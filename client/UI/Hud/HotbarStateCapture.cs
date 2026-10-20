@@ -44,8 +44,11 @@ public partial class Main
                 var look = ActionBar.User.Look(slot);
                 if (look.Uses != uses || look.Icons.Length == 0 || look.Usable != (uses > 0))
                     throw new InvalidOperationException(name + ": " + JsonSerializer.Serialize(look));
-                records.Add(new { name, item = slot.Item, slot.ItemKey, look, spell = ActionBar.User.Look(ActionBar.Get(0, 0)!),
-                    selectedPower = ActionBar.Get(0, 2) is { } selection ? new { selection.Prop, selection.ItemPowerKey, look = ActionBar.User.Look(selection) } : null });
+                records.Add(new
+                {
+                    name, item = slot.Item, slot.ItemKey, look, spell = ActionBar.User.Look(ActionBar.Get(0, 0)!),
+                    selectedPower = ActionBar.Get(0, 2) is { } selection ? new { selection.Prop, selection.ItemPowerKey, look = ActionBar.User.Look(selection) } : null
+                });
                 await Wait(.15); // Let the changed slot draw before reading the viewport.
                 await Shot(dir, name);
             }
@@ -138,7 +141,7 @@ public partial class Main
             if (ActionBar.User.Look(selectedSlot).Usable) throw new InvalidOperationException("Removed power remained usable.");
             await Record("08_power_removed", 0, 2);
             System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "state.json"), JsonSerializer.Serialize(new
-                { character = pc.Name.Resolve(world.Resources.Talk), classes = pc.Classes.Select(c => new { c.Class, c.Level }), records }, new JsonSerializerOptions { WriteIndented = true }));
+            { character = pc.Name.Resolve(world.Resources.Talk), classes = pc.Classes.Select(c => new { c.Class, c.Level }), records }, new JsonSerializerOptions { WriteIndented = true }));
             GD.Print("VISUAL|done|1");
             GD.Print("[hotbar-state] PASS: " + (itemsOnly ? "items only; " : "actual PC cast/rest/cast; ") + "separate bottles 1/0 with spare untouched; potion 3/2/1/0, no implicit replacement, explicit stack 2, owned mutation and removed power");
             GetTree().Quit(0);

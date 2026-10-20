@@ -29,7 +29,8 @@ static class DevDisplay
                 catch (InvalidOperationException) { return; }
                 Thread.Sleep(15);
             }
-        }) { IsBackground = true, Name = "dev-display" }.Start();
+        })
+        { IsBackground = true, Name = "dev-display" }.Start();
     }
 
     /// <summary>

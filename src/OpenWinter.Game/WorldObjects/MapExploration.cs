@@ -60,16 +60,16 @@ public sealed class MapExploration : IWorldSystem
         int x0 = (int)MathF.Floor((pc.Position.X - RevealRadius) / Area.TileSize), x1 = (int)MathF.Floor((pc.Position.X + RevealRadius) / Area.TileSize);
         int y0 = (int)MathF.Floor((pc.Position.Y - RevealRadius) / Area.TileSize), y1 = (int)MathF.Floor((pc.Position.Y + RevealRadius) / Area.TileSize);
         for (int y = Math.Max(0, y0); y <= Math.Min(area.Height - 1, y1); y++)
-        for (int x = Math.Max(0, x0); x <= Math.Min(area.Width - 1, x1); x++)
-        {
-            int i = y * area.Width + x;
-            if (tiles[i]) continue;
-            // Tile centre within reach of the radius (plus half a tile so the tile under the player always counts).
-            float cx = (x + 0.5f) * Area.TileSize - pc.Position.X, cy = (y + 0.5f) * Area.TileSize - pc.Position.Y;
-            if (cx * cx + cy * cy > (RevealRadius + Area.TileSize * 0.71f) * (RevealRadius + Area.TileSize * 0.71f)) continue;
-            tiles[i] = true;
-            _world.Output?.Notify("tile-explored", area, new { area = area.Id, x, y, explored = true }, pc);
-        }
+            for (int x = Math.Max(0, x0); x <= Math.Min(area.Width - 1, x1); x++)
+            {
+                int i = y * area.Width + x;
+                if (tiles[i]) continue;
+                // Tile centre within reach of the radius (plus half a tile so the tile under the player always counts).
+                float cx = (x + 0.5f) * Area.TileSize - pc.Position.X, cy = (y + 0.5f) * Area.TileSize - pc.Position.Y;
+                if (cx * cx + cy * cy > (RevealRadius + Area.TileSize * 0.71f) * (RevealRadius + Area.TileSize * 0.71f)) continue;
+                tiles[i] = true;
+                _world.Output?.Notify("tile-explored", area, new { area = area.Id, x, y, explored = true }, pc);
+            }
     }
 
     /// <summary>The map window: map notes and what this player has explored of their area.</summary>

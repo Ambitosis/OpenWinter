@@ -637,9 +637,12 @@ public partial class GuiList : Control
         if (_nativeBar != null) return;
         var arrow = Assets.Model("pb_scrl_up")?.Bounds.Size ?? new Vector2(14, 14);
         Bar.Visible = false;
-        _nativeBar = new ClassicScrollBar { Assets = Assets,
+        _nativeBar = new ClassicScrollBar
+        {
+            Assets = Assets,
             Position = Bar.Position + new Vector2(GuiScrollBar.Width / 2, -arrow.Y),
-            Size = new Vector2(arrow.X, Bar.Size.Y + arrow.Y * 2), Scrolled = ScrollTo };
+            Size = new Vector2(arrow.X, Bar.Size.Y + arrow.Y * 2), Scrolled = ScrollTo
+        };
         AddChild(_nativeBar);
         Layout();
     }

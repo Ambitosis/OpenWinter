@@ -43,8 +43,11 @@ public partial class Main
         async Task Record(string name)
         {
             RecordVisualAudioNote($"VISUAL|note|{name}");
-            rows.Add(new { name, item = item.Id, owned = Owned(), page = Page(), dragging = GetViewport().GuiIsDragging(),
-                worldView = _session.Objects.TryGetValue(item.Id, out var view) ? view.Position.ToString() : null });
+            rows.Add(new
+            {
+                name, item = item.Id, owned = Owned(), page = Page(), dragging = GetViewport().GuiIsDragging(),
+                worldView = _session.Objects.TryGetValue(item.Id, out var view) ? view.Position.ToString() : null
+            });
             await Shot(dir, name);
         }
         try

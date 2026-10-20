@@ -62,26 +62,26 @@ public sealed class ItemCastActionTests
     public void BothPotionKindsPublishSelfTargetAndIgnoreRequestedOtherTarget()
     {
         foreach (int kind in new[] { 49, 104 })
-        foreach (string route in new[] { "item-use", "use-item" })
-        {
-            var g = new Game();
-            var potion = g.World.Inventory.CreateOn("nw_it_mpotion001", g.Pc, 2, "potion")!;
-            potion.BaseItem = kind;
-            var other = new Creature();
-            g.World.Register(other);
-            g.World.Jump(other, new Location(g.Pc.Area!.Id, g.Pc.Position + Vector3.UnitX, 0));
-            g.Tick(3);
-            g.Request("abilities", new { }); g.Tick();
-            var power = g.Notes().Last(n => n.Kind == "abilities").Data.GetProperty("items")
-                .EnumerateArray().Single(x => x.GetProperty("item").GetUInt32() == potion.Id)
-                .GetProperty("props").EnumerateArray().First();
-            Assert.Equal(AbilityRequests.TargetSelf, power.GetProperty("targetType").GetInt32());
-            g.Request(route, new { item = potion.Id, prop = 0, target = other.Id });
-            g.Tick(120);
-            Assert.Equal(g.Pc.Id, g.Pc.LastSpell!.Target);
-            Assert.Equal(1, potion.StackSize);
-            Assert.Empty(g.Pc.Actions);
-        }
+            foreach (string route in new[] { "item-use", "use-item" })
+            {
+                var g = new Game();
+                var potion = g.World.Inventory.CreateOn("nw_it_mpotion001", g.Pc, 2, "potion")!;
+                potion.BaseItem = kind;
+                var other = new Creature();
+                g.World.Register(other);
+                g.World.Jump(other, new Location(g.Pc.Area!.Id, g.Pc.Position + Vector3.UnitX, 0));
+                g.Tick(3);
+                g.Request("abilities", new { }); g.Tick();
+                var power = g.Notes().Last(n => n.Kind == "abilities").Data.GetProperty("items")
+                    .EnumerateArray().Single(x => x.GetProperty("item").GetUInt32() == potion.Id)
+                    .GetProperty("props").EnumerateArray().First();
+                Assert.Equal(AbilityRequests.TargetSelf, power.GetProperty("targetType").GetInt32());
+                g.Request(route, new { item = potion.Id, prop = 0, target = other.Id });
+                g.Tick(120);
+                Assert.Equal(g.Pc.Id, g.Pc.LastSpell!.Target);
+                Assert.Equal(1, potion.StackSize);
+                Assert.Empty(g.Pc.Actions);
+            }
     }
 
     [DataFact]
@@ -179,31 +179,31 @@ public sealed class ItemCastActionTests
             ("nw_wmgwn004", 64, 5, false),
             ("nw_wmgwn004", 62, 5, false),
         })
-        foreach (string route in res is "nw_it_mpotion001" or "nw_it_sparscr104" ? new[] { "item-use", "use-item" } : new[] { "item-use" })
-        {
-            var g = new Game(); g.Pc.GoodEvil = 100; g.Pc.Skills[19] = 0;
-            Assert.NotEqual(5, g.Pc.Race);
-            var item = g.World.Inventory.CreateOn(res, g.Pc, 2, "limited")!;
-            item.Properties.RemoveAll(p => p.Type is >= 62 and <= 65);
-            if (g.World.Inventory.Rules.AllowsProperty(item.BaseItem, type))
-                item.Properties.Add(new ItemProperty { Type = type, SubType = subtype, DurationType = 2, Useable = false });
-            g.Tick(3); // Acquisition invalidates derived stats; settle before the concentration snapshot.
-            if (item.BaseItem is 49 or 75)
+            foreach (string route in res is "nw_it_mpotion001" or "nw_it_sparscr104" ? new[] { "item-use", "use-item" } : new[] { "item-use" })
             {
-                g.Request("abilities", new { }); g.Tick();
-                var description = g.Notes().Last(n => n.Kind == "abilities").Data.GetProperty("items")
-                    .EnumerateArray().Single(x => x.GetProperty("item").GetUInt32() == item.Id);
-                Assert.Equal(allowed, description.GetProperty("usable").GetBoolean());
+                var g = new Game(); g.Pc.GoodEvil = 100; g.Pc.Skills[19] = 0;
+                Assert.NotEqual(5, g.Pc.Race);
+                var item = g.World.Inventory.CreateOn(res, g.Pc, 2, "limited")!;
+                item.Properties.RemoveAll(p => p.Type is >= 62 and <= 65);
+                if (g.World.Inventory.Rules.AllowsProperty(item.BaseItem, type))
+                    item.Properties.Add(new ItemProperty { Type = type, SubType = subtype, DurationType = 2, Useable = false });
+                g.Tick(3); // Acquisition invalidates derived stats; settle before the concentration snapshot.
+                if (item.BaseItem is 49 or 75)
+                {
+                    g.Request("abilities", new { }); g.Tick();
+                    var description = g.Notes().Last(n => n.Kind == "abilities").Data.GetProperty("items")
+                        .EnumerateArray().Single(x => x.GetProperty("item").GetUInt32() == item.Id);
+                    Assert.Equal(allowed, description.GetProperty("usable").GetBoolean());
+                }
+                int stack = item.StackSize, charges = item.Charges;
+                int property = item.Properties.FindIndex(p => p.Type == ItemRules.PropCastSpell);
+                g.Request(route, new { item = item.Id, prop = property, target = g.Pc.Id });
+                g.Tick(120);
+                Assert.True(allowed == (g.Pc.LastSpell != null), $"{res} restriction {type}:{subtype}; stack={item.StackSize}, actions={g.Pc.Actions.Count}, notes={string.Join(';', g.Notes().Select(x => x.Kind))}, chat={string.Join(';', g.Messages)}");
+                Assert.Equal(allowed ? stack - 1 : stack, item.StackSize);
+                Assert.Equal(charges, item.Charges); // Rejected wands never spend a charge.
+                Assert.Empty(g.Pc.Actions);
             }
-            int stack = item.StackSize, charges = item.Charges;
-            int property = item.Properties.FindIndex(p => p.Type == ItemRules.PropCastSpell);
-            g.Request(route, new { item = item.Id, prop = property, target = g.Pc.Id });
-            g.Tick(120);
-            Assert.True(allowed == (g.Pc.LastSpell != null), $"{res} restriction {type}:{subtype}; stack={item.StackSize}, actions={g.Pc.Actions.Count}, notes={string.Join(';', g.Notes().Select(x => x.Kind))}, chat={string.Join(';', g.Messages)}");
-            Assert.Equal(allowed ? stack - 1 : stack, item.StackSize);
-            Assert.Equal(charges, item.Charges); // Rejected wands never spend a charge.
-            Assert.Empty(g.Pc.Actions);
-        }
     }
 
     static void CustomBase(ResMan resources, int row, int sourceRow, params (string Column, string Value)[] values)

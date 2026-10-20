@@ -58,22 +58,22 @@ public sealed class PotionActionTests
     public void PotionReadyPresentationEndsOnCompletionCancellationDeathAndFinalBottleRemoval()
     {
         foreach (int stack in new[] { 1, 2 })
-        foreach (int stop in new[] { 0, 1, 2 })
-        {
-            var g = new Game();
-            var potion = g.World.Inventory.CreateOn("nw_it_mpotion001", g.Pc, stack, "potion")!;
-            g.Tick(); g.Notes();
-            g.Request("item-use", new { item = potion.Id });
-            g.Tick(15);
-            Assert.False(g.Pc.InCombat);
-            Assert.True(Assert.Single(g.Notes(), n => n.Kind == "potion-ready").Data.GetProperty("active").GetBoolean());
-            if (stop == 1) ActionQueues.Clear(g.World, g.Pc);
-            if (stop == 2) g.Pc.IsDead = true;
-            g.Tick(90);
-            Assert.False(Assert.Single(g.Notes(), n => n.Kind == "potion-ready").Data.GetProperty("active").GetBoolean());
-            Assert.Empty(g.Pc.Actions);
-            Assert.Equal(stop != 0 ? stack : stack - 1, potion.IsDestroyed ? 0 : potion.StackSize);
-        }
+            foreach (int stop in new[] { 0, 1, 2 })
+            {
+                var g = new Game();
+                var potion = g.World.Inventory.CreateOn("nw_it_mpotion001", g.Pc, stack, "potion")!;
+                g.Tick(); g.Notes();
+                g.Request("item-use", new { item = potion.Id });
+                g.Tick(15);
+                Assert.False(g.Pc.InCombat);
+                Assert.True(Assert.Single(g.Notes(), n => n.Kind == "potion-ready").Data.GetProperty("active").GetBoolean());
+                if (stop == 1) ActionQueues.Clear(g.World, g.Pc);
+                if (stop == 2) g.Pc.IsDead = true;
+                g.Tick(90);
+                Assert.False(Assert.Single(g.Notes(), n => n.Kind == "potion-ready").Data.GetProperty("active").GetBoolean());
+                Assert.Empty(g.Pc.Actions);
+                Assert.Equal(stop != 0 ? stack : stack - 1, potion.IsDestroyed ? 0 : potion.StackSize);
+            }
     }
 
     [DataFact]

@@ -15,33 +15,39 @@ static class DoorPlaceableFunctions
         o.Actions.Add(a);
     }
 
-    [NwFunc("ActionOpenDoor")] static object? ActionOpen(Call c)
+    [NwFunc("ActionOpenDoor")]
+    static object? ActionOpen(Call c)
     {
         if (c.Obj(0) is Door or Placeable) Enqueue(c.Self, new OpenDoorAction { Target = c.O(0), Run = c.I(1) != 0 });
         return null;
     }
-    [NwFunc("ActionCloseDoor")] static object? ActionClose(Call c)
+    [NwFunc("ActionCloseDoor")]
+    static object? ActionClose(Call c)
     {
         if (c.Obj(0) is Door or Placeable) Enqueue(c.Self, new CloseDoorAction { Target = c.O(0), Run = c.I(1) != 0 });
         return null;
     }
-    [NwFunc("ActionUnlockObject")] static object? ActionUnlock(Call c)
+    [NwFunc("ActionUnlockObject")]
+    static object? ActionUnlock(Call c)
     {
         if (c.Obj(0) is ILockable) Enqueue(c.Self, new UnlockAction { Target = c.O(0) });
         return null;
     }
-    [NwFunc("ActionLockObject")] static object? ActionLock(Call c)
+    [NwFunc("ActionLockObject")]
+    static object? ActionLock(Call c)
     {
         if (c.Obj(0) is ILockable) Enqueue(c.Self, new LockAction { Target = c.O(0) });
         return null;
     }
-    [NwFunc("ActionInteractObject")] static object? ActionInteract(Call c)
+    [NwFunc("ActionInteractObject")]
+    static object? ActionInteract(Call c)
     {
         // On a broken door the original does nothing at all (scene doorbash: the player neither moves nor acts).
         if (c.Obj(0) is Placeable or Door { Broken: false }) Enqueue(c.Self, new InteractAction { Target = c.O(0) });
         return null;
     }
-    [NwFunc("ActionSit")] static object? ActionSit(Call c)
+    [NwFunc("ActionSit")]
+    static object? ActionSit(Call c)
     {
         // Any placeable will do (the original doesn't ask for a useable one); the sitter runs there.
         if (c.Self is Creature && c.Obj(0) is Placeable) Enqueue(c.Self, new SitAction { Target = c.O(0), Run = true });
@@ -50,7 +56,8 @@ static class DoorPlaceableFunctions
 
     [NwFunc("GetIsOpen")] static object? IsOpen(Call c) => DoorService.IsOpen(c.Obj(0)!) ? 1 : 0;
 
-    [NwFunc("SetLocked")] static object? SetLocked(Call c)
+    [NwFunc("SetLocked")]
+    static object? SetLocked(Call c)
     {
         if (c.Obj(0) is { } o) DoorService.SetLocked(c.World, o, c.I(1) != 0, c.Self);
         return null;
@@ -58,18 +65,21 @@ static class DoorPlaceableFunctions
     [NwFunc("GetLocked")] static object? GetLocked(Call c) => c.Obj(0) is ILockable { IsLocked: true } ? 1 : 0;
 
     [NwFunc("GetLockKeyRequired")] static object? KeyRequired(Call c) => c.Obj(0) is ILockable { KeyRequiredFlag: true } ? 1 : 0;
-    [NwFunc("SetLockKeyRequired")] static object? SetKeyRequired(Call c)
+    [NwFunc("SetLockKeyRequired")]
+    static object? SetKeyRequired(Call c)
     {
         if (c.Obj(0) is ILockable l) l.KeyRequiredFlag = c.I(1) != 0;
         return null;
     }
-    [NwFunc("GetLockKeyTag")] static object? KeyTag(Call c) => c.Obj(0) switch
+    [NwFunc("GetLockKeyTag")]
+    static object? KeyTag(Call c) => c.Obj(0) switch
     {
         ILockable l => l.LockKeyTag,
         Trigger t => t.KeyName,
         _ => "",
     };
-    [NwFunc("SetLockKeyTag")] static object? SetKeyTag(Call c)
+    [NwFunc("SetLockKeyTag")]
+    static object? SetKeyTag(Call c)
     {
         switch (c.Obj(0))
         {
@@ -79,37 +89,43 @@ static class DoorPlaceableFunctions
         return null;
     }
     [NwFunc("GetLockLockable")] static object? Lockable(Call c) => c.Obj(0) is ILockable { Lock.Lockable: true } ? 1 : 0;
-    [NwFunc("SetLockLockable")] static object? SetLockable(Call c)
+    [NwFunc("SetLockLockable")]
+    static object? SetLockable(Call c)
     {
         if (c.Obj(0) is ILockable l) l.Lock.Lockable = c.I(1) != 0;
         return null;
     }
     [NwFunc("GetLockUnlockDC")] static object? UnlockDC(Call c) => c.Obj(0) is ILockable l ? l.UnlockDC : 0;
-    [NwFunc("SetLockUnlockDC")] static object? SetUnlockDC(Call c)
+    [NwFunc("SetLockUnlockDC")]
+    static object? SetUnlockDC(Call c)
     {
         if (c.Obj(0) is ILockable l) l.UnlockDC = Math.Clamp(c.I(1), 0, 250);
         return null;
     }
     [NwFunc("GetLockLockDC")] static object? LockDC(Call c) => c.Obj(0) is ILockable l ? l.LockDC : 0;
-    [NwFunc("SetLockLockDC")] static object? SetLockDC(Call c)
+    [NwFunc("SetLockLockDC")]
+    static object? SetLockDC(Call c)
     {
         if (c.Obj(0) is ILockable l) l.LockDC = Math.Clamp(c.I(1), 0, 250);
         return null;
     }
     [NwFunc("GetKeyRequiredFeedback")] static object? KeyFeedback(Call c) => c.Obj(0) is ILockable l ? l.Lock.KeyFeedback : "";
-    [NwFunc("SetKeyRequiredFeedback")] static object? SetKeyFeedback(Call c)
+    [NwFunc("SetKeyRequiredFeedback")]
+    static object? SetKeyFeedback(Call c)
     {
         if (c.Obj(0) is ILockable l) l.Lock.KeyFeedback = c.S(1);
         return null;
     }
 
-    [NwFunc("GetHardness")] static object? Hardness(Call c) => c.ObjOrSelf(0) switch
+    [NwFunc("GetHardness")]
+    static object? Hardness(Call c) => c.ObjOrSelf(0) switch
     {
         Door d => d.Hardness,
         Placeable p => p.Hardness,
         _ => -1,
     };
-    [NwFunc("SetHardness")] static object? SetHardness(Call c)
+    [NwFunc("SetHardness")]
+    static object? SetHardness(Call c)
     {
         int h = Math.Clamp(c.I(0), 0, 250);
         switch (c.ObjOrSelf(1))
@@ -120,7 +136,8 @@ static class DoorPlaceableFunctions
         return null;
     }
 
-    [NwFunc("GetBlockingDoor")] static object? BlockingDoor(Call c)
+    [NwFunc("GetBlockingDoor")]
+    static object? BlockingDoor(Call c)
     {
         if (c.Self is not Creature cr) return GameObject.InvalidId;
         // A door, or a creature that the caller walked into (PersonalSpace).
@@ -129,7 +146,8 @@ static class DoorPlaceableFunctions
         return c.World.Get(cr.LastBlockingDoor) is Door or Creature ? cr.LastBlockingDoor : GameObject.InvalidId;
     }
 
-    [NwFunc("GetIsDoorActionPossible")] static object? DoorActionPossible(Call c)
+    [NwFunc("GetIsDoorActionPossible")]
+    static object? DoorActionPossible(Call c)
     {
         if (c.Obj(0) is not Door d) return 0;
         bool ok = c.I(1) switch
@@ -146,7 +164,8 @@ static class DoorPlaceableFunctions
         return ok ? 1 : 0;
     }
 
-    [NwFunc("DoDoorAction")] static object? DoDoorAction(Call c)
+    [NwFunc("DoDoorAction")]
+    static object? DoDoorAction(Call c)
     {
         if (c.Obj(0) is not Door d) return null;
         switch (c.I(1))
@@ -159,7 +178,8 @@ static class DoorPlaceableFunctions
         return null;
     }
 
-    [NwFunc("GetIsPlaceableObjectActionPossible")] static object? PlaceableActionPossible(Call c)
+    [NwFunc("GetIsPlaceableObjectActionPossible")]
+    static object? PlaceableActionPossible(Call c)
     {
         if (c.Obj(0) is not Placeable p) return 0;
         bool ok = c.I(1) switch
@@ -173,7 +193,8 @@ static class DoorPlaceableFunctions
         return ok ? 1 : 0;
     }
 
-    [NwFunc("DoPlaceableObjectAction")] static object? DoPlaceableAction(Call c)
+    [NwFunc("DoPlaceableObjectAction")]
+    static object? DoPlaceableAction(Call c)
     {
         if (c.Obj(0) is not Placeable p) return null;
         switch (c.I(1))
@@ -202,7 +223,8 @@ static class DoorPlaceableFunctions
         return !t.IsEmpty(p.Appearance, "LightColor");
     }
 
-    [NwFunc("SetPlaceableIllumination")] static object? SetIllumination(Call c)
+    [NwFunc("SetPlaceableIllumination")]
+    static object? SetIllumination(Call c)
     {
         if (c.ObjOrSelf(0) is Placeable p && HasLight(c, p))
         {
@@ -216,6 +238,7 @@ static class DoorPlaceableFunctions
         }
         return null;
     }
-    [NwFunc("GetPlaceableIllumination")] static object? GetIllumination(Call c) =>
+    [NwFunc("GetPlaceableIllumination")]
+    static object? GetIllumination(Call c) =>
         c.ObjOrSelf(0) is Placeable p && HasLight(c, p) && p.Illuminated ? 1 : 0;
 }

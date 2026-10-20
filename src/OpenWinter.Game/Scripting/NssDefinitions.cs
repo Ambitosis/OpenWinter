@@ -95,10 +95,21 @@ public sealed class NssDefinitions
     {
         type = name switch
         {
-            "void" => NssType.Void, "int" => NssType.Int, "float" => NssType.Float, "string" => NssType.String,
-            "object" => NssType.Object, "vector" => NssType.Vector, "action" => NssType.Action,
-            "effect" => NssType.Effect, "event" => NssType.Event, "location" => NssType.Location, "talent" => NssType.Talent,
-            "itemproperty" => NssType.ItemProperty, "sqlquery" => NssType.SqlQuery, "cassowary" => NssType.Cassowary, "json" => NssType.Json,
+            "void" => NssType.Void,
+            "int" => NssType.Int,
+            "float" => NssType.Float,
+            "string" => NssType.String,
+            "object" => NssType.Object,
+            "vector" => NssType.Vector,
+            "action" => NssType.Action,
+            "effect" => NssType.Effect,
+            "event" => NssType.Event,
+            "location" => NssType.Location,
+            "talent" => NssType.Talent,
+            "itemproperty" => NssType.ItemProperty,
+            "sqlquery" => NssType.SqlQuery,
+            "cassowary" => NssType.Cassowary,
+            "json" => NssType.Json,
             _ => (NssType)255,
         };
         return (byte)type != 255;

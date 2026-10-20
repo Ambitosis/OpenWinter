@@ -254,7 +254,7 @@ public class AbilityRequestTests
         Assert.Empty(g.Pc.Actions);
     }
 
-    [Theory]
+    [DataTheory]
     [InlineData(false, false, 4)]
     [InlineData(true, false, 4)]
     [InlineData(false, true, 4)]
@@ -279,7 +279,7 @@ public class AbilityRequestTests
         if (occupied && !offhand) Assert.Contains(held, g.Pc.Inventory);
     }
 
-    [Theory]
+    [DataTheory]
     [InlineData(false, false, 4)]
     [InlineData(true, false, 4)]
     [InlineData(true, true, 5)]

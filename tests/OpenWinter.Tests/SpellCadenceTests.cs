@@ -173,38 +173,38 @@ public class SpellCadenceTests
     public void SelfConjureLifetimeHasInitialCapButCanExtendAgainBeforeExpiry()
     {
         foreach (bool initial in new[] { false, true })
-        foreach (bool authored in new[] { false, true })
-        {
-            var (world, c) = Setup();
-            if (authored)
+            foreach (bool authored in new[] { false, true })
             {
-                var source = new OpenWinter.Game.Persistence.MemorySource("authored long self cast");
-                source.Set(ResKey.Of("spells", ResType.TwoDA), System.Text.Encoding.UTF8.GetBytes(
-                    "2DA V2.0\n\nLabel ConjTime CastTime CastAnim ConjAnim Range Innate\n102 LongSelf 4000 5000 SeLf hand P 1\n"));
-                world.Resources.AddFirst(source);
+                var (world, c) = Setup();
+                if (authored)
+                {
+                    var source = new OpenWinter.Game.Persistence.MemorySource("authored long self cast");
+                    source.Set(ResKey.Of("spells", ResType.TwoDA), System.Text.Encoding.UTF8.GetBytes(
+                        "2DA V2.0\n\nLabel ConjTime CastTime CastAnim ConjAnim Range Innate\n102 LongSelf 4000 5000 SeLf hand P 1\n"));
+                    world.Resources.AddFirst(source);
+                }
+                var output = new PresentationOutput(world);
+                world.Output = output;
+                var haste = new Effect { Type = NwRules.EffectHaste, DurationType = 2 };
+                if (initial) c.Effects.Add(haste);
+                c.Actions.Add(Cast(c));
+                Tick(world, .5f);
+                var begin = Assert.Single(output.Events, e => e.Kind == "spell-conjure");
+                float normal = authored ? 9.5f : 3f, fast = authored ? 7.5f : 2.25f;
+                Assert.Equal(initial ? fast : normal, begin.Data.GetProperty("conjureLifetime").GetSingle());
+                for (int flip = 0; flip < 3; flip++)
+                {
+                    if (c.Effects.Contains(haste)) c.Effects.Remove(haste); else c.Effects.Add(haste);
+                    Tick(world, .02f);
+                    var update = output.Events.Last(e => e.Kind == "spell-conjure-lifetime");
+                    float expectedEnd = initial || c.Effects.Contains(haste) ? fast : normal;
+                    Assert.InRange(update.At - begin.At + update.Data.GetProperty("remaining").GetSingle(), expectedEnd - .025, expectedEnd + .025);
+                    Assert.Equal(begin.Data.GetProperty("presentation").GetInt64(), update.Data.GetProperty("presentation").GetInt64());
+                    Tick(world, .48f);
+                }
+                Assert.Equal(3, output.Events.Count(e => e.Kind == "spell-conjure-lifetime"));
+                Assert.Single(output.Events, e => e.Kind == "spell-conjure");
             }
-            var output = new PresentationOutput(world);
-            world.Output = output;
-            var haste = new Effect { Type = NwRules.EffectHaste, DurationType = 2 };
-            if (initial) c.Effects.Add(haste);
-            c.Actions.Add(Cast(c));
-            Tick(world, .5f);
-            var begin = Assert.Single(output.Events, e => e.Kind == "spell-conjure");
-            float normal = authored ? 9.5f : 3f, fast = authored ? 7.5f : 2.25f;
-            Assert.Equal(initial ? fast : normal, begin.Data.GetProperty("conjureLifetime").GetSingle());
-            for (int flip = 0; flip < 3; flip++)
-            {
-                if (c.Effects.Contains(haste)) c.Effects.Remove(haste); else c.Effects.Add(haste);
-                Tick(world, .02f);
-                var update = output.Events.Last(e => e.Kind == "spell-conjure-lifetime");
-                float expectedEnd = initial || c.Effects.Contains(haste) ? fast : normal;
-                Assert.InRange(update.At - begin.At + update.Data.GetProperty("remaining").GetSingle(), expectedEnd - .025, expectedEnd + .025);
-                Assert.Equal(begin.Data.GetProperty("presentation").GetInt64(), update.Data.GetProperty("presentation").GetInt64());
-                Tick(world, .48f);
-            }
-            Assert.Equal(3, output.Events.Count(e => e.Kind == "spell-conjure-lifetime"));
-            Assert.Single(output.Events, e => e.Kind == "spell-conjure");
-        }
     }
 
     [DataFact]
@@ -354,8 +354,11 @@ public class SpellCadenceTests
         var cc = new CreatureClass { Class = NwRules.ClassWizard, Level = 20 };
         cc.Memorized[5].Add((102, NwRules.MetaQuicken, true));
         c.Classes.Add(cc);
-        var cast = new CastSpellAction { Spell = 102, Class = NwRules.ClassWizard,
-            MetaMagic = NwRules.MetaQuicken, Target = c.Id };
+        var cast = new CastSpellAction
+        {
+            Spell = 102, Class = NwRules.ClassWizard,
+            MetaMagic = NwRules.MetaQuicken, Target = c.Id
+        };
         c.Actions.Add(cast);
         Tick(world, .4f);
         Assert.True(cc.Memorized[5][0].Ready);
@@ -375,25 +378,25 @@ public class SpellCadenceTests
     public void SpellHandoffUsesExistingPlayerAndNpcAttackRoundLengths()
     {
         foreach (bool pc in new[] { false, true })
-        foreach (int attacks in new[] { 1, 2, 6 })
-        {
-            var (world, c) = Setup();
-            if (pc) c.Player = new PlayerSession { Connection = OpenWinter.Net.LoopbackConnection.CreatePair().Item1 };
-            var combat = world.System<CombatSystem>();
-            var state = combat.State(c);
-            // The attack scheduler owns these measured values; spell waiting must not replace them with six.
-            state.RoundStart = 0;
-            state.RoundLength = CombatSystem.RoundLength(attacks) + (pc ? .5f : 0);
-            var cast = Cast(c);
-            Assert.Equal(ActionStatus.InProgress, cast.Step(world, c, 0));
-            Assert.Null(cast.Info);
-            Tick(world, state.RoundLength - .1f);
-            Assert.Equal(ActionStatus.InProgress, cast.Step(world, c, 0));
-            Assert.Null(cast.Info);
-            Tick(world, .2f);
-            Assert.Equal(ActionStatus.InProgress, cast.Step(world, c, 0));
-            Assert.NotNull(cast.Info);
-        }
+            foreach (int attacks in new[] { 1, 2, 6 })
+            {
+                var (world, c) = Setup();
+                if (pc) c.Player = new PlayerSession { Connection = OpenWinter.Net.LoopbackConnection.CreatePair().Item1 };
+                var combat = world.System<CombatSystem>();
+                var state = combat.State(c);
+                // The attack scheduler owns these measured values; spell waiting must not replace them with six.
+                state.RoundStart = 0;
+                state.RoundLength = CombatSystem.RoundLength(attacks) + (pc ? .5f : 0);
+                var cast = Cast(c);
+                Assert.Equal(ActionStatus.InProgress, cast.Step(world, c, 0));
+                Assert.Null(cast.Info);
+                Tick(world, state.RoundLength - .1f);
+                Assert.Equal(ActionStatus.InProgress, cast.Step(world, c, 0));
+                Assert.Null(cast.Info);
+                Tick(world, .2f);
+                Assert.Equal(ActionStatus.InProgress, cast.Step(world, c, 0));
+                Assert.NotNull(cast.Info);
+            }
     }
     [DataFact]
     public void SaveAfterRecoveryPreservesWaitingSpellEligibility()

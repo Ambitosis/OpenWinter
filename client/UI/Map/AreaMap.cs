@@ -231,31 +231,31 @@ public sealed class AreaMap
         int w = Width * FogPerTile, h = Height * FogPerTile;
         var a = new float[w * h];
         for (int ty = 0; ty < Height; ty++)
-        for (int tx = 0; tx < Width; tx++)
-        {
-            if (!_explored[ty * Width + tx]) continue;
-            int row0 = (Height - 1 - ty) * FogPerTile;
-            for (int py = 0; py < FogPerTile; py++)
-            for (int px = 0; px < FogPerTile; px++)
-                a[(row0 + py) * w + tx * FogPerTile + px] = 1;
-        }
+            for (int tx = 0; tx < Width; tx++)
+            {
+                if (!_explored[ty * Width + tx]) continue;
+                int row0 = (Height - 1 - ty) * FogPerTile;
+                for (int py = 0; py < FogPerTile; py++)
+                    for (int px = 0; px < FogPerTile; px++)
+                        a[(row0 + py) * w + tx * FogPerTile + px] = 1;
+            }
         const int r = 3;
         var b = new float[w * h];
         for (int y = 0; y < h; y++)
-        for (int x = 0; x < w; x++)
-        {
-            float sum = 0; int n = 0;
-            for (int k = -r; k <= r; k++) { int xx = x + k; if (xx < 0 || xx >= w) continue; sum += a[y * w + xx]; n++; }
-            b[y * w + x] = sum / n;
-        }
+            for (int x = 0; x < w; x++)
+            {
+                float sum = 0; int n = 0;
+                for (int k = -r; k <= r; k++) { int xx = x + k; if (xx < 0 || xx >= w) continue; sum += a[y * w + xx]; n++; }
+                b[y * w + x] = sum / n;
+            }
         var bytes = new byte[w * h];
         for (int y = 0; y < h; y++)
-        for (int x = 0; x < w; x++)
-        {
-            float sum = 0; int n = 0;
-            for (int k = -r; k <= r; k++) { int yy = y + k; if (yy < 0 || yy >= h) continue; sum += b[yy * w + x]; n++; }
-            bytes[y * w + x] = (byte)Math.Round(sum / n * 255);
-        }
+            for (int x = 0; x < w; x++)
+            {
+                float sum = 0; int n = 0;
+                for (int k = -r; k <= r; k++) { int yy = y + k; if (yy < 0 || yy >= h) continue; sum += b[yy * w + x]; n++; }
+                bytes[y * w + x] = (byte)Math.Round(sum / n * 255);
+            }
         var img = Image.CreateFromData(w, h, false, Image.Format.L8, bytes);
         if (Fog != null && Fog.GetWidth() == w && Fog.GetHeight() == h) Fog.Update(img);
         else Fog = ImageTexture.CreateFromImage(img);

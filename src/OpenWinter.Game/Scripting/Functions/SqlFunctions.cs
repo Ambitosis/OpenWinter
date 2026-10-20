@@ -38,7 +38,8 @@ static class SqlFunctions
     }
 
     // sqlquery SqlPrepareQueryCampaign(string sDatabase, string sQuery)
-    [NwFunc("SqlPrepareQueryCampaign")] static object? PrepareCampaign(Call c)
+    [NwFunc("SqlPrepareQueryCampaign")]
+    static object? PrepareCampaign(Call c)
     {
         SqlDb? db = null;
         try { db = Sys(c).Campaign(c.S(0)); }
@@ -47,11 +48,13 @@ static class SqlFunctions
     }
 
     // sqlquery SqlPrepareQueryObject(object oObject, string sQuery)
-    [NwFunc("SqlPrepareQueryObject")] static object? PrepareObject(Call c) =>
+    [NwFunc("SqlPrepareQueryObject")]
+    static object? PrepareObject(Call c) =>
         Prepared(c, Sys(c).ObjectDb(c.Obj(0)), c.S(1), c.Obj(0) is Module ? "Module()" : $"Player({c.Obj(0)?.Tag})");
 
     // void SqlDestroyDatabase(object oObject)
-    [NwFunc("SqlDestroyDatabase")] static object? Destroy(Call c)
+    [NwFunc("SqlDestroyDatabase")]
+    static object? Destroy(Call c)
     {
         Sys(c).ObjectDb(c.Obj(0))?.DropSchema();
         return null;
@@ -103,7 +106,8 @@ static class SqlFunctions
     [NwFunc("SqlBindJson")] static object? BindJson(Call c) => Bind(c, (st, i) => st.BindText(i, JsonFunctions.Dump(c.J(2))));
 
     // void SqlBindObject(sqlquery sqlQuery, string sParam, object oObject, int bSaveObjectState = FALSE)
-    [NwFunc("SqlBindObject")] static object? BindObject(Call c)
+    [NwFunc("SqlBindObject")]
+    static object? BindObject(Call c)
     {
         var o = c.Obj(2);
         // Areas serialize for ObjectToJson but can't be bound (parity suite persist_objects).
@@ -119,7 +123,8 @@ static class SqlFunctions
     }
 
     // int SqlStep(sqlquery sqlQuery)
-    [NwFunc("SqlStep")] static object? Step(Call c)
+    [NwFunc("SqlStep")]
+    static object? Step(Call c)
     {
         var q = c.Q(0);
         if (q.Statement == null && q.Error.Length == 0 && q.Sql.Length == 0 && q.Db == "(unknown db)") { Fail(c, q, "no query to step"); return 0; }
@@ -145,7 +150,8 @@ static class SqlFunctions
     [NwFunc("SqlGetFloat")] static object? GetFloat(Call c) => Row(c) is { } st ? (float)st.Double(c.I(1)) : 0f;
     [NwFunc("SqlGetString")] static object? GetString(Call c) => Row(c) is { } st ? st.Text(c.I(1)) : "";
 
-    [NwFunc("SqlGetVector")] static object? GetVector(Call c)
+    [NwFunc("SqlGetVector")]
+    static object? GetVector(Call c)
     {
         if (Row(c) is not { } st) return Vector3.Zero;
         int i = c.I(1);
@@ -154,7 +160,8 @@ static class SqlFunctions
         return ParseVector(st.Text(i));
     }
 
-    [NwFunc("SqlGetJson")] static object? GetJson(Call c)
+    [NwFunc("SqlGetJson")]
+    static object? GetJson(Call c)
     {
         // The column's text is parsed as it is, so NULL gives the parse error of "".
         if (Row(c) is not { } st) return JsonValue.Null;
@@ -162,7 +169,8 @@ static class SqlFunctions
     }
 
     // object SqlGetObject(sqlquery sqlQuery, int nIndex, location lSpawnAt, object oInventory = OBJECT_INVALID, int bLoadObjectState = FALSE)
-    [NwFunc("SqlGetObject")] static object? GetObject(Call c)
+    [NwFunc("SqlGetObject")]
+    static object? GetObject(Call c)
     {
         if (Row(c) is not { } st) return GameObject.InvalidId;
         var o = ObjectSerializer.FromBytes(c.World, st.Blob(c.I(1)), c.L(2), c.Obj(3), c.I(4) != 0);
@@ -171,7 +179,8 @@ static class SqlFunctions
     }
 
     // void SqlResetQuery(sqlquery sqlQuery, int bClearBinds = FALSE)
-    [NwFunc("SqlResetQuery")] static object? Reset(Call c)
+    [NwFunc("SqlResetQuery")]
+    static object? Reset(Call c)
     {
         var q = c.Q(0);
         if (Usable(c, q) is { } st) { st.Reset(c.I(1) != 0); q.Executed = q.Done = false; }
@@ -180,7 +189,8 @@ static class SqlFunctions
 
     [NwFunc("SqlGetColumnCount")] static object? ColumnCount(Call c) => Usable(c, c.Q(0)) is { } st ? st.ColumnCount : 0;
 
-    [NwFunc("SqlGetColumnName")] static object? ColumnName(Call c)
+    [NwFunc("SqlGetColumnName")]
+    static object? ColumnName(Call c)
     {
         var q = c.Q(0);
         if (Usable(c, q) is not { } st) return "";

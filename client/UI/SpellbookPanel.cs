@@ -531,7 +531,13 @@ public partial class SpellbookPanel : UiTheme.Window
         _detail.AddChild(facts);
         facts.AddChild(Ui.Stat("Range", info.Range.ToUpperInvariant() switch
         {
-            "P" => "Personal", "T" => "Touch", "S" => "Short (8 m)", "M" => "Medium (20 m)", "L" => "Long (40 m)", "I" => "Unlimited", _ => info.Range,
+            "P" => "Personal",
+            "T" => "Touch",
+            "S" => "Short (8 m)",
+            "M" => "Medium (20 m)",
+            "L" => "Long (40 m)",
+            "I" => "Unlimited",
+            _ => info.Range,
         }));
         facts.AddChild(Ui.Stat("Components", info.Components.Length == 0 ? "None" : string.Join(", ", info.Components.Select(ch => ch == 'V' ? "Verbal" : ch == 'S' ? "Somatic" : ch.ToString()))));
         facts.AddChild(Ui.Stat("Target", Targets(info.TargetType)));

@@ -126,23 +126,23 @@ public sealed class RoomVisibility
         // Sample actual floor on both sides of each tile seam; terrain labels alone cannot
         // distinguish a solid wall, a doorway, a fence or a custom narrow opening.
         for (int y = 0; y < area.Height; y++)
-        for (int x = 0; x < area.Width; x++)
-        for (int axis = 0; axis < 2; axis++)
-        {
-            int nx = x + (axis == 0 ? 1 : 0), ny = y + (axis == 1 ? 1 : 0);
-            if (nx >= area.Width || ny >= area.Height) continue;
-            int a = y * area.Width + x, b = ny * area.Width + nx;
-            for (float along = 0.125f; along < 10; along += 0.25f)
-            {
-                var seam = axis == 0 ? new Vector3((x + 1) * 10, y * 10 + along, 0) : new Vector3(x * 10 + along, (y + 1) * 10, 0);
-                var offset = axis == 0 ? new Vector3(.4f, 0, 0) : new Vector3(0, .4f, 0);
-                var from = seam - offset; var to = seam + offset;
-                float? za = area.Walkmesh.TileFloorHeight(from.X, from.Y, area.Tiles[a].Height * area.TileHeightStep, 1, Floor);
-                float? zb = area.Walkmesh.TileFloorHeight(to.X, to.Y, area.Tiles[b].Height * area.TileHeightStep, 1, Floor);
-                if (za == null || zb == null || Math.Abs(za.Value - zb.Value) > .5f) continue;
-                from.Z = za.Value; to.Z = zb.Value;
-                _openings.Add((a, b, from, to));
-            }
-        }
+            for (int x = 0; x < area.Width; x++)
+                for (int axis = 0; axis < 2; axis++)
+                {
+                    int nx = x + (axis == 0 ? 1 : 0), ny = y + (axis == 1 ? 1 : 0);
+                    if (nx >= area.Width || ny >= area.Height) continue;
+                    int a = y * area.Width + x, b = ny * area.Width + nx;
+                    for (float along = 0.125f; along < 10; along += 0.25f)
+                    {
+                        var seam = axis == 0 ? new Vector3((x + 1) * 10, y * 10 + along, 0) : new Vector3(x * 10 + along, (y + 1) * 10, 0);
+                        var offset = axis == 0 ? new Vector3(.4f, 0, 0) : new Vector3(0, .4f, 0);
+                        var from = seam - offset; var to = seam + offset;
+                        float? za = area.Walkmesh.TileFloorHeight(from.X, from.Y, area.Tiles[a].Height * area.TileHeightStep, 1, Floor);
+                        float? zb = area.Walkmesh.TileFloorHeight(to.X, to.Y, area.Tiles[b].Height * area.TileHeightStep, 1, Floor);
+                        if (za == null || zb == null || Math.Abs(za.Value - zb.Value) > .5f) continue;
+                        from.Z = za.Value; to.Z = zb.Value;
+                        _openings.Add((a, b, from, to));
+                    }
+                }
     }
 }

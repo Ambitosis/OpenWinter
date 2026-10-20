@@ -65,7 +65,8 @@ static class ConversationFunctions
     }
 
     // void ActionStartConversation(object oObjectToConverseWith, string sDialogResRef="", int bPrivateConversation=FALSE, int bPlayHello=TRUE)
-    [NwFunc("ActionStartConversation")] static object? ActionStart(Call c)
+    [NwFunc("ActionStartConversation")]
+    static object? ActionStart(Call c)
     {
         if (c.Self is { Commandable: true } self)
             self.Actions.Add(new StartConversationAction { Target = c.O(0), ResRef = c.S(1), Private = c.I(2) != 0 });
@@ -73,7 +74,8 @@ static class ConversationFunctions
     }
 
     // int BeginConversation(string sResRef="", object oObjectToDialog=OBJECT_INVALID)
-    [NwFunc("BeginConversation")] static object? Begin(Call c)
+    [NwFunc("BeginConversation")]
+    static object? Begin(Call c)
     {
         var self = c.Self;
         var other = c.Obj(1) ?? c.World.Get(c.Event.Obj("DialogInitiator")) ?? c.World.Get(c.Event.Obj("Speaker")) ?? c.World.Get(c.Event.Obj("PCSpeaker"));
@@ -84,7 +86,8 @@ static class ConversationFunctions
     }
 
     // void SpeakOneLinerConversation(string sDialogResRef="", object oTokenTarget=OBJECT_TYPE_INVALID)
-    [NwFunc("SpeakOneLinerConversation")] static object? OneLiner(Call c)
+    [NwFunc("SpeakOneLinerConversation")]
+    static object? OneLiner(Call c)
     {
         if (c.Self is { } self) Convo(c).OneLiner(self, c.S(0), c.Obj<Creature>(1));
         return null;
@@ -96,13 +99,15 @@ static class ConversationFunctions
     // int IsInConversation(object oObject)
     [NwFunc("IsInConversation")] static object? InConversation(Call c) => c.Obj(0) is { } o && Convo(c).IsInConversation(o) ? 1 : 0;
 
-    [NwFunc("ActionPauseConversation")] static object? Pause(Call c)
+    [NwFunc("ActionPauseConversation")]
+    static object? Pause(Call c)
     {
         if (Speaker(c) is { } pc) Convo(c).Pause(pc, true);
         return null;
     }
 
-    [NwFunc("ActionResumeConversation")] static object? Resume(Call c)
+    [NwFunc("ActionResumeConversation")]
+    static object? Resume(Call c)
     {
         if (Speaker(c) is { } pc) Convo(c).Pause(pc, false);
         return null;

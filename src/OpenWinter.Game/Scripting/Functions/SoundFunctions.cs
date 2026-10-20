@@ -20,7 +20,8 @@ static class SoundFunctions
         SoundService.Play(c.World, self, resref, strRef);
     }
 
-    [NwFunc("PlaySound")] static object? PlaySound(Call c)
+    [NwFunc("PlaySound")]
+    static object? PlaySound(Call c)
     {
         if (c.World.System<Nwnx.NwnxRegistry>().TryLegacyCall(c.S(0), c.Host, c.Thread)) return null; // legacy NWNX call
         PlayOrQueue(c, c.S(0), -1, true);
@@ -28,27 +29,33 @@ static class SoundFunctions
     }
     [NwFunc("PlaySoundByStrRef")] static object? PlaySoundByStrRef(Call c) { PlayOrQueue(c, "", c.I(0), c.I(1, 1) != 0); return null; }
 
-    [NwFunc("GetStrRefSoundDuration")] static object? StrRefDuration(Call c) =>
+    [NwFunc("GetStrRefSoundDuration")]
+    static object? StrRefDuration(Call c) =>
         SoundService.WavDuration(c.World.Resources, c.World.Resources.Talk.Sound(unchecked((uint)c.I(0))));
-    [NwFunc("GetDialogSoundLength")] static object? DialogSoundLength(Call c) =>
+    [NwFunc("GetDialogSoundLength")]
+    static object? DialogSoundLength(Call c) =>
         SoundService.WavDuration(c.World.Resources, c.World.Resources.Talk.Sound(unchecked((uint)c.I(0))));
 
-    [NwFunc("SoundObjectPlay")] static object? SoundPlay(Call c)
+    [NwFunc("SoundObjectPlay")]
+    static object? SoundPlay(Call c)
     {
         if (c.Obj(0) is Sound s) { s.Active = true; SoundService.NotifySoundObject(c.World, s, "play"); }
         return null;
     }
-    [NwFunc("SoundObjectStop")] static object? SoundStop(Call c)
+    [NwFunc("SoundObjectStop")]
+    static object? SoundStop(Call c)
     {
         if (c.Obj(0) is Sound s) { s.Active = false; SoundService.NotifySoundObject(c.World, s, "stop"); }
         return null;
     }
-    [NwFunc("SoundObjectSetVolume")] static object? SoundVolume(Call c)
+    [NwFunc("SoundObjectSetVolume")]
+    static object? SoundVolume(Call c)
     {
         if (c.Obj(0) is Sound s) { s.Volume = Math.Clamp(c.I(1), 0, 127); SoundService.NotifySoundObject(c.World, s, "volume"); }
         return null;
     }
-    [NwFunc("SoundObjectSetPosition")] static object? SoundPosition(Call c)
+    [NwFunc("SoundObjectSetPosition")]
+    static object? SoundPosition(Call c)
     {
         if (c.Obj(0) is Sound s)
         {

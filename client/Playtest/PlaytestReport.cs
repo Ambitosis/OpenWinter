@@ -105,9 +105,24 @@ public sealed class PlaytestReport
     /// <summary>Most serious kinds first.</summary>
     static int KindOrder(string kind) => kind switch
     {
-        "exception" => 0, "stuck-screen" => 1, "black-screen" => 1, "loading" => 1, "cutscene" => 2, "no-control" => 2,
-        "dialog-loop" => 3, "dialog" => 3, "ui" => 4, "script-error" => 5, "stuck" => 6, "combat" => 6, "transition" => 6,
-        "module-switch" => 7, "unimplemented" => 8, "content" => 9, "frame-spike" => 10, _ => 11,
+        "exception" => 0,
+        "stuck-screen" => 1,
+        "black-screen" => 1,
+        "loading" => 1,
+        "cutscene" => 2,
+        "no-control" => 2,
+        "dialog-loop" => 3,
+        "dialog" => 3,
+        "ui" => 4,
+        "script-error" => 5,
+        "stuck" => 6,
+        "combat" => 6,
+        "transition" => 6,
+        "module-switch" => 7,
+        "unimplemented" => 8,
+        "content" => 9,
+        "frame-spike" => 10,
+        _ => 11,
     };
 
     string Markdown()

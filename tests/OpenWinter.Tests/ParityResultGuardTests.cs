@@ -1,8 +1,10 @@
 using Xunit;
 namespace OpenWinter.Tests;
+
 public class ParityResultGuardTests
 {
-    [Fact] public void EqualPartialOutputWithoutCompletionIsInvalid()
+    [Fact]
+    public void EqualPartialOutputWithoutCompletionIsInvalid()
     {
         Assert.NotEmpty(ParityResultGuard.Failures(["PARITY|first|42"]));
         Assert.NotEmpty(ParityResultGuard.Failures([]));
@@ -18,7 +20,8 @@ public class ParityResultGuardTests
     [InlineData("[script error] Invalid NCS header")]
     [InlineData("[script] not implemented: Example (in fixture)")]
     public void ErrorsFailEvenWhenCompletionExists(string error)
-        => Assert.Single(ParityResultGuard.Failures([error,"PARITY|__done__|1"]));
-    [Fact] public void CompleteErrorFreeRunIsValid()
+        => Assert.Single(ParityResultGuard.Failures([error, "PARITY|__done__|1"]));
+    [Fact]
+    public void CompleteErrorFreeRunIsValid()
         => Assert.Empty(ParityResultGuard.Failures(["[timestamp] PARITY|sample|42", "[timestamp] PARITY|__done__|1\r\n"]));
 }

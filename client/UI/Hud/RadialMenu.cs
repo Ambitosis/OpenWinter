@@ -100,7 +100,7 @@ public partial class RadialMenu : Control
             if (TargetItemIcons is not { Length: > 0 } icons || Facts is not { } facts || _target == null) return null;
             int Number(string key, int fallback) => facts.TryGetProperty(key, out var value) ? value.GetInt32() : fallback;
             return new ItemEntry(_target.ObjectId, _target.DisplayName, Number("itemBase", -1), Number("itemStack", 1), icons)
-                { Info = new ItemInfo { Width = Number("itemWidth", 1), Height = Number("itemHeight", 1) } };
+            { Info = new ItemInfo { Width = Number("itemWidth", 1), Height = Number("itemHeight", 1) } };
         }
     }
     public string TargetPortrait => _target?.Portrait is { Length: > 0 } portrait ? portrait

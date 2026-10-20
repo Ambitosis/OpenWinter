@@ -148,8 +148,11 @@ public partial class Main
             async Task DoubleClick(Vector2 at)
             {
                 await MovePushed(at, at, false, 3);
-                GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left,
-                    Pressed = true, DoubleClick = true, Position = at, GlobalPosition = at });
+                GetViewport().PushInput(new InputEventMouseButton
+                {
+                    ButtonIndex = MouseButton.Left,
+                    Pressed = true, DoubleClick = true, Position = at, GlobalPosition = at
+                });
                 Button(at, MouseButton.Left, false);
             }
             async Task ManualDraw(string phase, bool on, Item? item = null, int slot = 4)

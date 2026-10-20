@@ -45,8 +45,11 @@ public partial class Main
                 var view = FindOptions(menu)!;
                 view.Show(OptionsView.Page.Interface);
                 await Wait(0.4);
-                readings.Add(new { name = prefix + ".native_filter_count",
-                    value = menu.FindChildren("*", nameof(OptionsView), true, false).Count });
+                readings.Add(new
+                {
+                    name = prefix + ".native_filter_count",
+                    value = menu.FindChildren("*", nameof(OptionsView), true, false).Count
+                });
                 Button Next() => view.FindChildren("*", "Button", true, false).OfType<Button>()
                     .First(b => b.TooltipText == "Next");
                 Next().EmitSignal(BaseButton.SignalName.Pressed);

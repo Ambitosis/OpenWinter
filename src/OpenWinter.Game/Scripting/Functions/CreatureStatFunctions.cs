@@ -11,7 +11,8 @@ static class CreatureStatFunctions
 
     // ---------------------------------------------------------------- hit points
 
-    [NwFunc("GetCurrentHitPoints")] static object? CurrentHP(Call c) => c.Obj(0) switch
+    [NwFunc("GetCurrentHitPoints")]
+    static object? CurrentHP(Call c) => c.Obj(0) switch
     {
         Creature cr => CreatureRules.CurrentHitPoints(c.World, cr) + CreatureRules.TemporaryHitPoints(cr),
         Door d => d.CurrentHitPoints,
@@ -20,7 +21,8 @@ static class CreatureStatFunctions
         _ => 0,
     };
 
-    [NwFunc("GetMaxHitPoints")] static object? MaxHP(Call c)
+    [NwFunc("GetMaxHitPoints")]
+    static object? MaxHP(Call c)
     {
         switch (c.Obj(0))
         {
@@ -34,7 +36,8 @@ static class CreatureStatFunctions
         }
     }
 
-    [NwFunc("SetCurrentHitPoints")] static object? SetCurrentHP(Call c)
+    [NwFunc("SetCurrentHitPoints")]
+    static object? SetCurrentHP(Call c)
     {
         int hp = c.I(1);
         if (c.Obj(0) is Creature init) CreatureRules.EnsureInit(c.World, init);
@@ -60,7 +63,8 @@ static class CreatureStatFunctions
 
     // A door reads dead by its hit points: killed by damage yes, by EffectDeath no; an object that is gone reads dead
     // (nwserver, door_bashed: ED_0, EK_0, and UK after it was removed).
-    [NwFunc("GetIsDead")] static object? IsDead(Call c) => c.Obj(0) switch
+    [NwFunc("GetIsDead")]
+    static object? IsDead(Call c) => c.Obj(0) switch
     {
         null => 1,
         Door d => d.CurrentHitPoints <= 0 ? 1 : 0,
@@ -69,7 +73,8 @@ static class CreatureStatFunctions
 
     [NwFunc("GetLastDamager")] static object? LastDamager(Call c) => c.Obj(0)?.LastDamager ?? GameObject.InvalidId;
 
-    [NwFunc("GetDamageDealtByType")] static object? DamageByType(Call c)
+    [NwFunc("GetDamageDealtByType")]
+    static object? DamageByType(Call c)
     {
         if (c.Self is not { } self) return -1;
         int mask = c.I(0), total = 0;
@@ -83,15 +88,18 @@ static class CreatureStatFunctions
 
     // ---------------------------------------------------------------- abilities
 
-    [NwFunc("GetAbilityScore")] static object? AbilityScore(Call c) =>
+    [NwFunc("GetAbilityScore")]
+    static object? AbilityScore(Call c) =>
         Cr(c, 0) is { } cr ? CreatureRules.AbilityScore(c.World, cr, c.I(1), c.I(2) != 0) : 0;
 
-    [NwFunc("GetAbilityModifier")] static object? AbilityModifier(Call c) =>
+    [NwFunc("GetAbilityModifier")]
+    static object? AbilityModifier(Call c) =>
         Cr(c, 1) is { } cr && (uint)c.I(0) <= 5 ? CreatureRules.AbilityModifier(c.World, cr, c.I(0)) : 0;
 
     // ---------------------------------------------------------------- armour class and attack
 
-    [NwFunc("GetAC")] static object? AC(Call c) => c.Obj(0) switch
+    [NwFunc("GetAC")]
+    static object? AC(Call c) => c.Obj(0) switch
     {
         // The original leaves the size modifier out of GetAC (combat rolls still apply it); parity lab, basics suite.
         Creature cr => CreatureRules.ArmorClass(c.World, cr) is var ac ? ac.Total - ac.Size : 0,
@@ -103,13 +111,15 @@ static class CreatureStatFunctions
 
     [NwFunc("GetAttacksPerRound")] static object? Attacks(Call c) => Cr(c, 0) is { } cr ? CreatureRules.AttacksPerRound(c.World, cr, c.I(1) != 0) : 0;
 
-    [NwFunc("SetBaseAttackBonus")] static object? SetAttacks(Call c)
+    [NwFunc("SetBaseAttackBonus")]
+    static object? SetAttacks(Call c)
     {
         if (Cr(c, 1) is { } cr) { CreatureRules.EnsureInit(c.World, cr); cr.BaseAttackOverride = Math.Clamp(c.I(0), 1, 6); }
         return null;
     }
 
-    [NwFunc("RestoreBaseAttackBonus")] static object? RestoreAttacks(Call c)
+    [NwFunc("RestoreBaseAttackBonus")]
+    static object? RestoreAttacks(Call c)
     {
         if (Cr(c, 0) is { } cr) { CreatureRules.EnsureInit(c.World, cr); cr.BaseAttackOverride = -1; }
         return null;
@@ -118,7 +128,8 @@ static class CreatureStatFunctions
     [NwFunc("GetSpellResistance")] static object? SR(Call c) => Cr(c, 0) is { } cr ? CreatureRules.SpellResistance(c.World, cr) : 0;
     [NwFunc("GetArcaneSpellFailure")] static object? ASF(Call c) => Cr(c, 0) is { } cr ? CreatureRules.ArcaneSpellFailure(c.World, cr) : 0;
 
-    [NwFunc("GetTurnResistanceHD")] static object? TurnResistance(Call c)
+    [NwFunc("GetTurnResistanceHD")]
+    static object? TurnResistance(Call c)
     {
         if (Cr(c, 0) is not { } cr) return 0;
         int tr = 0;
@@ -132,7 +143,8 @@ static class CreatureStatFunctions
         return tr;
     }
 
-    [NwFunc("GetWeight")] static object? Weight(Call c) => c.Obj(0) switch
+    [NwFunc("GetWeight")]
+    static object? Weight(Call c) => c.Obj(0) switch
     {
         Item i => CreatureRules.ItemWeight(c.World, i),
         // The original only keeps a carried weight for player characters.
@@ -162,7 +174,8 @@ static class CreatureStatFunctions
     [NwFunc("ReflexSave")] static object? ReflexSave(Call c) => Roll(c, NwRules.SaveReflex);
     [NwFunc("WillSave")] static object? WillSaveRoll(Call c) => Roll(c, NwRules.SaveWill);
 
-    [NwFunc("GetIsImmune")] static object? IsImmune(Call c) =>
+    [NwFunc("GetIsImmune")]
+    static object? IsImmune(Call c) =>
         Cr(c, 0) is { } cr && CreatureRules.IsImmune(c.World, cr, c.I(1), c.Obj(2)) ? 1 : 0;
 
     // ---------------------------------------------------------------- spell context
@@ -179,7 +192,8 @@ static class CreatureStatFunctions
     [NwFunc("GetLawChaosValue")] static object? LCValue(Call c) => Cr(c, 0)?.LawfulChaotic ?? -1;
     [NwFunc("GetGoodEvilValue")] static object? GEValue(Call c) => Cr(c, 0)?.GoodEvil ?? -1;
 
-    [NwFunc("AdjustAlignment")] static object? AdjustAlignment(Call c)
+    [NwFunc("AdjustAlignment")]
+    static object? AdjustAlignment(Call c)
     {
         if (Cr(c, 0) is { } cr) CreatureRules.AdjustAlignment(c.World, cr, c.I(1), c.I(2), c.I(3) != 0);
         return null;
@@ -189,13 +203,15 @@ static class CreatureStatFunctions
 
     [NwFunc("GetHitDice")] static object? HitDice(Call c) => Cr(c, 0)?.TotalLevel ?? 0;
 
-    [NwFunc("GetClassByPosition")] static object? ClassByPosition(Call c)
+    [NwFunc("GetClassByPosition")]
+    static object? ClassByPosition(Call c)
     {
         int pos = c.I(0);
         return Cr(c, 1) is { } cr && pos >= 1 && pos <= cr.Classes.Count ? cr.Classes[pos - 1].Class : NwRules.ClassInvalid;
     }
 
-    [NwFunc("GetLevelByPosition")] static object? LevelByPosition(Call c)
+    [NwFunc("GetLevelByPosition")]
+    static object? LevelByPosition(Call c)
     {
         int pos = c.I(0);
         return Cr(c, 1) is { } cr && pos >= 1 && pos <= cr.Classes.Count ? cr.Classes[pos - 1].Level : 0;
@@ -205,14 +221,16 @@ static class CreatureStatFunctions
 
     [NwFunc("GetRacialType")] static object? Race(Call c) => Cr(c, 0) is { } cr ? (int)cr.Race : NwRules.RacialTypeInvalid;
 
-    [NwFunc("GetIsPlayableRacialType")] static object? Playable(Call c) =>
+    [NwFunc("GetIsPlayableRacialType")]
+    static object? Playable(Call c) =>
         Cr(c, 0) is { } cr && c.World.Resources.TwoDA("racialtypes").GetInt(cr.Race, "PlayerRace") != 0 ? 1 : 0;
 
     [NwFunc("GetCreatureSize")] static object? Size(Call c) => Cr(c, 0) is { } cr ? CreatureRules.CreatureSize(c.World, cr) : 0;
     [NwFunc("GetChallengeRating")] static object? CR(Call c) => Cr(c, 0)?.ChallengeRating ?? 0f;
     [NwFunc("GetMovementRate")] static object? MovementRate(Call c) => Cr(c, 0)?.MovementRateIndex ?? 0;
 
-    [NwFunc("GetSpecialization")] static object? Specialization(Call c)
+    [NwFunc("GetSpecialization")]
+    static object? Specialization(Call c)
     {
         if (Cr(c, 0) is not { } cr) return -1;
         var cc = cr.Classes.FirstOrDefault(x => x.Class == c.I(1));
@@ -221,7 +239,8 @@ static class CreatureStatFunctions
         return c.World.Resources.TwoDA("classes").GetInt(cc.Class, "PickSchool") != 0 ? 0 : -1;
     }
 
-    [NwFunc("GetDomain")] static object? Domain(Call c)
+    [NwFunc("GetDomain")]
+    static object? Domain(Call c)
     {
         if (Cr(c, 0) is not { } cr) return -1;
         var cc = cr.Classes.FirstOrDefault(x => x.Class == c.I(2));
@@ -235,20 +254,23 @@ static class CreatureStatFunctions
 
     [NwFunc("GetXP")] static object? GetXP(Call c) => Cr(c, 0)?.Experience ?? 0;
 
-    [NwFunc("SetXP")] static object? SetXP(Call c)
+    [NwFunc("SetXP")]
+    static object? SetXP(Call c)
     {
         if (Cr(c, 0) is { } cr) CreatureRules.SetXP(c.World, cr, c.I(1));
         return null;
     }
 
-    [NwFunc("GiveXPToCreature")] static object? GiveXP(Call c)
+    [NwFunc("GiveXPToCreature")]
+    static object? GiveXP(Call c)
     {
         if (Cr(c, 0) is { } cr) CreatureRules.GiveXP(c.World, cr, c.I(1), multiclassPenalty: true);
         return null;
     }
 
     [NwFunc("GetModuleXPScale")] static object? XPScale(Call c) => c.World.XPScale;
-    [NwFunc("SetModuleXPScale")] static object? SetXPScale(Call c)
+    [NwFunc("SetModuleXPScale")]
+    static object? SetXPScale(Call c)
     {
         c.World.XPScale = Math.Clamp(c.I(0), 0, 200); // out-of-range values clamp, as in the original
         return null;

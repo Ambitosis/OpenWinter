@@ -500,8 +500,15 @@ public sealed partial class CombatSystem
     internal static string DamageTypeName(int bit) => bit switch
     {
         1 or 2 or 4 => "Physical",
-        8 => "Magical", 16 => "Acid", 32 => "Cold", 64 => "Divine", 128 => "Electrical",
-        256 => "Fire", 512 => "Negative", 1024 => "Positive", 2048 => "Sonic",
+        8 => "Magical",
+        16 => "Acid",
+        32 => "Cold",
+        64 => "Divine",
+        128 => "Electrical",
+        256 => "Fire",
+        512 => "Negative",
+        1024 => "Positive",
+        2048 => "Sonic",
         _ => "Physical",
     };
 

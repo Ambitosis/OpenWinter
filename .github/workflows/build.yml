@@ -1,0 +1,102 @@
+name: Build
+
+# Pushes to dev produce test builds (workflow artifacts, versioned <version>-dev.<run>).
+# A v* tag produces the release zips and a draft GitHub release with the CHANGELOG entry.
+
+on:
+  push:
+    branches: [dev]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+env:
+  GODOT_VERSION: 4.7.2
+  # From the release's SHA512-SUMS.txt; update with GODOT_VERSION.
+  GODOT_SHA512: 79229fd112b0c9cbeab82363a4ef7be18ea70f1caf86bf912789335b136fbe7e01db0053a33461438c5da1c680c17bbb10040bd09bedc51221cd4423d0367757
+  TEMPLATES_SHA512: bb5c41d72370ed743660361f6228006f808ab04ca33abdc545d740b044f3fe057f32ae8cb7873a1bc86ddcd82ae683b9f6dfdfe4179852f2c0f1acde2ff6bd5a
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  package:
+    name: Package Windows builds
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Cache Godot
+        id: godot-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/godot
+            ~/AppData/Roaming/Godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-mono-win64-${{ env.GODOT_SHA512 }}
+
+      - name: Install Godot and export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $base = "https://github.com/godotengine/godot-builds/releases/download/$env:GODOT_VERSION-stable"
+          function Get-Verified($name, $file, $sha) {
+            Invoke-WebRequest "$base/$name" -OutFile $file
+            if ((Get-FileHash $file -Algorithm SHA512).Hash -ne $sha) { throw "$name does not match its SHA-512" }
+          }
+          Get-Verified "Godot_v$env:GODOT_VERSION-stable_mono_win64.zip" "$env:RUNNER_TEMP/godot.zip" $env:GODOT_SHA512
+          Expand-Archive "$env:RUNNER_TEMP/godot.zip" "$HOME/godot"
+          Get-Verified "Godot_v$env:GODOT_VERSION-stable_mono_export_templates.tpz" "$env:RUNNER_TEMP/templates.zip" $env:TEMPLATES_SHA512
+          Expand-Archive "$env:RUNNER_TEMP/templates.zip" "$env:RUNNER_TEMP/templates"
+          $dest = "$env:APPDATA/Godot/export_templates/$env:GODOT_VERSION.stable.mono"
+          New-Item -ItemType Directory -Force (Split-Path $dest) | Out-Null
+          Move-Item "$env:RUNNER_TEMP/templates/templates" $dest
+
+      - name: Locate Godot
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem "$HOME/godot" -Recurse -Filter "*_mono_win64_console.exe" | Select-Object -First 1
+          "GODOT=$($exe.FullName)" >> $env:GITHUB_ENV
+
+      - name: Check the tag matches the version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content Directory.Build.props)).Project.PropertyGroup.VersionPrefix
+          if ("v$version" -ne "${{ github.ref_name }}") { throw "Tag ${{ github.ref_name }} does not match VersionPrefix $version" }
+
+      - name: Package
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") { python build/package.py }
+          else { python build/package.py --suffix "dev.${{ github.run_number }}" }
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: OpenWinter-windows-x64
+          path: out/dist/*.zip
+          retention-days: 30
+
+      - name: Draft the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ github.ref_name }}".Substring(1)
+          python -c "import re,sys; t=open('CHANGELOG.md',encoding='utf-8').read(); m=re.search(r'^## ' + re.escape(sys.argv[1]) + r'\b.*?\n(.*?)(?=^## |\Z)', t, re.S | re.M); open('notes.md','w',encoding='utf-8').write(m.group(1).strip() if m else '')" $version
+          Get-ChildItem out/dist/*.zip | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content out/dist/SHA256SUMS.txt
+          gh release create "${{ github.ref_name }}" out/dist/*.zip out/dist/SHA256SUMS.txt --draft --prerelease --title "OpenWinter $version" --notes-file notes.md

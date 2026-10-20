@@ -9,7 +9,8 @@ static class CombatFunctions
     static CombatSystem Combat(Call c) => c.World.System<CombatSystem>();
 
     // void ActionAttack(object oAttackee, int bPassive=FALSE)
-    [NwFunc("ActionAttack")] static object? ActionAttack(Call c)
+    [NwFunc("ActionAttack")]
+    static object? ActionAttack(Call c)
     {
         if (c.Self is { Commandable: true } self && c.Obj(0) is { } target)
         {
@@ -32,22 +33,27 @@ static class CombatFunctions
     static uint Valid(Call c, uint id) => c.World.Get(id) != null ? id : GameObject.InvalidId;
 
     // Measured on nwserver (ai_queries): the target of the last swing, cleared with the attack order.
-    [NwFunc("GetAttackTarget")] static object? AttackTarget(Call c) =>
+    [NwFunc("GetAttackTarget")]
+    static object? AttackTarget(Call c) =>
         c.ObjOrSelf(0) is { } o ? Combat(c).SwingTargetOf(o) : GameObject.InvalidId;
 
     // The target of the current attack order, but not while the creature walks up to it (measured, ai_queries).
-    [NwFunc("GetAttemptedAttackTarget")] static object? AttemptedAttack(Call c) =>
+    [NwFunc("GetAttemptedAttackTarget")]
+    static object? AttemptedAttack(Call c) =>
         c.Self is { } o ? Combat(c).AttemptedTarget(o) : GameObject.InvalidId;
 
-    [NwFunc("GetAttemptedSpellTarget")] static object? AttemptedSpell(Call c) =>
+    [NwFunc("GetAttemptedSpellTarget")]
+    static object? AttemptedSpell(Call c) =>
         c.Self is { } o ? Valid(c, o.Locals.Objects.GetValueOrDefault("__attempted_spell_target", GameObject.InvalidId)) : GameObject.InvalidId;
 
-    [NwFunc("GetLastAttacker")] static object? LastAttacker(Call c) =>
+    [NwFunc("GetLastAttacker")]
+    static object? LastAttacker(Call c) =>
         c.ObjOrSelf(0) is { } o ? Valid(c, Combat(c).State(o).LastAttacker) : GameObject.InvalidId;
 
     // GetLastDamager lives in CreatureStatFunctions (recorded by HitPoints.Damage).
 
-    [NwFunc("GetGoingToBeAttackedBy")] static object? GoingToBeAttackedBy(Call c)
+    [NwFunc("GetGoingToBeAttackedBy")]
+    static object? GoingToBeAttackedBy(Call c)
     {
         var target = c.Obj(0);
         if (target == null) return GameObject.InvalidId;
@@ -58,27 +64,32 @@ static class CombatFunctions
     [NwFunc("GetLastKiller")] static object? LastKiller(Call c) => Valid(c, c.Event.Obj("Killer"));
 
     // The weapon of the creature's last attack (OBJECT_INVALID for unarmed strikes or before any attack).
-    [NwFunc("GetLastWeaponUsed")] static object? LastWeapon(Call c) =>
+    [NwFunc("GetLastWeaponUsed")]
+    static object? LastWeapon(Call c) =>
         c.Obj<Creature>(0) is not { } cr ? GameObject.InvalidId
         : Combat(c).TryState(cr) is { LastAttack: not null } s ? Valid(c, s.LastWeapon)
         : cr.Equipment.GetValueOrDefault(EquipSlot.RightHand)?.Id ?? GameObject.InvalidId;
 
     // SPECIAL_ATTACK_* of the creature's last attack (feat attacks, flurry, rapid shot).
-    [NwFunc("GetLastAttackType")] static object? LastAttackType(Call c) =>
+    [NwFunc("GetLastAttackType")]
+    static object? LastAttackType(Call c) =>
         c.ObjOrSelf(0) is { } o && Combat(c).TryState(o) is { } s ? s.LastAttackType : 0;
 
     // COMBAT_MODE_* the creature was in for its last attack.
-    [NwFunc("GetLastAttackMode")] static object? LastAttackMode(Call c) =>
+    [NwFunc("GetLastAttackMode")]
+    static object? LastAttackMode(Call c) =>
         c.ObjOrSelf(0) is { } o && Combat(c).TryState(o) is { } s ? s.LastAttackMode : 0;
 
     // void DoWhirlwindAttack(int bDisplayFeedback=TRUE, int bImproved=FALSE): the whirlwind feat scripts call this.
-    [NwFunc("DoWhirlwindAttack")] static object? Whirlwind(Call c)
+    [NwFunc("DoWhirlwindAttack")]
+    static object? Whirlwind(Call c)
     {
         if (c.Self is Creature self) Combat(c).Whirlwind(self, c.I(1) != 0, c.I(0) != 0);
         return null;
     }
 
-    [NwFunc("SurrenderToEnemies")] static object? Surrender(Call c)
+    [NwFunc("SurrenderToEnemies")]
+    static object? Surrender(Call c)
     {
         if (c.Self is not Creature self || self.Area == null) return null;
         // Everyone fighting the caller's faction stops and forgets the quarrel.

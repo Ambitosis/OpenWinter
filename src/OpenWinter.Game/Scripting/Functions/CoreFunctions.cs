@@ -154,14 +154,16 @@ public static class CoreFunctions
     [NwFunc("FloatToInt")] static object? FloatToInt(Call c) => FloatToIntX86(c.F(0));
     public static int FloatToIntX86(float f) => f is >= -2147483648f and < 2147483648f ? (int)f : int.MinValue;
     [NwFunc("IntToHexString")] static object? IntToHex(Call c) => "0x" + c.I(0).ToString("x8", Inv);
-    [NwFunc("HexStringToInt")] static object? HexToInt(Call c)
+    [NwFunc("HexStringToInt")]
+    static object? HexToInt(Call c)
     {
         var s = c.S(0).Trim();
         if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) s = s[2..];
         return int.TryParse(s, NumberStyles.HexNumber, Inv, out var v) ? v : 0;
     }
     [NwFunc("ObjectToString")] static object? ObjectToString(Call c) => c.O(0).ToString("x", Inv);
-    [NwFunc("StringToObject")] static object? StringToObject(Call c) =>
+    [NwFunc("StringToObject")]
+    static object? StringToObject(Call c) =>
         uint.TryParse(c.S(0), NumberStyles.HexNumber, Inv, out var id) && c.World.Get(id) != null ? id : GameObject.InvalidId;
 
     [NwFunc("GetStringLength")] static object? Len(Call c) => c.S(0).Length;
@@ -171,7 +173,8 @@ public static class CoreFunctions
     [NwFunc("GetStringRight")] static object? Right(Call c) { var s = c.S(0); int n = Math.Clamp(c.I(1), 0, s.Length); return s[(s.Length - n)..]; }
     [NwFunc("GetStringLeft")] static object? Left(Call c) { var s = c.S(0); return s[..Math.Clamp(c.I(1), 0, s.Length)]; }
     [NwFunc("InsertString")] static object? Insert(Call c) { var s = c.S(0); int at = c.I(2); return at < 0 || at > s.Length ? s : s.Insert(at, c.S(1)); }
-    [NwFunc("GetSubString")] static object? Sub(Call c)
+    [NwFunc("GetSubString")]
+    static object? Sub(Call c)
     {
         var s = c.S(0);
         int start = c.I(1), count = c.I(2);
@@ -179,7 +182,8 @@ public static class CoreFunctions
         if (start < 0 || start >= s.Length || count == 0) return "";
         return count < 0 ? s[start..] : s.Substring(start, Math.Min(count, s.Length - start));
     }
-    [NwFunc("FindSubString")] static object? Find(Call c)
+    [NwFunc("FindSubString")]
+    static object? Find(Call c)
     {
         var s = c.S(0);
         int start = c.I(2);
@@ -188,7 +192,8 @@ public static class CoreFunctions
         return s.IndexOf(c.S(1), start, StringComparison.Ordinal);
     }
     /// <summary>A custom-table strref with no text reads "BadStrRef(n)", as in the original.</summary>
-    [NwFunc("GetStringByStrRef")] static object? StrRef(Call c)
+    [NwFunc("GetStringByStrRef")]
+    static object? StrRef(Call c)
     {
         var s = c.World.TlkStringOverridden(c.I(0));
         return s.Length == 0 && c.I(0) > 0 && (c.I(0) & 0x01000000) != 0 ? $"BadStrRef({c.I(0)})" : s;
@@ -249,7 +254,8 @@ public static class CoreFunctions
         return ls < 1.17549435E-38f ? 0f : ls;
     }
     /// <summary>0..360, but only a negative y adds 360 (so (-1, -0.0) gives -180).</summary>
-    [NwFunc("VectorToAngle")] static object? ToAngle(Call c)
+    [NwFunc("VectorToAngle")]
+    static object? ToAngle(Call c)
     {
         var v = c.V(0);
         float a = MathF.Atan2(v.Y, v.X) * 180f / MathF.PI;
