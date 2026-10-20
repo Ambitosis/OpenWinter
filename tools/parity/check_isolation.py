@@ -11,7 +11,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 WORK = ROOT / "out" / "parity-isolation-check"
-TOOL = ROOT / "src" / "OpenWinter.Tools" / "bin" / "Release" / "net8.0" / "openwinter-tools.dll"
+TOOL = ROOT / "src" / "OpenWinter.Tools" / "bin" / "Release" / "net10.0" / "openwinter-tools.dll"
 
 
 def write(path, text):

@@ -13,8 +13,8 @@ All action readings must remain idle; this control does not execute a spell or
 measure a ready animation.
 
 ```powershell
-dotnet src/OpenWinter.Tools/bin/Release/net8.0/openwinter-tools.dll parity-run combat_hostile_refresh --only nwn
-dotnet src/OpenWinter.Tools/bin/Debug/net8.0/openwinter-tools.dll parity-run combat_hostile_refresh --only openwinter
+dotnet src/OpenWinter.Tools/bin/Release/net10.0/openwinter-tools.dll parity-run combat_hostile_refresh --only nwn
+dotnet src/OpenWinter.Tools/bin/Debug/net10.0/openwinter-tools.dll parity-run combat_hostile_refresh --only openwinter
 ```
 
 One native run and one current Debug OpenWinter run both completed successfully.

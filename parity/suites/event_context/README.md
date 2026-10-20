@@ -4,7 +4,7 @@ Measured on the installed original dedicated server, through the sandbox parity
 harness. No UI, audio capture or game assets are included.
 
 ```
-dotnet src/OpenWinter.Tools/bin/Debug/net8.0/openwinter-tools.dll parity-run event_context
+dotnet src/OpenWinter.Tools/bin/Debug/net10.0/openwinter-tools.dll parity-run event_context
 ```
 
 Result: **193 matched, 0 different, 0 missing**. Native object-validity and public

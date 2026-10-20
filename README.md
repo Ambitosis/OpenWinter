@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Ambitosis/OpenWinter/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Ambitosis/OpenWinter/actions/workflows/ci.yml)
 
-An open-source engine for Neverwinter Nights, written in C# (.NET 8) with a Godot 4.7 client.
+An open-source engine for Neverwinter Nights, written in C# (.NET 10) with a Godot 4.7 client.
 
 ## What OpenWinter is
 
@@ -139,7 +139,7 @@ OpenWinter side by side, comparing screenshots, audio and timing. About 1,300 un
 ### What server owners control
 
 With OpenWinter, the server owner controls the whole engine, not just the module that runs on it. The dedicated
-server is an ordinary .NET 8 process with no graphics dependency, so it runs wherever .NET runs: a Windows box, a
+server is an ordinary .NET 10 process with no graphics dependency, so it runs wherever .NET runs: a Windows box, a
 Linux VPS or a container. Everything inside it is yours to configure, replace or rewrite: the rules, the timing of
 the combat round, which systems run each tick, what is saved and how, and which messages go to players. Nothing is
 reached through memory patches or hooks into a binary you can't see.
@@ -197,7 +197,7 @@ src/OpenWinter.Content   neutral content types (models, textures)       no NWN, 
 src/OpenWinter.Aurora    Aurora formats → Content
 src/OpenWinter.Game      authoritative simulation: world, scripts, rules, AI, persistence, NWNX. No Godot
 src/OpenWinter.Net       protocol and transports (loopback, LiteNetLib UDP)
-src/OpenWinter.Server    dedicated server (console; runs anywhere .NET 8 runs)
+src/OpenWinter.Server    dedicated server (console; runs anywhere .NET 10 runs)
 src/OpenWinter.Tools     diagnostics, parity lab and visual harness drivers
 client/                  Godot .NET client: rendering, animation, audio, modern / classic / NUI interfaces
 tests/                   xUnit (data tests run when config/local.json exists)
@@ -211,7 +211,7 @@ parity/                  rule suites and visual scenes compared against the orig
 
 ## Building from source
 
-1. Install the .NET 8 SDK and Godot 4.7 **.NET** (`winget install GodotEngine.GodotEngine.Mono`).
+1. Install the .NET 10 SDK and Godot 4.7 **.NET** (`winget install GodotEngine.GodotEngine.Mono`).
 2. Copy `config/local.example.json` to `config/local.json` and set your game, user and module paths.
 3. `dotnet build OpenWinter.slnx`
 4. `python build/package.py` builds the release zips into `out/dist` ([docs/RELEASING.md](docs/RELEASING.md)).

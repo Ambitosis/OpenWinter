@@ -1,6 +1,6 @@
 # NPC rest effect and hook control
 
-Run with `dotnet src/OpenWinter.Tools/bin/Release/net8.0/openwinter-tools.dll parity-run rest_start_effects --only nwn`.
+Run with `dotnet src/OpenWinter.Tools/bin/Release/net10.0/openwinter-tools.dll parity-run rest_start_effects --only nwn`.
 Accepted original readings: `out/parity/results/rest_start_effects/nwn.txt`; log:
 `out/rest-start-effects-native.txt`. This is a headless sandbox `nwserver` control.
 

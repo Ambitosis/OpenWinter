@@ -95,7 +95,7 @@ def run_openwinter(cfg, scene, mod, sj, size, seconds, client_args, silent=False
     players = players_of(sj)
     build("src/OpenWinter.Server/OpenWinter.Server.csproj", "Release")
     build("client/OpenWinter.Client.csproj", "Debug")
-    server_exe = REPO / "src" / "OpenWinter.Server" / "bin" / "Release" / "net8.0" / "openwinter-server.exe"
+    server_exe = REPO / "src" / "OpenWinter.Server" / "bin" / "Release" / "net10.0" / "openwinter-server.exe"
     # A scene can fix the port ("multiplayer": {"port": n}) when its scripts must name the server (mp_portal).
     port = sj.get("multiplayer", {}).get("port") or 5400 + sum(map(ord, str(REPO))) % 400
 

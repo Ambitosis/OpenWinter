@@ -42,7 +42,7 @@ def stock_rows():
                         '--no-build', '--', 'visual-build', 'calib'], cwd=ROOT, check=True, capture_output=True)
     write(research / 'config/local.json', dict(gameRoot=config['gameRoot'], userRoot=str(empty_user),
           module=str(fixture), language=config.get('language', 'en'), devDisplay='DISPLAY2'))
-    dll = ROOT / 'src/OpenWinter.Tools/bin/Release/net8.0/openwinter-tools.dll'
+    dll = ROOT / 'src/OpenWinter.Tools/bin/Release/net10.0/openwinter-tools.dll'
     result = subprocess.run(['dotnet', str(dll), '2da', 'spells', '10000', '--base'], cwd=research,
                             check=True, capture_output=True, text=True, encoding='utf-8')
     table = result.stdout[result.stdout.index('row\t'):]

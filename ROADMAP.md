@@ -18,7 +18,7 @@ src/OpenWinter.Content   neutral content types (models, textures)       no NWN, 
 src/OpenWinter.Aurora    Aurora formats → Content (GFF r/w, 2DA, TLK, KEY/BIF, ERF, MDL, DDS/TGA/PLT)
 src/OpenWinter.Game      authoritative simulation: world, areas, objects, scripts, rules. No Godot
 src/OpenWinter.Net       protocol + transports (loopback, LiteNetLib UDP)
-src/OpenWinter.Server    dedicated server (console; runs anywhere .NET 8 runs)
+src/OpenWinter.Server    dedicated server (console; runs anywhere .NET 10 runs)
 src/OpenWinter.Tools     developer diagnostics against local data
 client/               Godot 4 C# client: rendering, animation, UI, input
 tests/                xUnit (format round-trips; data tests run when config/local.json exists)
