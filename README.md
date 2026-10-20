@@ -1,6 +1,10 @@
 # OpenWinter
 
 [![CI](https://github.com/Ambitosis/OpenWinter/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Ambitosis/OpenWinter/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Ambitosis/OpenWinter?include_prereleases&sort=semver)](https://github.com/Ambitosis/OpenWinter/releases)
+[![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
+[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
 
 An open-source engine for Neverwinter Nights, written in C# (.NET 10) with a Godot 4.7 client.
 
@@ -35,7 +39,7 @@ from its code, disassembly or decompiled output.
 
 ### Install and play
 
-1. Download `OpenWinter-0.1.0-windows-x64.zip` from the [latest release](https://github.com/Ambitosis/openwinter/releases/latest).
+1. Download `OpenWinter-0.1.1-windows-x64.zip` from the [latest release](https://github.com/Ambitosis/openwinter/releases/latest).
 2. Unzip it anywhere, for example `C:\Games\OpenWinter`.
 3. Run `OpenWinter.exe`. It finds your NWN:EE installation by itself.
 4. Choose **New Game**, pick a module, then pick or create a character.
@@ -62,7 +66,7 @@ than releases.
 
 ### Host a server
 
-1. Download `OpenWinter-Server-0.1.0-windows-x64.zip` from the same release and unzip it.
+1. Download `OpenWinter-Server-0.1.1-windows-x64.zip` from the same release and unzip it.
 2. Run `openwinter-server.exe --module "<path to a .mod file or module folder>"`. It listens on UDP port 5121
    (`--port` changes it) and writes `server.json` with its settings on the first run; edit that file for the
    server name, PvP, difficulty, DM password and more. The server vault and databases are kept in `userdata`
@@ -85,7 +89,7 @@ problems privately, as described in [SECURITY.md](SECURITY.md).
 
 ## Status and roadmap
 
-The current release is **0.1.0**, an early pre-release ([CHANGELOG.md](CHANGELOG.md)). OpenWinter plays the official
+The current release is **0.1.1**, an early pre-release ([CHANGELOG.md](CHANGELOG.md)). OpenWinter plays the official
 campaign and community modules today, but it is not yet a drop-in replacement for every player or every server.
 [ROADMAP.md](ROADMAP.md) has the full checklist.
 

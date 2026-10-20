@@ -3,13 +3,17 @@
 OpenWinter follows [semantic versioning](https://semver.org). Until 1.0, minor versions may change behaviour,
 save formats and the network protocol; clients and servers must run the same build to connect.
 
-## Unreleased
+## 0.1.1 (2026-10-20)
+
+A maintenance release: no gameplay changes. Clients and servers must both be 0.1.1 to connect.
 
 - **.NET 10:** OpenWinter now targets .NET 10 (LTS, supported to November 2028); .NET 8 support ends in November
   2026. Building from source needs the .NET 10 SDK (pinned by `global.json`). Release downloads bundle the runtime,
   so players and server hosts need nothing new.
 - **CI:** builds, tests and a formatting check on Windows and Linux for every change; packaged test builds from
   the `dev` branch; release zips built by CI with `SHA256SUMS.txt`.
+- **Community:** code of conduct, security policy with private vulnerability reporting, issue forms (bug report,
+  differs from the original, feature request) and Discussions.
 
 ## 0.1.0 (2026-10-19)
 

@@ -34,8 +34,9 @@ server from the same build.
 
 ## Releasing
 
-1. On `dev`: set `VersionPrefix` in `Directory.Build.props` and add the version's entry to `CHANGELOG.md`
-   (`## <version> (<date>)`).
+1. On `dev`: set `VersionPrefix` in `Directory.Build.props`, the matching `application/file_version` and
+   `product_version` (`<version>.0`) in `client/export_presets.cfg` (packaging refuses a mismatch), the download
+   names and current release in `README.md`, and add the version's entry to `CHANGELOG.md` (`## <version> (<date>)`).
 2. Wait for CI and the test build to pass, and play the test build.
 3. Fast-forward `main` and tag it:
 

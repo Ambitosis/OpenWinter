@@ -54,6 +54,11 @@ def main():
 
     version = re.search(r"<VersionPrefix>([^<]+)</VersionPrefix>",
                         (ROOT / "Directory.Build.props").read_text()).group(1)
+    # The exe's Windows file version comes from the export preset; keep it in step with VersionPrefix.
+    preset = (ROOT / "client" / "export_presets.cfg").read_text(encoding="utf-8")
+    for key in ("file_version", "product_version"):
+        if f'application/{key}="{version}.0"' not in preset:
+            sys.exit(f'client/export_presets.cfg: set application/{key} to "{version}.0"')
     env = dict(os.environ)
     if args.suffix:
         version += "-" + args.suffix
