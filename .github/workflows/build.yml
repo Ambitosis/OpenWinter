@@ -95,6 +95,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $version = "${{ github.ref_name }}".Substring(1)
-          python -c "import re,sys; t=open('CHANGELOG.md',encoding='utf-8').read(); m=re.search(r'^## ' + re.escape(sys.argv[1]) + r'\b.*?\n(.*?)(?=^## |\Z)', t, re.S | re.M); open('notes.md','w',encoding='utf-8').write(m.group(1).strip() if m else '')" $version
+          python build/release_notes.py $version > notes.md
           Get-ChildItem out/dist/*.zip | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content out/dist/SHA256SUMS.txt
           gh release create "${{ github.ref_name }}" out/dist/*.zip out/dist/SHA256SUMS.txt --draft --prerelease --title "OpenWinter $version" --notes-file notes.md
