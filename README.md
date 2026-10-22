@@ -232,6 +232,18 @@ Optional `config/local.json` keys:
 | `nimTools` | Folder with the [neverwinter.nim](https://github.com/niv/neverwinter.nim) tools, used by some persistence and save-game tests. |
 | `nwmainLock` | Lock file that serialises visual-harness runs of `nwmain` across checkouts (default: in the system temp folder). |
 
+### Documentation checks
+
+The documentation link check needs Python 3.10 or newer and no game data. From the repository root:
+
+```sh
+python -m pip install --require-hashes --only-binary=:all: -r tools/docs/requirements.txt
+python -m unittest discover -s tools/docs -p 'test_*.py'
+python tools/docs/check_links.py
+```
+
+It checks tracked Markdown's relative file links and heading anchors offline; external URLs are not fetched.
+
 ## Running
 
 | Command | What |

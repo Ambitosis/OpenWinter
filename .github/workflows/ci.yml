@@ -14,6 +14,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  docs:
+    name: Documentation links
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install documentation checker
+        run: |
+          python3 -m venv "$RUNNER_TEMP/openwinter-docs"
+          "$RUNNER_TEMP/openwinter-docs/bin/python" -m pip install --require-hashes --only-binary=:all: -r tools/docs/requirements.txt
+
+      - name: Test documentation checker
+        run: |
+          "$RUNNER_TEMP/openwinter-docs/bin/python" -m unittest discover -s tools/docs -p 'test_*.py'
+
+      - name: Check relative documentation links
+        run: |
+          "$RUNNER_TEMP/openwinter-docs/bin/python" tools/docs/check_links.py
+
   format:
     name: Formatting
     runs-on: ubuntu-latest
