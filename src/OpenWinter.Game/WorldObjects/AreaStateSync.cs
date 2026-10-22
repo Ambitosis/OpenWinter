@@ -1,5 +1,6 @@
 using OpenWinter.Game.Areas;
 using OpenWinter.Game.Objects;
+using OpenWinter.Net;
 
 namespace OpenWinter.Game.WorldObjects;
 
@@ -41,7 +42,7 @@ public sealed class AreaStateSync : IWorldSystem
             foreach (var grass in env.GrassOverrides.Values) output.Notify("area-grass", area, grass, pc);
             if (env.Explored.TryGetValue(pc.Id, out var tiles))
                 for (int i = 0; i < tiles.Length; i++)
-                    if (tiles[i]) output.Notify("tile-explored", area, new { area = area.Id, x = i % area.Width, y = i / area.Width, explored = true }, pc);
+                    if (tiles[i]) output.Notify("tile-explored", area, new TileExploredNotice(area.Id, i % area.Width, i / area.Width, true), pc);
         }
         foreach (var o in area.Objects)
         {

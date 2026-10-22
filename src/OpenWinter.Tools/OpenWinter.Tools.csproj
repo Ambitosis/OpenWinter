@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenWinter.Game\OpenWinter.Game.csproj" />
+    <ProjectReference Include="..\OpenWinter.Net.Nwn\OpenWinter.Net.Nwn.csproj" />
   </ItemGroup>
 </Project>

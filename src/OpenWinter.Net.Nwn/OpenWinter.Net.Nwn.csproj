@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>OpenWinter.Net.Nwn</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../OpenWinter.Aurora/OpenWinter.Aurora.csproj" />
+    <ProjectReference Include="../OpenWinter.Net/OpenWinter.Net.csproj" />
+  </ItemGroup>
+</Project>

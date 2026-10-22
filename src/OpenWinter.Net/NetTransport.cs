@@ -66,7 +66,7 @@ public sealed class NetServerHost : IDisposable
 }
 
 /// <summary>Client side of a UDP connection. Poll every frame.</summary>
-public sealed class NetClientConnection : IConnection, IDisposable
+public sealed class NetClientConnection : IConnection, IConnectionStatus, IDisposable
 {
     readonly EventBasedNetListener _listener = new();
     readonly NetManager _manager;

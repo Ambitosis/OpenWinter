@@ -12,6 +12,13 @@ public interface IConnection
     void Disconnect();
 }
 
+/// <summary>A remote connection that can fail: why, and whether it got as far as joining.</summary>
+public interface IConnectionStatus
+{
+    string? FailureReason { get; }
+    bool Joined { get; }
+}
+
 /// <summary>An in-process link (single-player): two queues, no sockets. Messages still go through serialization.</summary>
 public sealed class LoopbackConnection : IConnection
 {

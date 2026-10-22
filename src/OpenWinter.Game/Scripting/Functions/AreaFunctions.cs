@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using OpenWinter.Game.Areas;
 using OpenWinter.Game.Objects;
 using OpenWinter.Game.WorldObjects;
+using OpenWinter.Net;
 
 namespace OpenWinter.Game.Scripting.Functions;
 
@@ -182,7 +183,7 @@ static class AreaFunctions
         if (c.Obj(0) is not Area a || c.Obj<Creature>(1) is not { IsPC: true } pc) return null;
         bool explored = c.I(2, 1) != 0;
         Array.Fill(Explored(c, a, pc, true)!, explored);
-        c.World.Output?.Notify("map-explored", a, new { area = a.Id, explored }, pc);
+        c.World.Output?.Notify("map-explored", a, new MapExploredNotice(a.Id, explored), pc);
         // Native re-explores the visible rooms at once while the player explores (minimapoff scene).
         if (!explored && pc.Area == a) c.World.System<WorldObjects.MapExploration>().RevealNow(pc);
         return null;
@@ -198,7 +199,7 @@ static class AreaFunctions
         int i = y * a.Width + x;
         bool before = tiles[i];
         tiles[i] = c.I(4) != 0;
-        if (before != tiles[i]) c.World.Output?.Notify("tile-explored", a, new { area = a.Id, x, y, explored = tiles[i] }, pc);
+        if (before != tiles[i]) c.World.Output?.Notify("tile-explored", a, new TileExploredNotice(a.Id, x, y, tiles[i]), pc);
         return before ? 1 : 0;
     }
 

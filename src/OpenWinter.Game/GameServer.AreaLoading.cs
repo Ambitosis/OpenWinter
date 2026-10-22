@@ -79,7 +79,7 @@ public sealed partial class GameServer
         s.Send(new NotifyMessage
         {
             Kind = "area-snapshot-ready", Subject = area.Id,
-            Json = JsonSerializer.Serialize(new { token = s.LoadToken })
+            Json = JsonSerializer.Serialize(new AreaSnapshotReadyNotice(s.LoadToken))
         }.Write());
     }
 

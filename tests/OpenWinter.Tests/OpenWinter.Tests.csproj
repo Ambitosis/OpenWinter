@@ -10,6 +10,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\OpenWinter.Game\OpenWinter.Game.csproj" />
+    <ProjectReference Include="..\..\src\OpenWinter.Net.Nwn\OpenWinter.Net.Nwn.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\**" CopyToOutputDirectory="PreserveNewest" LinkBase="Data" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\src\OpenWinter.Tools\ParityResultGuard.cs" Link="Tools\ParityResultGuard.cs" />

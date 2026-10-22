@@ -5,6 +5,8 @@ using OpenWinter.Client.UI;
 using OpenWinter.Client.UI.Nui;
 using OpenWinter.Content;
 using OpenWinter.Game;
+using OpenWinter.Net.Nwn.Bridge;
+using OpenWinter.Net.Nwn.Session;
 using OpenWinter.Net;
 using Godot;
 
@@ -153,7 +155,7 @@ public partial class Main : Node3D
         UI.FrontEnd.FrontEndContent.BaseAsync.ContinueWith(_ => Callable.From(UI.HudParts.Cursors.InstallPointer).CallDeferred());
 
         // Command-line play (development, captures) starts straight away; otherwise the main menu decides.
-        if (_args.Keys.Any(k => k is "module" or "connect" or "character" or "area" or "bench" or "look" or "dm" or "load" or "playtest" || k.StartsWith("capture") && k is not "capture-menu" and not "capture-classic" and not "capture-menu-switch"))
+        if (_args.Keys.Any(k => k is "module" or "connect" or "connect-nwn" or "character" or "area" or "bench" or "look" or "dm" or "load" or "playtest" || k.StartsWith("capture") && k is not "capture-menu" and not "capture-classic" and not "capture-menu-switch"))
             StartGame();
         else if (_args.TryGetValue("capture-classic", out var classicDir))
             _ = UI.Classic.ClassicCapture.Run(this, classicDir, _args.GetValueOrDefault("classic-only"), _args.GetValueOrDefault("classic-models"),
@@ -176,6 +178,17 @@ public partial class Main : Node3D
             var parts = endpoint.Split(':');
             client = new NetClientConnection(parts[0], parts.Length > 1 ? int.Parse(parts[1]) : 5121);
             GD.Print($"[client] connecting to {endpoint}");
+        }
+        else if (_args.TryGetValue("connect-nwn", out var nwnServer))
+        {
+            // An NWN:EE server running WSNetLayer: ws://host:port, or wss:// behind a TLS proxy.
+            var keyArg = _args.GetValueOrDefault("nwn-key", System.IO.Path.Combine(cfg.UserRoot, "cdkey.ini"));
+            var key = keyArg == "generate" ? NwnCdKey.Generate() : NwnCdKey.FromIni(keyArg);
+            client = new NwnBridgeConnection(new NwnBridgeOptions(new Uri(nwnServer), key, _args.GetValueOrDefault("password", ""))
+            {
+                RecordTo = _args.GetValueOrDefault("nwn-record"), // every frame, for diagnostics and replay tests
+            }, new NwnResManData(paths));
+            GD.Print($"[client] connecting to NWN server {nwnServer} with CD key {key.PublicKey}");
         }
         else
         {
@@ -384,6 +397,8 @@ public partial class Main : Node3D
         client.Send(new HelloMessage
         {
             PlayerName = _args.GetValueOrDefault("name", "Player"), PlayerKey = PlayerKey(), AreaReadyHandshake = true,
+            // On an NWN server, --character picks that server-vault character without the selection screen.
+            CharacterResRef = _args.ContainsKey("connect-nwn") ? _args.GetValueOrDefault("character", "") : "",
             DM = _args.ContainsKey("dm") || _args.ContainsKey("capture-dm"), DMPassword = _args.GetValueOrDefault("dm-password", ""),
             PortalWaypoint = _args.GetValueOrDefault("portal-waypoint", ""), // arriving through ActivatePortal (Main.Portal.cs)
         }.Write());
@@ -430,6 +445,7 @@ public partial class Main : Node3D
         else if (_args.TryGetValue("capture-quickbar-radial", out var quickbarRadialDir))
             _ = QuickbarRadialCapture.Run(quickbarRadialDir, ActionBar, GetTree().Root.FindChildren("*", "Control", true, false).OfType<RadialMenu>().First(), Shot, Wait, code => GetTree().Quit(code));
         else if (_args.TryGetValue("capture-hud", out var hudDir)) _ = CaptureHud(hudDir);
+        else if (_args.TryGetValue("capture-nwn", out var nwnDir)) _ = CaptureNwn(nwnDir);
         else if (_args.TryGetValue("capture-cutscene", out var cutDir)) _ = CaptureCutscene(cutDir);
         else if (_args.TryGetValue("capture-world", out var worldDir)) _ = CaptureWorld(worldDir);
         else if (_args.TryGetValue("capture-items", out var itemsDir)) _ = CaptureItems(itemsDir);

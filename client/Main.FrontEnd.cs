@@ -42,7 +42,7 @@ public partial class Main
             string? exitTest = _args.GetValueOrDefault("capture-connection-failure")
                 ?? (_args.ContainsKey("exit-test") ? _args.GetValueOrDefault("capture-frontend") : null);
             foreach (var k in _args.Keys.ToList())
-                if (k is "module" or "connect" or "character" or "area" or "load" or "dm" or "look" or "bench" or "exit-test" || k.StartsWith("capture")) _args.Remove(k);
+                if (k is "module" or "connect" or "connect-nwn" or "character" or "area" or "load" or "dm" or "look" or "bench" or "exit-test" || k.StartsWith("capture")) _args.Remove(k);
             // --capture-frontend dir --exit-test: the menu we came back to is captured too.
             if (exitTest != null) { _args["capture-menu"] = exitTest + "/after_exit"; _args["menu-only"] = "true"; }
         }
@@ -163,7 +163,7 @@ public partial class Main
         AddChild(failure);
         if (_args.TryGetValue("capture-connection-failure", out var failureDir)) _ = CaptureConnectionFailure(failureDir, failure);
         if (!_loading.Showing && !_args.ContainsKey("look") && !_args.ContainsKey("bench"))
-            _loading.Present(singlePlayer ? "Starting module" : "Joining server", _args.GetValueOrDefault("connect") ?? System.IO.Path.GetFileNameWithoutExtension(_args.GetValueOrDefault("module", _cfg.Module).TrimEnd('/', '\\')),
+            _loading.Present(singlePlayer ? "Starting module" : "Joining server", _args.GetValueOrDefault("connect") ?? _args.GetValueOrDefault("connect-nwn") ?? System.IO.Path.GetFileNameWithoutExtension(_args.GetValueOrDefault("module", _cfg.Module).TrimEnd('/', '\\')),
                 FrontEndContent.Base, status: "Loading…");
         _gameMenu = new GameMenu { Name = "GameMenu", Session = _session, SinglePlayer = singlePlayer };
         _frontLayer.AddChild(_gameMenu);

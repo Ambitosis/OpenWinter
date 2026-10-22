@@ -1,6 +1,7 @@
 using OpenWinter.Game.Areas;
 using OpenWinter.Game.Objects;
 using OpenWinter.Game.Requests;
+using OpenWinter.Net;
 
 namespace OpenWinter.Game.WorldObjects;
 
@@ -53,7 +54,7 @@ public sealed class MapExploration : IWorldSystem
             {
                 if (tiles[i]) continue;
                 tiles[i] = true;
-                _world.Output?.Notify("tile-explored", area, new { area = area.Id, x = i % area.Width, y = i / area.Width, explored = true }, pc);
+                _world.Output?.Notify("tile-explored", area, new TileExploredNotice(area.Id, i % area.Width, i / area.Width, true), pc);
             }
             return;
         }
@@ -68,7 +69,7 @@ public sealed class MapExploration : IWorldSystem
                 float cx = (x + 0.5f) * Area.TileSize - pc.Position.X, cy = (y + 0.5f) * Area.TileSize - pc.Position.Y;
                 if (cx * cx + cy * cy > (RevealRadius + Area.TileSize * 0.71f) * (RevealRadius + Area.TileSize * 0.71f)) continue;
                 tiles[i] = true;
-                _world.Output?.Notify("tile-explored", area, new { area = area.Id, x, y, explored = true }, pc);
+                _world.Output?.Notify("tile-explored", area, new TileExploredNotice(area.Id, x, y, true), pc);
             }
     }
 
@@ -82,13 +83,11 @@ public sealed class MapExploration : IWorldSystem
         var env = AreaSettings.Of(world, area);
         env.Explored.TryGetValue(player.Id, out var tiles);
         var talk = world.Resources.Talk;
-        world.Output?.Notify("area-map", area, new
-        {
-            area = area.Id,
-            explored = tiles == null ? "" : new string(tiles.Select(t => t ? '1' : '0').ToArray()),
-            pins = area.Objects.OfType<Waypoint>().Where(w => w.HasMapNote && w.MapNoteEnabled)
-                .Select(w => new { id = w.Id.ToString(), note = w.MapNote.Resolve(talk), x = w.Position.X, y = w.Position.Y, personal = false })
-                .Concat(PersonalMapPins.Read(world, area, player).Select(p => new { id = p.Id, note = p.Note, x = p.X, y = p.Y, personal = true })).ToArray(),
-        }, player);
+        world.Output?.Notify("area-map", area, new AreaMapNotice(
+            area.Id,
+            tiles == null ? "" : new string(tiles.Select(t => t ? '1' : '0').ToArray()),
+            area.Objects.OfType<Waypoint>().Where(w => w.HasMapNote && w.MapNoteEnabled)
+                .Select(w => new AreaMapPin(w.Id.ToString(), w.MapNote.Resolve(talk), w.Position.X, w.Position.Y, false))
+                .Concat(PersonalMapPins.Read(world, area, player).Select(p => new AreaMapPin(p.Id, p.Note, p.X, p.Y, true))).ToArray()), player);
     }
 }

@@ -320,6 +320,15 @@ switch (cmd)
         }
         break;
     }
+    case "nwn-dump":
+        Environment.ExitCode = NwnRecordingDump.Run(paths, args);
+        break;
+    case "nwn-bridge":
+        Environment.ExitCode = NwnBridgeProbe.Run(paths, args);
+        break;
+    case "nwn-probe":
+        Environment.ExitCode = NwnProbe.Run(paths, args);
+        break;
     case "visual-build":
         foreach (var mod in Visual.Build(cfg, args[1])) Console.WriteLine(mod);
         break;

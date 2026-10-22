@@ -15,7 +15,7 @@ public partial class ConnectionFailureScreen : CanvasLayer
 
     public override void _Process(double delta)
     {
-        if (Showing || Connection is not NetClientConnection { FailureReason: { } reason } net) return;
+        if (Showing || Connection is not IConnectionStatus { FailureReason: { } reason } net) return;
         Showing = true;
         GD.Print($"[client] connection failed: {reason}");
         var backdrop = new ColorRect { Color = Palette.Bg0, MouseFilter = Control.MouseFilterEnum.Stop };
