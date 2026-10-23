@@ -17,7 +17,7 @@ Thanks for helping. Bug reports, parity measurements and code are all welcome. E
 ## Workflow
 
 1. Fork the repository and create a branch from `dev`, where new work lands ([docs/RELEASING.md](docs/RELEASING.md)).
-2. Set up as described in the [README](README.md#setup).
+2. Set up as described in the [README](README.md#building-from-source).
 3. Make your change. Keep format parsing in `src/OpenWinter.Aurora`, game rules in `src/OpenWinter.Game` (which
    never references Godot), and presentation in `client/`.
 4. Check it:
