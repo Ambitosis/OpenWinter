@@ -137,7 +137,8 @@ public sealed class KeyBifSource : IResourceSource
             int nameOffset = (int)Le32(buf, e + 4);
             int nameSize = BinaryPrimitives.ReadUInt16LittleEndian(buf.AsSpan(e + 8));
             string name = Bin.FixedString(buf, nameOffset, nameSize).Replace('\\', '/');
-            _bifPaths[i] = Path.Combine(gameRoot, name);
+            // A BIF must lie inside the game folder; any other name reads as a missing archive.
+            _bifPaths[i] = GamePaths.Contained(gameRoot, name) ?? "";
         }
         for (int i = 0; i < keyCount; i++)
         {

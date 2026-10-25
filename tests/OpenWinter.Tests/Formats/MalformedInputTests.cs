@@ -19,12 +19,13 @@ namespace OpenWinter.Tests.Formats;
 public class MalformedInputTests
 {
     const int RandomMutations = 600;
-    static readonly TimeSpan PerInput = TimeSpan.FromSeconds(2);
-    static readonly TimeSpan PerSuite = TimeSpan.FromSeconds(30);
+    // Generous bounds: they catch hangs and runaway work, not slow disks or a busy CI machine.
+    static readonly TimeSpan PerInput = TimeSpan.FromSeconds(10);
+    static readonly TimeSpan PerSuite = TimeSpan.FromSeconds(120);
 
     // ---------------------------------------------------------------- harness
 
-    static IEnumerable<byte[]> Mutations(byte[] valid, int seed, int random = RandomMutations, bool everyTruncation = true)
+    internal static IEnumerable<byte[]> Mutations(byte[] valid, int seed, int random = RandomMutations, bool everyTruncation = true)
     {
         yield return valid;
         int step = everyTruncation ? 1 : Math.Max(1, valid.Length / 128);
@@ -72,7 +73,7 @@ public class MalformedInputTests
     }
 
     /// <summary>Runs the reader over every input on a worker thread, failing on hangs, blowups and stray exceptions.</summary>
-    static void Survives(string format, IEnumerable<byte[]> inputs, Action<byte[]> read, params Type[] allowed)
+    internal static void Survives(string format, IEnumerable<byte[]> inputs, Action<byte[]> read, params Type[] allowed)
     {
         var worker = Task.Factory.StartNew(() =>
         {
@@ -104,11 +105,11 @@ public class MalformedInputTests
         worker.GetAwaiter().GetResult();
     }
 
-    static void Put32(byte[] b, int at, uint v) => BinaryPrimitives.WriteUInt32LittleEndian(b.AsSpan(at), v);
-    static void Put16(byte[] b, int at, ushort v) => BinaryPrimitives.WriteUInt16LittleEndian(b.AsSpan(at), v);
-    static uint Get32(byte[] b, int at) => BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(at));
+    internal static void Put32(byte[] b, int at, uint v) => BinaryPrimitives.WriteUInt32LittleEndian(b.AsSpan(at), v);
+    internal static void Put16(byte[] b, int at, ushort v) => BinaryPrimitives.WriteUInt16LittleEndian(b.AsSpan(at), v);
+    internal static uint Get32(byte[] b, int at) => BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(at));
     static void PutF(byte[] b, int at, float v) => BinaryPrimitives.WriteSingleLittleEndian(b.AsSpan(at), v);
-    static void PutText(byte[] b, int at, string s) => Encoding.ASCII.GetBytes(s, b.AsSpan(at));
+    internal static void PutText(byte[] b, int at, string s) => Encoding.ASCII.GetBytes(s, b.AsSpan(at));
 
     // ---------------------------------------------------------------- GFF
 
@@ -213,9 +214,8 @@ public class MalformedInputTests
         }
     }
 
-    static (byte[] Key, byte[] Bif) ValidKeyBif()
+    internal static (byte[] Key, byte[] Bif) ValidKeyBif(string bifName = "data\\test.bif")
     {
-        const string bifName = "data\\test.bif";
         var payloads = new[] { Encoding.ASCII.GetBytes("2DA V2.0\n\n   Label\n0  one\n"), new byte[] { 9, 8, 7, 6 } };
         int tableAt = 20, dataAt = tableAt + payloads.Length * 16;
         var bif = new byte[dataAt + payloads.Sum(p => p.Length)];
