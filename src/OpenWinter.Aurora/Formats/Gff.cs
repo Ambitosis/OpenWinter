@@ -167,6 +167,7 @@ public static class Gff
 {
     public static GffStruct Read(byte[] buf) => Read(buf, out _);
 
+    /// <summary>Reads a GFF file; malformed data throws <see cref="InvalidDataException"/>.</summary>
     public static GffStruct Read(byte[] buf, out string fileType)
     {
         fileType = buf.Length >= 4 ? Encoding.ASCII.GetString(buf, 0, 4) : "";
@@ -174,63 +175,92 @@ public static class Gff
         return new Reader(buf).ReadStruct(0);
     }
 
+    /// <summary>
+    /// Reads with every offset checked against the buffer. Malformed files throw <see cref="InvalidDataException"/>;
+    /// nesting is capped and every struct or field read costs one unit of a budget sized to what the file can hold,
+    /// so self-referencing or shared struct indices cannot recurse forever or expand exponentially.
+    /// </summary>
     sealed class Reader
     {
+        const int MaxDepth = 256;
         readonly byte[] _b;
-        readonly int _structs, _fields, _labels, _data, _indices, _lists;
+        readonly long _structs, _fields, _labels, _data, _indices, _lists;
+        // Each struct and field entry takes 12 bytes, so a well-formed file never reads more than this many.
+        int _budget;
 
         public Reader(byte[] b)
         {
             _b = b;
-            _structs = I(8);
-            _fields = I(16);
-            _labels = I(24);
-            _data = I(32);
-            _indices = I(40);
-            _lists = I(48);
+            _structs = U(8);
+            _fields = U(16);
+            _labels = U(24);
+            _data = U(32);
+            _indices = U(40);
+            _lists = U(48);
+            _budget = b.Length / 12 + 1;
         }
 
-        int I(int o) => (int)BinaryPrimitives.ReadUInt32LittleEndian(_b.AsSpan(o));
-
-        public GffStruct ReadStruct(int index)
+        ReadOnlySpan<byte> At(long o, long size)
         {
-            int s = _structs + index * 12;
-            var result = new GffStruct((uint)I(s));
-            int data = I(s + 4);
-            int count = I(s + 8);
-            if (count == 1) ReadField(data, result);
-            else
-                for (int i = 0; i < count; i++)
-                    ReadField(I(_indices + data + i * 4), result);
+            if (o < 0 || size < 0 || o + size > _b.Length) throw new InvalidDataException($"GFF: {size} bytes at {o} out of range");
+            return _b.AsSpan((int)o, (int)size);
+        }
+
+        uint U(long o) => BinaryPrimitives.ReadUInt32LittleEndian(At(o, 4));
+        float F(long o) => BinaryPrimitives.ReadSingleLittleEndian(At(o, 4));
+        string Str(long o, long size) => Bin.Text.GetString(At(o, size));
+
+        void Spend()
+        {
+            if (--_budget < 0) throw new InvalidDataException("GFF: struct or field references repeat");
+        }
+
+        public GffStruct ReadStruct(uint index, int depth = 0)
+        {
+            if (depth > MaxDepth) throw new InvalidDataException("GFF: structs nested too deeply");
+            Spend();
+            long s = _structs + index * 12L;
+            var result = new GffStruct(U(s));
+            uint data = U(s + 4);
+            uint count = U(s + 8);
+            if (count == 1) ReadField(data, result, depth);
+            else if (count > 1)
+            {
+                At(_indices + data, count * 4L);
+                for (uint i = 0; i < count; i++)
+                    ReadField(U(_indices + data + i * 4L), result, depth);
+            }
             return result;
         }
 
-        void ReadField(int index, GffStruct into)
+        void ReadField(uint index, GffStruct into, int depth)
         {
-            int f = _fields + index * 12;
-            var type = (GffType)I(f);
-            string label = Bin.FixedString(_b, _labels + I(f + 4) * 16, 16);
-            int raw = f + 8;
-            int off = _data + I(raw);
-            var span = _b.AsSpan();
+            Spend();
+            long f = _fields + index * 12L;
+            var type = (GffType)U(f);
+            long labelAt = _labels + U(f + 4) * 16L;
+            string label = labelAt <= int.MaxValue ? Bin.FixedString(_b, (int)labelAt, 16) : "";
+            long raw = f + 8;
+            var rawSpan = At(raw, 4);
+            long off = _data + U(raw);
             object value = type switch
             {
-                GffType.Byte => _b[raw],
-                GffType.Char => (sbyte)_b[raw],
-                GffType.Word => BinaryPrimitives.ReadUInt16LittleEndian(span[raw..]),
-                GffType.Short => BinaryPrimitives.ReadInt16LittleEndian(span[raw..]),
-                GffType.DWord => BinaryPrimitives.ReadUInt32LittleEndian(span[raw..]),
-                GffType.Int => BinaryPrimitives.ReadInt32LittleEndian(span[raw..]),
-                GffType.Float => BinaryPrimitives.ReadSingleLittleEndian(span[raw..]),
-                GffType.DWord64 => BinaryPrimitives.ReadUInt64LittleEndian(span[off..]),
-                GffType.Int64 => BinaryPrimitives.ReadInt64LittleEndian(span[off..]),
-                GffType.Double => BinaryPrimitives.ReadDoubleLittleEndian(span[off..]),
-                GffType.ExoString => Bin.Text.GetString(_b, off + 4, I(off)),
-                GffType.ResRef => Bin.Text.GetString(_b, off + 1, _b[off]),
+                GffType.Byte => rawSpan[0],
+                GffType.Char => (sbyte)rawSpan[0],
+                GffType.Word => BinaryPrimitives.ReadUInt16LittleEndian(rawSpan),
+                GffType.Short => BinaryPrimitives.ReadInt16LittleEndian(rawSpan),
+                GffType.DWord => BinaryPrimitives.ReadUInt32LittleEndian(rawSpan),
+                GffType.Int => BinaryPrimitives.ReadInt32LittleEndian(rawSpan),
+                GffType.Float => BinaryPrimitives.ReadSingleLittleEndian(rawSpan),
+                GffType.DWord64 => BinaryPrimitives.ReadUInt64LittleEndian(At(off, 8)),
+                GffType.Int64 => BinaryPrimitives.ReadInt64LittleEndian(At(off, 8)),
+                GffType.Double => BinaryPrimitives.ReadDoubleLittleEndian(At(off, 8)),
+                GffType.ExoString => Str(off + 4, U(off)),
+                GffType.ResRef => Str(off + 1, At(off, 1)[0]),
                 GffType.LocString => ReadLoc(off),
-                GffType.Void => _b.AsSpan(off + 4, I(off)).ToArray(),
-                GffType.Struct => ReadStruct(I(raw)),
-                GffType.List => ReadList(_lists + I(raw)),
+                GffType.Void => At(off + 4, U(off)).ToArray(),
+                GffType.Struct => ReadStruct(BinaryPrimitives.ReadUInt32LittleEndian(rawSpan), depth + 1),
+                GffType.List => ReadList(_lists + BinaryPrimitives.ReadUInt32LittleEndian(rawSpan), depth + 1),
                 GffType.Orientation => new Quaternion(F(off), F(off + 4), F(off + 8), F(off + 12)),
                 GffType.Vector => new Vector3(F(off), F(off + 4), F(off + 8)),
                 _ => 0,
@@ -238,28 +268,27 @@ public static class Gff
             into.Fields.Add(new GffField(label, type, value));
         }
 
-        float F(int o) => BinaryPrimitives.ReadSingleLittleEndian(_b.AsSpan(o));
-
-        LocString ReadLoc(int off)
+        LocString ReadLoc(long off)
         {
-            var l = new LocString { StrRef = (int)BinaryPrimitives.ReadUInt32LittleEndian(_b.AsSpan(off + 4)) };
-            int n = I(off + 8);
-            int p = off + 12;
-            for (int i = 0; i < n; i++)
+            var l = new LocString { StrRef = (int)U(off + 4) };
+            uint n = U(off + 8);
+            long p = off + 12;
+            for (uint i = 0; i < n; i++)
             {
-                int id = I(p);
-                int len = I(p + 4);
-                l.Strings[id] = Bin.Text.GetString(_b, p + 8, len);
+                int id = (int)U(p);
+                uint len = U(p + 4);
+                l.Strings[id] = Str(p + 8, len);
                 p += 8 + len;
             }
             return l;
         }
 
-        List<GffStruct> ReadList(int p)
+        List<GffStruct> ReadList(long p, int depth)
         {
-            int n = I(p);
-            var list = new List<GffStruct>(n);
-            for (int i = 0; i < n; i++) list.Add(ReadStruct(I(p + 4 + i * 4)));
+            uint n = U(p);
+            At(p + 4, n * 4L);
+            var list = new List<GffStruct>((int)n);
+            for (uint i = 0; i < n; i++) list.Add(ReadStruct(U(p + 4 + i * 4L), depth));
             return list;
         }
     }

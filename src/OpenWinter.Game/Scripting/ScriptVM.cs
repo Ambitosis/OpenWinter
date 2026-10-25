@@ -59,37 +59,51 @@ public sealed class NcsProgram
     {
         var list = new List<NcsInstruction>(code.Length / 4);
         int ip = 0;
-        int I32(int at) => BinaryPrimitives.ReadInt32BigEndian(code.AsSpan(at));
-        short I16(int at) => BinaryPrimitives.ReadInt16BigEndian(code.AsSpan(at));
-        ushort U16(int at) => BinaryPrimitives.ReadUInt16BigEndian(code.AsSpan(at));
         while (ip < code.Length)
         {
             if (ip + 2 > code.Length) break;
             byte op = code[ip], type = code[ip + 1];
-            NcsInstruction ins = op switch
+            NcsInstruction ins;
+            try
             {
-                0x01 or 0x03 or 0x26 or 0x27 => new(ip, 8, op, type, I32(ip + 2), I16(ip + 6)),
-                0x02 => new(ip, 2, op, type),
-                // Engine-structure constants: json (0x17) carries text; the others (LOCATION_INVALID is 0x12) an int.
-                0x04 => type switch
-                {
-                    3 or 4 or 6 => new(ip, 6, op, type, I32(ip + 2)),
-                    5 or 0x17 => new(ip, 4 + U16(ip + 2), op, type, s: Aurora.Text.Windows1252.GetString(code, ip + 4, U16(ip + 2))),
-                    >= 0x10 => new(ip, 6, op, type, I32(ip + 2)),
-                    _ => throw new InvalidDataException($"{name}: bad CONST type {type} at {ip}"),
-                },
-                0x05 => new(ip, 5, op, type, U16(ip + 2), code[ip + 4]),
-                0x0B or 0x0C => type == 0x24 ? new(ip, 4, op, type, I16(ip + 2)) : new(ip, 2, op, type),
-                0x1B or 0x23 or 0x24 or 0x28 or 0x29 => new(ip, 6, op, type, I32(ip + 2)),
-                0x1D or 0x1E or 0x1F or 0x25 => new(ip, 6, op, type, ip + I32(ip + 2)),
-                0x21 => new(ip, 8, op, type, I16(ip + 2), I16(ip + 4), I16(ip + 6)),
-                0x2C => new(ip, 10, op, type, I32(ip + 2), I32(ip + 6), ip + 16),
-                _ => new(ip, 2, op, type),
-            };
+                ins = Decode(code, ip, op, type, name);
+            }
+            catch (Exception e) when (e is ArgumentOutOfRangeException or IndexOutOfRangeException)
+            {
+                throw new InvalidDataException($"{name}: truncated instruction at {ip}");
+            }
+            if (ins.Next > code.Length) throw new InvalidDataException($"{name}: truncated instruction at {ip}");
             list.Add(ins);
             ip += ins.Size;
         }
         return list.ToArray();
+    }
+
+    static NcsInstruction Decode(byte[] code, int ip, byte op, byte type, string name)
+    {
+        int I32(int at) => BinaryPrimitives.ReadInt32BigEndian(code.AsSpan(at));
+        short I16(int at) => BinaryPrimitives.ReadInt16BigEndian(code.AsSpan(at));
+        ushort U16(int at) => BinaryPrimitives.ReadUInt16BigEndian(code.AsSpan(at));
+        return op switch
+        {
+            0x01 or 0x03 or 0x26 or 0x27 => new(ip, 8, op, type, I32(ip + 2), I16(ip + 6)),
+            0x02 => new(ip, 2, op, type),
+            // Engine-structure constants: json (0x17) carries text; the others (LOCATION_INVALID is 0x12) an int.
+            0x04 => type switch
+            {
+                3 or 4 or 6 => new(ip, 6, op, type, I32(ip + 2)),
+                5 or 0x17 => new(ip, 4 + U16(ip + 2), op, type, s: Aurora.Text.Windows1252.GetString(code, ip + 4, U16(ip + 2))),
+                >= 0x10 => new(ip, 6, op, type, I32(ip + 2)),
+                _ => throw new InvalidDataException($"{name}: bad CONST type {type} at {ip}"),
+            },
+            0x05 => new(ip, 5, op, type, U16(ip + 2), code[ip + 4]),
+            0x0B or 0x0C => type == 0x24 ? new(ip, 4, op, type, I16(ip + 2)) : new(ip, 2, op, type),
+            0x1B or 0x23 or 0x24 or 0x28 or 0x29 => new(ip, 6, op, type, I32(ip + 2)),
+            0x1D or 0x1E or 0x1F or 0x25 => new(ip, 6, op, type, ip + I32(ip + 2)),
+            0x21 => new(ip, 8, op, type, I16(ip + 2), I16(ip + 4), I16(ip + 6)),
+            0x2C => new(ip, 10, op, type, I32(ip + 2), I32(ip + 6), ip + 16),
+            _ => new(ip, 2, op, type),
+        };
     }
 }
 
