@@ -48,6 +48,26 @@ public static class ServerVault
         if (!real.Equals(write, StringComparison.OrdinalIgnoreCase)) yield return real;
     }
 
+    /// <summary>File in a player's vault folder holding the public key that owns the folder.</summary>
+    public const string KeyFile = "playerkey.txt";
+
+    /// <summary>
+    /// Binds a player name's vault to the first public key that logs in with it, so another client cannot claim the
+    /// name and play its characters. False when a different (or missing) key already holds the folder.
+    /// </summary>
+    public static bool ClaimFolder(World world, string player, string key)
+    {
+        var name = Sanitize(player, keepCase: true);
+        if (name.Length == 0) name = LocalFolder;
+        var dir = Path.Combine(world.System<PersistenceSystem>().UserRoot, "servervault", name);
+        var path = Path.Combine(dir, KeyFile);
+        if (File.Exists(path)) return string.Equals(File.ReadAllText(path).Trim(), key.Trim(), StringComparison.Ordinal);
+        if (key.Trim().Length == 0) return true;
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(path, key.Trim());
+        return true;
+    }
+
     /// <summary>The characters a player can choose on a server-vault server.</summary>
     public static List<Net.CharacterEntry> List(World world, string player)
     {

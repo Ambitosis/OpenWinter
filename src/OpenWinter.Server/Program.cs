@@ -53,8 +53,9 @@ var server = new GameServer(world, new ServerOptions
     Vault = settings.Vault.Equals("local", StringComparison.OrdinalIgnoreCase) ? OpenWinter.Net.VaultMode.Local : OpenWinter.Net.VaultMode.Server,
     MaxPlayers = settings.MaxPlayers,
     ExportInterval = settings.AutoSaveMinutes * 60,
-    // A DM password (settings file or --dmpassword) lets Dungeon Masters log in; without one the server takes no DMs.
-    DMPassword = settings.DMPassword,
+    // A DM password (settings file or --dmpassword) lets Dungeon Masters log in; without one, or with an empty one,
+    // the server takes no DMs (an empty password would otherwise admit anyone as a DM).
+    DMPassword = string.IsNullOrEmpty(settings.DMPassword) ? null : settings.DMPassword,
     ServeContent = settings.ServeContent,
     AllowPlayerPausing = settings.AllowPlayerPausing,
     ServerName = settings.Name,
