@@ -243,7 +243,9 @@ public static partial class ProgressionRules
         {
             for (int lvl = 0; lvl < 10; lvl++)
             {
-                int need = KnownCount(w, cls, cc.Level, lvl) - KnownCount(w, cls, cc.Level - 1, lvl);
+                // Up to the table's total, so a level also makes up for spells an earlier one couldn't fill
+                // (LevelUpHenchman from a blueprint with none known learns the whole row: package_spell_picks).
+                int need = KnownCount(w, cls, cc.Level, lvl) - cc.KnownSpells[lvl].Count;
                 if (need <= 0) continue;
                 var options = ClassSpells(w, cls, lvl).Where(sp => !cc.KnownSpells[lvl].Contains(sp)).ToList();
                 pick.PerLevel[lvl] = Math.Min(need, options.Count);
