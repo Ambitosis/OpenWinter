@@ -60,14 +60,12 @@ public class ScriptTierAgreementTests
         public object? Call(ScriptThread thread, NssFunction function, object?[] args)
         {
             Log.Append(function.Name).Append('(').AppendJoin(',', args.Select(Format)).Append(")\n");
+            // DelayCommand, AssignCommand, ActionDoCommand ...: run the stored action after the script.
+            foreach (var arg in args)
+                if (arg is ScriptSituation action)
+                    Queued.Enqueue((action, function.Name == "AssignCommand" && args[0] is uint subject ? subject : thread.Self));
             switch (function.Name)
             {
-                case "DelayCommand":
-                    if (args[1] is ScriptSituation d) Queued.Enqueue((d, thread.Self));
-                    return null;
-                case "AssignCommand":
-                    if (args[1] is ScriptSituation a) Queued.Enqueue((a, (uint)args[0]!));
-                    return null;
                 case "MakeEffect": return new Eff((int)args[0]!);
                 case "EffectId": return args[0] is Eff e ? e.N : -1;
                 case "GetObj": return unchecked((uint)(int)args[0]!);
@@ -105,11 +103,14 @@ public class ScriptTierAgreementTests
         return ncs!;
     }
 
-    /// <summary>Runs the script and its queued actions; returns a transcript of everything observable.</summary>
-    static string Run(byte[] ncs, bool jit, int instructionLimit)
+    /// <summary>
+    /// Runs the script and its queued actions; returns a transcript of everything observable. A JIT threshold of -1
+    /// interprets everything, 0 compiles before the first run, 1 interprets the script and compiles its actions.
+    /// </summary>
+    static string Run(byte[] ncs, int jitThreshold, int instructionLimit, NssDefinitions? defs = null)
     {
         var engine = new RecordingEngine();
-        var vm = new ScriptVM(Defs, engine) { JitThreshold = jit ? 0 : -1, BackgroundCompile = false, InstructionLimit = instructionLimit };
+        var vm = new ScriptVM(defs ?? Defs, engine) { JitThreshold = jitThreshold, BackgroundCompile = false, InstructionLimit = instructionLimit };
         var program = new NcsProgram("t", ncs);
         var log = engine.Log;
         void Outcome(Action run)
@@ -128,18 +129,22 @@ public class ScriptTierAgreementTests
             log.Append("action ").Append(self).Append('\n');
             Outcome(() => vm.Run(action, self));
         }
-        if (jit) Assert.True(program.Compiled != null, "the program did not compile");
-        else Assert.Null(program.Compiled);
+        if (jitThreshold < 0) Assert.Null(program.Compiled);
+        else if (jitThreshold == 0) Assert.True(program.Compiled != null, "the program did not compile");
         return log.ToString();
     }
 
-    static void AssertAgree(string source, int instructionLimit = ScriptVM.DefaultInstructionLimit)
+    static void AssertTiersAgree(byte[] ncs, int instructionLimit, string context = "")
     {
-        var ncs = Compile(source);
-        var interpreted = Run(ncs, jit: false, instructionLimit);
-        var compiled = Run(ncs, jit: true, instructionLimit);
-        Assert.Equal(interpreted, compiled);
+        var interpreted = Run(ncs, -1, instructionLimit);
+        var compiled = Run(ncs, 0, instructionLimit);
+        if (interpreted != compiled) Assert.Fail($"{context}\n--- interpreted\n{interpreted}\n--- compiled\n{compiled}");
+        var mixed = Run(ncs, 1, instructionLimit);
+        if (interpreted != mixed) Assert.Fail($"{context}\n--- interpreted\n{interpreted}\n--- interpreted, then compiled actions\n{mixed}");
     }
+
+    static void AssertAgree(string source, int instructionLimit = ScriptVM.DefaultInstructionLimit) =>
+        AssertTiersAgree(Compile(source), instructionLimit);
 
     public static TheoryData<string, string> Corpus() => new()
     {
@@ -403,7 +408,7 @@ public class ScriptTierAgreementTests
         file.AddRange(BitConverter.GetBytes(System.Buffers.Binary.BinaryPrimitives.ReverseEndianness(13 + code.Length)));
         file.AddRange(code);
         var ncs = file.ToArray();
-        Assert.Equal(Run(ncs, jit: false, ScriptVM.DefaultInstructionLimit), Run(ncs, jit: true, ScriptVM.DefaultInstructionLimit));
+        Assert.Equal(Run(ncs, -1, ScriptVM.DefaultInstructionLimit), Run(ncs, 0, ScriptVM.DefaultInstructionLimit));
     }
 
     [Theory]
@@ -422,7 +427,7 @@ public class ScriptTierAgreementTests
     {
         var ncs = Compile("void main() { int z = 0, a = 1 + 2 + 3; float f = 0.0; RecI(a); RecI(a / (z + 1)); RecI(a % z); RecF(1.0 / f); }");
         for (int limit = 1; limit < 40; limit++)
-            Assert.Equal(Run(ncs, jit: false, limit), Run(ncs, jit: true, limit));
+            AssertTiersAgree(ncs, limit, $"limit {limit}");
     }
 
     /// <summary>Random programs from a fixed seed range; a failing seed reproduces with <see cref="ProgramGenerator"/>.</summary>
@@ -435,9 +440,7 @@ public class ScriptTierAgreementTests
             var ncs = NssCompiler.Compile(source, "t", Defs, _ => null, out var error);
             Assert.True(ncs != null, $"seed {seed}: {error}\n{source}");
             int limit = seed % 4 == 0 ? 20 + seed % 400 : ScriptVM.DefaultInstructionLimit;
-            var interpreted = Run(ncs!, jit: false, limit);
-            var compiled = Run(ncs!, jit: true, limit);
-            if (interpreted != compiled) Assert.Fail($"seed {seed} disagrees\n{source}\n--- interpreted\n{interpreted}\n--- compiled\n{compiled}");
+            AssertTiersAgree(ncs!, limit, $"seed {seed} disagrees\n{source}");
         }
     }
 
@@ -458,7 +461,10 @@ public class ScriptTierAgreementTests
         public string Program()
         {
             _sb.Append("int gi = ").Append(Lit()).Append(";\nfloat gf = ").Append(FLit()).Append(";\nstring gs = \"g\";\nvector gv = [1.0, 2.0, 3.0];\n");
+            _sb.Append("struct P { int a; float b; string c; vector d; };\nstruct P gp;\n");
             _sb.Append("int Tri(int n) { return n <= 0 ? 0 : n + Tri(n - 1); }\n");
+            _sb.Append("struct P MakeP(int a, string c) { struct P p; p.a = a; p.b = a * 0.5; p.c = c; p.d = GetVec(a); return p; }\n");
+            _sb.Append("void ShowP(struct P p) { RecI(p.a); RecF(p.b); RecS(p.c); RecV(p.d); }\n");
             _sb.Append("void Act(int n, string s, vector v) { RecI(n); RecS(s); RecV(v); gi += n; RecI(gi); }\n");
             _sb.Append("void Act2(float f) { RecF(f); RecF(gf); }\n");
             _inFunction = true;
@@ -487,7 +493,7 @@ public class ScriptTierAgreementTests
 
         void Statement(int depth)
         {
-            switch (_r.Next(depth <= 0 ? 6 : 12))
+            switch (_r.Next(depth <= 0 ? 6 : 15))
             {
                 case 0: Line(Pick(Ints) + " " + Pick("=", "+=", "-=", "*=", "|=", "^=", "&=", "<<=", ">>=", ">>>=") + " " + Int(3) + ";"); break;
                 case 1: Line(Pick(Floats) + " " + Pick("=", "+=", "-=", "*=") + " " + Float(3) + ";"); break;
@@ -545,6 +551,18 @@ public class ScriptTierAgreementTests
                         ? "DelayCommand(" + Float(1) + ", Act(" + Int(2) + ", " + Str(1) + ", " + Vec(1) + "));"
                         : "AssignCommand(GetObj(" + _r.Next(5) + "), Act2(" + Float(2) + "));");
                     break;
+                case 11:
+                    Line(Pick("RecI(GetScriptInstructionsRemaining());", "Backtrace();", "if (" + Int(2) + " == 7) AbortRunningScript();"));
+                    break;
+                case 12:
+                    Line(Pick(
+                        "gp = MakeP(" + Int(2) + ", " + Str(1) + ");",
+                        "gp.a " + Pick("=", "+=") + " " + Int(2) + ";",
+                        "gp.d.y = " + Float(2) + ";",
+                        "ShowP(gp);",
+                        "DelayCommand(" + Float(1) + ", ShowP(MakeP(" + Int(2) + ", " + Str(1) + ")));",
+                        "{ struct P q = MakeP(" + Int(2) + ", " + Str(1) + "); RecI(q == gp); q.c += " + Str(1) + "; ShowP(q); gp = q; }"));
+                    break;
                 default:
                     Line("{ int t = " + Int(2) + "; string u = " + Str(1) + "; RecI(t); RecS(u); }");
                     break;
@@ -581,7 +599,7 @@ public class ScriptTierAgreementTests
         string Int(int depth)
         {
             if (depth <= 0 || _r.Next(5) == 0) return _r.Next(3) == 0 ? Lit() : Pick(Ints);
-            switch (_r.Next(14))
+            switch (_r.Next(15))
             {
                 case 0:
                 case 1:
@@ -604,6 +622,7 @@ public class ScriptTierAgreementTests
                 case 10: return "Tri(" + Int(depth - 1) + " & 15)";
                 case 11: return _inFunction ? "Counter()" : "H(" + Int(depth - 1) + ", " + Float(depth - 1) + ")";
                 case 12: return Pick(Ints) + Pick("++", "--");
+                case 13: return Pick("gp.a", "(gp != MakeP(" + Int(depth - 1) + ", gs))", "MakeP(" + Int(depth - 1) + ", s0).a");
                 default: return "EffectId(MakeEffect(" + Int(depth - 1) + "))";
             }
         }
