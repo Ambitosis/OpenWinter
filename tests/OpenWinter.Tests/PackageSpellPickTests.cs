@@ -54,4 +54,21 @@ public class PackageSpellPickTests
             Assert.All(learnt, l => Assert.Equal(ProgressionRules.MaxSpellLevel(w, NwRules.ClassWizard, level - 1), l));
         }
     }
+
+    [DataFact]
+    public void APlayerSorcererWithAScriptGrantedSpellStillLearnsTheRowDifference()
+    {
+        var (w, c) = Npc(NwRules.ClassSorcerer);
+        var sorc = c.Classes.Single();
+        // A cantrip granted outside levelling (a script or server plugin).
+        int extra = ProgressionRules.ClassSpells(w, NwRules.ClassSorcerer, 0).First(sp => !sorc.KnownSpells[0].Contains(sp));
+        sorc.KnownSpells[0].Add(extra);
+        int row = ProgressionRules.KnownCount(w, NwRules.ClassSorcerer, 2, 0) - ProgressionRules.KnownCount(w, NwRules.ClassSorcerer, 1, 0);
+        Assert.True(row > 0);
+        var player = ProgressionRules.Plan(w, c, new LevelChoice { Class = NwRules.ClassSorcerer }, player: true);
+        Assert.Equal(row, player.Spells.Single().PerLevel.GetValueOrDefault(0));
+        // The package path fills up to the table's total, which the extra cantrip already reaches.
+        var npc = ProgressionRules.Plan(w, c, new LevelChoice { Class = NwRules.ClassSorcerer }, player: false);
+        Assert.Equal(0, npc.Spells.SingleOrDefault()?.PerLevel.GetValueOrDefault(0) ?? 0);
+    }
 }
