@@ -131,7 +131,8 @@ Supported so far:
 - login and choosing a server-vault character
 - the area and its static objects
 - creatures with appearance and equipment, placeables, doors (open or closed) and ground items
-- chat in both directions and explored map tiles
+- chat in both directions, explored map tiles, and the server's feedback lines (items and gold gained or lost,
+  locked doors, script messages)
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 
