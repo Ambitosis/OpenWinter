@@ -19,7 +19,12 @@ public class NwnBridgeTests
     {
         public int TwoDARowCount(string table) => 0;
         public string TwoDA(string table, int row, string column) => "";
-        public string Text(uint strRef, byte gender) => $"#{strRef}";
+        public string Text(uint strRef, byte gender) => strRef switch
+        {
+            10468 => "Acquired Item: <CUSTOM0>",
+            8296 => "This object is locked.",
+            _ => $"#{strRef}",
+        };
         public void UseContent(IReadOnlyList<string> haks, string customTlk) { }
     }
 
@@ -272,5 +277,23 @@ public class NwnBridgeTests
         mirror.Driving = false;
         mirror.ObjectList(Echo(35.3f));
         Assert.Equal(new Vector3(20, 35.3f, 0), UpdateMessage.Read(Assert.Single(output)).Position);
+    }
+
+    [Fact]
+    public void FeedbackIsWrittenToChatWithTheTalkTableLine()
+    {
+        // As recorded: picking up a longsword, then clicking a locked door.
+        var chat = new List<ChatMessage>();
+        void Feed(object payload, long tag) => NwnFeedback.ToClient(
+            new ClientSideMessageFeedbackMessages.ClientSideMessageFeedback { Payload = new NwnTagged(tag, payload) }, new Data(),
+            m => chat.Add(ChatMessage.Read(new MessageReader(m))));
+        Feed(new ClientSideMessageFeedbackMessages.FeedbackItemReceived
+        {
+            Item = new ClientSideMessageFeedbackMessages.ItemData { Identified = true, Name = new NwnTagged(1, NwnLocString.FromStrRef(166)) },
+        }, 50);
+        Feed(new ClientSideMessageFeedbackMessages.FeedbackObjectLocked { LockedObject = 3 }, 13);
+        Feed(new ClientSideMessageFeedbackMessages.FeedbackPaused(), 205);
+        Assert.Equal(["Acquired Item: #166", "This object is locked."], chat.Select(c => c.Text));
+        Assert.All(chat, c => Assert.Equal(ChatChannel.Server, c.Channel));
     }
 }

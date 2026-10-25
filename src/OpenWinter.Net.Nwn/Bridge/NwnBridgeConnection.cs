@@ -268,6 +268,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
                 break;
+            case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
+                NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
+                break;
             case LoginMessages.LoginDeny or LoginMessages.LoginCharacterFail:
                 Tell("The server refused the character.");
                 break;
