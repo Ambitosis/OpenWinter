@@ -183,12 +183,12 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             // Released: the last position, with no movement flag, stops the creature there.
             if (_driving && _world.TryPose(_world.Controlled, out var last, out var lastFacing, out _, out _))
                 ToServer(new InputMessages.InputDriveControl { X = last.X, Y = last.Y, Area = _world.AreaId, Bearing = Bearing(lastFacing), PathfindEventNumber = _eventNumber });
-            _driving = _world.Driving = false;
+            if (_driving) _driving = _world.Driving = false;
             return;
         }
         // While driving, the client's position and facing lead and the server's echoes are ignored (NwnWorldMirror.Driving).
         if (!_world.TryPose(_world.Controlled, out var at, out var facing, out var walkRate, out var runRate)) return;
-        _driving = _world.Driving = true;
+        if (!_driving) _driving = _world.Driving = true;
         facing = MathF.IEEERemainder(facing + Math.Clamp(d.Turn, -1, 1) * TurnRate * dt, MathF.Tau);
         var ahead = new System.Numerics.Vector2(MathF.Cos(facing), MathF.Sin(facing));
         var step = ahead * Math.Clamp(d.Direction.Y, -1, 1) + new System.Numerics.Vector2(ahead.Y, -ahead.X) * Math.Clamp(d.Direction.X, -1, 1);

@@ -296,4 +296,44 @@ public class NwnBridgeTests
         Assert.Equal(["Acquired Item: #166", "This object is locked."], chat.Select(c => c.Text));
         Assert.All(chat, c => Assert.Equal(ChatChannel.Server, c.Channel));
     }
+
+    [Fact]
+    public void WhileDrivingAPositionOffTheDrivenPathIsTaken()
+    {
+        // As recorded: running north-east from (23.3, 23.9), the server first trails the client along its path,
+        // then stops the creature against an obstacle while the client's position runs on.
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListAddCreature { ObjectId = 7, Position = (23.3f, 23.9f, 0) },
+                new GameObjUpdateObjListAppearanceCreature { ObjectId = 7, Flags = UpdateCreatureAppearanceFlags.Race },
+            },
+        });
+        mirror.Control(7);
+        mirror.Driving = true;
+        GameObjUpdateMessages.GameObjUpdateObjList Echo(float x, float y) => new()
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListUpdateCreature
+                {
+                    ObjectId = 7, Flags = UpdateFlag.ObjectPositionFlag | UpdateFlag.ObjectAnimationFlag, Position = (x, y, 0),
+                    AnimTypeData = new GameObjUpdateAnimationMessages.AnimTypeData { AnimType = 4 },
+                },
+            },
+        };
+        foreach (var (x, y) in new[] { (24.29f, 24.89f), (24.59f, 25.19f), (24.88f, 25.48f), (25.18f, 25.78f) })
+            mirror.Predict(7, new Vector3(x, y, 0), MathF.PI / 4, MovementMode.Run);
+        output.Clear();
+        mirror.ObjectList(Echo(25.11f, 25.80f));
+        Assert.Empty(output);
+        foreach (var (x, y) in new[] { (25.47f, 26.07f), (25.77f, 26.37f), (26.06f, 26.66f), (26.35f, 26.95f) })
+            mirror.Predict(7, new Vector3(x, y, 0), MathF.PI / 4, MovementMode.Run);
+        output.Clear();
+        mirror.ObjectList(Echo(24.97f, 26.72f));
+        Assert.Equal(new Vector3(24.97f, 26.72f, 0), UpdateMessage.Read(Assert.Single(output)).Position);
+    }
 }
