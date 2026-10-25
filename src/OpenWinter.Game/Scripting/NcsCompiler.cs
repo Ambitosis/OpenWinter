@@ -30,7 +30,8 @@ public static class NcsCompiler
         var labels = new Label[code.Length];
         for (int i = 0; i < code.Length; i++) labels[i] = il.DefineLabel();
 
-        // Block leaders: entry points, jump targets, return sites, and instructions after control transfers and engine calls.
+        // Block leaders: entry points, jump targets, return sites, and instructions after control transfers and
+        // after instructions with effects or errors.
         var leaders = new bool[code.Length + 1];
         var entries = new List<int> { 0 };
         var returnSites = new List<int>();
@@ -55,8 +56,12 @@ public static class NcsCompiler
                     leaders[i + 1] = true;
                     break;
                 case 0x05:
-                    // An engine call ends its block, so the instruction count it can read
-                    // (GetScriptInstructionsRemaining) and the count left after an abort match the interpreter.
+                case 0x17:
+                case 0x18:
+                    // Engine calls, divisions and modulos end their block: the block's count is charged up front,
+                    // so this keeps the count an engine call reads (GetScriptInstructionsRemaining), the count after
+                    // an abort or error, and whether TOO MANY INSTRUCTIONS or DIVIDE BY ZERO comes first the same
+                    // as in the interpreter.
                     leaders[i + 1] = true;
                     break;
                 case 0x2C:

@@ -415,4 +415,232 @@ public class ScriptTierAgreementTests
         int Step(int n) { RecI(n); return n + 1; }
         void main() { int i = 0, s = 0; while (TRUE) { s += Step(i); i++; if (i % 3 == 0) RecI(GetScriptInstructionsRemaining()); } }
         """, limit);
+
+    /// <summary>An instruction limit that runs out anywhere near a division by zero stops both tiers with the same error.</summary>
+    [Fact]
+    public void InterpreterAndJitAgreeWhenTheLimitMeetsAnError()
+    {
+        var ncs = Compile("void main() { int z = 0, a = 1 + 2 + 3; float f = 0.0; RecI(a); RecI(a / (z + 1)); RecI(a % z); RecF(1.0 / f); }");
+        for (int limit = 1; limit < 40; limit++)
+            Assert.Equal(Run(ncs, jit: false, limit), Run(ncs, jit: true, limit));
+    }
+
+    /// <summary>Random programs from a fixed seed range; a failing seed reproduces with <see cref="ProgramGenerator"/>.</summary>
+    [Fact]
+    public void InterpreterAndJitAgreeOnRandomPrograms()
+    {
+        for (int seed = 1; seed <= 1000; seed++)
+        {
+            var source = new ProgramGenerator(seed).Program();
+            var ncs = NssCompiler.Compile(source, "t", Defs, _ => null, out var error);
+            Assert.True(ncs != null, $"seed {seed}: {error}\n{source}");
+            int limit = seed % 4 == 0 ? 20 + seed % 400 : ScriptVM.DefaultInstructionLimit;
+            var interpreted = Run(ncs!, jit: false, limit);
+            var compiled = Run(ncs!, jit: true, limit);
+            if (interpreted != compiled) Assert.Fail($"seed {seed} disagrees\n{source}\n--- interpreted\n{interpreted}\n--- compiled\n{compiled}");
+        }
+    }
+
+    /// <summary>
+    /// Generates small, terminating NWScript programs: expressions over every value type, nested control flow,
+    /// script function calls, globals and stored actions.
+    /// </summary>
+    sealed class ProgramGenerator
+    {
+        readonly Random _r;
+        readonly StringBuilder _sb = new();
+        int _indent, _loopDepth, _switchDepth;
+        bool _inFunction;
+        static readonly string[] Ints = { "i0", "i1", "i2", "gi" }, Floats = { "f0", "f1", "gf" }, Strings = { "s0", "gs" }, Vectors = { "v0", "gv" };
+
+        public ProgramGenerator(int seed) { _r = new Random(seed); }
+
+        public string Program()
+        {
+            _sb.Append("int gi = ").Append(Lit()).Append(";\nfloat gf = ").Append(FLit()).Append(";\nstring gs = \"g\";\nvector gv = [1.0, 2.0, 3.0];\n");
+            _sb.Append("int Tri(int n) { return n <= 0 ? 0 : n + Tri(n - 1); }\n");
+            _sb.Append("void Act(int n, string s, vector v) { RecI(n); RecS(s); RecV(v); gi += n; RecI(gi); }\n");
+            _sb.Append("void Act2(float f) { RecF(f); RecF(gf); }\n");
+            _inFunction = true;
+            _sb.Append("int H(int i0, float f0) {\n");
+            Body(2);
+            _sb.Append("    return ").Append(Int(3)).Append(";\n}\n");
+            _inFunction = false;
+            _sb.Append("void main() {\n");
+            Body(3);
+            _sb.Append("    RecI(gi); RecF(gf); RecS(gs); RecV(gv);\n}\n");
+            return _sb.ToString();
+        }
+
+        void Body(int depth)
+        {
+            _indent++;
+            Line(_inFunction ? "int i1 = " + Lit() + ", i2 = 0, k0, k1, k2;" : "int i0 = " + Lit() + ", i1 = " + Lit() + ", i2 = 0, k0, k1, k2;");
+            Line(_inFunction ? "float f1 = " + FLit() + ";" : "float f0 = " + FLit() + ", f1 = " + FLit() + ";");
+            Line("string s0 = \"s\"; vector v0 = [0.5, -1.0, 2.0];");
+            int n = 3 + _r.Next(6);
+            for (int i = 0; i < n; i++) Statement(depth);
+            _indent--;
+        }
+
+        void Line(string text) => _sb.Append(' ', 4 * _indent).Append(text).Append('\n');
+
+        void Statement(int depth)
+        {
+            switch (_r.Next(depth <= 0 ? 6 : 12))
+            {
+                case 0: Line(Pick(Ints) + " " + Pick("=", "+=", "-=", "*=", "|=", "^=", "&=", "<<=", ">>=", ">>>=") + " " + Int(3) + ";"); break;
+                case 1: Line(Pick(Floats) + " " + Pick("=", "+=", "-=", "*=") + " " + Float(3) + ";"); break;
+                case 2: Line(Pick(Strings) + " " + Pick("=", "+=") + " " + Str(2) + ";"); break;
+                case 3:
+                {
+                    var v = Pick(Vectors) + Pick("", ".x", ".y", ".z");
+                    Line(v.Contains('.') ? v + " = " + Float(2) + ";" : v + " = " + Vec(2) + ";");
+                    break;
+                }
+                case 4: Line(Pick("RecI(" + Int(3) + ");", "RecF(" + Float(3) + ");", "RecS(" + Str(2) + ");", "RecV(" + Vec(2) + ");")); break;
+                case 5:
+                    if (_loopDepth > 0 && _r.Next(3) == 0) Line("if (" + Int(2) + ") " + Pick("break;", "continue;"));
+                    else if (_switchDepth > 0 && _r.Next(3) == 0) Line("if (" + Int(2) + ") break;");
+                    else Line(Pick(Ints) + Pick("++;", "--;"));
+                    break;
+                case 6:
+                case 7:
+                    Line("if (" + Int(3) + ") {");
+                    Block(depth - 1);
+                    if (_r.Next(2) == 0) { Line("} else {"); Block(depth - 1); }
+                    Line("}");
+                    break;
+                case 8:
+                {
+                    if (_loopDepth >= 3) goto case 4;
+                    string k = "k" + _loopDepth;
+                    int kind = _r.Next(3);
+                    if (kind == 0) Line($"for ({k} = 0; {k} < {_r.Next(5)}; {k}++) {{");
+                    else if (kind == 1) Line($"{k} = 0; while ({k} < {_r.Next(5)}) {{ {k}++;");
+                    else Line($"{k} = 0; do {{");
+                    _loopDepth++;
+                    Block(depth - 1);
+                    _loopDepth--;
+                    Line(kind == 2 ? $"}} while (++{k} < {_r.Next(5)});" : "}");
+                    break;
+                }
+                case 9:
+                {
+                    Line("switch (" + Int(2) + " % 4) {");
+                    _switchDepth++;
+                    var labels = new[] { "case 0:", "case 1:", "case -1:", "case 3:", "default:" }.OrderBy(_ => _r.Next()).Take(1 + _r.Next(4)).ToList();
+                    foreach (var label in labels)
+                    {
+                        Line(label);
+                        Statement(depth - 1);
+                        if (_r.Next(2) == 0) Line("break;");
+                    }
+                    _switchDepth--;
+                    Line("}");
+                    break;
+                }
+                case 10:
+                    Line(_r.Next(2) == 0
+                        ? "DelayCommand(" + Float(1) + ", Act(" + Int(2) + ", " + Str(1) + ", " + Vec(1) + "));"
+                        : "AssignCommand(GetObj(" + _r.Next(5) + "), Act2(" + Float(2) + "));");
+                    break;
+                default:
+                    Line("{ int t = " + Int(2) + "; string u = " + Str(1) + "; RecI(t); RecS(u); }");
+                    break;
+            }
+        }
+
+        void Block(int depth)
+        {
+            _indent++;
+            int n = 1 + _r.Next(3);
+            for (int i = 0; i < n; i++) Statement(depth);
+            _indent--;
+        }
+
+        string Pick(params string[] options) => options[_r.Next(options.Length)];
+
+        string Lit() => _r.Next(8) switch
+        {
+            0 => "2147483647",
+            1 => "(-2147483647 - 1)",
+            2 => "(" + (-_r.Next(100)).ToString(CultureInfo.InvariantCulture) + ")",
+            3 => "0",
+            _ => _r.Next(100).ToString(CultureInfo.InvariantCulture),
+        };
+
+        string FLit() => _r.Next(6) switch
+        {
+            0 => "0.0",
+            1 => "100000000.0",
+            2 => "(-" + (_r.Next(1000) / 8.0).ToString("0.0##", CultureInfo.InvariantCulture) + ")",
+            _ => (_r.Next(1000) / 16.0).ToString("0.0###", CultureInfo.InvariantCulture),
+        };
+
+        string Int(int depth)
+        {
+            if (depth <= 0 || _r.Next(5) == 0) return _r.Next(3) == 0 ? Lit() : Pick(Ints);
+            switch (_r.Next(14))
+            {
+                case 0:
+                case 1:
+                case 2:
+                {
+                    var op = Pick("+", "-", "*", "/", "%", "&", "|", "^", "&&", "||");
+                    // Mostly nonzero divisors, so fewer programs stop at the first division.
+                    var right = op is "/" or "%" && _r.Next(4) != 0 ? "(" + Int(depth - 1) + " | 1)" : Int(depth - 1);
+                    return "(" + Int(depth - 1) + " " + op + " " + right + ")";
+                }
+                case 3:
+                    return "(" + Int(depth - 1) + " " + Pick("<<", ">>", ">>>") + " "
+                        + (_r.Next(2) == 0 ? (_r.Next(80) - 40).ToString(CultureInfo.InvariantCulture) : Int(depth - 1)) + ")";
+                case 4: return "(" + Int(depth - 1) + " " + Pick("==", "!=", "<", ">", "<=", ">=") + " " + Int(depth - 1) + ")";
+                case 5: return "(" + Float(depth - 1) + " " + Pick("==", "!=", "<", ">", "<=", ">=") + " " + Float(depth - 1) + ")";
+                case 6: return "(" + Str(depth - 1) + " " + Pick("==", "!=") + " " + Str(depth - 1) + ")";
+                case 7: return "(" + Vec(depth - 1) + " " + Pick("==", "!=") + " " + Vec(depth - 1) + ")";
+                case 8: return Pick("-", "~", "!") + "(" + Int(depth - 1) + ")";
+                case 9: return "(" + Int(depth - 1) + " ? " + Int(depth - 1) + " : " + Int(depth - 1) + ")";
+                case 10: return "Tri(" + Int(depth - 1) + " & 15)";
+                case 11: return _inFunction ? "Counter()" : "H(" + Int(depth - 1) + ", " + Float(depth - 1) + ")";
+                case 12: return Pick(Ints) + Pick("++", "--");
+                default: return "EffectId(MakeEffect(" + Int(depth - 1) + "))";
+            }
+        }
+
+        string Float(int depth)
+        {
+            if (depth <= 0 || _r.Next(5) == 0) return _r.Next(3) == 0 ? FLit() : Pick(Floats);
+            return _r.Next(7) switch
+            {
+                0 or 1 => "(" + Float(depth - 1) + " " + Pick("+", "-", "*", "/") + " " + Float(depth - 1) + ")",
+                2 => "(" + Int(depth - 1) + " " + Pick("+", "-", "*", "/") + " " + Float(depth - 1) + ")",
+                3 => "(" + Float(depth - 1) + " " + Pick("+", "-", "*", "/") + " " + Int(depth - 1) + ")",
+                4 => "-(" + Float(depth - 1) + ")",
+                5 => "(" + Vec(depth - 1) + ")." + Pick("x", "y", "z"),
+                _ => "(" + Int(depth - 1) + " ? " + Float(depth - 1) + " : " + Float(depth - 1) + ")",
+            };
+        }
+
+        string Str(int depth)
+        {
+            if (depth <= 0 || _r.Next(4) == 0) return _r.Next(2) == 0 ? Pick("\"\"", "\"a\"", "\"bc\"", "GREETING") : Pick(Strings);
+            return _r.Next(2) == 0
+                ? "(" + Str(depth - 1) + " + " + Str(depth - 1) + ")"
+                : "(" + Int(depth - 1) + " ? " + Str(depth - 1) + " : " + Str(depth - 1) + ")";
+        }
+
+        string Vec(int depth)
+        {
+            if (depth <= 0 || _r.Next(4) == 0) return _r.Next(2) == 0 ? Pick(Vectors) : "GetVec(" + Pick(Ints) + ")";
+            return _r.Next(5) switch
+            {
+                0 => "(" + Vec(depth - 1) + " " + Pick("+", "-") + " " + Vec(depth - 1) + ")",
+                1 => "(" + Vec(depth - 1) + " " + Pick("*", "/") + " " + Float(depth - 1) + ")",
+                2 => "(" + Float(depth - 1) + " * " + Vec(depth - 1) + ")",
+                3 => "[" + Float(depth - 1) + ", " + Float(depth - 1) + ", " + Float(depth - 1) + "]",
+                _ => "(" + Int(depth - 1) + " ? " + Vec(depth - 1) + " : " + Vec(depth - 1) + ")",
+            };
+        }
+    }
 }
