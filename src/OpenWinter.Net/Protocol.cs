@@ -86,10 +86,21 @@ public sealed class MessageReader
     public float F32() => _r.ReadSingle();
     public string Str() => _r.ReadString();
     public Vector3 V3() => new(_r.ReadSingle(), _r.ReadSingle(), _r.ReadSingle());
-    public byte[] Bytes() => _r.ReadBytes(_r.ReadInt32());
+
+    /// <summary>
+    /// An element count, refused when the rest of the message cannot hold that many elements of at least
+    /// <paramref name="minBytesEach"/> bytes, so a bad length never allocates more than the message carries.
+    /// </summary>
+    public int Count(int minBytesEach = 1)
+    {
+        int n = _r.ReadInt32();
+        if (n < 0 || (long)n * minBytesEach > Remaining) throw new InvalidDataException($"Element count {n} exceeds the message.");
+        return n;
+    }
+    public byte[] Bytes() => _r.ReadBytes(Count());
     public ushort[] U16s()
     {
-        var v = new ushort[_r.ReadInt32()];
+        var v = new ushort[Count(2)];
         for (int i = 0; i < v.Length; i++) v[i] = _r.ReadUInt16();
         return v;
     }
