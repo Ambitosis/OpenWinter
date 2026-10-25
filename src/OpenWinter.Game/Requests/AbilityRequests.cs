@@ -335,7 +335,7 @@ public static class AbilityRequests
             modes = ModeList(w, c),
             skills = Skills(w, c),
             items = Items(w, c),
-            target = target != null && (target.Area == c.Area || target is Item i && w.Inventory.Owner(i) == c) ? DescribeTarget(w, c, target) : null,
+            target = target != null && (GameServer.Perceives(w, c, target) || target is Item i && w.Inventory.Owner(i) == c) ? DescribeTarget(w, c, target) : null,
         };
     }
 

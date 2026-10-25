@@ -60,6 +60,13 @@ public static partial class ProgressionRules
         CreatureRules.EnsureInit(w, c);
         var plan = new LevelPlan { Class = ch.Class };
         if (!ClassExists(w, ch.Class)) { plan.Errors.Add(new("class", "Choose a class.")); return plan; }
+        // One level picks each skill, feat or spell at most once, so no list can be longer than its rules table.
+        if (ch.Skills.Count > SkillTable(w).RowCount || ch.Feats.Count > w.Resources.TwoDA("feat").RowCount
+            || ch.Spells.Values.Sum(l => l.Count) > w.Resources.TwoDA("spells").RowCount)
+        {
+            plan.Errors.Add(new("choices", "Too many choices for one level."));
+            return plan;
+        }
         plan.Errors.AddRange(ClassErrors(w, c, ch.Class, player, checkVariables));
         int cls = ch.Class;
         var s = Snapshot(c);

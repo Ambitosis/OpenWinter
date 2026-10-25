@@ -93,6 +93,51 @@ public sealed class RequestAuthorizationTests
         Assert.NotEqual(start, f.A.Position);
     }
 
+    static List<NotifyMessage> Ask(Fixture f, LoopbackConnection c, string kind, object args)
+    {
+        while (c.TryReceive(out _)) { }
+        c.Send(new ClientRequestMessage { Kind = kind, Json = JsonSerializer.Serialize(args) }.Write());
+        f.Tick(2);
+        var notes = new List<NotifyMessage>();
+        while (c.TryReceive(out var data))
+        {
+            var reader = new MessageReader(data);
+            if (reader.Type == MessageType.Notify) notes.Add(NotifyMessage.Read(reader));
+        }
+        return notes;
+    }
+
+    [DataFact]
+    public void HiddenCreaturesCannotBeExaminedOrTargeted()
+    {
+        using var f = new Fixture();
+        f.B.Position = new Vector3(70, 70, 0);
+        f.B.StealthMode = true;
+        f.Tick(5);
+        Assert.DoesNotContain(Ask(f, f.ClientA, "examine", new { @object = f.B.Id }), n => n.Kind == "examine");
+        Assert.DoesNotContain(Ask(f, f.ClientA, "hud-target", new { id = f.B.Id }), n => n.Kind == "hud" && !n.Json.Contains("\"target\":null"));
+        f.B.StealthMode = false;
+        f.Tick(5);
+        Assert.Contains(Ask(f, f.ClientA, "examine", new { @object = f.B.Id }), n => n.Kind == "examine");
+    }
+
+    [DataFact]
+    public void MapPinsAreCappedPerPlayer()
+    {
+        using var f = new Fixture();
+        var other = new Area { ResRef = "mp2", Width = 8, Height = 8 };
+        f.World.Register(other); f.World.Areas.Add(other);
+        var pins = OpenWinter.Game.WorldObjects.AreaSettings.Of(f.World, other).PersonalMapPins[f.A.Id] = new();
+        for (int i = 0; i < OpenWinter.Game.WorldObjects.PersonalMapPins.MaxPinsPerPlayer; i++)
+            pins.Add(new OpenWinter.Game.WorldObjects.PersonalMapPin(i.ToString(), "", 1, 1));
+        var area = f.A.Area!;
+        f.Send(f.ClientA, "map-pin-add", new { area = area.Id, x = 5f, y = 5f, note = "full" });
+        Assert.Empty(OpenWinter.Game.WorldObjects.PersonalMapPins.Read(f.World, area, f.A));
+        pins.RemoveAt(0);
+        f.Send(f.ClientA, "map-pin-add", new { area = area.Id, x = 5f, y = 5f, note = "room" });
+        Assert.Single(OpenWinter.Game.WorldObjects.PersonalMapPins.Read(f.World, area, f.A));
+    }
+
     [DataFact]
     public void TargetPicksCountOnlyAfterEnterTargetingMode()
     {

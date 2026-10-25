@@ -38,7 +38,11 @@ public static class CharacterFactory
         int mask = Ruleset.Int(w, "CHARGEN_ENABLED_PHENOTYPES", 5);
         if (n.Phenotype is < 0 or > 30 || (mask & (1 << n.Phenotype)) == 0) errors.Add(new("phenotype", "That body type is not available."));
         if (n.Colors.Any(c => c is < 0 or > 255)) errors.Add(new("colors", "Invalid colour."));
-        if (n.BodyParts.Any(p => p is < 0 or > 65535) || (n.BodyParts.Length > 0 && n.BodyParts[0] < 1)) errors.Add(new("appearance", "Invalid body part."));
+        if (n.BodyParts.Length > CreatureFactory.BodyPartFields.Length || n.BodyParts.Any(p => p is < 0 or > 65535) || (n.BodyParts.Length > 0 && n.BodyParts[0] < 1))
+            errors.Add(new("appearance", "Invalid body part."));
+        // A new character takes its race's appearance (racialtypes.2da Appearance), which -1 also selects.
+        if (n.Appearance >= 0 && n.Race >= 0 && n.Race < races.RowCount && n.Appearance != races.GetInt(n.Race, "Appearance", -1))
+            errors.Add(new("appearance", "That appearance is not available for the chosen race."));
         if (n.Wings < 0 || n.Wings >= Math.Max(1, w.Resources.TwoDA("wingmodel").RowCount)) errors.Add(new("appearance", "Invalid wings."));
         if (n.Tail < 0 || n.Tail >= Math.Max(1, w.Resources.TwoDA("tailmodel").RowCount)) errors.Add(new("appearance", "Invalid tail."));
         if (n.SoundSet >= w.Resources.TwoDA("soundset").RowCount) errors.Add(new("soundset", "Invalid voice set."));
