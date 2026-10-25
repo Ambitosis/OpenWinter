@@ -31,7 +31,7 @@ public sealed partial class ScriptThread
     /// <summary>Code offset of the ACTION instruction currently being executed.</summary>
     public int CallIp { get; internal set; }
     public int BasePointer => _bp;
-    /// <summary>Return addresses of enclosing script functions, innermost first (code offsets when interpreted).</summary>
+    /// <summary>Return addresses of enclosing script functions, innermost first (code offsets).</summary>
     public IEnumerable<int> ReturnAddresses => Returns;
     /// <summary>True while an abort or jump is waiting to be applied after the current engine call.</summary>
     public bool HasPendingControl => _control != null;

@@ -7,9 +7,9 @@ namespace OpenWinter.Game.Scripting;
 /// Compiles an NCS program to a .NET dynamic method that RyuJIT turns into
 /// native code. The compiled method keeps the interpreter's stack model and
 /// calls the same ScriptThread operations, but removes all decoding and
-/// dispatch: operands are constants, NCS jumps are IL branches, JSR/RETN go
-/// through a table of return sites, and instruction counting happens once per
-/// basic block.
+/// dispatch: operands are constants, NCS jumps are IL branches, RETN maps the
+/// code offset JSR pushed to a table of return sites, and instruction counting
+/// happens once per basic block.
 ///
 /// Signature: (ScriptThread thread, int entryOffset). Entry offsets are 0 and
 /// every STORE_STATE resume point, so stored actions run compiled too.
@@ -19,7 +19,6 @@ public static class NcsCompiler
     static readonly Type T = typeof(ScriptThread);
     static MethodInfo M(string name) => T.GetMethod(name) ?? throw new MissingMethodException(T.Name, name);
     static readonly FieldInfo ReturnsField = T.GetField(nameof(ScriptThread.Returns))!;
-    static readonly MethodInfo StackPop = typeof(Stack<int>).GetMethod("Pop")!;
     static readonly MethodInfo StackCount = typeof(Stack<int>).GetProperty("Count")!.GetGetMethod()!;
     static readonly ConstructorInfo ScriptExceptionCtor = typeof(ScriptException).GetConstructor(new[] { typeof(string) })!;
 
@@ -31,11 +30,10 @@ public static class NcsCompiler
         var labels = new Label[code.Length];
         for (int i = 0; i < code.Length; i++) labels[i] = il.DefineLabel();
 
-        // Block leaders: entry points, jump targets, return sites, and instructions after control transfers.
+        // Block leaders: entry points, jump targets, return sites, and instructions after control transfers and engine calls.
         var leaders = new bool[code.Length + 1];
         var entries = new List<int> { 0 };
         var returnSites = new List<int>();
-        var siteOf = new Dictionary<int, int>();
         if (code.Length > 0) leaders[0] = true;
         for (int i = 0; i < code.Length; i++)
         {
@@ -51,9 +49,14 @@ public static class NcsCompiler
                 case 0x1E:
                     leaders[program.IndexAt(ins.A)] = true;
                     leaders[i + 1] = true;
-                    if (i + 1 < code.Length) { siteOf[i] = returnSites.Count; returnSites.Add(i + 1); }
+                    if (i + 1 < code.Length) returnSites.Add(i + 1);
                     break;
                 case 0x20:
+                    leaders[i + 1] = true;
+                    break;
+                case 0x05:
+                    // An engine call ends its block, so the instruction count it can read
+                    // (GetScriptInstructionsRemaining) and the count left after an abort match the interpreter.
                     leaders[i + 1] = true;
                     break;
                 case 0x2C:
@@ -145,7 +148,8 @@ public static class NcsCompiler
                     il.Emit(OpCodes.Br, labels[program.IndexAt(ins.A)]);
                     break;
                 case 0x1E:
-                    Call(il, "PushReturn", siteOf.TryGetValue(i, out var site) ? site : -1);
+                    // Push the code offset, as the interpreter does, so backtraces read the same in both tiers.
+                    Call(il, "PushReturn", ins.Next);
                     il.Emit(OpCodes.Br, labels[program.IndexAt(ins.A)]);
                     break;
                 case 0x1F:
@@ -166,9 +170,7 @@ public static class NcsCompiler
                     Call(il, "Finish");
                     il.Emit(OpCodes.Ret);
                     il.MarkLabel(notOuter);
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldfld, ReturnsField);
-                    il.Emit(OpCodes.Callvirt, StackPop);
+                    Call(il, "PopReturnSite");
                     il.Emit(OpCodes.Switch, returnSites.Select(r => labels[r]).ToArray());
                     il.Emit(OpCodes.Ldstr, $"{program.Name}: bad return address");
                     il.Emit(OpCodes.Newobj, ScriptExceptionCtor);
@@ -188,14 +190,15 @@ public static class NcsCompiler
                 case 0x2C: Call(il, "StoreState", ins.A, ins.B, ins.C); break;
                 case 0x2D: case 0x1C: case 0x42: break;
                 default:
-                    il.Emit(OpCodes.Ldstr, $"{program.Name}: unknown opcode 0x{ins.Op:X2} at {ins.Offset}");
+                    il.Emit(OpCodes.Ldstr, $"unknown opcode 0x{ins.Op:X2} at {ins.Offset}");
                     il.Emit(OpCodes.Newobj, ScriptExceptionCtor);
                     il.Emit(OpCodes.Throw);
                     break;
             }
         }
-        // Falling off the end matches the interpreter's error.
-        il.Emit(OpCodes.Ldstr, $"{program.Name}: ran off the end of the code");
+        program.ReturnSites = returnSites.Select(r => code[r].Offset).ToArray();
+        // Errors read as the interpreter's do.
+        il.Emit(OpCodes.Ldstr, "ran off the end of the code");
         il.Emit(OpCodes.Newobj, ScriptExceptionCtor);
         il.Emit(OpCodes.Throw);
         return method.CreateDelegate<Action<ScriptThread, int>>();
