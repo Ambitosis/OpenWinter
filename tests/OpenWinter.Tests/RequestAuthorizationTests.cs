@@ -74,6 +74,26 @@ public sealed class RequestAuthorizationTests
     }
 
     [DataFact]
+    public void AnUncommandablePlayerCannotMoveOrRest()
+    {
+        using var f = new Fixture();
+        f.A.Commandable = false;
+        var start = f.A.Position;
+        f.ClientA.Send(new MoveInputMessage { Direction = new Vector3(1, 0, 0) }.Write());
+        f.Tick(10);
+        f.ClientA.Send(new ActionRequestMessage { Action = ActionKind.MoveTo, Position = new Vector3(30, 30, 0) }.Write());
+        f.Tick(10);
+        Assert.Equal(start, f.A.Position);
+        f.Send(f.ClientA, "rest", new { });
+        Assert.DoesNotContain(f.A.Actions, a => a is OpenWinter.Game.Spells.RestAction);
+        // Commandable again: the same input moves the player.
+        f.A.Commandable = true;
+        f.ClientA.Send(new MoveInputMessage { Direction = new Vector3(1, 0, 0) }.Write());
+        f.Tick(10);
+        Assert.NotEqual(start, f.A.Position);
+    }
+
+    [DataFact]
     public void TargetPicksCountOnlyAfterEnterTargetingMode()
     {
         using var f = new Fixture();

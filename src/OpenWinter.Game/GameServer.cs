@@ -299,8 +299,8 @@ public sealed partial class GameServer : IWorldOutput
             case MessageType.MoveInput when s.Creature != null:
                 s.Creature.DriveInput = null;
                 var m = MoveInputMessage.Read(r);
-                // A dying player can't move (it is uncommandable until healed).
-                if (s.Creature.IsDying) break;
+                // A dying, dead or otherwise uncommandable player can't move.
+                if (s.Creature.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 if (m.Direction.LengthSquared() > 0.0001f)
                 {
                     // Steering by keys overrides click-to-move and other queued actions.
@@ -360,6 +360,7 @@ public sealed partial class GameServer : IWorldOutput
                 Broadcast(s.Area, new PlayAnimationMessage { ObjectId = s.Creature!.Id, Animation = a.Argument }.Write());
                 break;
             case ActionKind.MoveTo:
+                if (s.Creature!.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 ActionQueues.Clear(World, s.Creature!);
                 Movement.Stop(s.Creature!);
                 var move = new MoveAction { Target = a.Position, Run = a.Run, Range = 0.3f, AllowBackward = true };
@@ -372,6 +373,7 @@ public sealed partial class GameServer : IWorldOutput
                 break;
             case ActionKind.Talk:
             case ActionKind.Use:
+                if (s.Creature!.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 Interact(s.Creature!, World.Get(a.Target), a.Action == ActionKind.Talk);
                 break;
             case ActionKind.OpenDoor:
