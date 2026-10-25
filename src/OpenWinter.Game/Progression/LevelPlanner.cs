@@ -110,7 +110,7 @@ public static partial class ProgressionRules
 
         PlanSkills(w, c, s, ch, plan, carriedSkillPoints);
         PlanFeats(w, c, s, ch, plan, cc);
-        PlanSpells(w, s, ch, plan, cc);
+        PlanSpells(w, s, ch, plan, cc, player);
 
         // Familiar and animal companion types come with the feats that summon them, and can be chosen again at every
         // level of a class that grants the feat (the original's level-up offers a wizard 2 the familiar again: menu
@@ -242,7 +242,7 @@ public static partial class ProgressionRules
         }
     }
 
-    static void PlanSpells(World w, Creature s, LevelChoice ch, LevelPlan plan, CreatureClass cc)
+    static void PlanSpells(World w, Creature s, LevelChoice ch, LevelPlan plan, CreatureClass cc, bool player)
     {
         int cls = ch.Class;
         if (!CreatureRules.IsSpellCaster(w, cls)) { RejectSpells(w, ch, plan); return; }
@@ -251,7 +251,12 @@ public static partial class ProgressionRules
         {
             for (int lvl = 0; lvl < 10; lvl++)
             {
-                int need = KnownCount(w, cls, cc.Level, lvl) - KnownCount(w, cls, cc.Level - 1, lvl);
+                // A player learns the row difference, whatever else it was granted. A creature levelled by its
+                // package fills up to the table's total (LevelUpHenchman from a blueprint with none known learns the
+                // whole row: parity suite package_spell_picks).
+                int need = player
+                    ? KnownCount(w, cls, cc.Level, lvl) - KnownCount(w, cls, cc.Level - 1, lvl)
+                    : KnownCount(w, cls, cc.Level, lvl) - cc.KnownSpells[lvl].Count;
                 if (need <= 0) continue;
                 var options = ClassSpells(w, cls, lvl).Where(sp => !cc.KnownSpells[lvl].Contains(sp)).ToList();
                 pick.PerLevel[lvl] = Math.Min(need, options.Count);

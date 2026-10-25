@@ -87,18 +87,22 @@ public static class PackageBuilder
         {
             plan = ProgressionRules.Plan(w, c, ch, player, checkVariables: player);
             var prefs = PrefList(w, packages.Get(pkg, "SpellPref2DA"), "SpellIndex").ToList();
+            // Only spells on the package's list, in its order (nwserver, parity suite package_spell_picks: a sorcerer
+            // stays at the list's four cantrips). A spellbook takes them from the levels it could cast before this
+            // level: a wizard learns 1st-level spells at wizard 3 and its first 5th-level ones at wizard 10.
             foreach (var pick in plan.Spells.Where(p => p.Class == cls))
             {
                 foreach (var (lvl, n) in pick.PerLevel)
                 {
                     var options = pick.Choices.GetValueOrDefault(lvl) ?? new List<int>();
-                    var chosen = prefs.Where(options.Contains).Concat(options).Distinct().Take(n).ToList();
+                    var chosen = prefs.Where(options.Contains).Distinct().Take(n).ToList();
                     if (chosen.Count > 0) ch.Spells[lvl] = chosen;
                 }
                 if (pick.AnyLevel > 0)
                 {
-                    var all = pick.Choices.OrderByDescending(k => k.Key).SelectMany(k => k.Value.Select(sp => (Level: k.Key, Spell: sp))).ToList();
-                    var chosen = prefs.SelectMany(sp => all.Where(x => x.Spell == sp)).Concat(all).Distinct().Take(pick.AnyLevel).ToList();
+                    int maxLevel = plan.NewClassLevel > 1 ? ProgressionRules.MaxSpellLevel(w, cls, plan.NewClassLevel - 1) : pick.MaxLevel;
+                    var all = pick.Choices.Where(k => k.Key <= maxLevel).SelectMany(k => k.Value.Select(sp => (Level: k.Key, Spell: sp))).ToList();
+                    var chosen = prefs.SelectMany(sp => all.Where(x => x.Spell == sp)).Distinct().Take(pick.AnyLevel).ToList();
                     foreach (var (lvl, sp) in chosen)
                         (ch.Spells.TryGetValue(lvl, out var l) ? l : ch.Spells[lvl] = new List<int>()).Add(sp);
                 }
