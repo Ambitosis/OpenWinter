@@ -121,11 +121,6 @@ public class ScriptTierAgreementTests
                 log.Append("used ").Append(vm.InstructionsUsed).Append('\n');
             }
             catch (ScriptException e) { log.Append("error ").Append(e.Message).Append('\n'); }
-            catch (Exception e) when (e is IndexOutOfRangeException or InvalidCastException or NullReferenceException)
-            {
-                // A stack access out of range (malformed code, or a path the stub engine's values open up).
-                log.Append("fault ").Append(e.GetType().Name).Append('\n');
-            }
         }
         Outcome(() => log.Append("result ").Append(vm.Run(program, 7)).Append('\n'));
         for (int n = 0; n < 50 && engine.Queued.Count > 0; n++)
@@ -406,6 +401,7 @@ public class ScriptTierAgreementTests
     [InlineData("0403000000010403000000021420")] // no RETN
     [InlineData("1D00000000082000 1E00FFFFFFFE")] // JMP to a JSR that is the last instruction; its RETN has nowhere to go
     [InlineData("040300000001 5000 2000")] // unknown opcode
+    [InlineData("040300000001 0301FFFFFE700004 2000")] // CPTOPSP far below the stack
     public void InterpreterAndJitFailAlike(string hex)
     {
         var code = Convert.FromHexString(hex.Replace(" ", ""));
@@ -425,6 +421,33 @@ public class ScriptTierAgreementTests
         int Step(int n) { RecI(n); return n + 1; }
         void main() { int i = 0, s = 0; while (TRUE) { s += Step(i); i++; if (i % 3 == 0) RecI(GetScriptInstructionsRemaining()); } }
         """, limit);
+
+    /// <summary>A fault inside the VM aborts the script with a logged script error; it never escapes the host.</summary>
+    [Fact]
+    public void VmFaultsAbortTheScript()
+    {
+        // CONSTI 1; CPTOPSP -400, 4 (reads far below the stack); RETN.
+        var code = Convert.FromHexString("0403000000010301FFFFFE7000042000");
+        var file = new List<byte>(Encoding.ASCII.GetBytes("NCS V1.0")) { 0x42 };
+        file.AddRange(BitConverter.GetBytes(System.Buffers.Binary.BinaryPrimitives.ReverseEndianness(13 + code.Length)));
+        file.AddRange(code);
+        foreach (int jit in new[] { -1, 0 })
+        {
+            var world = new OpenWinter.Game.World(new OpenWinter.Aurora.Resources.ResMan(new OpenWinter.Aurora.Resources.GamePaths("", "")));
+            world.EnableScripts(Defs);
+            world.Register(world.Module);
+            var host = world.Scripts!;
+            host.VM.JitThreshold = jit;
+            host.VM.BackgroundCompile = false;
+            var log = new List<string>();
+            host.Log = log.Add;
+            Assert.Equal(0, host.Run(new NcsProgram("bad_stack", file.ToArray()), "bad_stack", world.Module.Id));
+            Assert.True(host.LastRunFailed);
+            var error = Assert.Single(log);
+            Assert.StartsWith("[script error] Script error: bad_stack OID:", error);
+            Assert.Contains("ERROR: IndexOutOfRangeException", error);
+        }
+    }
 
     /// <summary>An instruction limit that runs out anywhere near a division by zero stops both tiers with the same error.</summary>
     [Fact]

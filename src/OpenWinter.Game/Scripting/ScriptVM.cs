@@ -222,6 +222,12 @@ public sealed class ScriptVM
             else t.Interpret(entry);
         }
         catch (ScriptThread.AbortSignal) { }
+        catch (Exception e) when (e is not ScriptException and not OutOfMemoryException)
+        {
+            // A fault inside the VM (such as malformed code reading outside the stack) aborts the script like any
+            // script error instead of escaping into the caller.
+            throw new ScriptException($"{e.GetType().Name}: {e.Message}");
+        }
         finally
         {
             if (Stats != null)
