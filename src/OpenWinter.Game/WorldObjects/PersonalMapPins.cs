@@ -16,7 +16,11 @@ public sealed partial class AreaEnvironment
 public static class PersonalMapPins
 {
     // Transport/storage bounds, not claims about native UI limits.
-    const int MaxNoteLength = 4096, MaxPinsPerArea = 1024;
+    public const int MaxNoteLength = 4096, MaxPinsPerArea = 1024, MaxPinsPerPlayer = 1024;
+
+    /// <summary>A player's pins across every area (areas never loaded hold none).</summary>
+    static int PinCount(World world, Creature pc) =>
+        world.Areas.Sum(a => a.Environment?.PersonalMapPins.GetValueOrDefault(pc.Id)?.Count ?? 0);
 
     public static IReadOnlyList<PersonalMapPin> Read(World world, Area area, Creature pc) =>
         AreaSettings.Of(world, area).PersonalMapPins.TryGetValue(pc.Id, out var pins) ? pins : [];
@@ -33,7 +37,7 @@ public static class PersonalMapPins
             || x >= area.Width * Area.TileSize || y >= area.Height * Area.TileSize || note.Length > MaxNoteLength) return;
         var all = AreaSettings.Of(r.World, area).PersonalMapPins;
         if (!all.TryGetValue(r.Player.Id, out var pins)) all[r.Player.Id] = pins = [];
-        if (pins.Count >= MaxPinsPerArea) return;
+        if (pins.Count >= MaxPinsPerArea || PinCount(r.World, r.Player) >= MaxPinsPerPlayer) return;
         pins.Add(new PersonalMapPin(Guid.NewGuid().ToString("N"), note, x, y));
         MapExploration.Send(r.World, r.Player);
     }
