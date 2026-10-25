@@ -201,4 +201,33 @@ public class NwnBridgeTests
         Assert.Equal((ushort)2700, NwnBridgeConnection.Bearing(-MathF.PI / 2));
         Assert.Equal(((byte)1, (byte)3), (NwnBridgeConnection.DriveFlags(walking: true), NwnBridgeConnection.DriveFlags(walking: false)));
     }
+
+    [Fact]
+    public void GroundItemsSpawnWithTheirTalkTableName()
+    {
+        // As recorded: a longsword on the ground, named by strref 166, made useable by its first update.
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        output.Clear();
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListAddItem
+                {
+                    ObjectId = 36,
+                    Item = new ItemAppearanceAndProps
+                    {
+                        BaseItemId = 1, ModelData = new NwnTagged(2, new CompositeModel { Part1 = 11, Part2 = 11, Part3 = 11 }),
+                        Name = new NwnTagged(1, new OriginalItemName { Name = NwnLocString.FromStrRef(166, 0) }),
+                    },
+                },
+                new ObjListUpdateItem { ObjectId = 36, Position = (20, 22, 0), Useable = true },
+            },
+        });
+        var spawn = SpawnMessage.Read(Assert.Single(output));
+        Assert.Equal((ObjectKind.Item, "#166", 1, new System.Numerics.Vector3(20, 22, 0)), (spawn.Kind, spawn.Name, spawn.Appearance.Type, spawn.Position));
+        Assert.Equal(ObjectFlags.Useable | ObjectFlags.Selectable, spawn.Flags);
+        Assert.Equal(ObjectKind.Item, mirror.KindOf(36));
+    }
 }

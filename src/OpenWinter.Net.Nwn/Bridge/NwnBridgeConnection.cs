@@ -148,7 +148,11 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                     ClickedOn = GameObjUpdateMessages.InvalidObjectId,
                 });
                 break;
-            case ActionKind.Use or ActionKind.Talk or ActionKind.PickUp or ActionKind.OpenDoor or ActionKind.CloseDoor:
+            case ActionKind.PickUp or ActionKind.Use when _world.KindOf(a.Target) == ObjectKind.Item:
+                // Into the backpack wherever it fits: no container, no grid position.
+                ToServer(new InventoryMessages.InventoryPickupC2S { Item = a.Target, TargetRepository = GameObjUpdateMessages.InvalidObjectId, X = 255, Y = 255 });
+                break;
+            case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
                 // Doors change state; everything else is used (the server walks the player there first).
                 ToServer((NwnMessage?)_world.DoorRequest(a.Target, a.Action == ActionKind.Use) ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true });
                 break;

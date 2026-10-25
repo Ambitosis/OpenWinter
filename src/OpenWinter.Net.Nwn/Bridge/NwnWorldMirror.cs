@@ -389,6 +389,9 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         else _pendingControl = objectId;
     }
 
+    /// <summary>The kind of a known object; null when it isn't known.</summary>
+    public ObjectKind? KindOf(uint id) => _objects.TryGetValue(id, out var m) ? m.Kind : null;
+
     /// <summary>Where a spawned object stands, its facing and its walk and run rates.</summary>
     public bool TryPose(uint id, out Vector3 position, out float facing, out float walkRate, out float runRate)
     {
