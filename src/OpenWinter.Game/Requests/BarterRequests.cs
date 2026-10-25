@@ -27,6 +27,8 @@ public sealed class BarterService : IWorldSystem
     {
         public required Creature Player;
         public readonly List<uint> Items = new();
+        /// <summary>Each offered item's stack size when it was offered; a stack that changes leaves the offer.</summary>
+        public readonly Dictionary<uint, int> Stacks = new();
         public int Gold;
         public bool Offered, Accepted;
         public System.Numerics.Vector3 LastPosition;
@@ -95,6 +97,7 @@ public sealed class BarterService : IWorldSystem
         if (SessionOf(pc) is not { } s || s.Of(pc) is not { Offered: false } side) return false;
         if (!Tradeable(pc, item) || side.Items.Contains(item.Id)) return false;
         side.Items.Add(item.Id);
+        side.Stacks[item.Id] = item.StackSize;
         Changed(s);
         return true;
     }
@@ -102,6 +105,7 @@ public sealed class BarterService : IWorldSystem
     public bool Withdraw(Creature pc, uint item)
     {
         if (SessionOf(pc) is not { } s || s.Of(pc) is not { Offered: false } side || !side.Items.Remove(item)) return false;
+        side.Stacks.Remove(item);
         Changed(s);
         return true;
     }
@@ -151,6 +155,10 @@ public sealed class BarterService : IWorldSystem
         !item.IsDestroyed && _world.Inventory.Owner(item) == pc && _world.Inventory.Holder(item) == pc
         && Inventory.InventorySystem.SlotOf(pc, item) < 0 && !item.Cursed && item.Droppable;
 
+    /// <summary>An offered item still tradeable and the same stack the partner saw.</summary>
+    bool Offerable(Side side, uint id) =>
+        _world.Get<Item>(id) is { } item && Tradeable(side.Player, item) && side.Stacks.GetValueOrDefault(id) == item.StackSize;
+
     /// <summary>Any change to an offer takes back both players' acceptance.</summary>
     void Changed(Session s)
     {
@@ -165,7 +173,7 @@ public sealed class BarterService : IWorldSystem
         {
             bool stale = side.Gold > side.Player.Gold;
             foreach (var id in side.Items.ToList())
-                if (_world.Get<Item>(id) is not { } item || !Tradeable(side.Player, item)) { side.Items.Remove(id); stale = true; }
+                if (!Offerable(side, id)) { side.Items.Remove(id); stale = true; }
             if (stale) { s.A.Offered = s.B.Offered = false; Changed(s); return; }
         }
         End(s, cancelled: false);
@@ -244,7 +252,7 @@ public sealed class BarterService : IWorldSystem
             // An offered item that left the backpack leaves the offer.
             bool changed = false;
             foreach (var side in new[] { s.A, s.B })
-                changed |= side.Items.RemoveAll(id => _world.Get<Item>(id) is not { } item || !Tradeable(side.Player, item)) > 0;
+                changed |= side.Items.RemoveAll(id => !Offerable(side, id)) > 0;
             if (changed) Changed(s);
         }
     }

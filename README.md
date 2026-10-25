@@ -72,7 +72,8 @@ than releases.
 2. Run `openwinter-server.exe --module "<path to a .mod file or module folder>"` (`./openwinter-server` on Linux).
    It listens on UDP port 5121 (`--port` changes it) and writes `server.json` with its settings on the first run;
    edit that file for the server name, PvP, difficulty, DM password and more. The server vault and databases are
-   kept in `userdata` next to the server.
+   kept in `userdata` next to the server. Each player name's vault folder belongs to the first player key that logs
+   in with it (`playerkey.txt` in the folder); delete that file to let the player in from a new installation.
 3. Players choose **Multiplayer**, enter the server's address (`host:5121`) and press **Connect**. Haks and TLKs
    they're missing download automatically.
 

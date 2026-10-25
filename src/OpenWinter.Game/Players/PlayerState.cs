@@ -65,6 +65,8 @@ namespace OpenWinter.Game.Objects
         /// <summary>GUI_PANEL_* disabled with SetGuiPanelDisabled (panel to target object).</summary>
         public readonly Dictionary<int, uint> DisabledGuiPanels = new();
         public SpellTargetingData? PendingTargetingData;
+        /// <summary>EnterTargetingMode is waiting for this player's pick; OnPlayerTarget runs only for an awaited pick.</summary>
+        public bool AwaitingTarget;
 
         public bool ExploresMinimap = true;
         /// <summary>SetPCLike/SetPCDislike: players this one dislikes.</summary>

@@ -148,4 +148,86 @@ public class NwnBridgeTests
         Assert.Equal("area-map", notice.Kind);
         Assert.Contains("\"explored\":\"10100001\"", notice.Json);
     }
+
+    static GameObjUpdateObjListAddDoor Door(uint id, ushort anim) => new()
+    {
+        ObjectId = id, GenericType = 5, OriginalName = false, StrName = "Door", Anim = anim,
+    };
+
+    [Fact]
+    public void DoorsAreOpenOrClosedFromTheirAnimationState()
+    {
+        // As recorded from nwserver: a closed door's state is 22, an opened one's 51.
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        output.Clear();
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList { Entries = { Door(7, 22), Door(4, 51) } });
+        var spawns = output.Where(m => m.Type == MessageType.Spawn).Select(m => SpawnMessage.Read(m)).ToDictionary(s => s.ObjectId);
+        Assert.Equal(0u, (uint)(spawns[7].Flags & ObjectFlags.Open));
+        Assert.Equal(ObjectFlags.Open, spawns[4].Flags & ObjectFlags.Open);
+        output.Clear();
+        // The server closes door 4: an update with only the animation.
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries = { new ObjListUpdateDoor { ObjectType = NwnExternalTypes.ObjectType.Door, ObjectId = 4, Flags = 4, Animation = 22 } },
+        });
+        var update = UpdateMessage.Read(Assert.Single(output));
+        Assert.Equal((4u, (ObjectFlags)0), (update.ObjectId, update.Flags & ObjectFlags.Open));
+    }
+
+    [Fact]
+    public void ClickingADoorOpensOrClosesIt()
+    {
+        var (mirror, _) = Mirror();
+        mirror.Area(Area());
+        var transition = Door(9, 51);
+        transition.Clickable = true;
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList { Entries = { Door(7, 22), Door(4, 51), transition } });
+        // As recorded: 21 opens a closed door, 22 closes an open one.
+        Assert.Equal((7u, (ushort)21), (mirror.DoorRequest(7)!.Door, mirror.DoorRequest(7)!.Animation));
+        Assert.Equal((ushort)22, mirror.DoorRequest(4, use: true)!.Animation);
+        // An open transition is travelled through on a plain use, closed from the radial menu.
+        Assert.Null(mirror.DoorRequest(9, use: true));
+        Assert.Equal((ushort)22, mirror.DoorRequest(9)!.Animation);
+        Assert.Null(mirror.DoorRequest(5));
+    }
+
+    [Fact]
+    public void KeyboardDrivingSendsTheBearingAndGaitTheServerExpects()
+    {
+        // As recorded: facing north is bearing 900 (the server then reports 0 from +Y); running sets flag 2.
+        Assert.Equal((ushort)900, NwnBridgeConnection.Bearing(MathF.PI / 2));
+        Assert.Equal((ushort)0, NwnBridgeConnection.Bearing(0));
+        Assert.Equal((ushort)2700, NwnBridgeConnection.Bearing(-MathF.PI / 2));
+        Assert.Equal(((byte)1, (byte)3), (NwnBridgeConnection.DriveFlags(walking: true), NwnBridgeConnection.DriveFlags(walking: false)));
+    }
+
+    [Fact]
+    public void GroundItemsSpawnWithTheirTalkTableName()
+    {
+        // As recorded: a longsword on the ground, named by strref 166, made useable by its first update.
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        output.Clear();
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListAddItem
+                {
+                    ObjectId = 36,
+                    Item = new ItemAppearanceAndProps
+                    {
+                        BaseItemId = 1, ModelData = new NwnTagged(2, new CompositeModel { Part1 = 11, Part2 = 11, Part3 = 11 }),
+                        Name = new NwnTagged(1, new OriginalItemName { Name = NwnLocString.FromStrRef(166, 0) }),
+                    },
+                },
+                new ObjListUpdateItem { ObjectId = 36, Position = (20, 22, 0), Useable = true },
+            },
+        });
+        var spawn = SpawnMessage.Read(Assert.Single(output));
+        Assert.Equal((ObjectKind.Item, "#166", 1, new System.Numerics.Vector3(20, 22, 0)), (spawn.Kind, spawn.Name, spawn.Appearance.Type, spawn.Position));
+        Assert.Equal(ObjectFlags.Useable | ObjectFlags.Selectable, spawn.Flags);
+        Assert.Equal(ObjectKind.Item, mirror.KindOf(36));
+    }
 }

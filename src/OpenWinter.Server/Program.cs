@@ -53,8 +53,9 @@ var server = new GameServer(world, new ServerOptions
     Vault = settings.Vault.Equals("local", StringComparison.OrdinalIgnoreCase) ? OpenWinter.Net.VaultMode.Local : OpenWinter.Net.VaultMode.Server,
     MaxPlayers = settings.MaxPlayers,
     ExportInterval = settings.AutoSaveMinutes * 60,
-    // A DM password (settings file or --dmpassword) lets Dungeon Masters log in; without one the server takes no DMs.
-    DMPassword = settings.DMPassword,
+    // A DM password (settings file or --dmpassword) lets Dungeon Masters log in; without one, or with an empty one,
+    // the server takes no DMs (an empty password would otherwise admit anyone as a DM).
+    DMPassword = string.IsNullOrEmpty(settings.DMPassword) ? null : settings.DMPassword,
     ServeContent = settings.ServeContent,
     AllowPlayerPausing = settings.AllowPlayerPausing,
     ServerName = settings.Name,
@@ -63,7 +64,8 @@ if (harnessDir != null) harness = new MultiplayerHarness(world, server, harnessD
 Console.WriteLine($"[server] {settings.Name}: PvP {settings.Pvp}{(settings.OneParty ? ", one party only" : "")}, difficulty {settings.Difficulty}, {settings.Vault} vault, max {settings.MaxPlayers} players");
 Console.WriteLine($"[server] '{world.Module.Name.FirstString}': {world.Areas.Count} areas, {world.AllObjects.Count()} objects loaded in {sw.ElapsedMilliseconds} ms");
 
-using var net = new NetServerHost(port);
+// Room for every player plus a few connections still logging in (GameServer drops those that never do).
+using var net = new NetServerHost(port) { MaxConnections = settings.MaxPlayers > 0 ? settings.MaxPlayers + 8 : 0 };
 Console.WriteLine($"[server] OpenWinter {NetworkVersion.Current.Display}");
 net.Connected += c =>
 {

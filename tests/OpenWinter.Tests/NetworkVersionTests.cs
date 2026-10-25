@@ -53,6 +53,43 @@ public class NetworkVersionTests
         Assert.Null(client.FailureReason);
     }
 
+    [Fact]
+    public void ConnectionsBeyondTheLimitAreRefused()
+    {
+        using var server = new NetServerHost(0) { MaxConnections = 1 };
+        int accepted = 0;
+        server.Connected += _ => accepted++;
+        using var first = new NetClientConnection("127.0.0.1", server.Port);
+        Until(() => first.Joined, () => { server.Poll(); first.TryReceive(out _); });
+        using var second = new NetClientConnection("127.0.0.1", server.Port);
+        Until(() => second.FailureReason != null, () => { server.Poll(); first.TryReceive(out _); second.TryReceive(out _); });
+        Assert.Equal(1, accepted);
+        Assert.True(first.IsConnected);
+        Assert.False(second.Joined);
+    }
+
+    [Fact]
+    public void OversizedMessagesEndTheConnection()
+    {
+        using var server = new NetServerHost(0) { MaxMessageBytes = 1000 };
+        NetConnection? accepted = null;
+        server.Connected += c => accepted = c;
+        using var client = new NetClientConnection("127.0.0.1", server.Port);
+        client.Send(new HelloMessage { PlayerName = "Small" }.Write());
+        client.Send(new CharacterChoiceMessage { Bic = new byte[5000] }.Write());
+        byte[]? first = null;
+        Until(() => accepted is { IsConnected: false }, () =>
+        {
+            server.Poll();
+            client.TryReceive(out _);
+            if (first == null && accepted != null && accepted.TryReceive(out var m)) first = m;
+        });
+        if (first == null) accepted!.TryReceive(out first);
+        Assert.NotNull(first);
+        Assert.Equal((byte)MessageType.Hello, first![0]);
+        Assert.False(accepted!.TryReceive(out _));
+    }
+
     [Theory]
     [InlineData("protocol")]
     [InlineData("build")]

@@ -24,6 +24,8 @@ public sealed class NwnWebSocketTransport : INwnTransport
     readonly ConcurrentQueue<byte[]> _inbox = new();
     readonly BlockingCollection<byte[]> _outbox = new();
     readonly CancellationTokenSource _cts = new();
+    /// <summary>Largest frame accepted from the server; a bigger one ends the connection instead of growing without bound.</summary>
+    public const int MaxFrameBytes = 32 * 1024 * 1024;
     volatile string? _closeReason;
     volatile bool _open;
 
@@ -92,6 +94,11 @@ public sealed class NwnWebSocketTransport : INwnTransport
                 _closeReason ??= string.IsNullOrEmpty(result.CloseStatusDescription)
                     ? $"server closed the connection ({result.CloseStatus})"
                     : result.CloseStatusDescription;
+                return;
+            }
+            if (frame.Length + result.Count > MaxFrameBytes)
+            {
+                _closeReason ??= "the server sent an oversized frame";
                 return;
             }
             frame.Write(buffer, 0, result.Count);

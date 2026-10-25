@@ -153,6 +153,27 @@ public sealed class BarterTests
     }
 
     [DataFact]
+    public void SplittingAnOfferedStackTakesItOutOfTheOffer()
+    {
+        using var f = new Fixture();
+        var potions = f.World.Inventory.CreateOn("nw_it_mpotion001", f.A, 3, "BARTER_POTION")!;
+        f.Open();
+        f.Send(f.ClientA, "barter-offer", new { item = potions.Id });
+        f.Send(f.ClientB, "barter-gold", new { gold = 40 });
+        f.Send(f.ClientA, "barter-lock", new { });
+        f.Send(f.ClientB, "barter-lock", new { });
+        f.Send(f.ClientB, "barter-accept", new { });
+        // The partner accepted three potions; a smaller stack must not be traded on that acceptance.
+        f.Send(f.ClientA, "item-split", new { item = potions.Id, count = 2 });
+        Assert.Equal(1, potions.StackSize);
+        f.Send(f.ClientA, "barter-accept", new { });
+        Assert.Equal(f.A, f.World.Inventory.Owner(potions));
+        Assert.Equal(50, f.B.Gold);
+        Assert.NotNull(f.World.System<BarterService>().SessionOf(f.A));
+        Assert.Empty(f.LastState(f.NotesB).GetProperty("theirs").GetProperty("items").EnumerateArray());
+    }
+
+    [DataFact]
     public void RefusingCancellingAndBusyPlayersGetTheGamesLines()
     {
         using var f = new Fixture();

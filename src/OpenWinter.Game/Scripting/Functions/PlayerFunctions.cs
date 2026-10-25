@@ -195,6 +195,7 @@ static class PlayerFunctions
         if (Pc(c, 0) is not { } pc) return null;
         var data = pc.PendingTargetingData;
         pc.PendingTargetingData = null;
+        pc.AwaitingTarget = true;
         Tell(c, pc, "targeting-mode", new
         {
             types = c.I(1, ObjectFunctions.TypeAll), cursor = c.I(2, 29), badCursor = c.I(3, 31),

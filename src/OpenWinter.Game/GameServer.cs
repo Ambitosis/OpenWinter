@@ -23,6 +23,10 @@ public sealed class PlayerSession
     /// <summary>The waypoint a portal sent this player to (HelloMessage.PortalWaypoint), until the player is placed.</summary>
     public string PortalWaypoint = "";
     public bool AreaReadyHandshake;
+    /// <summary>The client has said Hello; a second Hello on the same connection is ignored.</summary>
+    public bool HelloReceived;
+    /// <summary>Server running time when the connection was accepted (for the Hello deadline).</summary>
+    internal double AcceptedAt;
     public bool IsAreaLoading;
     /// <summary>
     /// A death panel with its Respawn button is up (PopUpDeathGUIPanel, PopUpGUIPanel(GUI_PANEL_PLAYER_DEATH)). Its
@@ -187,10 +191,14 @@ public sealed partial class GameServer : IWorldOutput
 
     public PlayerSession Accept(IConnection connection)
     {
-        var s = new PlayerSession { Connection = connection };
+        var s = new PlayerSession { Connection = connection, AcceptedAt = _running };
         _sessions.Add(s);
         return s;
     }
+
+    /// <summary>Seconds a connection may stay without saying Hello before it is dropped.</summary>
+    public const float HelloTimeout = 30;
+    double _running;
 
     double _nextClock;
 
@@ -202,6 +210,7 @@ public sealed partial class GameServer : IWorldOutput
 
     public void Tick(float dt)
     {
+        _running += dt;
         if (World.Time >= _nextClock)
         {
             _nextClock = World.Time + 10;
@@ -210,7 +219,24 @@ public sealed partial class GameServer : IWorldOutput
         }
         foreach (var s in _sessions.ToList())
         {
-            while (s.Connection.TryReceive(out var data)) Handle(s, new MessageReader(data), data);
+            while (s.Connection.TryReceive(out var data))
+            {
+                // Clients are untrusted: a malformed message drops the connection, and a failure while handling
+                // one is logged rather than taking the server down.
+                try { Handle(s, new MessageReader(data), data); }
+                catch (Exception e) when (e is EndOfStreamException or InvalidDataException or FormatException)
+                {
+                    Console.WriteLine($"[server] malformed message from client {s.Connection.Id}; disconnecting: {e.Message}");
+                    s.Connection.Disconnect();
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"[server] message {(data.Length > 0 ? (MessageType)data[0] : 0)} from client {s.Connection.Id} failed: {e}");
+                }
+            }
+            // A connection that never logs in would hold a place on the server.
+            if (!s.HelloReceived && _running - s.AcceptedAt > HelloTimeout) s.Connection.Disconnect();
             if (!s.Connection.IsConnected) Disconnect(s);
         }
         if (_options.ExportInterval > 0 && _options.Vault == VaultMode.Server && (_exportTimer += dt) >= _options.ExportInterval)
@@ -246,13 +272,14 @@ public sealed partial class GameServer : IWorldOutput
         if (s.IsAreaLoading && r.Type is MessageType.MoveInput or MessageType.DriveInput or MessageType.ActionRequest or MessageType.DialogReply) return;
         switch (r.Type)
         {
-            case MessageType.Hello:
+            case MessageType.Hello when !s.HelloReceived:
+                s.HelloReceived = true;
                 Login(s, HelloMessage.Read(r));
                 break;
-            case MessageType.ContentRequest:
+            case MessageType.ContentRequest when s.HelloReceived:
                 Content?.Request(s, ContentRequestMessage.Read(r).Sha1);
                 break;
-            case MessageType.CharacterChoice:
+            case MessageType.CharacterChoice when s.HelloReceived:
                 ChooseCharacter(s, CharacterChoiceMessage.Read(r));
                 break;
             case MessageType.ClientRequest when s.Creature != null:
@@ -266,14 +293,14 @@ public sealed partial class GameServer : IWorldOutput
                 // Before choosing a character: character creation, or a portal prompt asking what this server is.
                 var req = ClientRequestMessage.Read(r);
                 if (req.Kind == "server-info") { s.Send(ServerInfo()); break; }
-                Progression.ChargenRequests.HandlePreLogin(this, s, req.Kind, req.Json);
+                if (s.HelloReceived) Progression.ChargenRequests.HandlePreLogin(this, s, req.Kind, req.Json);
                 break;
             }
             case MessageType.MoveInput when s.Creature != null:
                 s.Creature.DriveInput = null;
                 var m = MoveInputMessage.Read(r);
-                // A dying player can't move (it is uncommandable until healed).
-                if (s.Creature.IsDying) break;
+                // A dying, dead or otherwise uncommandable player can't move.
+                if (s.Creature.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 if (m.Direction.LengthSquared() > 0.0001f)
                 {
                     // Steering by keys overrides click-to-move and other queued actions.
@@ -333,6 +360,7 @@ public sealed partial class GameServer : IWorldOutput
                 Broadcast(s.Area, new PlayAnimationMessage { ObjectId = s.Creature!.Id, Animation = a.Argument }.Write());
                 break;
             case ActionKind.MoveTo:
+                if (s.Creature!.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 ActionQueues.Clear(World, s.Creature!);
                 Movement.Stop(s.Creature!);
                 var move = new MoveAction { Target = a.Position, Run = a.Run, Range = 0.3f, AllowBackward = true };
@@ -345,6 +373,7 @@ public sealed partial class GameServer : IWorldOutput
                 break;
             case ActionKind.Talk:
             case ActionKind.Use:
+                if (s.Creature!.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 Interact(s.Creature!, World.Get(a.Target), a.Action == ActionKind.Talk);
                 break;
             case ActionKind.OpenDoor:
@@ -617,7 +646,16 @@ public sealed partial class GameServer : IWorldOutput
             s.Connection.Disconnect();
             return;
         }
+        if (!hello.DM && _options.Vault == VaultMode.Server && _options.CharacterSelection
+            && !Persistence.ServerVault.ClaimFolder(World, hello.PlayerName, hello.PlayerKey))
+        {
+            s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That player name is in use with a different key." }.Write());
+            s.Connection.Disconnect();
+            return;
+        }
         s.IsDM = hello.DM;
+        // Naming a local-vault character skips selection only for DMs and on servers without a selection screen.
+        if (!IsPlainFileName(hello.CharacterResRef) || (_options.CharacterSelection && !s.IsDM)) hello.CharacterResRef = "";
         var ifo = World.Module.Ifo;
         s.Send(new WelcomeMessage
         {
@@ -656,6 +694,9 @@ public sealed partial class GameServer : IWorldOutput
         }
         EnterWorld(s, CreatePlayerCreature(hello));
     }
+
+    static bool IsPlainFileName(string name) =>
+        name.Length > 0 && name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 && name.IndexOfAny(['/', '\\', ':']) < 0 && !name.Contains("..");
 
     /// <summary>The player chose a character on the selection screen.</summary>
     void ChooseCharacter(PlayerSession s, CharacterChoiceMessage choice)

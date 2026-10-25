@@ -138,9 +138,8 @@ public sealed class LoaderHardeningTests : IDisposable
             new OpenWinter.Net.ContentFile { Kind = OpenWinter.Net.ContentKind.Hak, Name = "x", Size = 1, Sha1 = "../../../outside" },
         });
         Assert.Empty(sync.Resolved);
-        Assert.Single(sync.Missing);
-        Assert.Equal("../../evil", sync.Missing[0].Name);
-        Assert.NotNull(sync.Error);
+        Assert.Empty(sync.Missing);
+        Assert.False(File.Exists(Path.Combine(_root, "outside.hak")));
     }
 
     // ---------------------------------------------------------------- compressed buffers and databases
