@@ -205,6 +205,8 @@ public class NwnBridgeTests
         Assert.Equal((ushort)0, NwnBridgeConnection.Bearing(0));
         Assert.Equal((ushort)2700, NwnBridgeConnection.Bearing(-MathF.PI / 2));
         Assert.Equal(((byte)1, (byte)3), (NwnBridgeConnection.DriveFlags(walking: true), NwnBridgeConnection.DriveFlags(walking: false)));
+        // Strafing right (the server then plays its strafe-right animation and follows the reported positions).
+        Assert.Equal((byte)9, NwnBridgeConnection.DriveFlags(walking: true, forward: 0, right: 1));
     }
 
     [Fact]

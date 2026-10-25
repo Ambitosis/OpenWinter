@@ -197,14 +197,24 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         step *= (walking ? walkRate : runRate) * dt;
         var to = at + new System.Numerics.Vector3(step, 0);
         _world.Predict(_world.Controlled, to, facing, step == default ? MovementMode.Stand : walking ? MovementMode.Walk : MovementMode.Run);
-        ToServer(new InputMessages.InputDriveControl { X = to.X, Y = to.Y, Area = _world.AreaId, Bearing = Bearing(facing), PathfindEventNumber = _eventNumber, DriveFlags = DriveFlags(walking) });
+        var forward = Math.Clamp(d.Direction.Y, -1, 1);
+        var right = Math.Clamp(d.Direction.X, -1, 1);
+        ToServer(new InputMessages.InputDriveControl
+        {
+            X = to.X, Y = to.Y, Area = _world.AreaId, Bearing = Bearing(facing), PathfindEventNumber = _eventNumber,
+            DriveFlags = step == default ? (byte)0 : DriveFlags(walking, forward, right),
+        });
     }
 
     /// <summary>A facing as the drive message's bearing: tenths of a degree counter-clockwise from +X.</summary>
     public static ushort Bearing(float facing) => (ushort)(((int)MathF.Round(facing * 1800f / MathF.PI) % 3600 + 3600) % 3600);
 
-    /// <summary>The drive message's flags: moving (1), running (2); none once released.</summary>
-    public static byte DriveFlags(bool walking) => (byte)(walking ? 1 : 3);
+    /// <summary>
+    /// The drive message's flags: moving (1), running (2), strafing right (8); none when standing (turning in place)
+    /// or released.
+    /// </summary>
+    public static byte DriveFlags(bool walking, float forward = 1, float right = 0) =>
+        forward == 0 && right > 0 ? (byte)9 : (byte)(walking ? 1 : 3);
 
     void Request(ClientRequestMessage request)
     {
