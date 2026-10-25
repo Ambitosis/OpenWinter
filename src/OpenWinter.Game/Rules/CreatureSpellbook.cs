@@ -50,45 +50,15 @@ public static partial class CreatureRules
         if (lvl <= 0) return 0;
         var classes = w.Resources.TwoDA("classes");
         bool arcane = classes.GetInt(cls, "Arcane") != 0;
-        if (ProgressedClass(w, c, arcane) != cls) return lvl;
+        // Prestige classes add to the first spellcasting class of the matching kind.
+        var first = c.Classes.FirstOrDefault(x => IsSpellCaster(w, x.Class) && (classes.GetInt(x.Class, "Arcane") != 0) == arcane);
+        if (first == null || first.Class != cls) return lvl;
         foreach (var other in c.Classes)
         {
             int mod = classes.GetInt(other.Class, arcane ? "ArcSpellLvlMod" : "DivSpellLvlMod");
             if (mod > 0) lvl += (other.Level + mod - 1) / mod;
         }
         return lvl;
-    }
-
-    /// <summary>
-    /// The class prestige levels advance (classes.2da ArcSpellLvlMod / DivSpellLvlMod): the creature's first
-    /// spellcasting class of that kind, or -1.
-    /// </summary>
-    public static int ProgressedClass(World w, Creature c, bool arcane)
-    {
-        var classes = w.Resources.TwoDA("classes");
-        var first = c.Classes.FirstOrDefault(x => x.Level > 0 && IsSpellCaster(w, x.Class) && (classes.GetInt(x.Class, "Arcane") != 0) == arcane);
-        return first?.Class ?? -1;
-    }
-
-    /// <summary>
-    /// The spellcasting class whose caster level a level of <paramref name="levelled"/> raises: the class itself when it
-    /// casts, else the base class its prestige progression advances; -1 when the level adds no caster level.
-    /// </summary>
-    public static int CasterClassAdvancedBy(World w, Creature c, int levelled)
-    {
-        if (IsSpellCaster(w, levelled)) return levelled;
-        var classes = w.Resources.TwoDA("classes");
-        foreach (bool arcane in new[] { true, false })
-        {
-            int mod = classes.GetInt(levelled, arcane ? "ArcSpellLvlMod" : "DivSpellLvlMod");
-            if (mod <= 0) continue;
-            int target = ProgressedClass(w, c, arcane);
-            if (target < 0) continue;
-            // Only the levels that cross a multiple of the modifier raise the caster level.
-            int now = ClassLevel(c, levelled);
-            if ((now + mod - 1) / mod > (now - 1 + mod - 1) / mod) return target;
-        }
-        return -1;
     }
 
     /// <summary>Spell slots per day at a spell level: spell gain table + bonus spells from the casting ability + item bonus slots.</summary>

@@ -87,7 +87,7 @@ public static class PackageBuilder
         {
             plan = ProgressionRules.Plan(w, c, ch, player, checkVariables: player);
             var prefs = PrefList(w, packages.Get(pkg, "SpellPref2DA"), "SpellIndex").ToList();
-            foreach (var pick in plan.Spells)
+            foreach (var pick in plan.Spells.Where(p => p.Class == cls))
             {
                 foreach (var (lvl, n) in pick.PerLevel)
                 {

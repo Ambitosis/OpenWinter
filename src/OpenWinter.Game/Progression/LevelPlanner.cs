@@ -234,26 +234,16 @@ public static partial class ProgressionRules
         }
     }
 
-    /// <summary>
-    /// New spells for the class whose caster level this level raises. Known spells (cls_spkn_*) follow the caster
-    /// level, so a prestige level that advances a spontaneous caster (ArcSpellLvlMod / DivSpellLvlMod) teaches that
-    /// class new spells too.
-    /// </summary>
-    static void PlanSpells(World w, Creature s, LevelChoice ch, LevelPlan plan, CreatureClass levelled)
+    static void PlanSpells(World w, Creature s, LevelChoice ch, LevelPlan plan, CreatureClass cc)
     {
-        int cls = CreatureRules.CasterClassAdvancedBy(w, s, ch.Class);
-        if (cls < 0 || cls != ch.Class && !HasKnownTable(w, cls)) { RejectSpells(w, ch, plan); return; }
-        var cc = s.Classes.First(x => x.Class == cls);
-        int casterLevel = CreatureRules.CasterLevel(w, s, cls);
-        levelled.Level--;
-        int casterBefore = CreatureRules.CasterLevel(w, s, cls);
-        levelled.Level++;
+        int cls = ch.Class;
+        if (!CreatureRules.IsSpellCaster(w, cls)) { RejectSpells(w, ch, plan); return; }
         var pick = new SpellPick { Class = cls };
         if (HasKnownTable(w, cls))
         {
             for (int lvl = 0; lvl < 10; lvl++)
             {
-                int need = KnownCount(w, cls, casterLevel, lvl) - KnownCount(w, cls, casterBefore, lvl);
+                int need = KnownCount(w, cls, cc.Level, lvl) - KnownCount(w, cls, cc.Level - 1, lvl);
                 if (need <= 0) continue;
                 var options = ClassSpells(w, cls, lvl).Where(sp => !cc.KnownSpells[lvl].Contains(sp)).ToList();
                 pick.PerLevel[lvl] = Math.Min(need, options.Count);
@@ -275,7 +265,7 @@ public static partial class ProgressionRules
             }
             else
             {
-                pick.MaxLevel = MaxSpellLevel(w, cls, casterLevel);
+                pick.MaxLevel = MaxSpellLevel(w, cls, cc.Level);
                 int available = 0;
                 for (int lvl = 0; lvl <= pick.MaxLevel; lvl++)
                 {
