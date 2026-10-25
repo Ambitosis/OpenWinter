@@ -30,6 +30,9 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
     /// <summary>NWN animation codes in object updates: standing (0, 1), walking (2), running (4).</summary>
     const ushort AnimWalk = 2, AnimRun = 4;
 
+    /// <summary>A door's animation state: closed (22); any other state (51 after opening) is open.</summary>
+    public const ushort DoorClosed = 22;
+
     // NWN armour-part order (nwscript.nss CREATURE_PART_*): right foot, left foot, right shin, left shin, left thigh,
     // right thigh, pelvis, torso, belt, neck, right forearm, left forearm, right bicep, left bicep, right shoulder,
     // left shoulder, right hand, left hand, robe. These are its indices for OpenWinter's body-part order after the head.
@@ -53,6 +56,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         public NwnMover? Mover;
         public MovementMode Mode;
         public bool InCombat;
+        public ushort Anim;
         public bool AppearanceChanged, StateChanged;
     }
 
@@ -187,6 +191,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
                     m.Appearance = new Appearance { Type = (int)d.AppearanceType, GenericDoorType = (int)(d.GenericType ?? 0) };
                     m.Flags = ObjectFlags.Selectable | (d.Locked ? ObjectFlags.Locked : 0) | (d.Plot ? ObjectFlags.Plot : 0)
                         | (d.Clickable ? ObjectFlags.Transition : 0);
+                    DoorAnim(m, d.Anim);
                     m.HasAppearance = true;
                     break;
                 }
@@ -320,8 +325,26 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         if (g.Locked is { } locked) m.Flags = locked ? m.Flags | ObjectFlags.Locked : m.Flags & ~ObjectFlags.Locked;
         if (g.Useable is { } useable)
             m.Flags = useable ? m.Flags | ObjectFlags.Useable | ObjectFlags.Selectable : m.Flags & ~ObjectFlags.Useable;
+        if (g.Animation is { } anim && m.Kind == ObjectKind.Door) DoorAnim(m, anim);
         m.StateChanged = true;
     }
+
+    static void DoorAnim(Mirror m, ushort anim)
+    {
+        m.Anim = anim;
+        m.Flags = anim == DoorClosed ? m.Flags & ~ObjectFlags.Open : m.Flags | ObjectFlags.Open;
+    }
+
+    /// <summary>
+    /// What clicking a door sends: a door state change carrying the state the player sees, which the server
+    /// toggles (an open door closes); null when the object isn't a known door, or is an open transition that a
+    /// plain use (<paramref name="use"/>) travels through.
+    /// </summary>
+    public InputMessages.InputChangeDoorState? DoorRequest(uint id, bool use = false) =>
+        _objects.TryGetValue(id, out var m) && m.Kind == ObjectKind.Door
+            && !(use && (m.Flags & (ObjectFlags.Open | ObjectFlags.Transition)) == (ObjectFlags.Open | ObjectFlags.Transition))
+            ? new InputMessages.InputChangeDoorState { Door = id, Animation = m.Anim }
+            : null;
 
     /// <summary>
     /// The player's explored tiles: the whole map, a list of explored tiles, a list of changes, or one bit per tile

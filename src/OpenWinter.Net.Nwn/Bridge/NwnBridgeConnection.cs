@@ -141,6 +141,13 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                     ClickedOn = GameObjUpdateMessages.InvalidObjectId,
                 });
                 break;
+            case ActionKind.Use or ActionKind.Talk or ActionKind.PickUp or ActionKind.OpenDoor or ActionKind.CloseDoor:
+                // Doors change state; everything else is used (the server walks the player there first).
+                ToServer((NwnMessage?)_world.DoorRequest(a.Target, a.Action == ActionKind.Use) ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true });
+                break;
+            case ActionKind.Attack:
+                ToServer(new InputMessages.InputAttack { Target = a.Target });
+                break;
         }
     }
 

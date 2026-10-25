@@ -183,7 +183,8 @@ static class NwnRecordingDump
 /// <summary>
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
-///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY]
+///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--record FILE]
+/// (four seconds in: say, walk; then use the nearest object whose name contains each NAME, five seconds apart)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -191,11 +192,16 @@ static class NwnBridgeProbe
     {
         string Opt(string name, string fallback) => Array.IndexOf(args, name) is var i and >= 0 && i + 1 < args.Length ? args[i + 1] : fallback;
         var bridge = new OpenWinter.Net.Nwn.Bridge.NwnBridgeConnection(
-            new OpenWinter.Net.Nwn.Bridge.NwnBridgeOptions(new Uri(args[1]), NwnCdKey.Generate()), new OpenWinter.Net.Nwn.Bridge.NwnResManData(paths));
+            new OpenWinter.Net.Nwn.Bridge.NwnBridgeOptions(new Uri(args[1]), NwnCdKey.Generate()) { RecordTo = Opt("--record", "") is { Length: > 0 } rec ? rec : null },
+            new OpenWinter.Net.Nwn.Bridge.NwnResManData(paths));
         bridge.Send(new OpenWinter.Net.HelloMessage { PlayerName = "probe", CharacterResRef = args[2], AreaReadyHandshake = true }.Write());
         var clock = Stopwatch.StartNew();
         var seconds = double.Parse(Opt("--seconds", "10"));
         var walk = Opt("--walk", "");
+        var say = Opt("--say", "");
+        var uses = new Queue<string>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var nextUse = 6.0;
+        var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
         var counts = new SortedDictionary<string, int>();
         uint controlled = 0;
         System.Numerics.Vector3 at = default;
@@ -225,13 +231,19 @@ static class NwnBridgeProbe
                         break;
                     case OpenWinter.Net.MessageType.Spawn:
                         var s = OpenWinter.Net.SpawnMessage.Read(r);
+                        objects[s.ObjectId] = (s.Name, s.Kind, s.Position);
                         Console.WriteLine($"{clock.ElapsedMilliseconds,6} Spawn {s.ObjectId:X} {s.Kind} \"{s.Name}\" at {s.Position} facing {s.Facing:0.00} type {s.Appearance.Type} parts [{string.Join(",", s.Appearance.BodyParts)}] equip {s.Appearance.Equipment.Count} {s.Flags}");
                         break;
                     case OpenWinter.Net.MessageType.Update:
                         var u = OpenWinter.Net.UpdateMessage.Read(r);
                         if (u.ObjectId == controlled) at = u.Position;
-                        if (u.Mode != OpenWinter.Net.MovementMode.Stand || counts[type] < 5)
+                        if (objects.TryGetValue(u.ObjectId, out var o) && o.Kind != OpenWinter.Net.ObjectKind.Creature)
+                            Console.WriteLine($"{clock.ElapsedMilliseconds,6} Update {u.ObjectId:X} {o.Kind} \"{o.Name}\" {u.Flags}");
+                        else if (u.Mode != OpenWinter.Net.MovementMode.Stand || counts[type] < 5)
                             Console.WriteLine($"{clock.ElapsedMilliseconds,6} Update {u.ObjectId:X} {u.Mode} at {u.Position} facing {u.Facing:0.00} speed {u.Speed}");
+                        break;
+                    case OpenWinter.Net.MessageType.Despawn:
+                        objects.Remove(OpenWinter.Net.DespawnMessage.Read(r).ObjectId);
                         break;
                     case OpenWinter.Net.MessageType.ControlObject:
                         controlled = OpenWinter.Net.ControlObjectMessage.Read(r).ObjectId;
@@ -246,9 +258,28 @@ static class NwnBridgeProbe
                         break;
                 }
             }
-            if (!walked && controlled != 0 && clock.Elapsed.TotalSeconds > 4 && walk.Split(',') is [var dx, var dy])
+            if (!walked && controlled != 0 && clock.Elapsed.TotalSeconds > 4)
             {
                 walked = true;
+                if (say.Length > 0)
+                {
+                    bridge.Send(new OpenWinter.Net.ChatSendMessage { Channel = OpenWinter.Net.ChatChannel.Talk, Text = say }.Write());
+                    Console.WriteLine($"{clock.ElapsedMilliseconds,6} said \"{say}\"");
+                }
+            }
+            if (walked && uses.Count > 0 && clock.Elapsed.TotalSeconds > nextUse)
+            {
+                nextUse = clock.Elapsed.TotalSeconds + 5;
+                var name = uses.Dequeue();
+                var here = at;
+                var target = name.StartsWith('#') ? Convert.ToUInt32(name[1..], 16) : objects.Where(kv => kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} using \"{name}\": {target:X}");
+                if (target != 0) bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }.Write());
+            }
+            if (walked && walk.Split(',') is [var dx, var dy])
+            {
+                walk = "";
                 bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.MoveTo, Position = at + new System.Numerics.Vector3(float.Parse(dx), float.Parse(dy), 0), Run = false }.Write());
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} walking from {at}");
             }

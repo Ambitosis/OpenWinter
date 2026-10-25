@@ -148,4 +148,46 @@ public class NwnBridgeTests
         Assert.Equal("area-map", notice.Kind);
         Assert.Contains("\"explored\":\"10100001\"", notice.Json);
     }
+
+    static GameObjUpdateObjListAddDoor Door(uint id, ushort anim) => new()
+    {
+        ObjectId = id, GenericType = 5, OriginalName = false, StrName = "Door", Anim = anim,
+    };
+
+    [Fact]
+    public void DoorsAreOpenOrClosedFromTheirAnimationState()
+    {
+        // As recorded from nwserver: a closed door's state is 22, an opened one's 51.
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        output.Clear();
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList { Entries = { Door(7, 22), Door(4, 51) } });
+        var spawns = output.Where(m => m.Type == MessageType.Spawn).Select(m => SpawnMessage.Read(m)).ToDictionary(s => s.ObjectId);
+        Assert.Equal(0u, (uint)(spawns[7].Flags & ObjectFlags.Open));
+        Assert.Equal(ObjectFlags.Open, spawns[4].Flags & ObjectFlags.Open);
+        output.Clear();
+        // The server closes door 4: an update with only the animation.
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries = { new ObjListUpdateDoor { ObjectType = NwnExternalTypes.ObjectType.Door, ObjectId = 4, Flags = 4, Animation = 22 } },
+        });
+        var update = UpdateMessage.Read(Assert.Single(output));
+        Assert.Equal((4u, (ObjectFlags)0), (update.ObjectId, update.Flags & ObjectFlags.Open));
+    }
+
+    [Fact]
+    public void ClickingADoorAsksTheServerToChangeTheStateThePlayerSees()
+    {
+        var (mirror, _) = Mirror();
+        mirror.Area(Area());
+        var transition = Door(9, 51);
+        transition.Clickable = true;
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList { Entries = { Door(7, 22), Door(4, 51), transition } });
+        Assert.Equal((7u, (ushort)22), (mirror.DoorRequest(7)!.Door, mirror.DoorRequest(7)!.Animation));
+        Assert.Equal((ushort)51, mirror.DoorRequest(4, use: true)!.Animation);
+        // An open transition is travelled through on a plain use, closed from the radial menu.
+        Assert.Null(mirror.DoorRequest(9, use: true));
+        Assert.Equal((ushort)51, mirror.DoorRequest(9)!.Animation);
+        Assert.Null(mirror.DoorRequest(5));
+    }
 }
