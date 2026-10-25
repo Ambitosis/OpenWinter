@@ -19,7 +19,12 @@ public class NwnBridgeTests
     {
         public int TwoDARowCount(string table) => 0;
         public string TwoDA(string table, int row, string column) => "";
-        public string Text(uint strRef, byte gender) => $"#{strRef}";
+        public string Text(uint strRef, byte gender) => strRef switch
+        {
+            10468 => "Acquired Item: <CUSTOM0>",
+            8296 => "This object is locked.",
+            _ => $"#{strRef}",
+        };
         public void UseContent(IReadOnlyList<string> haks, string customTlk) { }
     }
 
@@ -229,5 +234,66 @@ public class NwnBridgeTests
         Assert.Equal((ObjectKind.Item, "#166", 1, new System.Numerics.Vector3(20, 22, 0)), (spawn.Kind, spawn.Name, spawn.Appearance.Type, spawn.Position));
         Assert.Equal(ObjectFlags.Useable | ObjectFlags.Selectable, spawn.Flags);
         Assert.Equal(ObjectKind.Item, mirror.KindOf(36));
+    }
+
+    [Fact]
+    public void WhileDrivingTheServersTrailingEchoesAreIgnoredButATeleportIsNot()
+    {
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListAddCreature { ObjectId = 7, Position = (20, 20, 0) },
+                new GameObjUpdateObjListAppearanceCreature { ObjectId = 7, Flags = UpdateCreatureAppearanceFlags.Race },
+            },
+        });
+        mirror.Control(7);
+        mirror.Driving = true;
+        mirror.Predict(7, new Vector3(20, 22, 0), MathF.PI / 2, MovementMode.Walk);
+        output.Clear();
+        GameObjUpdateMessages.GameObjUpdateObjList Echo(float y) => new()
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListUpdateCreature
+                {
+                    ObjectId = 7, Flags = UpdateFlag.ObjectPositionFlag | UpdateFlag.ObjectAnimationFlag, Position = (20, y, 0),
+                    AnimTypeData = new GameObjUpdateAnimationMessages.AnimTypeData { AnimType = 2 },
+                },
+            },
+        };
+        // As recorded while walking forward: the server's position trails the reported one by 0.1-0.3 m.
+        mirror.ObjectList(Echo(21.8f));
+        Assert.Empty(output);
+        Assert.True(mirror.TryPose(7, out var at, out _, out _, out _));
+        Assert.Equal(new Vector3(20, 22, 0), at);
+        // A jump far from where the client has it is taken.
+        mirror.ObjectList(Echo(35));
+        Assert.Equal(new Vector3(20, 35, 0), UpdateMessage.Read(Assert.Single(output)).Position);
+        // Once released, the server's position is the creature's again.
+        output.Clear();
+        mirror.Driving = false;
+        mirror.ObjectList(Echo(35.3f));
+        Assert.Equal(new Vector3(20, 35.3f, 0), UpdateMessage.Read(Assert.Single(output)).Position);
+    }
+
+    [Fact]
+    public void FeedbackIsWrittenToChatWithTheTalkTableLine()
+    {
+        // As recorded: picking up a longsword, then clicking a locked door.
+        var chat = new List<ChatMessage>();
+        void Feed(object payload, long tag) => NwnFeedback.ToClient(
+            new ClientSideMessageFeedbackMessages.ClientSideMessageFeedback { Payload = new NwnTagged(tag, payload) }, new Data(),
+            m => chat.Add(ChatMessage.Read(new MessageReader(m))));
+        Feed(new ClientSideMessageFeedbackMessages.FeedbackItemReceived
+        {
+            Item = new ClientSideMessageFeedbackMessages.ItemData { Identified = true, Name = new NwnTagged(1, NwnLocString.FromStrRef(166)) },
+        }, 50);
+        Feed(new ClientSideMessageFeedbackMessages.FeedbackObjectLocked { LockedObject = 3 }, 13);
+        Feed(new ClientSideMessageFeedbackMessages.FeedbackPaused(), 205);
+        Assert.Equal(["Acquired Item: #166", "This object is locked."], chat.Select(c => c.Text));
+        Assert.All(chat, c => Assert.Equal(ChatChannel.Server, c.Channel));
     }
 }
