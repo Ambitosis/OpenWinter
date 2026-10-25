@@ -183,7 +183,7 @@ static class NwnRecordingDump
 /// <summary>
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
-///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run]] [--record FILE]
+///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart)
 /// </summary>
 static class NwnBridgeProbe
@@ -201,6 +201,7 @@ static class NwnBridgeProbe
         var say = Opt("--say", "");
         var drive = double.Parse(Opt("--drive", "0"));
         var run = Array.IndexOf(args, "--run") >= 0;
+        var axes = Opt("--axes", "0,1,0").Split(',').Select(float.Parse).ToArray();
         var driveState = 0;
         var uses = new Queue<string>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var nextUse = 6.0;
@@ -282,7 +283,7 @@ static class NwnBridgeProbe
             }
             if (walked && drive > 0 && driveState < 2 && clock.Elapsed.TotalSeconds > (driveState == 0 ? 5 : 5 + drive))
             {
-                bridge.Send(new OpenWinter.Net.DriveInputMessage { Direction = new System.Numerics.Vector3(0, 1, 0), Walk = !run, Active = driveState == 0 }.Write());
+                bridge.Send(new OpenWinter.Net.DriveInputMessage { Direction = new System.Numerics.Vector3(axes[0], axes[1], 0), Turn = axes[2], Walk = !run, Active = driveState == 0 }.Write());
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} {(driveState == 0 ? "driving forward" : "released")} at {at}");
                 driveState++;
             }

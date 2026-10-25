@@ -74,12 +74,27 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
 
     /// <summary>
     /// The player is driving the controlled creature, which the client moves ahead of the server: the server's own
-    /// position, facing and gait for it are ignored unless it puts the creature somewhere else (a jump or teleport).
+    /// position, facing and gait for it are ignored while it only trails the client along the driven path. A
+    /// position off that path (blocked by an obstacle, a jump or teleport) is taken, and driving goes on from there.
     /// </summary>
-    public bool Driving { get; set; }
+    public bool Driving
+    {
+        get => _driving;
+        set
+        {
+            _driving = value;
+            _driven.Clear();
+        }
+    }
 
-    /// <summary>How far the server's position may trail a driven creature before it is taken as a move.</summary>
-    public const float DriveTolerance = 2f;
+    /// <summary>How far the server's position may be from the recently driven path and still count as its echo.</summary>
+    public const float DriveTolerance = 0.6f;
+
+    /// <summary>Driven positions kept for comparison: the server trails by up to a few tenths of a second.</summary>
+    const int DrivenKept = 4;
+
+    bool _driving;
+    readonly Queue<Vector3> _driven = new();
     public uint LoadToken { get; private set; }
     /// <summary>The start of the current area, for the player's first steps.</summary>
     public Vector3 AreaStart { get; private set; }
@@ -300,7 +315,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         if (u.WalkRate is { } walk && walk > 0) m.WalkRate = walk / 1000f;
         if (u.RunRate is { } run && run > 0) m.RunRate = run / 1000f;
         if (Driving && u.ObjectId == Controlled && m.Spawned
-            && (u.Position is not { } moved || Vector3.Distance(V(moved), m.Position) < DriveTolerance))
+            && (u.Position is not { } moved || _driven.Append(m.Position).Any(p => Vector2.Distance(new(p.X, p.Y), new(moved.Item1, moved.Item2)) < DriveTolerance)))
         {
             // The echo of the player's own driving, trailing the client: only combat state is news.
             if (u.InCombat is { } fighting && fighting != m.InCombat) (m.InCombat, m.StateChanged) = (fighting, true);
@@ -420,6 +435,11 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
     public void Predict(uint id, Vector3 position, float facing, MovementMode mode)
     {
         if (!_objects.TryGetValue(id, out var m) || !m.Spawned) return;
+        if (Driving && id == Controlled)
+        {
+            _driven.Enqueue(m.Position);
+            while (_driven.Count > DrivenKept) _driven.Dequeue();
+        }
         (m.Position, m.Facing, m.Mode, m.Mover) = (position, facing, mode, null);
         emit(UpdateFor(m).Write());
     }
