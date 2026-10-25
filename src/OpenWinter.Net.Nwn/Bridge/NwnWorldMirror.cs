@@ -57,7 +57,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         public NwnMover? Mover;
         public MovementMode Mode;
         public bool InCombat;
-            public bool AppearanceChanged, StateChanged;
+        public bool AppearanceChanged, StateChanged;
     }
 
     readonly Dictionary<uint, Mirror> _objects = [];
