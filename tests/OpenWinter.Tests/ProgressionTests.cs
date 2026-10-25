@@ -151,6 +151,11 @@ public class ProgressionTests
         Assert.Contains(Errors(n => n.Race = 8), e => e.Code == "race"); // Animal: not a player race
         Assert.Contains(Errors(n => n.FirstName = ""), e => e.Code == "name");
         Assert.Contains(Errors(n => n.Level.Skills[3] += 20), e => e.Code == "skills");
+        // Appearance: the race's own (or -1 for it), nothing else.
+        int raceLook = w.Resources.TwoDA("racialtypes").GetInt(6, "Appearance");
+        Assert.DoesNotContain(Errors(n => n.Appearance = raceLook), e => e.Code == "appearance");
+        Assert.Contains(Errors(n => n.Appearance = raceLook + 1), e => e.Code == "appearance");
+        Assert.Contains(Errors(n => n.Level.Feats.AddRange(Enumerable.Repeat(0, w.Resources.TwoDA("feat").RowCount + 1))), e => e.Code == "choices");
         Assert.Contains(Errors(n => n.Level.Feats.Clear()), e => e.Code == "feats-unspent");
         Assert.Contains(Errors(n => n.Level.Feats.Add(n.Level.Feats.Count > 0 ? n.Level.Feats[0] : 0)), e => e.Code == "feats");
         // A feat with an unmet prerequisite: Mobility without Dodge, or Cleave without Power Attack.
