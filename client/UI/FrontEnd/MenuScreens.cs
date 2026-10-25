@@ -58,12 +58,13 @@ public partial class LoadGameScreen : VBoxContainer
     public void FocusFirst() { if (_grid.Cards.Count > 0) _grid.Cards[0].GrabFocus(); }
 }
 
-/// <summary>Multiplayer: join a server by address (with the recently joined ones), player name and DM login.</summary>
+/// <summary>Multiplayer: join a server by address (with the recently joined ones), player name and DM login, or an
+/// NWN:EE server that runs WSNetLayer.</summary>
 public partial class MultiplayerScreen : VBoxContainer
 {
     public Action<Dictionary<string, string>>? Join;
     LineEdit _address = null!, _name = null!, _password = null!;
-    CheckButton _dm = null!;
+    CheckButton _dm = null!, _nwn = null!;
     VBoxContainer _recent = null!;
 
     public override void _Ready()
@@ -85,6 +86,10 @@ public partial class MultiplayerScreen : VBoxContainer
         _address = new LineEdit { Text = profile.RecentServers.FirstOrDefault()?.Address ?? "127.0.0.1:5121", PlaceholderText = "host or host:port", CustomMinimumSize = new Vector2(0, 40) };
         _address.TextSubmitted += _ => Connect();
         col.AddChild(_address);
+        // NWN:EE servers are reached over WSNetLayer's websocket (ws:// or wss:// addresses).
+        _nwn = new CheckButton { Text = "NWN:EE server (WSNetLayer)", ButtonPressed = IsNwnAddress(_address.Text) };
+        _address.TextChanged += t => { if (IsNwnAddress(t)) _nwn.ButtonPressed = true; };
+        col.AddChild(_nwn);
         col.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
         col.AddChild(Ui.Text("Player name", Ui.TextStyle.Caption, Palette.TextSecondary));
         _name = new LineEdit { Text = profile.PlayerName.Length > 0 ? profile.PlayerName : System.Environment.UserName, MaxLength = 32, CustomMinimumSize = new Vector2(0, 40) };
@@ -144,6 +149,7 @@ public partial class MultiplayerScreen : VBoxContainer
                 if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } mb)
                 {
                     _address.Text = address;
+                    _nwn.ButtonPressed = IsNwnAddress(address);
                     if (mb.DoubleClick) Connect();
                 }
             };
@@ -155,16 +161,27 @@ public partial class MultiplayerScreen : VBoxContainer
     {
         var address = _address.Text.Trim();
         if (address.Length == 0) { _address.GrabFocus(); return; }
+        // NWN:EE servers are remembered by their websocket address, so the recent list rejoins them the same way.
+        var nwn = _nwn.ButtonPressed || IsNwnAddress(address);
+        if (nwn && !IsNwnAddress(address)) address = "ws://" + address;
         var name = _name.Text.Trim();
         Settings.Update(s =>
         {
             s.Profile.PlayerName = name;
             s.Profile.Remember(address, DateTime.Now);
         });
-        var args = new Dictionary<string, string> { ["connect"] = address, ["name"] = name.Length > 0 ? name : "Player" };
-        if (_dm.ButtonPressed) { args["dm"] = "true"; args["dm-password"] = _password.Text; }
+        var args = new Dictionary<string, string> { ["name"] = name.Length > 0 ? name : "Player" };
+        if (nwn) args["connect-nwn"] = address;
+        else
+        {
+            args["connect"] = address;
+            if (_dm.ButtonPressed) { args["dm"] = "true"; args["dm-password"] = _password.Text; }
+        }
         Join?.Invoke(args);
     }
+
+    static bool IsNwnAddress(string address) =>
+        address.StartsWith("ws://", StringComparison.OrdinalIgnoreCase) || address.StartsWith("wss://", StringComparison.OrdinalIgnoreCase);
 
     public void FocusFirst() => _address.GrabFocus();
 }
