@@ -121,6 +121,11 @@ public class ScriptTierAgreementTests
                 log.Append("used ").Append(vm.InstructionsUsed).Append('\n');
             }
             catch (ScriptException e) { log.Append("error ").Append(e.Message).Append('\n'); }
+            catch (Exception e) when (e is IndexOutOfRangeException or InvalidCastException or NullReferenceException)
+            {
+                // A stack access out of range (malformed code, or a path the stub engine's values open up).
+                log.Append("fault ").Append(e.GetType().Name).Append('\n');
+            }
         }
         Outcome(() => log.Append("result ").Append(vm.Run(program, 7)).Append('\n'));
         for (int n = 0; n < 50 && engine.Queued.Count > 0; n++)
@@ -428,6 +433,34 @@ public class ScriptTierAgreementTests
         var ncs = Compile("void main() { int z = 0, a = 1 + 2 + 3; float f = 0.0; RecI(a); RecI(a / (z + 1)); RecI(a % z); RecF(1.0 / f); }");
         for (int limit = 1; limit < 40; limit++)
             AssertTiersAgree(ncs, limit, $"limit {limit}");
+    }
+
+    /// <summary>
+    /// The base game's compiled scripts, run against the recording engine (every engine call returns its type's
+    /// default), agree too. A spread sample keeps the test fast; scripts using SetJmp stay interpreted.
+    /// </summary>
+    [DataFact]
+    public void InterpreterAndJitAgreeOnBaseGameScripts()
+    {
+        var rm = new OpenWinter.Aurora.Resources.ResMan(TestData.Paths);
+        rm.AddBaseGame();
+        var defs = ScriptHost.LoadDefinitions(rm);
+        var keys = rm.All(OpenWinter.Aurora.Resources.ResType.Ncs).OrderBy(k => k.ResRef, StringComparer.Ordinal).ToList();
+        int stride = Math.Max(1, keys.Count / 300), ran = 0;
+        for (int i = 0; i < keys.Count; i += stride)
+        {
+            var ncs = rm.Read(keys[i]);
+            if (ncs == null) continue;
+            NcsProgram probe;
+            try { probe = new NcsProgram(keys[i].ResRef, ncs); }
+            catch (InvalidDataException) { continue; }
+            if (defs.ByName.TryGetValue("SetJmp", out var setJmp) && probe.Instructions.Any(n => n.Op == 0x05 && n.A == setJmp.Index)) continue;
+            var interpreted = Run(ncs, -1, 20_000, defs);
+            var compiled = Run(ncs, 0, 20_000, defs);
+            if (interpreted != compiled) Assert.Fail($"{keys[i].ResRef}\n--- interpreted\n{interpreted}\n--- compiled\n{compiled}");
+            ran++;
+        }
+        Assert.True(ran > 100, $"only {ran} scripts ran");
     }
 
     /// <summary>Random programs from a fixed seed range; a failing seed reproduces with <see cref="ProgramGenerator"/>.</summary>
