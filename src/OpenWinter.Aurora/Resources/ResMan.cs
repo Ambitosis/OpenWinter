@@ -59,6 +59,27 @@ public sealed record GamePaths(string GameRoot, string UserRoot, string Language
     }
 
     public string BaseTlk => Path.Combine(GameRoot, "lang", Language, "data", "dialog.tlk");
+
+    /// <summary>
+    /// Whether a module path (a .mod/.nwm file or a module folder) lies in the user's modules folder, the
+    /// install's campaign or module folders, or <paramref name="extraFolder"/>. Paths recorded in saves are
+    /// only followed when this holds.
+    /// </summary>
+    public bool IsModulePath(string path, string? extraFolder = null)
+    {
+        if (path.Length == 0) return false;
+        string full;
+        try { full = Path.GetFullPath(path); }
+        catch (Exception e) when (e is ArgumentException or NotSupportedException or PathTooLongException) { return false; }
+        var folders = new[] { Path.Combine(UserRoot, "modules"), Path.Combine(GameRoot, "data", "nwm"), Path.Combine(GameRoot, "data", "mod"), extraFolder };
+        foreach (var folder in folders)
+        {
+            if (string.IsNullOrEmpty(folder)) continue;
+            var relative = Path.GetRelativePath(folder, full);
+            if (relative != "." && Contained(folder, relative) != null) return true;
+        }
+        return false;
+    }
 }
 
 /// <summary>

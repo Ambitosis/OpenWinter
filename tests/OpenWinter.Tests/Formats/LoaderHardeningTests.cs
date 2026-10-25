@@ -306,6 +306,28 @@ public sealed class LoaderHardeningTests : IDisposable
         Assert.Throws<InvalidDataException>(() => SaveGameService.ReadSnapshot(bomb, maxBytes: 1 << 16));
         Assert.Throws<InvalidDataException>(() => SaveGameService.ReadSnapshot(Snapshot("[1,2,3]")));
         Assert.Throws<InvalidDataException>(() => SaveGameService.ReadSnapshot(Snapshot("{\"open\":")));
+
+        // Nesting beyond the limit is refused by the parser, before the recursive reader sees it.
+        string Nested(int depth) => "{\"a\":" + new string('[', depth - 1) + new string(']', depth - 1) + "}";
+        Assert.NotNull(SaveGameService.ReadSnapshot(Snapshot(Nested(SaveGameService.MaxSnapshotDepth))));
+        Assert.Throws<InvalidDataException>(() => SaveGameService.ReadSnapshot(Snapshot(Nested(100_000))));
+    }
+
+    [Fact]
+    public void SavedModulePathsMustBeInAModuleFolder()
+    {
+        var paths = Layout();
+        var modules = Path.Combine(paths.UserRoot, "modules");
+        Directory.CreateDirectory(modules);
+        Assert.True(paths.IsModulePath(Path.Combine(modules, "mymodule.mod")));
+        Assert.True(paths.IsModulePath(Path.Combine(modules, "MyFolderModule")));
+        Assert.True(paths.IsModulePath(Path.Combine(paths.GameRoot, "data", "nwm", "Prelude.nwm")));
+        Assert.True(paths.IsModulePath(Path.Combine(_root, "dev", "test.mod"), Path.Combine(_root, "dev")));
+        Assert.False(paths.IsModulePath(modules));
+        Assert.False(paths.IsModulePath(Path.Combine(modules, "..", "evil.mod")));
+        Assert.False(paths.IsModulePath(Path.Combine(_root, "evil.mod")));
+        Assert.False(paths.IsModulePath(""));
+        Assert.False(paths.IsModulePath("evil.mod"));
     }
 
     // ---------------------------------------------------------------- character quickbars
