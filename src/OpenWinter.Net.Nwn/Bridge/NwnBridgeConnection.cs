@@ -39,6 +39,10 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     string _wantedCharacter = "";
     byte _eventNumber;
     double _lastTick;
+    DriveInputMessage? _drive;
+    bool _driving;
+    System.Numerics.Vector3 _driveAt;
+    float _driveFacing;
 
     public NwnBridgeConnection(NwnBridgeOptions options, INwnBridgeData data)
     {
@@ -78,6 +82,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case MessageType.ClientRequest:
                 Request(ClientRequestMessage.Read(r));
+                break;
+            case MessageType.DriveInput:
+                _drive = DriveInputMessage.Read(r);
                 break;
         }
     }
@@ -151,6 +158,53 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         }
     }
 
+    /// <summary>
+    /// Keyboard driving: the player's creature moves here, ahead of the server, and the server is told where it is
+    /// and which way it faces ten times a second.
+    /// </summary>
+    void Drive(float dt)
+    {
+        const float TurnRate = 2.2f;
+        if (_drive is { Active: true, Mouse: true } held)
+        {
+            // Holding the mouse button: walk or run towards the point under the cursor.
+            if (System.Numerics.Vector3.Distance(held.Direction, _driveAt) > 0.5f)
+            {
+                _driveAt = held.Direction;
+                Action(new ActionRequestMessage { Action = ActionKind.MoveTo, Position = held.Direction, Run = !held.Walk });
+            }
+            return;
+        }
+        if (_drive is not { Active: true } d)
+        {
+            // Released: the last position, with no movement flag, stops the creature there.
+            if (_driving)
+                ToServer(new InputMessages.InputDriveControl { X = _driveAt.X, Y = _driveAt.Y, Area = _world.AreaId, Bearing = Bearing(_driveFacing), PathfindEventNumber = _eventNumber });
+            _driving = false;
+            return;
+        }
+        if (!_world.TryPose(_world.Controlled, out var at, out var facing, out var walkRate, out var runRate)) return;
+        // While driving, the client's own position and facing lead; the server's echoes lag behind them.
+        if (_driving) (at, facing) = (_driveAt, _driveFacing);
+        _driving = true;
+        facing = MathF.IEEERemainder(facing + Math.Clamp(d.Turn, -1, 1) * TurnRate * dt, MathF.Tau);
+        var ahead = new System.Numerics.Vector2(MathF.Cos(facing), MathF.Sin(facing));
+        var step = ahead * Math.Clamp(d.Direction.Y, -1, 1) + new System.Numerics.Vector2(ahead.Y, -ahead.X) * Math.Clamp(d.Direction.X, -1, 1);
+        if (step.LengthSquared() > 1) step = System.Numerics.Vector2.Normalize(step);
+        var walking = d.Walk || d.Direction.Y <= 0;
+        step *= (walking ? walkRate : runRate) * dt;
+        var to = at + new System.Numerics.Vector3(step, 0);
+        (_driveAt, _driveFacing) = (to, facing);
+        _world.Predict(_world.Controlled, to, facing, step == default ? MovementMode.Stand : walking ? MovementMode.Walk : MovementMode.Run);
+        ToServer(new InputMessages.InputDriveControl { X = to.X, Y = to.Y, Area = _world.AreaId, Bearing = Bearing(facing), PathfindEventNumber = _eventNumber, DriveFlags = DriveFlags(walking) });
+    }
+
+    /// <summary>A facing as the drive message's bearing: tenths of a degree counter-clockwise from +X.</summary>
+    public static ushort Bearing(float facing) => (ushort)(((int)MathF.Round(facing * 1800f / MathF.PI) % 3600 + 3600) % 3600);
+
+    /// <summary>The drive message's flags: moving (1), running (2); none once released.</summary>
+    public static byte DriveFlags(bool walking) => (byte)(walking ? 1 : 3);
+
     void Request(ClientRequestMessage request)
     {
         switch (request.Kind)
@@ -180,7 +234,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         // Moving creatures report ten times a second; the client interpolates between.
         var now = _clock.Elapsed.TotalSeconds;
         if (now - _lastTick < 0.1) return;
-        _world.Tick((float)Math.Min(0.25, now - _lastTick));
+        var dt = (float)Math.Min(0.25, now - _lastTick);
+        _world.Tick(dt);
+        Drive(dt);
         _lastTick = now;
     }
 

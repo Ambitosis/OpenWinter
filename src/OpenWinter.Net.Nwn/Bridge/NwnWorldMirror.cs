@@ -69,6 +69,8 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
     AreaMapPin[] _pins = [];
 
     public uint AreaId { get; private set; }
+    /// <summary>The creature the player controls (0 until the server names it).</summary>
+    public uint Controlled { get; private set; }
     public uint LoadToken { get; private set; }
     /// <summary>The start of the current area, for the player's first steps.</summary>
     public Vector3 AreaStart { get; private set; }
@@ -378,12 +380,29 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
 
     public void Control(uint objectId)
     {
+        Controlled = objectId;
         if (_objects.TryGetValue(objectId, out var m) && m.Spawned)
         {
             emit(new ControlObjectMessage { ObjectId = objectId }.Write());
             _pendingControl = null;
         }
         else _pendingControl = objectId;
+    }
+
+    /// <summary>Where a spawned object stands, its facing and its walk and run rates.</summary>
+    public bool TryPose(uint id, out Vector3 position, out float facing, out float walkRate, out float runRate)
+    {
+        var found = _objects.TryGetValue(id, out var m) && m.Spawned;
+        (position, facing, walkRate, runRate) = found ? (m!.Position, m.Facing, m.WalkRate, m.RunRate) : (default, 0, 0, 0);
+        return found;
+    }
+
+    /// <summary>Moves a creature ahead of the server (the player's own driving), telling the client at once.</summary>
+    public void Predict(uint id, Vector3 position, float facing, MovementMode mode)
+    {
+        if (!_objects.TryGetValue(id, out var m) || !m.Spawned) return;
+        (m.Position, m.Facing, m.Mode, m.Mover) = (position, facing, mode, null);
+        emit(UpdateFor(m).Write());
     }
 
     /// <summary>Moves creatures along their paths; called every frame.</summary>

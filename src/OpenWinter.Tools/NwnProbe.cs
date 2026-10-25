@@ -183,8 +183,8 @@ static class NwnRecordingDump
 /// <summary>
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
-///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--record FILE]
-/// (four seconds in: say, walk; then use the nearest object whose name contains each NAME, five seconds apart)
+///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run]] [--record FILE]
+/// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -199,6 +199,9 @@ static class NwnBridgeProbe
         var seconds = double.Parse(Opt("--seconds", "10"));
         var walk = Opt("--walk", "");
         var say = Opt("--say", "");
+        var drive = double.Parse(Opt("--drive", "0"));
+        var run = Array.IndexOf(args, "--run") >= 0;
+        var driveState = 0;
         var uses = new Queue<string>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var nextUse = 6.0;
         var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
@@ -276,6 +279,12 @@ static class NwnBridgeProbe
                     .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} using \"{name}\": {target:X}");
                 if (target != 0) bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }.Write());
+            }
+            if (walked && drive > 0 && driveState < 2 && clock.Elapsed.TotalSeconds > (driveState == 0 ? 5 : 5 + drive))
+            {
+                bridge.Send(new OpenWinter.Net.DriveInputMessage { Direction = new System.Numerics.Vector3(0, 1, 0), Walk = !run, Active = driveState == 0 }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} {(driveState == 0 ? "driving forward" : "released")} at {at}");
+                driveState++;
             }
             if (walked && walk.Split(',') is [var dx, var dy])
             {

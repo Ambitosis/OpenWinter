@@ -191,4 +191,14 @@ public class NwnBridgeTests
         Assert.Equal((ushort)22, mirror.DoorRequest(9)!.Animation);
         Assert.Null(mirror.DoorRequest(5));
     }
+
+    [Fact]
+    public void KeyboardDrivingSendsTheBearingAndGaitTheServerExpects()
+    {
+        // As recorded: facing north is bearing 900 (the server then reports 0 from +Y); running sets flag 2.
+        Assert.Equal((ushort)900, NwnBridgeConnection.Bearing(MathF.PI / 2));
+        Assert.Equal((ushort)0, NwnBridgeConnection.Bearing(0));
+        Assert.Equal((ushort)2700, NwnBridgeConnection.Bearing(-MathF.PI / 2));
+        Assert.Equal(((byte)1, (byte)3), (NwnBridgeConnection.DriveFlags(walking: true), NwnBridgeConnection.DriveFlags(walking: false)));
+    }
 }
