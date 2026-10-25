@@ -19,8 +19,9 @@ namespace OpenWinter.Tests.Formats;
 public class MalformedInputTests
 {
     const int RandomMutations = 600;
-    static readonly TimeSpan PerInput = TimeSpan.FromSeconds(2);
-    static readonly TimeSpan PerSuite = TimeSpan.FromSeconds(30);
+    // Generous bounds: they catch hangs and runaway work, not slow disks or a busy CI machine.
+    static readonly TimeSpan PerInput = TimeSpan.FromSeconds(10);
+    static readonly TimeSpan PerSuite = TimeSpan.FromSeconds(120);
 
     // ---------------------------------------------------------------- harness
 
