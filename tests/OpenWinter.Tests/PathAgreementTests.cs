@@ -60,9 +60,7 @@ public sealed class PathAgreementTests
         Assert.True(Vector3.Distance(c.Position, door.Position) < 3.5f, $"stopped at {c.Position}");
     }
 
-    // Still failing on a few legs over overlapping walkable surfaces (stairs, ledges), where which level a walker
-    // stays on depends on its step size.
-    [DataFact(Skip = "Unfinished: overlapping walkable levels make the step check depend on step size")]
+    [DataFact]
     public void EveryPlannedLegCanBeWalked()
     {
         var rng = new Random(7);

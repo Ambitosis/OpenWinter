@@ -125,6 +125,13 @@ public sealed class Walkmesh
         return true;
     }
 
+    /// <summary>
+    /// Height differences this close to a limit count as exactly at it. Heights interpolated across a triangle carry
+    /// float noise, so a ledge or footprint authored exactly <c>maxStep</c> away would otherwise pass at some points of
+    /// a face and fail at others, and a walker's result would depend on where its steps happen to land.
+    /// </summary>
+    const float HeightTolerance = 1e-3f;
+
     static int Cell(float v) => (int)MathF.Floor(v / CellSize);
     static long Key(int x, int y) => ((long)x << 32) | (uint)y;
 
@@ -146,7 +153,7 @@ public sealed class Walkmesh
             if (tilesOnly && t.Owner != 0 || !t.Walkable || (t.Owner != 0 && _disabledOwners.Contains(t.Owner))) continue;
             if (!t.TryHeightAt(x, y, out float z)) continue;
             float dist = MathF.Abs(z - nearZ);
-            if (dist <= maxStep && dist < bestDist) { best = z; bestDist = dist; }
+            if (dist <= maxStep + HeightTolerance && dist < bestDist) { best = z; bestDist = dist; }
         }
         if (best == null) return null;
         foreach (int i in list)
@@ -157,7 +164,8 @@ public sealed class Walkmesh
             if (placeable && noPlaceables || ignoreClosedDoors && _closedDoorOwners.Contains(t.Owner)) continue;
             // Flat footprints (placeables) block at ground level; door footprints are boxes,
             // so any face of theirs up to head height blocks.
-            if (t.TryHeightAt(x, y, out float z) && z > best.Value - maxStep && z < best.Value + (t.Owner != 0 && !placeable ? 3.5f : maxStep)) return null;
+            if (t.TryHeightAt(x, y, out float z) && z > best.Value - maxStep + HeightTolerance
+                && z < best.Value + (t.Owner != 0 && !placeable ? 3.5f : maxStep) - HeightTolerance) return null;
         }
         return best;
     }
