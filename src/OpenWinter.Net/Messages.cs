@@ -49,11 +49,11 @@ public sealed class WelcomeMessage
     public static WelcomeMessage Read(MessageReader r)
     {
         var m = new WelcomeMessage { ModuleName = r.Str(), CustomTlk = r.Str() };
-        int n = r.I32();
+        int n = r.Count();
         for (int i = 0; i < n; i++) m.Haks.Add(r.Str());
         if (r.Remaining > 0)
         {
-            int files = r.I32();
+            int files = r.Count(11);
             for (int i = 0; i < files; i++) m.Files.Add(new ContentFile { Kind = (ContentKind)r.U8(), Name = r.Str(), Size = r.I64(), Sha1 = r.Str() });
         }
         return m;
@@ -148,7 +148,7 @@ public sealed class LoadAreaMessage
             MusicDay = r.I32(), MusicNight = r.I32(), MusicBattle = r.I32(), AmbientDay = r.I32(), AmbientNight = r.I32(),
             AmbientDayVolume = r.I32(), AmbientNightVolume = r.I32(), MusicDelay = r.I32(), DayNightCycle = r.Bool(),
         };
-        m.Tiles = new TileInfo[r.I32()];
+        m.Tiles = new TileInfo[r.Count(11)];
         for (int i = 0; i < m.Tiles.Length; i++)
             m.Tiles[i] = new TileInfo
             {
@@ -187,7 +187,7 @@ public sealed class Appearance
     public static Appearance Read(MessageReader r)
     {
         var a = new Appearance { Type = r.I32(), GenericDoorType = r.I32(), Gender = r.U8(), Phenotype = r.U8(), BodyParts = r.U16s(), Colors = r.Bytes(), Tail = r.I32(), Wings = r.I32(), Scale = r.F32() };
-        int n = r.I32();
+        int n = r.Count(22);
         for (int i = 0; i < n; i++) a.Equipment.Add(ItemVisual.Read(r));
         return a;
     }
@@ -497,7 +497,7 @@ public sealed class DialogMessage
     public static DialogMessage Read(MessageReader r)
     {
         var m = new DialogMessage { Owner = r.U32(), Speaker = r.U32(), SpeakerName = r.Str(), Text = r.Str(), Sound = r.Str(), Ended = r.Bool() };
-        int n = r.I32();
+        int n = r.Count(5);
         for (int k = 0; k < n; k++) m.Replies.Add((r.I32(), r.Str()));
         return m;
     }

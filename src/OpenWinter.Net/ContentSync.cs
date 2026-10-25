@@ -56,6 +56,8 @@ public sealed class ContentSync : IDisposable
         Error = null;
         foreach (var f in files)
         {
+            // The catalogue comes from the server: names and hashes become file paths, so only plain ones are used.
+            if (!Valid(f)) continue;
             var dirs = f.Kind == ContentKind.Hak ? _hakDirs : f.Kind == ContentKind.Tlk ? _tlkDirs : Array.Empty<string>();
             var ext = Extension(f.Kind);
             var candidates = dirs.Select(d => Path.Combine(d, f.Name + ext)).Append(CachePath(f));
@@ -64,6 +66,11 @@ public sealed class ContentSync : IDisposable
             else Missing.Add(f);
         }
     }
+
+    /// <summary>A 40-digit hex SHA-1, a plain file name and a non-negative size.</summary>
+    public static bool Valid(ContentFile f) =>
+        f.Sha1.Length == 40 && f.Sha1.All(char.IsAsciiHexDigit) && f.Size >= 0
+        && f.Name.Length > 0 && f.Name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 && f.Name.IndexOfAny(['/', '\\', ':']) < 0 && !f.Name.Contains("..");
 
     /// <summary>Abandons incomplete downloads when a new module replaces the catalogue.</summary>
     public void Dispose()
@@ -97,6 +104,11 @@ public sealed class ContentSync : IDisposable
     {
         var file = Missing.FirstOrDefault(f => f.Sha1.Equals(chunk.Sha1, StringComparison.OrdinalIgnoreCase));
         if (file == null) return false;
+        if (chunk.Offset < 0 || chunk.Offset > file.Size - chunk.Data.Length)
+        {
+            Error = $"{file.Name}: download corrupt";
+            return false;
+        }
         if (!_active.TryGetValue(file.Sha1, out var active))
         {
             var part = CachePath(file) + ".part";

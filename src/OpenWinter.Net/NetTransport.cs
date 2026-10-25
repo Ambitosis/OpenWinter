@@ -30,6 +30,10 @@ public sealed class NetServerHost : IDisposable
     readonly NetManager _manager;
     readonly Dictionary<int, NetConnection> _connections = new();
     public event Action<NetConnection>? Connected;
+    /// <summary>Largest message a client may send (an uploaded character is the biggest); a larger one ends the connection.</summary>
+    public int MaxMessageBytes { get; init; } = 16 * 1024 * 1024;
+    /// <summary>Messages a client may have waiting for the next server tick; a client that floods past it is dropped.</summary>
+    public int MaxQueuedMessages { get; init; } = 4096;
 
     public NetServerHost(int port, NetworkVersion? version = null)
     {
@@ -55,7 +59,9 @@ public sealed class NetServerHost : IDisposable
         };
         _listener.NetworkReceiveEvent += (peer, reader, _, _) =>
         {
-            if (_connections.TryGetValue(peer.Id, out var c)) c.Inbox.Enqueue(reader.GetRemainingBytes());
+            if (!_connections.TryGetValue(peer.Id, out var c) || c.Closed) return;
+            if (reader.AvailableBytes > MaxMessageBytes || c.Inbox.Count >= MaxQueuedMessages) { c.Disconnect(); return; }
+            c.Inbox.Enqueue(reader.GetRemainingBytes());
         };
         if (!_manager.Start(port)) throw new InvalidOperationException($"Cannot listen on UDP port {port}");
     }
