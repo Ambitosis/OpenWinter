@@ -32,7 +32,9 @@ public sealed partial class ScriptThread
     public int CallIp { get; internal set; }
     public int BasePointer => _bp;
     /// <summary>Return addresses of enclosing script functions, innermost first (code offsets).</summary>
-    public IEnumerable<int> ReturnAddresses => Returns;
+    public IEnumerable<int> ReturnAddresses => RunsCompiled ? Returns.Select(id => Program.ReturnSites[id]) : Returns;
+    /// <summary>Compiled code pushes return-site ids, which <see cref="ReturnAddresses"/> maps to code offsets.</summary>
+    internal bool RunsCompiled;
     /// <summary>True while an abort or jump is waiting to be applied after the current engine call.</summary>
     public bool HasPendingControl => _control != null;
     /// <summary>The live stack, bottom first.</summary>

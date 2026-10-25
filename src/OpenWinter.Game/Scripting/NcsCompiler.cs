@@ -7,9 +7,9 @@ namespace OpenWinter.Game.Scripting;
 /// Compiles an NCS program to a .NET dynamic method that RyuJIT turns into
 /// native code. The compiled method keeps the interpreter's stack model and
 /// calls the same ScriptThread operations, but removes all decoding and
-/// dispatch: operands are constants, NCS jumps are IL branches, RETN maps the
-/// code offset JSR pushed to a table of return sites, and instruction counting
-/// happens once per basic block.
+/// dispatch: operands are constants, NCS jumps are IL branches, JSR/RETN go
+/// through a table of return sites (whose code offsets backtraces report), and
+/// instruction counting happens once per basic block.
 ///
 /// Signature: (ScriptThread thread, int entryOffset). Entry offsets are 0 and
 /// every STORE_STATE resume point, so stored actions run compiled too.
@@ -19,6 +19,7 @@ public static class NcsCompiler
     static readonly Type T = typeof(ScriptThread);
     static MethodInfo M(string name) => T.GetMethod(name) ?? throw new MissingMethodException(T.Name, name);
     static readonly FieldInfo ReturnsField = T.GetField(nameof(ScriptThread.Returns))!;
+    static readonly MethodInfo StackPop = typeof(Stack<int>).GetMethod("Pop")!;
     static readonly MethodInfo StackCount = typeof(Stack<int>).GetProperty("Count")!.GetGetMethod()!;
     static readonly ConstructorInfo ScriptExceptionCtor = typeof(ScriptException).GetConstructor(new[] { typeof(string) })!;
 
@@ -34,7 +35,11 @@ public static class NcsCompiler
         // after instructions with effects or errors.
         var leaders = new bool[code.Length + 1];
         var entries = new List<int> { 0 };
-        var returnSites = new List<int>();
+        // Return sites by id: the label RETN switches to and the code offset the interpreter would have pushed.
+        var siteLabels = new List<Label>();
+        var siteOffsets = new List<int>();
+        var siteOf = new Dictionary<int, int>();
+        var trailingSites = new List<(Label Label, int Offset)>();
         if (code.Length > 0) leaders[0] = true;
         for (int i = 0; i < code.Length; i++)
         {
@@ -50,7 +55,16 @@ public static class NcsCompiler
                 case 0x1E:
                     leaders[program.IndexAt(ins.A)] = true;
                     leaders[i + 1] = true;
-                    if (i + 1 < code.Length) returnSites.Add(i + 1);
+                    siteOf[i] = siteLabels.Count;
+                    siteOffsets.Add(ins.Next);
+                    if (i + 1 < code.Length) siteLabels.Add(labels[i + 1]);
+                    else
+                    {
+                        // A JSR that ends the code returns nowhere; fail as the interpreter does.
+                        var nowhere = il.DefineLabel();
+                        siteLabels.Add(nowhere);
+                        trailingSites.Add((nowhere, ins.Next));
+                    }
                     break;
                 case 0x20:
                     leaders[i + 1] = true;
@@ -153,8 +167,7 @@ public static class NcsCompiler
                     il.Emit(OpCodes.Br, labels[program.IndexAt(ins.A)]);
                     break;
                 case 0x1E:
-                    // Push the code offset, as the interpreter does, so backtraces read the same in both tiers.
-                    Call(il, "PushReturn", ins.Next);
+                    Call(il, "PushReturn", siteOf[i]);
                     il.Emit(OpCodes.Br, labels[program.IndexAt(ins.A)]);
                     break;
                 case 0x1F:
@@ -175,8 +188,10 @@ public static class NcsCompiler
                     Call(il, "Finish");
                     il.Emit(OpCodes.Ret);
                     il.MarkLabel(notOuter);
-                    Call(il, "PopReturnSite");
-                    il.Emit(OpCodes.Switch, returnSites.Select(r => labels[r]).ToArray());
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldfld, ReturnsField);
+                    il.Emit(OpCodes.Callvirt, StackPop);
+                    il.Emit(OpCodes.Switch, siteLabels.ToArray());
                     il.Emit(OpCodes.Ldstr, $"{program.Name}: bad return address");
                     il.Emit(OpCodes.Newobj, ScriptExceptionCtor);
                     il.Emit(OpCodes.Throw);
@@ -201,7 +216,14 @@ public static class NcsCompiler
                     break;
             }
         }
-        program.ReturnSites = returnSites.Select(r => code[r].Offset).ToArray();
+        foreach (var (label, offset) in trailingSites)
+        {
+            il.MarkLabel(label);
+            il.Emit(OpCodes.Ldstr, $"{program.Name}: no instruction at {offset}");
+            il.Emit(OpCodes.Newobj, ScriptExceptionCtor);
+            il.Emit(OpCodes.Throw);
+        }
+        program.ReturnSites = siteOffsets.ToArray();
         // Errors read as the interpreter's do.
         il.Emit(OpCodes.Ldstr, "ran off the end of the code");
         il.Emit(OpCodes.Newobj, ScriptExceptionCtor);

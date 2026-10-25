@@ -39,7 +39,7 @@ public sealed class NcsProgram
     public bool CompileFailed;
     /// <summary>A background compile has been started.</summary>
     public bool CompileQueued;
-    /// <summary>Code offsets of the compiled form's return sites, ascending; RETN switches on the index.</summary>
+    /// <summary>Code offset of each return site of the compiled form, by return-site id.</summary>
     internal int[] ReturnSites = Array.Empty<int>();
 
     public NcsProgram(string name, byte[] file)
@@ -218,7 +218,7 @@ public sealed class ScriptVM
         long start = Stats != null ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
         try
         {
-            if (Volatile.Read(ref p.Compiled) is { } compiled) compiled(t, entry);
+            if (Volatile.Read(ref p.Compiled) is { } compiled) { t.RunsCompiled = true; compiled(t, entry); }
             else t.Interpret(entry);
         }
         catch (ScriptThread.AbortSignal) { }
@@ -255,7 +255,7 @@ public sealed partial class ScriptThread
     public uint Self;
     Cell[] _stack = new Cell[256];
     int _sp, _bp;
-    /// <summary>Return addresses: code offsets of the instruction after each JSR.</summary>
+    /// <summary>Return addresses: code offsets (interpreter) or return-site ids (compiled code).</summary>
     public readonly Stack<int> Returns = new();
     ScriptSituation? _pendingAction;
     public int ConditionalResult;
@@ -319,14 +319,6 @@ public sealed partial class ScriptThread
     {
         if (Returns.Count >= ScriptVM.MaxCallDepth) throw new ScriptException("STACK OVERFLOW");
         Returns.Push(address);
-    }
-
-    /// <summary>Compiled RETN: pops a return address and finds its return-site index.</summary>
-    public int PopReturnSite()
-    {
-        int offset = Returns.Pop();
-        int site = Array.BinarySearch(Program.ReturnSites, offset);
-        return site >= 0 ? site : throw new ScriptException($"{Program.Name}: no instruction at {offset}");
     }
 
     // ---- instruction operations (shared by interpreter and JIT) ----
