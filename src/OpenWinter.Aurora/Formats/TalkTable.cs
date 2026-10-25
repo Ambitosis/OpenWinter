@@ -33,23 +33,26 @@ public sealed class TalkTable
     {
         var table = (strref & CustomFlag) != 0 ? _custom : _base;
         uint index = strref & 0x00FFFFFF;
-        if (table == null || index >= Count(table)) return "";
+        if (table == null || !HasEntry(table, index)) return "";
         int e = 20 + (int)index * 40;
         return Bin.FixedString(table, e + 4, 16);
     }
 
     static uint Count(byte[] t) => BinaryPrimitives.ReadUInt32LittleEndian(t.AsSpan(12));
 
+    /// <summary>The entry is within the declared count and its 40 bytes lie inside the table.</summary>
+    static bool HasEntry(byte[] t, uint index) => index < Count(t) && 20 + index * 40L + 40 <= t.Length;
+
     static string Lookup(byte[]? t, uint index)
     {
-        if (t == null || index >= Count(t)) return "";
+        if (t == null || !HasEntry(t, index)) return "";
         int e = 20 + (int)index * 40;
         uint flags = BinaryPrimitives.ReadUInt32LittleEndian(t.AsSpan(e));
         if ((flags & 1) == 0) return "";
-        int strings = (int)BinaryPrimitives.ReadUInt32LittleEndian(t.AsSpan(16));
-        int offset = (int)BinaryPrimitives.ReadUInt32LittleEndian(t.AsSpan(e + 28));
-        int size = (int)BinaryPrimitives.ReadUInt32LittleEndian(t.AsSpan(e + 32));
+        long strings = BinaryPrimitives.ReadUInt32LittleEndian(t.AsSpan(16));
+        long offset = BinaryPrimitives.ReadUInt32LittleEndian(t.AsSpan(e + 28));
+        long size = BinaryPrimitives.ReadUInt32LittleEndian(t.AsSpan(e + 32));
         if (strings + offset + size > t.Length) return "";
-        return Bin.Text.GetString(t, strings + offset, size);
+        return Bin.Text.GetString(t, (int)(strings + offset), (int)size);
     }
 }

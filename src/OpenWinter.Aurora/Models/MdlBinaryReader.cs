@@ -25,16 +25,37 @@ public sealed partial class MdlBinaryReader
 
     readonly byte[] _b;
     readonly int _raw;
+    // Child links, controller keys, vertices and faces each take at least 4 bytes of a well-formed file,
+    // so tables that overlap or repeat run out of this budget instead of multiplying the work.
+    long _work;
+    readonly HashSet<int> _nodes = new();
 
     MdlBinaryReader(byte[] b)
     {
         _b = b;
         _raw = 12 + (int)BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(4));
+        _work = b.Length / 4;
     }
 
     public static bool IsBinary(byte[] buf) => buf.Length > 12 && BinaryPrimitives.ReadUInt32LittleEndian(buf) == 0;
 
-    public static ModelData Read(byte[] buf) => new MdlBinaryReader(buf).ReadModel();
+    /// <summary>Reads a binary model; malformed data throws <see cref="InvalidDataException"/>.</summary>
+    public static ModelData Read(byte[] buf)
+    {
+        try
+        {
+            return new MdlBinaryReader(buf).ReadModel();
+        }
+        catch (Exception e) when (e is ArgumentException or IndexOutOfRangeException or OverflowException or KeyNotFoundException)
+        {
+            throw new InvalidDataException($"MDL: {e.Message}", e);
+        }
+    }
+
+    void Spend(long units)
+    {
+        if (units > 0 && (_work -= units) < 0) throw new InvalidDataException("MDL: node, controller or face tables overlap");
+    }
 
     uint U(int o) => BinaryPrimitives.ReadUInt32LittleEndian(_b.AsSpan(12 + o));
     float F(int o) => BinaryPrimitives.ReadSingleLittleEndian(_b.AsSpan(12 + o));
@@ -64,6 +85,7 @@ public sealed partial class MdlBinaryReader
 
         int animPtr = (int)U(0x78);
         int animCount = (int)U(0x7C);
+        Spend(animCount);
         for (int i = 0; i < animCount; i++)
         {
             var anim = ReadAnimation((int)U(animPtr + i * 4));
@@ -78,7 +100,8 @@ public sealed partial class MdlBinaryReader
     /// </summary>
     void ReadNode(int o, int parent, ModelData m, int depth)
     {
-        if (depth > 128 || o <= 0 || 12 + o + 0x70 > _b.Length) return;
+        // A node reached twice (a cycle or a shared child) is read once.
+        if (depth > 128 || o <= 0 || 12 + o + 0x70 > _b.Length || !_nodes.Add(o)) return;
         var part = new ModelPart { Name = S(o + 0x20, 32), Parent = parent };
         uint flags = U(o + 0x6C);
         var keys = Controllers(o);
@@ -127,6 +150,7 @@ public sealed partial class MdlBinaryReader
         m.Parts.Add(part);
         int children = (int)U(o + 0x48);
         int count = (int)U(o + 0x4C);
+        Spend(count);
         for (int i = 0; i < count; i++) ReadNode((int)U(children + i * 4), index, m, depth + 1);
     }
 
@@ -145,6 +169,8 @@ public sealed partial class MdlBinaryReader
         int keyCount = (int)U(o + 0x58);
         int dataPtr = (int)U(o + 0x60);
         int dataCount = (int)U(o + 0x64);
+        if (dataCount < 0 || 12L + dataPtr + dataCount * 4L > _b.Length) dataCount = 0;
+        Spend(keyCount);
         for (int i = 0; i < keyCount; i++)
         {
             int k = 12 + keyPtr + i * 12;
@@ -196,6 +222,7 @@ public sealed partial class MdlBinaryReader
         int count = BinaryPrimitives.ReadUInt16LittleEndian(_b.AsSpan(12 + o + 0x230));
         uint verts = U(o + 0x22C), uvs = U(o + 0x234), normals = U(o + 0x244);
         if (verts == None || count == 0 || !InRaw(verts, count * 12)) return m;
+        Spend(count);
         m.Vertices = new Vector3[count];
         for (int i = 0; i < count; i++)
             m.Vertices[i] = new Vector3(RawF((int)verts + i * 12), RawF((int)verts + i * 12 + 4), RawF((int)verts + i * 12 + 8));
@@ -217,6 +244,7 @@ public sealed partial class MdlBinaryReader
         // renderer clockwise, so swap the last two indices.
         int faces = (int)U(o + 0x78);
         int faceCount = (int)U(o + 0x7C);
+        Spend(faceCount);
         var idx = new List<int>(faceCount * 3);
         var surf = new List<int>(faceCount);
         for (int i = 0; i < faceCount; i++)
@@ -277,6 +305,7 @@ public sealed partial class MdlBinaryReader
             uint n = U((int)countsPtr + l * 4), at = U((int)offsetsPtr + l * 4);
             if (n == 0) continue;
             if (n % 3 != 0 || n > 3 * 65536 || at == None || !InRaw(at, (int)n * 2)) return null;
+            Spend(n / 3);
             for (int i = 0; i < n; i += 3)
             {
                 int a = BinaryPrimitives.ReadUInt16LittleEndian(_b.AsSpan(_raw + (int)at + i * 2));
@@ -378,13 +407,13 @@ public sealed partial class MdlBinaryReader
         int eventCount = (int)U(o + 0xBC);
         for (int i = 0; i < eventCount && i < 256; i++)
             anim.Events.Add((F(events + i * 36), S(events + i * 36 + 4, 32)));
-        ReadAnimNode((int)U(o + 0x48), anim, 0);
+        ReadAnimNode((int)U(o + 0x48), anim, 0, new HashSet<int>());
         return anim;
     }
 
-    void ReadAnimNode(int o, ModelAnimation anim, int depth)
+    void ReadAnimNode(int o, ModelAnimation anim, int depth, HashSet<int> seen)
     {
-        if (depth > 128 || o <= 0 || 12 + o + 0x70 > _b.Length) return;
+        if (depth > 128 || o <= 0 || 12 + o + 0x70 > _b.Length || !seen.Add(o)) return;
         var keys = Controllers(o);
         uint flags = U(o + 0x6C);
         // Controller ids overlap between node kinds: birthrate is an emitter's, the multiplier a light's.
@@ -429,6 +458,7 @@ public sealed partial class MdlBinaryReader
         }
         int children = (int)U(o + 0x48);
         int count = (int)U(o + 0x4C);
-        for (int i = 0; i < count; i++) ReadAnimNode((int)U(children + i * 4), anim, depth + 1);
+        Spend(count);
+        for (int i = 0; i < count; i++) ReadAnimNode((int)U(children + i * 4), anim, depth + 1, seen);
     }
 }

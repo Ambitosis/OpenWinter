@@ -5,6 +5,9 @@ public sealed class TwoDA
 {
     public static readonly TwoDA Empty = new();
 
+    /// <summary>Row labels at or above this are read as the next row rather than padded up to.</summary>
+    const int MaxRowLabel = 1 << 20;
+
     public string[] Columns { get; private set; } = Array.Empty<string>();
     readonly Dictionary<string, int> _colIndex = new(StringComparer.OrdinalIgnoreCase);
     readonly List<string[]> _rows = new();
@@ -28,14 +31,14 @@ public sealed class TwoDA
                 header = true;
                 continue;
             }
-            if (!int.TryParse(tokens[0], out int index) || index < 0) index = t._rows.Count;
+            if (!int.TryParse(tokens[0], out int index) || index < 0 || index >= MaxRowLabel) index = t._rows.Count;
             var row = new string[t.Columns.Length];
             for (int c = 0; c < row.Length; c++)
             {
                 var v = c + 1 < tokens.Count ? tokens[c + 1] : "";
                 row[c] = v == "****" ? "" : v;
             }
-            while (t._rows.Count < index) t._rows.Add(new string[t.Columns.Length]);
+            while (t._rows.Count < index) t._rows.Add(Array.Empty<string>());
             if (index == t._rows.Count) t._rows.Add(row);
             else t._rows[index] = row;
         }
