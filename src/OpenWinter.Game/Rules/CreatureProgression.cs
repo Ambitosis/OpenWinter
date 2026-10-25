@@ -134,10 +134,15 @@ public static partial class CreatureRules
             int ab = (int)entry.GetInt("LvlStatAbility");
             if (ab >= 0 && ab < 6) c.Abilities[ab]--;
         }
-        if (cc.Level > 0)
-            for (int lvl = 0; lvl < 10; lvl++)
-                foreach (var k in entry.GetList($"KnownList{lvl}"))
-                    cc.KnownSpells[lvl].Remove((int)k.GetInt("Spell"));
+        // Spells a prestige level taught belong to the base class it advanced.
+        for (int lvl = 0; lvl < 10; lvl++)
+            foreach (var k in entry.GetList($"KnownList{lvl}"))
+            {
+                int spell = (int)k.GetInt("Spell");
+                var learner = cc.Level > 0 && cc.KnownSpells[lvl].Contains(spell) ? cc
+                    : c.Classes.FirstOrDefault(x => x != cc && x.KnownSpells[lvl].Contains(spell));
+                learner?.KnownSpells[lvl].Remove(spell);
+            }
         history.RemoveAt(history.Count - 1);
         return true;
     }

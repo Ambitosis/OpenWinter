@@ -67,17 +67,19 @@ public static class LevelApplier
         c.Feats.AddRange(gained);
 
         var learnt = new Dictionary<int, List<int>>();
-        foreach (var pick in plan.Spells.Where(p => p.Class == cls))
+        // The spells go to the class the level advances: a prestige level teaches its base spontaneous caster.
+        foreach (var pick in plan.Spells)
         {
-            foreach (var (lvl, list) in pick.Granted) Learn(lvl, list);
-            foreach (var (lvl, list) in ch.Spells) Learn(lvl, list.Where(sp => pick.Choices.GetValueOrDefault(lvl)?.Contains(sp) == true));
+            if (c.Classes.FirstOrDefault(x => x.Class == pick.Class) is not { } learner) continue;
+            foreach (var (lvl, list) in pick.Granted) Learn(learner, lvl, list);
+            foreach (var (lvl, list) in ch.Spells) Learn(learner, lvl, list.Where(sp => pick.Choices.GetValueOrDefault(lvl)?.Contains(sp) == true));
         }
-        void Learn(int lvl, IEnumerable<int> spells)
+        void Learn(CreatureClass learner, int lvl, IEnumerable<int> spells)
         {
             foreach (var sp in spells)
             {
-                if (cc.KnownSpells[lvl].Contains(sp)) continue;
-                cc.KnownSpells[lvl].Add(sp);
+                if (learner.KnownSpells[lvl].Contains(sp)) continue;
+                learner.KnownSpells[lvl].Add(sp);
                 (learnt.TryGetValue(lvl, out var l) ? l : learnt[lvl] = new List<int>()).Add(sp);
             }
         }

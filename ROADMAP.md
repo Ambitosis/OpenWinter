@@ -109,7 +109,8 @@ tests/                xUnit (format round-trips; data tests run when config/loca
 - [ ] Visual transforms on head/tail/wing/cloak scopes; tile animation loops; tree wind sway
 - [x] Haste/slow AC changes; Defensive Roll; coup de grace; death attack paralysis; racial crit/sneak immunity
 - [x] Game difficulty in combat and its default ([docs/DIFFICULTY.md](docs/DIFFICULTY.md))
-- [ ] Prestige classes adding spells known to the base caster class; sorcerer/bard spell swap
+- [x] Prestige classes adding spells known to the base caster class
+- [ ] Sorcerer/bard spell swap
 - [x] Saves made by the original game load ([docs/SAVEGAME.md](docs/SAVEGAME.md))
 - [x] Missing walls/floors/furniture in tiles (merged triangle lists) and tile fading (cut-away walls, caps, plugs)
 - [ ] Interior lighting is darker than the original; roof gaps on some placeables
