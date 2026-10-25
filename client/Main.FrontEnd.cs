@@ -106,9 +106,10 @@ public partial class Main
         menu.Start = choice =>
         {
             foreach (var (k, v) in choice) _args[k] = v;
-            string title = choice.TryGetValue("connect", out var server) ? server : ModuleTitle(choice.GetValueOrDefault("module", ""));
-            _loading.Present(choice.ContainsKey("connect") ? "Joining server" : choice.ContainsKey("load") ? "Loading saved game" : "Starting module", title,
-                FrontEndContent.Base, status: choice.ContainsKey("connect") ? "Connecting…" : "Loading the module…");
+            var server = choice.GetValueOrDefault("connect") ?? choice.GetValueOrDefault("connect-nwn");
+            string title = server ?? ModuleTitle(choice.GetValueOrDefault("module", ""));
+            _loading.Present(server != null ? "Joining server" : choice.ContainsKey("load") ? "Loading saved game" : "Starting module", title,
+                FrontEndContent.Base, status: server != null ? "Connecting…" : "Loading the module…");
             // Let the loader draw before the (synchronous) module load.
             _ = StartAfterFrames(menu);
         };

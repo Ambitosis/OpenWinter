@@ -7,7 +7,8 @@ public partial class Main
 {
     /// <summary>
     /// --connect-nwn ws://host:port --character resref --capture-nwn dir: on an NWN:EE server, waits for the area and the
-    /// controlled character, then walks three metres and takes shots on arrival, mid-walk and after.
+    /// controlled character, then walks three metres and takes shots on arrival, mid-walk and after; then drives
+    /// forward with the keyboard for a second and a half, and clicks the nearest door.
     /// </summary>
     async Task CaptureNwn(string dir)
     {
@@ -29,6 +30,24 @@ public partial class Main
         await Wait(3);
         await Shot(dir, "03_arrived_at_target");
         GD.Print($"[nwn] moved from {start} to {_session.Controlled.NetPosition}");
+        var before = _session.Controlled.NetPosition;
+        // The forward key, held as the player would (the input handler reads the action's state each frame).
+        Input.ActionPress(Preferences.ActionCatalog.MoveForward);
+        await Wait(1.5);
+        await Shot(dir, "04_driving");
+        Input.ActionRelease(Preferences.ActionCatalog.MoveForward);
+        await Wait(1);
+        GD.Print($"[nwn] drove from {before} to {_session.Controlled.NetPosition}");
+        var here = _session.Controlled.NetPosition;
+        if (_session.Objects.Values.Where(o => o.Kind == ObjectKind.Door).OrderBy(o => o.NetPosition.DistanceTo(here)).FirstOrDefault() is { } door)
+        {
+            var open = (door.Flags & ObjectFlags.Open) != 0;
+            _session.Send(new ActionRequestMessage { Action = ActionKind.Use, Target = door.ObjectId }.Write());
+            for (int i = 0; i < 100 && ((door.Flags & ObjectFlags.Open) != 0) == open; i++) await Wait(0.1);
+            await Wait(1.5);
+            await Shot(dir, "05_door");
+            GD.Print($"[nwn] door {door.ObjectId} was {(open ? "open" : "closed")}, now {((door.Flags & ObjectFlags.Open) != 0 ? "open" : "closed")}");
+        }
         GetTree().Quit();
     }
 }
