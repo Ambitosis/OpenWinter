@@ -222,10 +222,10 @@ public partial class MainMenu : Control
         Start?.Invoke(new() { ["module"] = module, ["load"] = s.Folder });
     }
 
-    /// <summary>The module a save belongs to: the stored path, else a module whose name matches.</summary>
+    /// <summary>The module a save belongs to: the stored path when it is in a module folder, else a module whose name matches.</summary>
     string? ResolveModule(SaveEntry s)
     {
-        if (s.ModulePath.Length > 0 && (System.IO.File.Exists(s.ModulePath) || System.IO.Directory.Exists(s.ModulePath))) return s.ModulePath;
+        if (Paths.IsModulePath(s.ModulePath) && (System.IO.File.Exists(s.ModulePath) || System.IO.Directory.Exists(s.ModulePath))) return s.ModulePath;
         var talk = FrontEndContent.BaseTalk(Paths);
         foreach (var m in FrontEndContent.FindModules(Paths))
         {

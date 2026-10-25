@@ -103,6 +103,10 @@ websockets. A server that loads it can be joined from the OpenWinter client:
 
     tools/godot.sh -- --connect-nwn ws://host:port --name <player name> [--character <server-vault resref>]
 
+From the main menu, Multiplayer joins one too: tick "NWN:EE server (WSNetLayer)" or type a `ws://` or `wss://`
+address. Without `--character` the server's character list is shown. The server needs nothing beyond the plugin:
+no scripts, settings or other plugins.
+
 - Use `wss://` when the server puts the plugin behind a TLS proxy, as its README asks.
 - The client logs in with the CD key from the player's `cdkey.ini` (read only). Only the public part and an MD5
   answer to the server's challenge are sent. `--nwn-key generate` makes a throwaway key for test servers that can't
@@ -126,9 +130,10 @@ Supported so far:
 
 - login and choosing a server-vault character
 - the area and its static objects
-- creatures with appearance and equipment, placeables, doors and ground items
-- server chat and explored map tiles
-- click-to-move walking
+- creatures with appearance and equipment, placeables, doors (open or closed) and ground items
+- chat in both directions and explored map tiles
+- click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
+- opening and closing doors, using placeables and picking up ground items
 
 Dialog, inventory, combat feedback, NWSync and character creation are still to come.
 
@@ -138,4 +143,5 @@ Testing:
 - `NwnSessionTests` covers the login against a scripted server; `NwnBridgeTests` covers the translation.
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
   connections, so it never contacts the master server.
-- `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it.
+- `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
+  can also say a line, use objects, drive with the keyboard and record (`--say`, `--use`, `--drive`, `--record`).

@@ -6,12 +6,16 @@ namespace OpenWinter.Aurora.Resources;
 /// <summary>Where a game install and a user's content folder live.</summary>
 public sealed record GamePaths(string GameRoot, string UserRoot, string Language = "en")
 {
-    public string Hak(string name) =>
+    /// <summary>
+    /// The hak's file. Names come from modules and servers, so one that is not a plain file name (a path, a drive,
+    /// "..") resolves to nothing: the returned path is empty and does not exist.
+    /// </summary>
+    public string Hak(string name) => !IsPlainName(name) ? "" :
         Find(Path.Combine(UserRoot, "hak"), name + ".hak")
         ?? Find(Path.Combine(GameRoot, "data", "hak"), name + ".hak")
         ?? Path.Combine(GameRoot, "data", "hak", name + ".hak");
 
-    public string? Tlk(string name) =>
+    public string? Tlk(string name) => !IsPlainName(name) ? null :
         Find(Path.Combine(UserRoot, "tlk"), name + ".tlk") ?? Find(Path.Combine(GameRoot, "data", "tlk"), name + ".tlk");
 
     /// <summary>
@@ -20,13 +24,62 @@ public sealed record GamePaths(string GameRoot, string UserRoot, string Language
     /// </summary>
     public static string? Find(string folder, string file)
     {
+        if (!IsPlainName(file)) return null;
         var exact = Path.Combine(folder, file);
         if (File.Exists(exact)) return exact;
         if (OperatingSystem.IsWindows() || !Directory.Exists(folder)) return null;
         return Directory.EnumerateFiles(folder).FirstOrDefault(f => string.Equals(Path.GetFileName(f), file, StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// A name that stays inside the folder it is looked up in: not empty, no directory separators, drive or stream
+    /// colon, or characters invalid in file names, and not "." or "..".
+    /// </summary>
+    public static bool IsPlainName(string name) =>
+        name.Length > 0 && name != "." && name != ".." && name.IndexOfAny(Unsafe) < 0 && name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+
+    static readonly char[] Unsafe = { '/', '\\', ':', '\0' };
+
+    /// <summary>
+    /// <paramref name="relative"/> under <paramref name="root"/>, or null when it is rooted or climbs out of it.
+    /// </summary>
+    public static string? Contained(string root, string relative)
+    {
+        if (relative.Length == 0 || Path.IsPathRooted(relative) || relative.Contains(':') || relative.Contains('\0')) return null;
+        try
+        {
+            var full = Path.GetFullPath(Path.Combine(root, relative));
+            var top = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root)) + Path.DirectorySeparatorChar;
+            return full.StartsWith(top, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) ? full : null;
+        }
+        catch (Exception e) when (e is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return null;
+        }
+    }
+
     public string BaseTlk => Path.Combine(GameRoot, "lang", Language, "data", "dialog.tlk");
+
+    /// <summary>
+    /// Whether a module path (a .mod/.nwm file or a module folder) lies in the user's modules folder, the
+    /// install's campaign or module folders, or <paramref name="extraFolder"/>. Paths recorded in saves are
+    /// only followed when this holds.
+    /// </summary>
+    public bool IsModulePath(string path, string? extraFolder = null)
+    {
+        if (path.Length == 0) return false;
+        string full;
+        try { full = Path.GetFullPath(path); }
+        catch (Exception e) when (e is ArgumentException or NotSupportedException or PathTooLongException) { return false; }
+        var folders = new[] { Path.Combine(UserRoot, "modules"), Path.Combine(GameRoot, "data", "nwm"), Path.Combine(GameRoot, "data", "mod"), extraFolder };
+        foreach (var folder in folders)
+        {
+            if (string.IsNullOrEmpty(folder)) continue;
+            var relative = Path.GetRelativePath(folder, full);
+            if (relative != "." && Contained(folder, relative) != null) return true;
+        }
+        return false;
+    }
 }
 
 /// <summary>
