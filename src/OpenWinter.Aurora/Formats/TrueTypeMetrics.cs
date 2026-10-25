@@ -31,7 +31,7 @@ public sealed class TrueTypeMetrics
     {
         int g = _glyphOf.TryGetValue(codepoint, out int v) ? v : 0;
         if (_advances.Length == 0) return 0;
-        return _advances[Math.Min(g, _advances.Length - 1)];
+        return _advances[Math.Clamp(g, 0, _advances.Length - 1)];
     }
 
     /// <summary>The character's unhinted advance in pixels at a pixel size (em height).</summary>
@@ -82,6 +82,8 @@ public sealed class TrueTypeMetrics
             if (rank > bestRank) { best = offset; bestRank = rank; }
         }
         if (best < 0) return false;
+        // Overlapping or repeated ranges in a malformed table cannot map more than all of Unicode twice.
+        long budget = 2 * 0x110000L;
         if (BinaryPrimitives.ReadUInt16BigEndian(d[best..]) == 12)
         {
             int groups = (int)BinaryPrimitives.ReadUInt32BigEndian(d[(best + 12)..]);
@@ -91,7 +93,8 @@ public sealed class TrueTypeMetrics
                 int start = (int)BinaryPrimitives.ReadUInt32BigEndian(g), end = (int)BinaryPrimitives.ReadUInt32BigEndian(g[4..]);
                 int glyph = (int)BinaryPrimitives.ReadUInt32BigEndian(g[8..]);
                 // Only the planes a game's text can hold; skip absurd ranges.
-                if (end - start > 0x10000) continue;
+                if (end < start || (long)end - start > 0x10000) continue;
+                if ((budget -= end - start + 1) < 0) break;
                 for (int c = start; c <= end; c++) _glyphOf[c] = glyph + (c - start);
             }
             return true;
@@ -105,6 +108,7 @@ public sealed class TrueTypeMetrics
             short delta = BinaryPrimitives.ReadInt16BigEndian(d[(deltas + 2 * s)..]);
             int rangeAt = ranges + 2 * s;
             int range = BinaryPrimitives.ReadUInt16BigEndian(d[rangeAt..]);
+            if (end >= start && (budget -= end - start + 1) < 0) break;
             for (int c = start; c <= end && c != 0xFFFF; c++)
             {
                 int glyph;

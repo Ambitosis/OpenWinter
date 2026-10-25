@@ -19,7 +19,18 @@ public sealed partial class MdlAsciiReader
 
     MdlAsciiReader(string text) { _lines = text.Replace("\r", "").Split('\n'); }
 
-    public static ModelData Read(byte[] buf) => new MdlAsciiReader(Bin.Text.GetString(buf)).ReadModel();
+    /// <summary>Reads an ASCII model; malformed data throws <see cref="InvalidDataException"/>.</summary>
+    public static ModelData Read(byte[] buf)
+    {
+        try
+        {
+            return new MdlAsciiReader(Bin.Text.GetString(buf)).ReadModel();
+        }
+        catch (Exception e) when (e is ArgumentException or IndexOutOfRangeException or OverflowException or KeyNotFoundException)
+        {
+            throw new InvalidDataException($"MDL: {e.Message}", e);
+        }
+    }
 
     static float P(string s) => float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var f) ? f : 0f;
     static int PI(string s) => int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i) ? i : (int)P(s);
@@ -106,8 +117,9 @@ public sealed partial class MdlAsciiReader
                 default:
                     if (CountedLists.Contains(key) && t.Length > 1 && int.TryParse(t[1], out int rows))
                     {
-                        var list = new List<string[]>(rows);
-                        for (int r = 0; r < rows; r++) list.Add(NextTokens());
+                        // A row count past the end of the file reads the rows that are there.
+                        var list = new List<string[]>(Math.Clamp(rows, 0, _lines.Length - _i));
+                        for (int r = 0; r < rows && _i < _lines.Length; r++) list.Add(NextTokens());
                         n.Lists[key] = list;
                     }
                     else n.Props[key] = t;
@@ -502,7 +514,7 @@ public sealed partial class MdlAsciiReader
         var rows = new List<string[]>();
         if (header.Length > 1 && int.TryParse(header[1], out int n))
         {
-            for (int r = 0; r < n; r++) rows.Add(NextTokens());
+            for (int r = 0; r < n && _i < _lines.Length; r++) rows.Add(NextTokens());
             return rows;
         }
         while (_i < _lines.Length)

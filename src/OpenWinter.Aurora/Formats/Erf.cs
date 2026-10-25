@@ -91,12 +91,12 @@ public static class Erf
         string version = Encoding.ASCII.GetString(b[4..8]);
         if (version != "V1.0" && version != "V1.1") throw new InvalidDataException($"ERF: unsupported version '{version}'");
         int resrefLen = version == "V1.1" ? 32 : 16;
-        int count = (int)Rd32(b, 16);
+        long count = Rd32(b, 16);
         long keyOffset = Rd32(b, 24), resOffset = Rd32(b, 28);
         int keySize = resrefLen + 8;
         if (keyOffset + (long)count * keySize > file.Length || resOffset + (long)count * 8 > file.Length)
             throw new InvalidDataException("ERF: key or resource list out of range");
-        var list = new List<ErfEntry>(count);
+        var list = new List<ErfEntry>((int)count);
         for (int i = 0; i < count; i++)
         {
             int k = (int)(keyOffset + (long)i * keySize);

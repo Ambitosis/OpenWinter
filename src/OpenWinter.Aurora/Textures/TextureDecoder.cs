@@ -19,6 +19,7 @@ public static class TextureDecoder
         bool topDown = (b[17] & 0x20) != 0;
         if (w == 0 || h == 0 || w > 16384 || h > 16384) return null;
         int p = 18 + idLen;
+        if (p > b.Length) return null;
         byte[]? palette = null;
         if (cmapType == 1)
         {
@@ -31,6 +32,11 @@ public static class TextureDecoder
         bool gray = type is 3 or 11;
         bool mapped = type is 1 or 9;
         if (!(type is 1 or 2 or 3 or 9 or 10 or 11)) return null;
+        // Pixel sizes the decoder reads: an 8-bit palette index (with a palette), 8/16-bit grey, 16/24/32-bit colour.
+        if (mapped ? bytesPer != 1 || palette == null : gray ? bytesPer is < 1 or > 2 : bytesPer is < 2 or > 4) return null;
+        // Reject sizes the data cannot fill: an RLE packet expands to at most 128 pixels.
+        long remaining = b.Length - p;
+        if (remaining <= 0 || (long)w * h > (rle ? remaining * 128 : remaining / bytesPer)) return null;
 
         var outp = new byte[w * h * 4];
         bool hasAlpha = false;
@@ -117,6 +123,7 @@ public static class TextureDecoder
         int h = (int)BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(12));
         int w = (int)BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(16));
         int mips = Math.Max(1, (int)BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(28)));
+        if (w <= 0 || h <= 0 || w > 16384 || h > 16384) return null;
         uint pfFlags = BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(80));
         string fourcc = System.Text.Encoding.ASCII.GetString(b, 84, 4);
         if ((pfFlags & 0x4) != 0)
@@ -128,7 +135,7 @@ public static class TextureDecoder
         uint rm = BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(92)), gm = BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(96));
         uint bm = BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(100)), am = BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(104));
         int bpp = bits / 8;
-        if (bpp is < 1 or > 4 || 128 + w * h * bpp > b.Length) return null;
+        if (bpp is < 1 or > 4 || 128 + (long)w * h * bpp > b.Length) return null;
         var outp = new byte[w * h * 4];
         bool alpha = false;
         for (int i = 0; i < w * h; i++)
@@ -222,7 +229,7 @@ public static class TextureDecoder
         if (b.Length < 24) return null;
         int w = (int)BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(16));
         int h = (int)BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(20));
-        if (w <= 0 || h <= 0 || 24 + w * h * 2 > b.Length) return null;
+        if (w <= 0 || h <= 0 || 24 + (long)w * h * 2 > b.Length) return null;
         var plt = new PaletteTextureData { Width = w, Height = h, Shades = new byte[w * h], Layers = new byte[w * h] };
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)

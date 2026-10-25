@@ -74,7 +74,10 @@ public sealed class ErfSource : IResourceSource, IDisposable
                 int resId = (int)Le32(keys, k + resrefLen);
                 ushort type = BinaryPrimitives.ReadUInt16LittleEndian(keys.AsSpan(k + resrefLen + 4));
                 if (resId < 0 || resId >= count || resref.Length == 0) continue;
-                _entries[ResKey.Of(resref, type)] = (Le32(res, resId * 8), (int)Le32(res, resId * 8 + 4));
+                long offset = Le32(res, resId * 8), size = Le32(res, resId * 8 + 4);
+                // Entries whose data lies outside the file are skipped.
+                if (size > int.MaxValue || offset + size > length) continue;
+                _entries[ResKey.Of(resref, type)] = (offset, (int)size);
             }
         }
         catch
@@ -113,21 +116,24 @@ public sealed class KeyBifSource : IResourceSource
     {
         public required SafeFileHandle Handle;
         public required Dictionary<int, (long Offset, int Size)> Table;
+        public required long Length;
     }
 
     public KeyBifSource(string keyPath, string gameRoot)
     {
         Description = keyPath;
         var buf = File.ReadAllBytes(keyPath);
-        if (Encoding.ASCII.GetString(buf, 0, 4) != "KEY ") throw new InvalidDataException($"Not a KEY file: {keyPath}");
-        int bifCount = (int)Le32(buf, 8);
-        int keyCount = (int)Le32(buf, 12);
-        int fileTable = (int)Le32(buf, 16);
-        int keyTable = (int)Le32(buf, 20);
+        if (buf.Length < 24 || Encoding.ASCII.GetString(buf, 0, 4) != "KEY ") throw new InvalidDataException($"Not a KEY file: {keyPath}");
+        long bifCount = Le32(buf, 8);
+        long keyCount = Le32(buf, 12);
+        long fileTable = Le32(buf, 16);
+        long keyTable = Le32(buf, 20);
+        if (fileTable + bifCount * 12 > buf.Length || keyTable + keyCount * 22 > buf.Length)
+            throw new InvalidDataException($"KEY tables out of range: {keyPath}");
         _bifPaths = new string[bifCount];
         for (int i = 0; i < bifCount; i++)
         {
-            int e = fileTable + i * 12;
+            int e = (int)(fileTable + i * 12);
             int nameOffset = (int)Le32(buf, e + 4);
             int nameSize = BinaryPrimitives.ReadUInt16LittleEndian(buf.AsSpan(e + 8));
             string name = Bin.FixedString(buf, nameOffset, nameSize).Replace('\\', '/');
@@ -135,7 +141,7 @@ public sealed class KeyBifSource : IResourceSource
         }
         for (int i = 0; i < keyCount; i++)
         {
-            int e = keyTable + i * 22;
+            int e = (int)(keyTable + i * 22);
             string resref = Bin.FixedString(buf, e, 16);
             ushort type = BinaryPrimitives.ReadUInt16LittleEndian(buf.AsSpan(e + 16));
             _entries[ResKey.Of(resref, type)] = Le32(buf, e + 18);
@@ -149,6 +155,7 @@ public sealed class KeyBifSource : IResourceSource
         if (!_entries.TryGetValue(key, out var id)) return null;
         var bif = GetBif((int)(id >> 20));
         if (bif == null || !bif.Table.TryGetValue((int)(id & 0xFFFFF), out var e)) return null;
+        if (e.Size < 0 || e.Offset + e.Size > bif.Length) return null;
         var data = new byte[e.Size];
         RandomAccess.Read(bif.Handle, data, e.Offset);
         return data;
@@ -165,8 +172,11 @@ public sealed class KeyBifSource : IResourceSource
             var handle = File.OpenHandle(_bifPaths[index], FileMode.Open, FileAccess.Read, FileShare.Read);
             Span<byte> header = stackalloc byte[20];
             RandomAccess.Read(handle, header, 0);
+            long length = RandomAccess.GetLength(handle);
             int varCount = (int)Le32(header, 8);
             long tableOffset = Le32(header, 16);
+            // A table that cannot fit in the file reads as an empty archive.
+            if (varCount < 0 || tableOffset + (long)varCount * 16 > length) varCount = 0;
             var table = new byte[varCount * 16];
             RandomAccess.Read(handle, table, tableOffset);
             var dict = new Dictionary<int, (long, int)>(varCount);
@@ -175,7 +185,7 @@ public sealed class KeyBifSource : IResourceSource
                 int e = i * 16;
                 dict[(int)(Le32(table, e) & 0xFFFFF)] = (Le32(table, e + 4), (int)Le32(table, e + 8));
             }
-            b = new Bif { Handle = handle, Table = dict };
+            b = new Bif { Handle = handle, Table = dict, Length = length };
             _bifs[index] = b;
             return b;
         }
