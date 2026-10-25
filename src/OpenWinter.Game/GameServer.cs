@@ -904,6 +904,16 @@ public sealed partial class GameServer : IWorldOutput
     /// stealth or invisible that her character neither sees nor hears. The original draws nothing of those and gives
     /// them no Tab label or highlight (visual scene stealthview), so their positions aren't sent at all.
     /// </summary>
+    /// <summary>
+    /// Whether a player may be told about an object: in the player's area and not hidden from them (the rule that
+    /// decides which objects their client is sent). True without a session or server to ask.
+    /// </summary>
+    public static bool Perceives(World world, Creature player, GameObject o)
+    {
+        if (o.Area == null || o.Area != player.Area) return false;
+        return world.Output is not GameServer server || player.Player is not { } s || !server.HiddenFrom(s, o);
+    }
+
     bool HiddenFrom(PlayerSession s, GameObject o)
     {
         if (o is not Creature c) return false;

@@ -90,7 +90,7 @@ public sealed class HudFeed : IWorldSystem
 
     object? Target(Creature pc)
     {
-        if (!_targets.TryGetValue(pc.Id, out var id) || _world.Get(id) is not { } o || o.IsDestroyed || o.Area != pc.Area) return null;
+        if (!_targets.TryGetValue(pc.Id, out var id) || _world.Get(id) is not { } o || o.IsDestroyed || !GameServer.Perceives(_world, pc, o)) return null;
         int hp, max;
         switch (o)
         {

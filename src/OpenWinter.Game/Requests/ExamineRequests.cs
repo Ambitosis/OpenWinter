@@ -21,7 +21,7 @@ public static class Examine
         {
             Item item => item.Area == r.Player.Area && item.Area != null || r.World.Inventory.Owner(item) == r.Player
                 || r.World.Inventory.SessionOf(r.Player)?.Store is { } store && r.World.Inventory.Holder(item) == store,
-            _ => o.Area == r.Player.Area,
+            _ => GameServer.Perceives(r.World, r.Player, o),
         };
         if (!visible) return;
         // Examining an unidentified item of your own tries Lore on it first.
