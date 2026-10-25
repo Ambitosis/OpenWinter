@@ -61,6 +61,19 @@ public sealed class RequestAuthorizationTests
     }
 
     [DataFact]
+    public void ConnectionsThatNeverLogInAreDropped()
+    {
+        using var f = new Fixture();
+        var (idle, end) = LoopbackConnection.CreatePair();
+        f.Server.Accept(end);
+        for (int i = 0; i < 25; i++) f.Server.Tick(1);
+        Assert.True(idle.IsConnected);
+        for (int i = 0; i < 10; i++) f.Server.Tick(1);
+        Assert.False(idle.IsConnected);
+        Assert.True(f.ClientA.IsConnected);
+    }
+
+    [DataFact]
     public void TargetPicksCountOnlyAfterEnterTargetingMode()
     {
         using var f = new Fixture();
