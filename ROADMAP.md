@@ -36,7 +36,7 @@ tests/                xUnit (format round-trips; data tests run when config/loca
 - [x] Server/client split, loopback + UDP transports, dedicated server
 - [x] Whole-module load (40 areas, 3,879 objects in < 1 s)
 - [x] Walkmesh (tiles + placeable PWK + door DWK) in pure C#
-- [x] Rendering: tiles, placeables, doors, lights (tile main/source light colours), emitters (fountain/single), tile fade (upper walls cut along the line of sight, black caps and edge plugs), merged-mesh index lists, TXI-aware alpha
+- [x] Rendering: tiles, placeables, doors, lights (tile main/source light colours), emitters (fountain/single), tile fade (black caps and edge plugs; as in the original nothing fades in play, the keyhole shows the player), merged-mesh index lists, TXI-aware alpha
 - [x] Animation graph: stance state machine, speed blend spaces, upper-body gestures, full-body actions
 
 ### 2. Characters ✅

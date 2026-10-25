@@ -633,6 +633,7 @@ def main():
     ap.add_argument("--openwinter-args", default="", help='extra client arguments, e.g. "--visual-graphics Glow=false"')
     ap.add_argument("--silent", action="store_true", help="mute the native sandbox and use Godot Dummy audio for non-audio checks")
     ap.add_argument("--keyhole", default="", help='keyholing settings for both engines, e.g. "enabled=false" or "min-diameter=0.5,max-diameter=0.5"')
+    ap.add_argument("--second-story", type=int, choices=[0, 1, 2], help="the original's Hide Second Story Tiles (graphics.second-story-tiles.mode; 1 by default)")
     ap.add_argument("--tag", default="", help="suffix for the shots and pairs folder name (keeps runs with different settings apart)")
     ap.add_argument("--text-bubble-mode", type=int, choices=[0, 1, 2], help="nameplates: 0 off, 1 text, 2 text/portrait/bubble (both engines)")
     ap.add_argument("--ui-scale", type=float, help="interface scale for both engines (overrides the scene's uiScale)")
@@ -669,6 +670,9 @@ def main():
             if a.command == "run":
                 bubble = a.text_bubble_mode if a.text_bubble_mode is not None else sj.get("textBubbleMode")
                 user = prepare_user(cfg, character, size, a.profile, a.keyhole, bubble, sj.get("largeFont"), sj.get("uiScale"), sj.get("softwareCursor", False), sj.get("chatLog", False), sj.get("chatSplit"), sj.get("difficulty"), sj.get("serverSettings"))
+                if a.second_story is not None:
+                    with open(user / "settings.tml", "a", encoding="utf-8", newline="") as f:
+                        f.write(f"\n[graphics.second-story-tiles]\n\tmode = {a.second_story}\n")
                 run_character = character
                 # Optional generated BIC: never modify the installed character or real vault.
                 if mod.with_suffix(".bic").exists():

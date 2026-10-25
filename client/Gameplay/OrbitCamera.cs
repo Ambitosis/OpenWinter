@@ -97,7 +97,10 @@ public partial class OrbitCamera : Camera3D
         Follow((float)delta);
         var focus = Target.GlobalPosition + Vector3.Up * HeightOffset;
         var wanted = focus + Offset();
-        var desired = Settings.Current.Gameplay.CameraCollision ? Unblocked(focus, wanted) : wanted;
+        // Keyholing turns camera collision off, as the original's graphics.keyholing.disables-camera-collisions
+        // (on by default) does: the camera passes into walls and the keyhole shows the player.
+        bool collide = Settings.Current.Gameplay.CameraCollision && !Settings.Current.Graphics.Keyholing;
+        var desired = collide ? Unblocked(focus, wanted) : wanted;
         // Ease only the arm length. Interpolating world positions also eased the orbit and cut
         // across its circle, so turning lagged behind input and kept drifting after release.
         float distance = desired.DistanceTo(focus);

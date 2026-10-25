@@ -159,8 +159,8 @@ and a dragged container item suppresses its speculative local placement sound to
   posed creature head, with a 12-pixel face / 14-pixel line pitch at default overhead-text size and 1x UI scale;
   the overhead-text size and UI scale preferences scale them.
 - **ToggleKeyhole.** The original lists Tab for it as well, but Tab toggles keyholing only when the
-  "keyholing with tooltip" setting (off by default) asks, so the action starts unbound. There is no keyhole
-  dissolve yet (walls fade by tile instead); the key says so.
+  "keyholing with tooltip" setting (off by default) asks, so the action starts unbound. The key does not
+  toggle keyholing yet; it says so.
 - **Quick groups.** No default keys in the original. Our client selects one object at a time, so "set"
   remembers the selected object and "select" selects it again (`QuickGroups`).
 - **Pause** sends the `pause` request. The server toggles the player pause bit (GetGamePauseState 2) for

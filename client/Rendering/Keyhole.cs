@@ -20,8 +20,8 @@ namespace OpenWinter.Client.Rendering;
 /// and the cut surface darkens towards it, to about 60% at the edge, over the outer fifth of the radius.</item>
 /// <item>The hole stays active with a clear sight line to the player. Per-fragment depth and height decide what
 /// is cut, including geometry beside that sight line (Prelude bedroom, scene keybed).</item>
-/// <item>It does not wait or animate: the same view always gives the same hole. Tile fading is unchanged by it (the
-/// original fades the same parts with keyholing off); the hole cuts whatever fading leaves.</item>
+/// <item>It does not wait or animate: the same view always gives the same hole. It does not fade tiles either: the
+/// original fades no tile with keyholing on or off (scene fadecam); the hole cuts whatever is drawn.</item>
 /// </list>
 /// It is done in the materials: world materials (tiles, placeables) are swapped per mesh instance for a copy
 /// of the same shading with the cut added, all driven by a few global uniforms that <see cref="Update"/> sets once a

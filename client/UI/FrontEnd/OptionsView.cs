@@ -472,7 +472,7 @@ public partial class OptionsView : VBoxContainer
         Slider("Keyboard turn speed", null, g.CameraKeySpeed, 0.25f, 3f, 0.05f, v => $"{v:0.00}×", v => g.CameraKeySpeed = v);
         Section("Movement");
         Toggle("Always walk", "Walk by default; hold the walk key to run.", g.AlwaysWalk, v => g.AlwaysWalk = v);
-        Toggle("Camera collision", "Pull the camera in front of walls instead of fading them (the original fades them).", g.CameraCollision, v => g.CameraCollision = v);
+        Toggle("Camera collision", "Pull the camera in front of walls (only with see-through walls off; off in the original).", g.CameraCollision, v => g.CameraCollision = v);
         Section("Single player");
         Toggle("Pause in menus", "The game stops while the game menu or options are open.", g.PauseInMenus, v => g.PauseInMenus = v);
         Toggle("Pause in the background", "The game stops while another window has focus.", g.PauseOnFocusLoss, v => g.PauseOnFocusLoss = v);

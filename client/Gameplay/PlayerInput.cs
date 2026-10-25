@@ -93,7 +93,7 @@ public partial class PlayerInput : Node
         else if (P(ActionCatalog.Pause)) Pause();
         else if (P(ActionCatalog.RadialSelf)) RadialOnSelf();
         else if (P(ActionCatalog.QuickChat)) OpenQuickChat?.Invoke();
-        // TODO(render): no keyhole dissolve yet; walls between the camera and the player fade by tile instead.
+        // TODO(render): the key does not toggle keyholing yet.
         else if (P(ActionCatalog.ToggleKeyhole)) Feedback?.Invoke("Keyhole dissolve is not available yet.");
         else if (QuickGroupKey(e)) { }
         else return;

@@ -103,7 +103,7 @@ public partial class ClientSession : Node3D
         }
         if (Area != null && Controlled is { } controlled)
         {
-            Area.UpdateFade(controlled.Position, delta);
+            Area.UpdateFade(delta);
             var camera = GetViewport()?.GetCamera3D();
             foreach (var view in Objects.Values)
             {
