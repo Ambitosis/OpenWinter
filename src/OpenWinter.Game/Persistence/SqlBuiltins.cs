@@ -96,6 +96,9 @@ public static class CompressedBuffer
 {
     public const int AlgorithmNone = 0, AlgorithmZlib = 1, AlgorithmZstd = 2;
 
+    /// <summary>Largest decompressed size accepted, far above any stored object or character database.</summary>
+    public const int MaxSize = 256 * 1024 * 1024;
+
     public static byte[] Wrap(string magic, byte[] data, int algorithm = AlgorithmZstd)
     {
         byte[] payload;
@@ -127,7 +130,9 @@ public static class CompressedBuffer
         if (buf.Length < 16) throw new InvalidDataException("compressed buffer too short");
         if (Encoding.ASCII.GetString(buf, 0, 4) != magic.PadRight(4)[..4]) throw new InvalidDataException("compressed buffer magic mismatch");
         uint algorithm = BinaryPrimitives.ReadUInt32LittleEndian(buf.AsSpan(8));
-        int size = (int)BinaryPrimitives.ReadUInt32LittleEndian(buf.AsSpan(12));
+        uint declared = BinaryPrimitives.ReadUInt32LittleEndian(buf.AsSpan(12));
+        if (algorithm != AlgorithmNone && declared > MaxSize) throw new InvalidDataException($"compressed buffer claims {declared} bytes");
+        int size = (int)Math.Min(declared, int.MaxValue);
         switch (algorithm)
         {
             case AlgorithmNone:
@@ -135,11 +140,19 @@ public static class CompressedBuffer
             case AlgorithmZlib:
             {
                 // A uint32 sub-header version precedes the zlib stream.
+                if (buf.Length < 20) throw new InvalidDataException("zlib buffer too short");
                 using var input = new MemoryStream(buf, 20, buf.Length - 20);
                 using var z = new System.IO.Compression.ZLibStream(input, System.IO.Compression.CompressionMode.Decompress);
-                var output = new byte[size];
-                z.ReadExactly(output);
-                return output;
+                // Grow with the data actually inflated rather than trusting the declared size up front.
+                var output = new MemoryStream();
+                var chunk = new byte[81920];
+                while (output.Length < size)
+                {
+                    int n = z.Read(chunk, 0, (int)Math.Min(chunk.Length, size - output.Length));
+                    if (n == 0) throw new InvalidDataException($"zlib buffer holds {output.Length} bytes, header says {size}");
+                    output.Write(chunk, 0, n);
+                }
+                return output.ToArray();
             }
             case AlgorithmZstd:
             {
@@ -149,7 +162,7 @@ public static class CompressedBuffer
                 try
                 {
                     using var z = new ZstdSharp.Decompressor();
-                    var output = z.Unwrap(buf.AsSpan(24)).ToArray();
+                    var output = z.Unwrap(buf.AsSpan(24), size).ToArray();
                     if (output.Length != size) throw new InvalidDataException($"zstd buffer holds {output.Length} bytes, header says {size}");
                     return output;
                 }

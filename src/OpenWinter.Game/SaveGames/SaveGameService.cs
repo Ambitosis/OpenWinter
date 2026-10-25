@@ -328,12 +328,34 @@ public static class SaveGameService
         catch (Exception e) when (e is ArgumentException or NotSupportedException or PathTooLongException) { return null; }
     }
 
-    static JsonObject ReadSnapshot(GffStruct g)
+    /// <summary>Largest decompressed engine-state snapshot accepted.</summary>
+    public const long MaxSnapshotBytes = 1L << 30;
+
+    /// <summary>
+    /// The engine-state snapshot stored in a save's GFF. A damaged or oversized snapshot throws
+    /// <see cref="InvalidDataException"/>.
+    /// </summary>
+    public static JsonObject ReadSnapshot(GffStruct g, long maxBytes = MaxSnapshotBytes)
     {
         if (g.GetString("Encoding") != "json+gzip") throw new InvalidDataException($"unknown save encoding '{g.GetString("Encoding")}'");
-        using var gz = new GZipStream(new MemoryStream(g.GetBytes("Snapshot")), CompressionMode.Decompress);
-        return JsonNode.Parse(gz, documentOptions: new JsonDocumentOptions { MaxDepth = 4096 }) as JsonObject
-            ?? throw new InvalidDataException("save snapshot is not a JSON object");
+        var json = new MemoryStream();
+        try
+        {
+            using var gz = new GZipStream(new MemoryStream(g.GetBytes("Snapshot")), CompressionMode.Decompress);
+            var chunk = new byte[81920];
+            for (int n; (n = gz.Read(chunk, 0, chunk.Length)) > 0;)
+            {
+                if (json.Length + n > maxBytes) throw new InvalidDataException($"save snapshot is larger than {maxBytes} bytes");
+                json.Write(chunk, 0, n);
+            }
+            json.Position = 0;
+            return JsonNode.Parse(json, documentOptions: new JsonDocumentOptions { MaxDepth = 4096 }) as JsonObject
+                ?? throw new InvalidDataException("save snapshot is not a JSON object");
+        }
+        catch (JsonException e)
+        {
+            throw new InvalidDataException("save snapshot is damaged: " + e.Message, e);
+        }
     }
 
     /// <summary>

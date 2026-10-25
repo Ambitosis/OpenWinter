@@ -78,16 +78,36 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
 
     public string CampaignPath(string key) => Path.Combine(DatabaseDir, key + ".sqlite3");
 
-    /// <summary>The campaign database; with <paramref name="create"/> false, null when it does not exist yet.</summary>
+    /// <summary>
+    /// The campaign database; with <paramref name="create"/> false, null when it does not exist yet. A file that is
+    /// not a usable database is left untouched and reads as null, so campaign calls fall back to their defaults.
+    /// </summary>
     public SqlDb? Campaign(string name, bool create = true)
     {
         if (CampaignKey(name) is not { } key) return null;
         if (_campaigns.TryGetValue(key, out var db) && db.IsOpen) return db;
         var path = CampaignPath(key);
         if (!create && !File.Exists(path)) return null;
-        db = SqlDb.Open(path);
+        try
+        {
+            db = SqlDb.Open(path);
+        }
+        catch (IOException e)
+        {
+            Log($"[campaign] {key}: cannot open ({e.Message})");
+            return null;
+        }
         db.ProtectedTables = BuiltinTables;
-        db.Exec(CampaignSchema);
+        try
+        {
+            db.Exec(CampaignSchema);
+        }
+        catch (InvalidOperationException e)
+        {
+            db.Dispose();
+            Log($"[campaign] {key}: unreadable database ({e.Message})");
+            return null;
+        }
         _campaigns[key] = db;
         return db;
     }
