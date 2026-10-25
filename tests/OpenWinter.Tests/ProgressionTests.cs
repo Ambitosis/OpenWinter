@@ -217,6 +217,23 @@ public class ProgressionTests
     }
 
     [DataFact]
+    public void OversizedSkillRanksAreRefused()
+    {
+        var f = LevelFixture();
+        var w = f.World;
+        var c = f.Pc;
+        c.Experience = CreatureRules.XPForLevel(w, 2);
+        var ch = PackageBuilder.Complete(w, c, new LevelChoice { Class = 4 });
+        // Two skills the character already has a rank in: adding int.MaxValue to each would wrap both the rank
+        // limit and the points spent.
+        var skills = ProgressionRules.Plan(w, c, ch).Skills.Take(2).Select(o => o.Skill).ToList();
+        foreach (var sk in skills) { c.Skills[sk] = 1; ch.Skills[sk] = int.MaxValue; }
+        Assert.Contains(LevelUpRequests.LevelUp(w, c, ch), e => e.Code == "skills");
+        Assert.Equal(1, c.TotalLevel);
+        Assert.All(skills, sk => Assert.Equal(1, c.Skills[sk]));
+    }
+
+    [DataFact]
     public void LevelUpAppliesAndFiresOnPlayerLevelUp()
     {
         var f = LevelFixture();
