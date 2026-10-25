@@ -30,8 +30,9 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
     /// <summary>NWN animation codes in object updates: standing (0, 1), walking (2), running (4).</summary>
     const ushort AnimWalk = 2, AnimRun = 4;
 
-    /// <summary>A door's animation state: closed (22); any other state (51 after opening) is open.</summary>
-    public const ushort DoorClosed = 22;
+    /// <summary>A door's animation state: closed (22); any other state (51 after opening) is open. A door state
+    /// change asks for open (21) or close (22).</summary>
+    public const ushort DoorClosed = 22, DoorOpen = 21;
 
     // NWN armour-part order (nwscript.nss CREATURE_PART_*): right foot, left foot, right shin, left shin, left thigh,
     // right thigh, pelvis, torso, belt, neck, right forearm, left forearm, right bicep, left bicep, right shoulder,
@@ -56,8 +57,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         public NwnMover? Mover;
         public MovementMode Mode;
         public bool InCombat;
-        public ushort Anim;
-        public bool AppearanceChanged, StateChanged;
+            public bool AppearanceChanged, StateChanged;
     }
 
     readonly Dictionary<uint, Mirror> _objects = [];
@@ -329,21 +329,17 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         m.StateChanged = true;
     }
 
-    static void DoorAnim(Mirror m, ushort anim)
-    {
-        m.Anim = anim;
+    static void DoorAnim(Mirror m, ushort anim) =>
         m.Flags = anim == DoorClosed ? m.Flags & ~ObjectFlags.Open : m.Flags | ObjectFlags.Open;
-    }
 
     /// <summary>
-    /// What clicking a door sends: a door state change carrying the state the player sees, which the server
-    /// toggles (an open door closes); null when the object isn't a known door, or is an open transition that a
+    /// What clicking a door sends: a closed door is asked to open, an open one to close; null when the object isn't a known door, or is an open transition that a
     /// plain use (<paramref name="use"/>) travels through.
     /// </summary>
     public InputMessages.InputChangeDoorState? DoorRequest(uint id, bool use = false) =>
         _objects.TryGetValue(id, out var m) && m.Kind == ObjectKind.Door
             && !(use && (m.Flags & (ObjectFlags.Open | ObjectFlags.Transition)) == (ObjectFlags.Open | ObjectFlags.Transition))
-            ? new InputMessages.InputChangeDoorState { Door = id, Animation = m.Anim }
+            ? new InputMessages.InputChangeDoorState { Door = id, Animation = (m.Flags & ObjectFlags.Open) != 0 ? DoorClosed : DoorOpen }
             : null;
 
     /// <summary>

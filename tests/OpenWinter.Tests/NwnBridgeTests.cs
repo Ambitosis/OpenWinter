@@ -176,18 +176,19 @@ public class NwnBridgeTests
     }
 
     [Fact]
-    public void ClickingADoorAsksTheServerToChangeTheStateThePlayerSees()
+    public void ClickingADoorOpensOrClosesIt()
     {
         var (mirror, _) = Mirror();
         mirror.Area(Area());
         var transition = Door(9, 51);
         transition.Clickable = true;
         mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList { Entries = { Door(7, 22), Door(4, 51), transition } });
-        Assert.Equal((7u, (ushort)22), (mirror.DoorRequest(7)!.Door, mirror.DoorRequest(7)!.Animation));
-        Assert.Equal((ushort)51, mirror.DoorRequest(4, use: true)!.Animation);
+        // As recorded: 21 opens a closed door, 22 closes an open one.
+        Assert.Equal((7u, (ushort)21), (mirror.DoorRequest(7)!.Door, mirror.DoorRequest(7)!.Animation));
+        Assert.Equal((ushort)22, mirror.DoorRequest(4, use: true)!.Animation);
         // An open transition is travelled through on a plain use, closed from the radial menu.
         Assert.Null(mirror.DoorRequest(9, use: true));
-        Assert.Equal((ushort)51, mirror.DoorRequest(9)!.Animation);
+        Assert.Equal((ushort)22, mirror.DoorRequest(9)!.Animation);
         Assert.Null(mirror.DoorRequest(5));
     }
 }
