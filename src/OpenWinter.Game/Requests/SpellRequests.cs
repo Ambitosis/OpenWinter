@@ -29,7 +29,8 @@ static class SpellRequests
         var target = r.World.Get(r.Id("target"));
         if (target != null)
         {
-            if (target is Item item && item.Area == null && r.World.Inventory.Owner(item)?.Area != r.Player.Area) return;
+            // An item target is the player's own or one lying on the ground nearby, never another's inventory.
+            if (target is Item item && (item.Area == null ? !r.Owns(item) : item.Area != r.Player.Area)) return;
             if (target is not Item && target.Area != r.Player.Area) return;
             action.Target = target.Id;
         }
@@ -41,7 +42,7 @@ static class SpellRequests
     [ClientRequest("counterspell")]
     static void Counterspell(Request r)
     {
-        if (r.World.Get<Creature>(r.Id("target")) is not { } target || target.Area != r.Player.Area) return;
+        if (!ActionQueues.Accepts(r.Player) || r.World.Get<Creature>(r.Id("target")) is not { } target || target.Area != r.Player.Area) return;
         ActionQueues.Clear(r.World, r.Player);
         r.Player.Actions.Add(new CounterSpellAction { Target = target.Id });
     }
@@ -50,6 +51,8 @@ static class SpellRequests
     [ClientRequest("rest")]
     static void Rest(Request r)
     {
+        // Not while the player may not act (dying, dazed, a script's SetCommandable).
+        if (!ActionQueues.Accepts(r.Player) || r.Player.IsDying) return;
         ActionQueues.Clear(r.World, r.Player);
         r.Player.Actions.Add(new RestAction());
     }

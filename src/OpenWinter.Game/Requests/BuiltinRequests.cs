@@ -145,5 +145,11 @@ static class BuiltinRequests
 
     /// <summary>The player picked a target after EnterTargetingMode: {object, position}.</summary>
     [ClientRequest("target")]
-    static void Target(Request r) => PlayerEvents.TargetSelected(r.World, r.Player, r.Id("object"), r.Vec("position"));
+    static void Target(Request r)
+    {
+        // Only a pick the server asked for: scripts trust OnPlayerTarget to follow their EnterTargetingMode.
+        if (!r.Player.AwaitingTarget) return;
+        r.Player.AwaitingTarget = false;
+        PlayerEvents.TargetSelected(r.World, r.Player, r.Id("object"), r.Vec("position"));
+    }
 }

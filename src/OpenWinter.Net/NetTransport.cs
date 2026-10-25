@@ -34,6 +34,8 @@ public sealed class NetServerHost : IDisposable
     public int MaxMessageBytes { get; init; } = 16 * 1024 * 1024;
     /// <summary>Messages a client may have waiting for the next server tick; a client that floods past it is dropped.</summary>
     public int MaxQueuedMessages { get; init; } = 4096;
+    /// <summary>Most peers connected at once (0 = unlimited); further connection requests are refused.</summary>
+    public int MaxConnections { get; init; }
 
     public NetServerHost(int port, NetworkVersion? version = null)
     {
@@ -42,7 +44,8 @@ public sealed class NetServerHost : IDisposable
         _manager = new NetManager(_listener) { AutoRecycle = true, DisconnectTimeout = 15000 };
         _listener.ConnectionRequestEvent += r =>
         {
-            if (NetworkVersion.TryRead(r.Data, out var client) && client.Mismatch(version) == null) r.Accept();
+            if (MaxConnections > 0 && _manager.ConnectedPeersCount >= MaxConnections) r.Reject(version.Write());
+            else if (NetworkVersion.TryRead(r.Data, out var client) && client.Mismatch(version) == null) r.Accept();
             else r.Reject(version.Write());
         };
         _listener.PeerConnectedEvent += peer =>

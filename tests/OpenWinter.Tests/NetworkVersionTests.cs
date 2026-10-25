@@ -54,6 +54,21 @@ public class NetworkVersionTests
     }
 
     [Fact]
+    public void ConnectionsBeyondTheLimitAreRefused()
+    {
+        using var server = new NetServerHost(0) { MaxConnections = 1 };
+        int accepted = 0;
+        server.Connected += _ => accepted++;
+        using var first = new NetClientConnection("127.0.0.1", server.Port);
+        Until(() => first.Joined, () => { server.Poll(); first.TryReceive(out _); });
+        using var second = new NetClientConnection("127.0.0.1", server.Port);
+        Until(() => second.FailureReason != null, () => { server.Poll(); first.TryReceive(out _); second.TryReceive(out _); });
+        Assert.Equal(1, accepted);
+        Assert.True(first.IsConnected);
+        Assert.False(second.Joined);
+    }
+
+    [Fact]
     public void OversizedMessagesEndTheConnection()
     {
         using var server = new NetServerHost(0) { MaxMessageBytes = 1000 };

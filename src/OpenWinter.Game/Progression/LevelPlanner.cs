@@ -157,7 +157,8 @@ public static partial class ProgressionRules
             var opt = plan.Skills.FirstOrDefault(o => o.Skill == sk);
             if (ranks < 0) { plan.Errors.Add(new("skills", $"Skill ranks can't be removed ({SkillName(w, sk)}).")); continue; }
             if (opt == null) { plan.Errors.Add(new("skills", $"{SkillName(w, sk)} can't be learnt by a {ClassName(w, cls)}.")); continue; }
-            if (opt.Current + ranks > opt.MaxRanks) plan.Errors.Add(new("skills", $"{SkillName(w, sk)}: at most {opt.MaxRanks} ranks at this level."));
+            // Compared without adding, so an oversized request cannot wrap around the limit or the points spent.
+            if (ranks > opt.MaxRanks - opt.Current) { plan.Errors.Add(new("skills", $"{SkillName(w, sk)}: at most {opt.MaxRanks} ranks at this level.")); continue; }
             spent += ranks * opt.Cost;
             s.Skills[sk] += ranks;
         }

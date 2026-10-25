@@ -25,6 +25,8 @@ public sealed class PlayerSession
     public bool AreaReadyHandshake;
     /// <summary>The client has said Hello; a second Hello on the same connection is ignored.</summary>
     public bool HelloReceived;
+    /// <summary>Server running time when the connection was accepted (for the Hello deadline).</summary>
+    internal double AcceptedAt;
     public bool IsAreaLoading;
     /// <summary>
     /// A death panel with its Respawn button is up (PopUpDeathGUIPanel, PopUpGUIPanel(GUI_PANEL_PLAYER_DEATH)). Its
@@ -189,10 +191,14 @@ public sealed partial class GameServer : IWorldOutput
 
     public PlayerSession Accept(IConnection connection)
     {
-        var s = new PlayerSession { Connection = connection };
+        var s = new PlayerSession { Connection = connection, AcceptedAt = _running };
         _sessions.Add(s);
         return s;
     }
+
+    /// <summary>Seconds a connection may stay without saying Hello before it is dropped.</summary>
+    public const float HelloTimeout = 30;
+    double _running;
 
     double _nextClock;
 
@@ -204,6 +210,7 @@ public sealed partial class GameServer : IWorldOutput
 
     public void Tick(float dt)
     {
+        _running += dt;
         if (World.Time >= _nextClock)
         {
             _nextClock = World.Time + 10;
@@ -228,6 +235,8 @@ public sealed partial class GameServer : IWorldOutput
                     Console.WriteLine($"[server] message {(data.Length > 0 ? (MessageType)data[0] : 0)} from client {s.Connection.Id} failed: {e}");
                 }
             }
+            // A connection that never logs in would hold a place on the server.
+            if (!s.HelloReceived && _running - s.AcceptedAt > HelloTimeout) s.Connection.Disconnect();
             if (!s.Connection.IsConnected) Disconnect(s);
         }
         if (_options.ExportInterval > 0 && _options.Vault == VaultMode.Server && (_exportTimer += dt) >= _options.ExportInterval)
@@ -290,8 +299,8 @@ public sealed partial class GameServer : IWorldOutput
             case MessageType.MoveInput when s.Creature != null:
                 s.Creature.DriveInput = null;
                 var m = MoveInputMessage.Read(r);
-                // A dying player can't move (it is uncommandable until healed).
-                if (s.Creature.IsDying) break;
+                // A dying, dead or otherwise uncommandable player can't move.
+                if (s.Creature.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 if (m.Direction.LengthSquared() > 0.0001f)
                 {
                     // Steering by keys overrides click-to-move and other queued actions.
@@ -351,6 +360,7 @@ public sealed partial class GameServer : IWorldOutput
                 Broadcast(s.Area, new PlayAnimationMessage { ObjectId = s.Creature!.Id, Animation = a.Argument }.Write());
                 break;
             case ActionKind.MoveTo:
+                if (s.Creature!.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 ActionQueues.Clear(World, s.Creature!);
                 Movement.Stop(s.Creature!);
                 var move = new MoveAction { Target = a.Position, Run = a.Run, Range = 0.3f, AllowBackward = true };
@@ -363,6 +373,7 @@ public sealed partial class GameServer : IWorldOutput
                 break;
             case ActionKind.Talk:
             case ActionKind.Use:
+                if (s.Creature!.IsDying || !ActionQueues.Accepts(s.Creature)) break;
                 Interact(s.Creature!, World.Get(a.Target), a.Action == ActionKind.Talk);
                 break;
             case ActionKind.OpenDoor:

@@ -54,8 +54,14 @@ public static class LevelUpRequests
     static object Summary(World w, Creature c, LevelChoice ch, LevelPlan plan)
     {
         var opts = w.System<ProgressionSystem>();
-        int die = LevelApplier.HitPointsForLevel(w, plan.NewCharacterLevel, ProgressionRules.HitDie(w, ch.Class), opts.AlwaysMaxHitPoints, opts.Random);
-        Pending.AddOrUpdate(c, new PendingRoll { Class = ch.Class, Level = plan.NewCharacterLevel, Die = die });
+        // One roll per class and level: asking for the summary again shows the same figure rather than rolling anew.
+        int die;
+        if (Pending.TryGetValue(c, out var held) && held.Class == ch.Class && held.Level == plan.NewCharacterLevel) die = held.Die;
+        else
+        {
+            die = LevelApplier.HitPointsForLevel(w, plan.NewCharacterLevel, ProgressionRules.HitDie(w, ch.Class), opts.AlwaysMaxHitPoints, opts.Random);
+            Pending.AddOrUpdate(c, new PendingRoll { Class = ch.Class, Level = plan.NewCharacterLevel, Die = die });
+        }
         return new
         {
             @class = ch.Class,

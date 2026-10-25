@@ -64,7 +64,8 @@ if (harnessDir != null) harness = new MultiplayerHarness(world, server, harnessD
 Console.WriteLine($"[server] {settings.Name}: PvP {settings.Pvp}{(settings.OneParty ? ", one party only" : "")}, difficulty {settings.Difficulty}, {settings.Vault} vault, max {settings.MaxPlayers} players");
 Console.WriteLine($"[server] '{world.Module.Name.FirstString}': {world.Areas.Count} areas, {world.AllObjects.Count()} objects loaded in {sw.ElapsedMilliseconds} ms");
 
-using var net = new NetServerHost(port);
+// Room for every player plus a few connections still logging in (GameServer drops those that never do).
+using var net = new NetServerHost(port) { MaxConnections = settings.MaxPlayers > 0 ? settings.MaxPlayers + 8 : 0 };
 Console.WriteLine($"[server] OpenWinter {NetworkVersion.Current.Display}");
 net.Connected += c =>
 {
