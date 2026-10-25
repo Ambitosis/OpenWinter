@@ -1,42 +1,37 @@
-using OpenWinter.Client.Gameplay;
 using OpenWinter.Content;
 using Godot;
 
 namespace OpenWinter.Client.Views;
 
 /// <summary>
-/// Tile fading: upper walls, arches, roofs and tree tops that hide the player from the camera are cut down
-/// (with black caps over the cut, see <see cref="TileFade"/>), easing in and out. Each fading part is tested
-/// on its own, by sight lines from the camera to the player's feet, middle and head against the part's own
-/// triangles: a tower or tree top beside the player stays, as in the original (parity/visual), while the
-/// one in front of it fades. A tile's caps and its neighbours' plugs follow its most faded part.
+/// Tile fading: the upper walls, arches, roofs and tree tops a tile marks as fading can be cut down (with black caps
+/// over the cut and plugs in the neighbours, see <see cref="TileFade"/>), easing in and out. A tile's caps and its
+/// neighbours' plugs follow its most faded part. The original fades none of them in play: not at any camera height,
+/// distance or side, with keyholing on or off and with every Hide Second Story Tiles mode (parity/visual fadecam);
+/// the keyhole is what shows a hidden player. So nothing fades unless <see cref="FadeOverride"/> asks.
 /// </summary>
 public partial class AreaView
 {
     /// <summary>Seconds a part takes to fade fully out or back in.</summary>
     const float FadeSeconds = 0.3f;
-    /// <summary>Physics layer holding only fading geometry, for the sight-line test.</summary>
+    /// <summary>Physics layer holding only fading geometry, for measuring it against the original (the fade probe).</summary>
     public const uint FadeLayer = 1 << 20;
-    /// <summary>Heights above the player's feet the sight lines aim at.</summary>
-    static readonly float[] SightHeights = [0.3f, 1.0f, 1.8f];
 
     sealed class FadeNode
     {
         public required int Tile;
         public required MeshInstance3D Mesh;
         public float Amount;
-        public bool Hit;
     }
 
     List<(int Role, int Edge, MeshInstance3D Mesh)>[] _tileFades = Array.Empty<List<(int, int, MeshInstance3D)>>();
     List<FadeNode>[] _fadeNodes = Array.Empty<List<FadeNode>>();
     float[] _fadeAmount = Array.Empty<float>();
     readonly Dictionary<ulong, FadeNode> _fadeBodies = new();
-    /// <summary>Parts hidden or on their way (amount above zero or blocking now).</summary>
+    /// <summary>Parts not yet whole again.</summary>
     readonly HashSet<FadeNode> _activeFades = new();
     readonly HashSet<int> _touchedTiles = new();
     readonly List<FadeNode> _fadeStep = new();
-    readonly Godot.Collections.Array<Rid> _sightExclude = new();
 
     void ResetTileFades(int count)
     {
@@ -68,8 +63,8 @@ public partial class AreaView
         ApplyFadeAround(tile);
     }
 
-    /// <summary>Fades the parts that hide the player (or whatever the camera follows) from the camera.</summary>
-    public void UpdateFade(Vector3 playerAuroraPos, double delta)
+    /// <summary>Holds every fading part at <see cref="FadeOverride"/> while it is set; afterwards they ease back to whole.</summary>
+    public void UpdateFade(double delta)
     {
         if (_fadeBodies.Count == 0) return;
         if (FadeOverride is { } forced)
@@ -84,31 +79,7 @@ public partial class AreaView
             foreach (var list in _fadeNodes) foreach (var n in list) if (forced > 0) _activeFades.Add(n);
             return;
         }
-        var camera = GetViewport()?.GetCamera3D();
-        var space = GetWorld3D()?.DirectSpaceState;
-        if (camera == null || space == null) return;
-        var target = ToGlobal(playerAuroraPos);
-        if (camera is OrbitCamera { Target: { } followed } && IsInstanceValid(followed)) target = followed.GlobalPosition;
-        foreach (var n in _activeFades) n.Hit = false;
-        var eye = camera.GlobalPosition;
-        foreach (float h in SightHeights)
-        {
-            // Every fading part along the line, nearest first.
-            _sightExclude.Clear();
-            for (int guard = 0; guard < 16; guard++)
-            {
-                var query = PhysicsRayQueryParameters3D.Create(eye, target + Vector3.Up * h, FadeLayer, _sightExclude);
-                query.HitBackFaces = true;
-                var hit = space.IntersectRay(query);
-                if (hit.Count == 0) break;
-                _sightExclude.Add(hit["rid"].AsRid());
-                if (hit["collider"].AsGodotObject() is { } body && _fadeBodies.TryGetValue(body.GetInstanceId(), out var node))
-                {
-                    node.Hit = true;
-                    _activeFades.Add(node);
-                }
-            }
-        }
+        // Parts left faded by an override ease back in.
         if (_activeFades.Count == 0) return;
         float step = (float)delta / FadeSeconds;
         _touchedTiles.Clear();
@@ -116,10 +87,9 @@ public partial class AreaView
         _fadeStep.AddRange(_activeFades);
         foreach (var node in _fadeStep)
         {
-            float target01 = node.Hit ? 1f : 0f;
-            float next = node.Amount < target01 ? Math.Min(target01, node.Amount + step) : Math.Max(target01, node.Amount - step);
+            float next = Math.Max(0f, node.Amount - step);
             if (next != node.Amount) { node.Amount = next; _touchedTiles.Add(node.Tile); }
-            if (next == 0f && !node.Hit) _activeFades.Remove(node);
+            if (next == 0f) _activeFades.Remove(node);
         }
         foreach (int t in _touchedTiles)
         {
@@ -130,7 +100,7 @@ public partial class AreaView
         }
     }
 
-    /// <summary>For measuring (the visual harness): every fading part held at this amount (0 whole, 1 faded); null for the normal rule.</summary>
+    /// <summary>For measuring (the visual harness): every fading part held at this amount (0 whole, 1 faded); null for play, where nothing fades.</summary>
     public static float? FadeOverride;
 
     /// <summary>The tile whose fading part a physics body belongs to (-1 if it is not one).</summary>

@@ -277,7 +277,7 @@ public sealed class GameplaySettings
     public bool AlwaysWalk { get; set; }
     /// <summary>Camera mode, numbered as CAMERA_MODE_*: 0 chase, 1 top down (the original's default), 2 driving.</summary>
     public int CameraMode { get; set; } = 1;
-    /// <summary>Pull the camera in front of walls. Off by default: like the original, walls between the camera and the player fade instead.</summary>
+    /// <summary>Pull the camera in front of walls, only while keyholing is off. Off by default, as in the original.</summary>
     public bool CameraCollision { get; set; }
     /// <summary>Single player: the game pauses while the game menu or options are open.</summary>
     public bool PauseInMenus { get; set; } = true;
