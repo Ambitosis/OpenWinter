@@ -13,6 +13,8 @@ public sealed partial class SpellCastInfo
     public bool Spontaneous;
     /// <summary>Domain level when cast from a domain slot, else 0.</summary>
     public int DomainLevel;
+    /// <summary>Cast instantly (ActionCastSpell bInstantSpell).</summary>
+    public bool Instant;
 
     public SpellCastInfo Copy() => (SpellCastInfo)MemberwiseClone();
 }

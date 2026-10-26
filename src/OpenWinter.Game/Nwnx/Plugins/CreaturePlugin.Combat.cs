@@ -11,7 +11,7 @@ static partial class CreaturePlugin
     static CreatureCombatRules? CombatRules(NwnxCall n) => Combat(n).Rules as CreatureCombatRules;
 
     /// <summary>Keeps a setting with the creature's saved form (bPersist), or stops keeping it.</summary>
-    static void Persist(Creature c, string name, int? value) => CreatureOverridesPersistence.Persist(O(c), name, value);
+    static void Persist(Creature c, string name, int? value) => CreatureOverridesPersistence.Persist(c, name, value);
 
     /// <summary>The base attack bonus, replacing the class tables' (attacks per round follow); 0 goes back to them.</summary>
     [NwnxFunc("Creature", "SetBaseAttackBonus")]

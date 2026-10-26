@@ -185,7 +185,7 @@ static partial class CreaturePlugin
     static void SetLevelByPosition(NwnxCall n)
     {
         var c = n.PopObject<Creature>(); int position = n.PopInt(); int level = n.PopInt();
-        if (c == null || position < 0 || position >= c.Classes.Count || level is < 1 or > CreatureRules.MaxLevel) return;
+        if (c == null || position < 0 || position >= c.Classes.Count || level < 1 || level > CreatureRules.MaxLevel) return;
         CreatureRules.EnsureInit(n.World, c);
         int current = c.CurrentHitPoints;
         c.Classes[position].Level = level;

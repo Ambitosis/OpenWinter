@@ -649,7 +649,7 @@ public sealed partial class GameServer : IWorldOutput
             module = Admin.ModuleName ?? World.Module.Name.Resolve(World.Resources.Talk),
             players = _sessions.Count(x => x.Creature != null && !x.IsDM),
             maxPlayers = _options.MaxPlayers,
-            // Levels allowed (nwserver's default 1 - 40; NWNX_Administration_SetMinLevel / SetMaxLevel).
+            // Levels allowed (nwserver's default 1 - 40, more with NWNX_MAXLEVEL_MAX; NWNX_Administration_SetMinLevel / SetMaxLevel).
             minLevel = Admin.MinLevel,
             maxLevel = Admin.MaxLevel,
             password = Admin.PlayerPassword.Length > 0,
@@ -748,25 +748,15 @@ public sealed partial class GameServer : IWorldOutput
             {
                 if (Persistence.ServerVault.Load(World, s.PlayerName, choice.File) is { } bic)
                 {
-                    c = World.Creatures.FromTemplate(bic);
+                    // Server-vault characters are trusted unless the ELC options ask for them to be checked too.
+                    if (Nwnx.Plugins.ElcPlugin.OptionsOf(World).ServerVault) { if (!Legal(s, bic, out c)) return; }
+                    else c = World.Creatures.FromTemplate(bic);
                     c.VaultFile = Path.GetFileNameWithoutExtension(choice.File);
                 }
             }
             else if (_options.Vault == VaultMode.Local && choice.Bic.Length > 0)
             {
-                var bic = Gff.Read(choice.Bic);
-                // NWNX_ON_ELC_VALIDATE_CHARACTER around the legal character check (OBJECT_SELF OBJECT_INVALID: the character
-                // doesn't exist until it passes); a skip passes it, and the _AFTER half comes only for a character that passes.
-                var elc = _options.EnforceLegalCharacters ? Nwnx.NwnxEvent.Begin(World, "NWNX_ON_ELC_VALIDATE_CHARACTER", (GameObject?)null) : null;
-                bool elcSkipped = elc?.Before() == true;
-                if (_options.EnforceLegalCharacters && !elcSkipped && Progression.LegalCharacterCheck.Check(World, bic) is { Count: > 0 } illegal)
-                {
-                    Console.WriteLine($"[server] {s.PlayerName}: illegal character: {string.Join("; ", illegal.Take(5))}");
-                    s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That character is not legal on this server: " + string.Join(" ", illegal.Take(5).Select(e => e.Message)) }.Write());
-                    return;
-                }
-                elc?.After();
-                c = World.Creatures.FromTemplate(bic);
+                if (!Legal(s, Gff.Read(choice.Bic), out c)) return;
             }
         }
         catch (Exception e) when (e is InvalidDataException or EndOfStreamException or IOException)
@@ -778,9 +768,37 @@ public sealed partial class GameServer : IWorldOutput
             s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That character could not be loaded." }.Write());
             return;
         }
-        if (!AdmitLevel(s, c)) return;
+        if (!AdmitLevel(s, c))
+        {
+            if (c.Id != 0) World.Destroy(c); // registered for its validation scripts
+            return;
+        }
         SetPlayerSpeeds(c);
         EnterWorld(s, c);
+    }
+
+    /// <summary>
+    /// Loads a chosen character and, with Enforce Legal Characters on, validates it: the rule check replays its level
+    /// history, and NWNX_ELC's script, checks and events (<see cref="Nwnx.Plugins.ElcPlugin.Validate"/>) decide which
+    /// failures stand. A character that fails is told why and never enters. Local-vault characters only, unless the
+    /// ELC options include the server vault.
+    /// </summary>
+    bool Legal(PlayerSession s, GffStruct bic, out Creature c)
+    {
+        var illegal = _options.EnforceLegalCharacters ? Progression.LegalCharacterCheck.Check(World, bic) : null;
+        c = World.Creatures.FromTemplate(bic);
+        if (illegal == null) return true;
+        World.Register(c);
+        c.Player = s;
+        var failure = Nwnx.Plugins.ElcPlugin.Validate(World, c, illegal);
+        c.Player = null;
+        if (failure == null) return true;
+        Console.WriteLine($"[server] {s.PlayerName}: illegal character: {(failure.Reason.Length > 0 ? failure.Reason : string.Join("; ", illegal.Take(5)))}");
+        string text = World.Resources.Talk?.Get((uint)failure.StrRef) is { Length: > 0 } message ? message
+            : "That character is not legal on this server: " + string.Join(" ", illegal.Take(5).Select(e => e.Message));
+        s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = text }.Write());
+        World.Destroy(c);
+        return false;
     }
 
     /// <summary>Enters the game with a character made on the selection screen (character creation).</summary>
@@ -1022,6 +1040,13 @@ public sealed partial class GameServer : IWorldOutput
         // Compare later mutations with the appearance actually sent in the spawn.
         // Another observer arriving must not replace an older observer's baseline.
         if (o is Creature) _looks.TryAdd(o.Id, AppearanceKey(spawn.Appearance));
+        // How this player sees the creature (NWNX_Appearance).
+        string portrait = spawn.Portrait;
+        if (Nwnx.Plugins.AppearancePlugin.ForViewer(World, s.Creature, o, spawn.Appearance, ref portrait) is { } seen)
+        {
+            spawn.Appearance = seen;
+            spawn.Portrait = portrait;
+        }
         s.Send(spawn.Write());
         // Effects already running on it (auras, glows, beams) start for this player too.
         // Script-set UI hints (SetObjectMouseCursor, SetObjectHiliteColor) reach players who arrive later too.
@@ -1181,7 +1206,15 @@ public sealed partial class GameServer : IWorldOutput
         var look = AppearanceKey(spawn.Appearance);
         if (_looks.TryGetValue(c.Id, out var before) && before == look) return;
         _looks[c.Id] = look;
-        Broadcast(c.Area, new AppearanceMessage { ObjectId = c.Id, Appearance = spawn.Appearance }.Write());
+        byte[]? shared = null;
+        foreach (var s in _sessions)
+        {
+            if (c.Area != null && s.Area != c.Area) continue;
+            string portrait = spawn.Portrait;
+            var seen = Nwnx.Plugins.AppearancePlugin.ForViewer(World, s.Creature, c, spawn.Appearance, ref portrait);
+            s.Send(seen != null ? new AppearanceMessage { ObjectId = c.Id, Appearance = seen }.Write()
+                : shared ??= new AppearanceMessage { ObjectId = c.Id, Appearance = spawn.Appearance }.Write());
+        }
     }
 
     static string AppearanceKey(Appearance appearance)

@@ -149,17 +149,20 @@ public sealed class AreaLoader
     /// <summary>Called for every object read from a GIT, with its struct (loading the original's save games maps their object ids).</summary>
     public Action<GameObject, GffStruct>? Loaded;
 
-    void Place(Area area, GameObject o, GffStruct? s = null)
+    /// <summary>Registers the object and puts it in the area; with no area it is only registered (built for no area).</summary>
+    void Place(Area? area, GameObject o, GffStruct? s = null)
     {
         _world.Register(o);
         if (s != null) Loaded?.Invoke(o, s);
+        if (area == null) return;
         o.Area = area;
         area.Objects.Add(o);
         if (o is Trigger) area.TriggerCache = null;
         if (o is Door) area.DoorCache = null;
     }
 
-    public Placeable CreatePlaceable(Area area, GffStruct s, Vector3 position, float bearing)
+    /// <summary>A placeable from a GIT or UTP struct; with no area, one in no area and without walkmesh.</summary>
+    public Placeable CreatePlaceable(Area? area, GffStruct s, Vector3 position, float bearing)
     {
         var p = new Placeable
         {
@@ -179,7 +182,7 @@ public sealed class AreaLoader
             "OnMeleeAttacked", "OnOpen", "OnSpellCastAt", "OnTrapTriggered", "OnUnlock", "OnUsed", "OnUserDefined", "OnClick", "OnDialog");
         Place(area, p, s);
         var model = _rm.TwoDA("placeables").Get(p.Appearance, "ModelName");
-        if (_models.GetWalkmesh(model, ResType.Pwk) is { } pwk)
+        if (area != null && _models.GetWalkmesh(model, ResType.Pwk) is { } pwk)
         {
             area.Walkmesh.SetPlaceableOwner((int)p.Id);
             AddWalkmesh(area.Walkmesh, pwk, Placement(position, bearing), onlyWalkmeshNodes: false, owner: (int)p.Id);
@@ -193,8 +196,8 @@ public sealed class AreaLoader
     void AddDoor(Area area, GffStruct s) =>
         CreateDoor(area, s, new Vector3(s.GetFloat("X"), s.GetFloat("Y"), s.GetFloat("Z")), s.GetFloat("Bearing"));
 
-    /// <summary>A door from a GIT or UTD struct at a position. Its walkmesh is added to the area's.</summary>
-    public Door CreateDoor(Area area, GffStruct s, Vector3 position, float bearing)
+    /// <summary>A door from a GIT or UTD struct at a position. Its walkmesh is added to the area's (none without an area).</summary>
+    public Door CreateDoor(Area? area, GffStruct s, Vector3 position, float bearing)
     {
         var d = new Door
         {
@@ -215,7 +218,7 @@ public sealed class AreaLoader
         Place(area, d, s);
         d.WalkmeshOwner = (int)d.Id;
         string model = DoorModel(d);
-        if (_models.GetWalkmesh(model, ResType.Dwk) is { } dwk) AddDoorWalkmesh(area.Walkmesh, d, dwk, Placement(d.Position, d.Facing), AddWalkmesh);
+        if (area != null && _models.GetWalkmesh(model, ResType.Dwk) is { } dwk) AddDoorWalkmesh(area.Walkmesh, d, dwk, Placement(d.Position, d.Facing), AddWalkmesh);
         return d;
     }
 
@@ -245,7 +248,7 @@ public sealed class AreaLoader
     static Vector3 Positioned(GffStruct s) => new(s.GetFloat("XPosition"), s.GetFloat("YPosition"), s.GetFloat("ZPosition"));
     static float Oriented(GffStruct s) => MathF.Atan2(s.GetFloat("YOrientation"), s.GetFloat("XOrientation"));
 
-    public Waypoint CreateWaypoint(Area area, GffStruct s, Vector3 position, float facing)
+    public Waypoint CreateWaypoint(Area? area, GffStruct s, Vector3 position, float facing)
     {
         var w = new Waypoint
         {
@@ -262,7 +265,7 @@ public sealed class AreaLoader
     void AddTrigger(Area area, GffStruct s) => CreateTrigger(area, s, Positioned(s));
 
     /// <summary>A trigger from a GIT or UTT struct; its geometry points are relative to <paramref name="origin"/>.</summary>
-    public Trigger CreateTrigger(Area area, GffStruct s, Vector3 origin)
+    public Trigger CreateTrigger(Area? area, GffStruct s, Vector3 origin)
     {
         var t = new Trigger
         {
@@ -282,7 +285,7 @@ public sealed class AreaLoader
 
     void AddSound(Area area, GffStruct s) => CreateSound(area, s, Positioned(s));
 
-    public Sound CreateSound(Area area, GffStruct s, Vector3 position)
+    public Sound CreateSound(Area? area, GffStruct s, Vector3 position)
     {
         var o = new Sound
         {
@@ -305,7 +308,7 @@ public sealed class AreaLoader
     void AddEncounter(Area area, GffStruct s) => CreateEncounter(area, s, Positioned(s));
 
     /// <summary>An encounter from a GIT or UTE struct; its geometry points are relative to <paramref name="origin"/>.</summary>
-    public Encounter CreateEncounter(Area area, GffStruct s, Vector3 origin)
+    public Encounter CreateEncounter(Area? area, GffStruct s, Vector3 origin)
     {
         var e = new Encounter { Position = origin, Active = s.GetInt("Active") != 0, Template = s };
         foreach (var p in s.GetList("Geometry"))
@@ -319,7 +322,7 @@ public sealed class AreaLoader
     void AddStore(Area area, GffStruct s) => CreateStore(area, s, Positioned(s), Oriented(s));
 
     /// <summary>A store from a GIT or UTM struct; its stock is read from the struct when first needed.</summary>
-    public Store CreateStore(Area area, GffStruct s, Vector3 position, float facing)
+    public Store CreateStore(Area? area, GffStruct s, Vector3 position, float facing)
     {
         var o = new Store
         {

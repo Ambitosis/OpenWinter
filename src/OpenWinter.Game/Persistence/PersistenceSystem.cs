@@ -15,6 +15,7 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
     readonly World _world;
     readonly Dictionary<string, SqlDb> _campaigns = new(StringComparer.OrdinalIgnoreCase);
     readonly Dictionary<uint, SqlDb> _characters = new();
+    readonly Dictionary<uint, SqlDb> _others = new();
     SqlDb? _module;
     readonly Dictionary<string, uint> _uuids = new(StringComparer.OrdinalIgnoreCase);
     MemorySource? _temp;
@@ -44,12 +45,15 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
         foreach (var db in AllOpen()) db.EndOfScripts(Log);
         foreach (var (id, db) in _characters.ToList())
             if (_world.Get(id) == null) { db.Dispose(); _characters.Remove(id); }
+        foreach (var (id, db) in _others.ToList())
+            if (_world.Get(id) == null) { db.Dispose(); _others.Remove(id); }
     }
 
     IEnumerable<SqlDb> AllOpen()
     {
         foreach (var db in _campaigns.Values) if (db.IsOpen) yield return db;
         foreach (var db in _characters.Values) if (db.IsOpen) yield return db;
+        foreach (var db in _others.Values) if (db.IsOpen) yield return db;
         if (_module is { IsOpen: true }) yield return _module;
     }
 
@@ -98,6 +102,7 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
             return null;
         }
         db.ProtectedTables = BuiltinTables;
+        Opened(db);
         try
         {
             db.Exec(CampaignSchema);
@@ -131,14 +136,31 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
         Module m => ModuleDb(m),
         // A possessed familiar and its possessing master both use the master's (the player character's) database.
         Creature c when Players.FamiliarPossession.SessionOf(c) is { } s => CharacterDb(s.PlayerCreature ?? c),
+        // NWNX_NWSQLiteExtensions can give every other object but areas an in-memory database of its own.
+        not (null or Area) when Nwnx.Plugins.NWSQLiteExtensionsPlugin.DatabaseOnAllObjects(_world) => OtherDb(o),
         _ => null,
     };
+
+    SqlDb OtherDb(GameObject o)
+    {
+        if (_others.TryGetValue(o.Id, out var open) && open.IsOpen) return open;
+        var db = Opened(SqlDb.OpenMemory());
+        _others[o.Id] = db;
+        return db;
+    }
+
+    /// <summary>Every database the game opens passes here, for NWNX_NWSQLiteExtensions' SQL functions.</summary>
+    SqlDb Opened(SqlDb db)
+    {
+        Nwnx.Plugins.NWSQLiteExtensionsPlugin.Opened(_world, db);
+        return db;
+    }
 
     public SqlDb ModuleDb(Module m)
     {
         if (_module is { IsOpen: true }) return _module;
         // In memory, as in the original: it starts empty with every server start and persists only in saved games.
-        _module = SqlDb.OpenMemory();
+        _module = Opened(SqlDb.OpenMemory());
         m.Database = _module;
         return _module;
     }
@@ -147,7 +169,7 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
     public SqlDb CharacterDb(Creature c)
     {
         if (c.Database is { IsOpen: true } open) return open;
-        var db = SqlDb.OpenMemory();
+        var db = Opened(SqlDb.OpenMemory());
         if (c.Template.GetStruct("SQLite") is { } s && s.GetBytes("Data") is { Length: > 0 } data)
         {
             try { db.Load(CompressedBuffer.Unwrap("SQL3", data)); }
@@ -247,6 +269,8 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
 
     public void Dispose()
     {
+        // The world is shutting down: so does what NWNX plugins keep open for it.
+        _world.System<Nwnx.NwnxRegistry>().Shutdown();
         foreach (var db in _campaigns.Values) db.Dispose();
         foreach (var db in _characters.Values) db.Dispose();
         _module?.Dispose();

@@ -26,6 +26,7 @@ static partial class SnapshotTypes
     {
         typeof(PlayerSession), typeof(SqlDb), typeof(SqlStatement), typeof(MemorySource), typeof(Walkmesh), typeof(Pathfinder),
         typeof(Players.NuiWindow), typeof(TwoDA), typeof(TalkTable), typeof(Random), typeof(Type),
+        typeof(Nwnx.Plugins.RisenholmRpc.Listener),
     };
 
     static readonly string[] SkippedNamespaces =

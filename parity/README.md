@@ -41,7 +41,10 @@ dotnet run --project src/OpenWinter.Tools -c Release -- parity-run basics --only
   compile against NWNX:EE's own `nwnx_*.nss` headers (copied from that build into `out/nwnx/scripts`). Every plugin
   loads except those that need outside services or change engine behaviour (Optimizations, Experimental, HTTPClient,
   Redis, WebHook ...); NWNX_SQL uses SQLite. `"nwnx": "risenholm"` also loads the `NWNX_Risenholm` plugin, from the
-  build that `nwnxBinaries` in config/local.json names. `nwnx_pilot` is the smallest example.
+  build that `nwnxBinaries` in config/local.json names (only those suites use that build; the rest run on upstream
+  NWNX:EE), and compiles against that fork's `nwnx_risenholm.nss`. `"nwnxEnv": { "NWNX_TWEAKS_...": "true" }` sets
+  environment variables for NWNX on both engines, after the lab's defaults (`NWNX_SQL_TYPE=SQLITE`,
+  `NWNX_SQL_DATABASE=nwnx_sql`). `nwnx_pilot` is the smallest example.
   It never touches the real user folder. `"exports": ["name.are", ...]` compares files the scripts wrote to the user
   directory's nwnx folder (NWNX_Area_ExportARE/ExportGIT): their fields, values, tiles, variables and object lists
   become readings `file.<name>.*` (`nwnx_area_objects`).

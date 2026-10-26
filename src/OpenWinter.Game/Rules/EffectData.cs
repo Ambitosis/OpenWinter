@@ -43,6 +43,8 @@ public sealed partial class Effect
     public bool Hidden;
     /// <summary>Curse ability penalties suppressed by immunity when they land (one bit per ability).</summary>
     public int CurseBlockedAbilities;
+    /// <summary>An innate effect a creature has from its feats or race (NWNX_Feat, NWNX_Race); always <see cref="Hidden"/>.</summary>
+    public bool Innate;
 
     public bool IsValid => Type > 0;
 
@@ -62,7 +64,7 @@ public sealed partial class Effect
             LinkId = LinkId, VersusRace = VersusRace, VersusLawChaos = VersusLawChaos, VersusGoodEvil = VersusGoodEvil,
             VersusTraps = VersusTraps, Target = Target, AppliedAt = AppliedAt, NextTick = NextTick,
             AreaObject = AreaObject, SummonedObject = SummonedObject, FromInstant = FromInstant, ScriptId = ScriptId, Hidden = Hidden,
-            CurseBlockedAbilities = CurseBlockedAbilities,
+            CurseBlockedAbilities = CurseBlockedAbilities, Innate = Innate,
         };
         if (withLinks) foreach (var leaf in Linked) e.Linked.Add(leaf.Copy(false));
         return e;

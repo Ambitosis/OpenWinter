@@ -220,6 +220,7 @@ public sealed partial class World
     {
         c.SpawnPending = true;
         _spawnQueue.Add(c);
+        if (!c.IsPC && Nwnx.Plugins.NwnxTweaks.Of(this).FireEquipEventsForAllCreatures) Nwnx.Plugins.NwnxTweaks.EquippedAtCreation(this, c);
     }
 
     /// <summary>Runs a creature's pending OnSpawn before anything else happens to it.</summary>
@@ -255,6 +256,12 @@ public sealed partial class World
         if (o is Door) area.DoorCache = null;
         o.Area = null;
         if (o is Creature && exitEvent) After(0, () => RunEvent(area, "OnExit", new EventContext().Set("Exiting", o.Id)));
+    }
+
+    /// <summary>Destroys every object registered from <paramref name="firstId"/> on (a load that failed half way).</summary>
+    public void DestroyRegisteredSince(uint firstId)
+    {
+        foreach (var o in _objects.Values.Where(o => o.Id >= firstId).ToList()) Destroy(o);
     }
 
     /// <summary>Takes an object out of its area without destroying it (limbo): it stays valid with no area.</summary>

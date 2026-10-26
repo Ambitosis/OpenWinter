@@ -138,6 +138,8 @@ public sealed partial class CombatSystem
                 if (o.Damage.Sneak > 0 && !o.SneakSituation) o.Feedback.Add(o.Damage.DeathAttack ? "Death Attack" : "Sneak Attack");
             }
         }
+        if (o.Critical) o.Devastating = DevastatingCriticalApplies(o);
+        AttackEvent(o, ref hit);
         if (impactDelay > 0)
         {
             // The swing is seen now (animation, sounds); the blow lands later.
@@ -173,8 +175,12 @@ public sealed partial class CombatSystem
                 if (tc != null) DefensiveRoll(o, tc);
                 ApplyHardness(t, o.Damage);
                 o.Breakdown = new DamageBreakdown();
+                // Damage a script set got past the defences already; limited resistances and reductions still spend
+                // what they took from the rolled blow.
+                if (o.Damage.Defended && o.Damage.Met is { } met)
+                    HitPoints.Defend(_world, t, att.Id, met.ByType, met.Power, ignoreReductions: false, a.Ranged, met.Unresisted, o.Breakdown, consume: true);
                 o.Dealt = HitPoints.Damage(_world, t, att.Id, o.Damage.ByType, o.Damage.Power, ignoreReductions: false, ranged: a.Ranged, combat: true,
-                    unresisted: o.Damage.Unresisted, breakdown: o.Breakdown);
+                    unresisted: o.Damage.Unresisted, breakdown: o.Breakdown, defended: o.Damage.Defended);
                 o.Killed = HitPoints.IsDead(t);
                 // A blow that lands puts the attacker back in combat, even after ClearAllActions(TRUE) took it out
                 // between the swing and the blow (nwserver round_idle cut: its idle OnEndCombatRound came 5.85-5.97 s
@@ -188,7 +194,7 @@ public sealed partial class CombatSystem
             if (!o.Killed && tc != null)
             {
                 SpecialAttackHit(o);
-                if (o.Critical) DevastatingCritical(o);
+                if (o.Critical && o.Devastating) DevastatingCritical(o);
             }
             if (!HitPoints.IsDead(t)) OnHitProperties(o);
         }
@@ -208,7 +214,7 @@ public sealed partial class CombatSystem
         AttackResolved?.Invoke(o);
 
         if (riposte && tc != null && !tc.IsDead && !att.IsDead) Riposte(tc, att);
-        if (o.Killed) Cleave(o);
+        if (o.Killed) { if (!ScriptedCleave) Cleave(o); }
         else if (hit && a.Unarmed && a.Kind is AttackKind.Normal) CircleKick(o);
     }
 
@@ -335,18 +341,18 @@ public sealed partial class CombatSystem
 
     /// <summary>
     /// Parry mode: up to one parry per attack the defender would have this round; Parry check against the attack
-    /// total. Beating it by PARRY_RIPOSTE_DIFFERENCE earns an immediate riposte.
+    /// total; Improved Parry's bonus is part of the Parry rank (nwnx_skillranks). Beating it by PARRY_RIPOSTE_DIFFERENCE
+    /// earns an immediate riposte.
     /// </summary>
     bool TryParry(AttackOutcome o, CombatState tState, out bool riposte)
     {
         riposte = false;
         var a = o.Context;
         if (a.Target is not Creature tc || !tc.ActionModes.Contains(CombatK.ModeParry) || a.TargetDeniedDex || !CanAttack(tc)) return false;
-        bool parryAll = tc.Overrides?.ParryAllAttacks == true || OverrideSystem.ParryAllAttacks;
+        bool parryAll = tc.Overrides?.ParryAllAttacks == true || OverrideSystem.ParryAllAttacks || Nwnx.Plugins.NwnxTweaks.Of(_world).ParryAllAttacks;
         if (!parryAll && tState.Parries >= Math.Max(1, CreatureRules.AttacksPerRound(_world, tc))) return false;
         tState.Parries++;
         int parry = Dice.Roll(20) + CreatureRules.SkillRank(_world, tc, CombatK.SkillParry);
-        if (HasFeat(tc, CombatK.FeatImprovedParry)) parry += RI("IMPROVED_PARRY_MODIFIER", 4);
         int total = o.Roll + o.AttackBonus;
         if (parry < total) return false;
         riposte = parry - total >= RI("PARRY_RIPOSTE_DIFFERENCE", 10);
@@ -425,13 +431,25 @@ public sealed partial class CombatSystem
         return best;
     }
 
+    /// <summary>
+    /// Whether a critical hit brings a devastating critical: the attacker has the feat for the weapon and the
+    /// devastating critical event script (NWNX_Weapon), told as the attack is swung, doesn't bypass it. As on nwserver
+    /// (parity suite nwnx_weapon): the script runs for every such critical hit, before the attack event, which then
+    /// reads attack result 10.
+    /// </summary>
+    bool DevastatingCriticalApplies(AttackOutcome o)
+    {
+        var a = o.Context;
+        if (Creature is not { } r || a.Target is not Objects.Creature) return false;
+        if (!r.HasWeaponFeat(a.Attacker, r.Stats(a.Weapon), WeaponFeat.DevastatingCritical)) return false;
+        return !Nwnx.Plugins.WeaponPlugin.RunDevastatingCriticalEvent(_world, a.Attacker, a.Weapon, a.Target, o.Damage?.Total ?? 0);
+    }
+
     /// <summary>Devastating Critical: a critical hit with the weapon forces a Fortitude save (10 + half HD + Str) or death.</summary>
     void DevastatingCritical(AttackOutcome o)
     {
         var a = o.Context;
-        if (Creature is not { } r || a.Target is not Creature tc) return;
-        var s = r.Stats(a.Weapon);
-        if (!HasFeat(a.Attacker, s.Devastating)) return;
+        if (a.Target is not Creature tc) return;
         int dc = RI("DEVASTATING_CRITICAL_BASE_DC", 10) + a.Attacker.TotalLevel / 2 + CreatureRules.AbilityModifier(_world, a.Attacker, NwRules.AbilityStr);
         if (SavingThrow(tc, NwRules.SaveFort, dc, NwRules.SaveTypeAll, a.Attacker) == 0)
         {

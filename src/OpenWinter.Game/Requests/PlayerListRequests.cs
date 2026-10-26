@@ -26,6 +26,7 @@ static class PlayerListRequests
             server.SendMessage(r.Player, "Only a Dungeon Master can pause this game.");
             return;
         }
+        if (!server.Options.SaveGames && Nwnx.Plugins.NwnxTweaks.Of(r.World).DisablePause && (r.Player.Player?.IsDM == true || r.Player.IsDMAvatar)) return;
         int before = r.World.PauseState;
         int wanted = r.Int("state", -1);
         int next = wanted == 1 ? before | 2 : wanted == 0 ? before & ~2 : (before & 2) != 0 ? before & ~2 : before | 2;

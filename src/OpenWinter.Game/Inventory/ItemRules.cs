@@ -209,6 +209,7 @@ public sealed class ItemRules
             else if (p.Type == PropContainerWeight) containerReduction = Math.Max(containerReduction, CostTableFloat(p, "Value", 0));
         }
         unit *= reduced;
+        if (item.WeightOverride >= 0) unit = item.WeightOverride;
         long total = (long)unit * Math.Max(1, item.StackSize);
         if (item.Inventory.Count > 0 && depth < 4)
         {
@@ -266,7 +267,7 @@ public sealed class ItemRules
         if (item.HeldValue is { } held && item.HeldAt == _world.Time) return held;
         if (item.Plot || IsCreatureItem(item.BaseItem)) return 0;
         int maxStack = MaxStack(item.BaseItem);
-        long unit = (long)UnitValue(item, item.Identified) + (item.Identified ? item.AddCost : 0);
+        long unit = (item.BaseValueOverride ?? (long)UnitValue(item, item.Identified)) + (item.Identified ? item.AddCost : 0);
         long full = Math.Max(1, unit * maxStack);
         return (int)Math.Clamp(full * Math.Max(1, item.StackSize) / maxStack, 0, int.MaxValue);
     }
@@ -305,7 +306,7 @@ public sealed class ItemRules
             if (p.Type == PropCastSpell)
             {
                 // Charge-based uses (iprp_chargecost rows 2-6) scale with the charges the item had when priced.
-                if (p.CostTableValue is >= 2 and <= 6) cost *= charges / 50f;
+                if (p.CostTableValue is >= 2 and <= 6) cost *= Nwnx.Plugins.NwnxTweaks.Of(_world).ChargeCostMultiplier(charges);
                 if (cost > best) { rest += best * 0.5f; best = cost; }
                 else if (cost > second) { rest += second * 0.5f; second = cost; }
                 else rest += cost * 0.5f;

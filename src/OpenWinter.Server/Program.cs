@@ -27,6 +27,8 @@ var module = settings.Module.Length > 0 ? settings.Module : cfg.Module;
 int port = settings.Port;
 
 var sw = Stopwatch.StartNew();
+// A dedicated server: NWNX plugins may reach outside the game (programs, HTTP, RPC) where their own settings say so.
+OpenWinter.Game.Nwnx.NwnxRegistry.DedicatedServer = true;
 var world = new World(ResMan.ForModule(paths, module));
 world.EnableScripts();
 // --harness <dir>: the multiplayer sync harness records the server's state and relays the scene's markers (MultiplayerHarness.cs).

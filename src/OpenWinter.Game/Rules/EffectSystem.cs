@@ -115,6 +115,18 @@ public sealed partial class EffectSystem : IWorldSystem
             if (!EffectImmunity.Blocks(_world, target, leaf)) ApplyInstant(leaf, target, durationType, duration);
     }
 
+    /// <summary>
+    /// Gives a creature an innate effect (feat and racial modifiers): lasting, out of the scripts' list, without
+    /// immunity checks or feedback.
+    /// </summary>
+    public void ApplyInnate(Effect effect, GameObject target)
+    {
+        if (!effect.IsValid || target.IsDestroyed) return;
+        var leaf = effect.Copy(false);
+        leaf.Innate = true;
+        Land([leaf], target, K.Permanent, 0, hidden: true);
+    }
+
     /// <summary>Whether the target refuses an effect; a player kept safe by an immunity is told so.</summary>
     bool Refused(GameObject target, Effect e)
     {
@@ -289,7 +301,7 @@ public sealed partial class EffectSystem : IWorldSystem
         int amount = e.Ints[0] < 0 ? 1 : e.Ints[0], type = e.Ints[1];
         if (HitPoints.IsDead(target) || target is not (Creature or Placeable or Door)) return;
         var breakdown = new DamageBreakdown();
-        HitPoints.Damage(_world, target, e.Creator, new Dictionary<int, int> { [type] = amount }, e.Ints[2], breakdown: breakdown);
+        HitPoints.Damage(_world, target, e.Creator, new Dictionary<int, int> { [type] = amount }, e.Ints[2], breakdown: breakdown, spellId: e.SpellId);
         var source = _world.Get(e.Creator) as Creature;
         // Players involved, and a nearby master of an associate involved (killxp: "Bandit damages Goblin" from a henchman).
         var audience = Society.AssociateService.FeedbackPlayers(_world, target, target as Creature, source);
@@ -661,7 +673,8 @@ public sealed partial class EffectSystem : IWorldSystem
     }
 
     /// <summary>Removes every listed effect matching <paramref name="match"/> (with their links). Returns how many effects went.</summary>
-    public int RemoveWhere(GameObject target, Func<Effect, bool> match) => RemoveLinks(target, target.Effects.Where(e => !e.Hidden && match(e)).ToList());
+    public int RemoveWhere(GameObject target, Func<Effect, bool> match, bool includeHidden = false) =>
+        RemoveLinks(target, target.Effects.Where(e => (includeHidden || !e.Hidden) && match(e)).ToList());
 
     int RemoveLinks(GameObject target, IReadOnlyCollection<Effect> seeds)
     {
@@ -686,6 +699,7 @@ public sealed partial class EffectSystem : IWorldSystem
         var k = K;
         if (!ip.Valid || item.IsDestroyed || (durationType != k.Temporary && durationType != k.Permanent)) return;
         var copy = ip.Clone();
+        copy.OnItem = true;
         copy.DurationType = durationType;
         copy.Duration = durationType == k.Temporary ? Math.Max(0, duration) : 0;
         copy.ExpiresAt = durationType == k.Temporary ? _world.Time + copy.Duration : 0;
@@ -1093,6 +1107,8 @@ public sealed partial class EffectSystem : IWorldSystem
     /// The effecticons.2da row shown for an effect: EffectIcon's own id, otherwise the row whose
     /// label is the effect's EFFECT_TYPE_* name (ability effects add _STR, _DEX, ...).
     /// </summary>
+    public int IconFor(Effect e) => IconOf(K, e);
+
     int IconOf(EffectConstants k, Effect e)
     {
         if (e.Type == k.Icon) return e.Ints.Length > 0 ? e.Ints[0] : 0;

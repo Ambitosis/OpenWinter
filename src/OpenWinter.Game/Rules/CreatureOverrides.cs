@@ -65,9 +65,6 @@ public sealed class CreatureOverrides
     /// <summary>Parry mode parries every attack, not one per attack of its own.</summary>
     public bool ParryAllAttacks;
 
-    /// <summary>Settings to keep with the creature's saved form (NWNX_POS names without the plugin prefix, newest first).</summary>
-    public readonly List<KeyValuePair<string, int>> Persisted = new();
-
     public static CreatureOverrides Of(Creature c) => c.Overrides ??= new CreatureOverrides();
 
     /// <summary>Identity of a creature's effects of the given types, to tell when they change.</summary>

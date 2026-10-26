@@ -90,6 +90,7 @@ public sealed partial class CombatSystem
                 || Creature is not { } r || !CanAttack(c)) continue;
             var a = Rules.Context(c, caster, r.Weapons(c).Main, false, Dice);
             a.Kind = AttackKind.Opportunity;
+            a.AttackNumber = s.NextAttack + ++s.OpportunitySwings;
             s.LastSwingAt = now;
             Resolve(a, swing, ImpactDelay);
         }

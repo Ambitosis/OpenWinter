@@ -6,15 +6,26 @@ namespace OpenWinter.Game.Rules;
 /// <summary>Experience, level loss and alignment.</summary>
 public static partial class CreatureRules
 {
-    public const int MaxLevel = 40;
+    /// <summary>
+    /// The highest character level: 40, or 41-60 from NWNX_MAXLEVEL_MAX as the NWNX_MaxLevel plugin reads it (the
+    /// levels' XP then comes from exptable.2da rows beyond 40, and feats and ability increases follow their usual
+    /// progression).
+    /// </summary>
+    public static readonly int MaxLevel = MaxLevelFrom(Environment.GetEnvironmentVariable("NWNX_MAXLEVEL_MAX"));
 
-    /// <summary>XP needed to reach a character level (exptable.2da).</summary>
+    public const int StandardMaxLevel = 40;
+
+    /// <summary>The level cap a NWNX_MAXLEVEL_MAX value gives: 41 to 60 raise it; anything else leaves 40.</summary>
+    public static int MaxLevelFrom(string? value) =>
+        int.TryParse(value?.Trim(), out int n) && n > StandardMaxLevel && n <= 60 ? n : StandardMaxLevel;
+
+    /// <summary>XP needed to reach a character level (exptable.2da); a level the table has no row for can't be reached.</summary>
     public static int XPForLevel(World w, int level)
     {
         if (level <= 1) return 0;
         var t = w.Resources.TwoDA("exptable");
-        int row = Math.Min(level - 1, t.RowCount - 1);
-        return row < 0 ? int.MaxValue : t.GetInt(row, "XP", int.MaxValue);
+        int row = level - 1;
+        return row >= t.RowCount ? int.MaxValue : t.GetInt(row, "XP", int.MaxValue);
     }
 
     /// <summary>The highest level an amount of XP allows.</summary>

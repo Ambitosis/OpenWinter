@@ -420,7 +420,17 @@ public sealed partial class InventorySystem : IWorldSystem
         if (a == b || a.BaseItem != b.BaseItem || Rules.MaxStack(a.BaseItem) <= 1) return false;
         if (!a.ResRef.Equals(b.ResRef, StringComparison.OrdinalIgnoreCase) || !a.Tag.Equals(b.Tag, StringComparison.Ordinal)) return false;
         if (a.Identified != b.Identified || a.Stolen != b.Stolen || a.Plot != b.Plot || a.Charges != b.Charges || a.Infinite != b.Infinite) return false;
+        if (Nwnx.Plugins.NwnxTweaks.Of(_world).CompareVariablesWhenMerging && !SameLocals(a.Locals, b.Locals)) return false;
         return PropertyKeys(a).SequenceEqual(PropertyKeys(b));
+    }
+
+    static bool SameLocals(LocalVariables a, LocalVariables b)
+    {
+        static bool Same<T>(Dictionary<string, T> x, Dictionary<string, T> y) =>
+            x.Count == y.Count && x.All(kv => y.TryGetValue(kv.Key, out var v) && EqualityComparer<T>.Default.Equals(kv.Value, v));
+        return Same(a.Ints, b.Ints) && Same(a.Floats, b.Floats) && Same(a.Strings, b.Strings) && Same(a.Objects, b.Objects)
+            && Same(a.Locations, b.Locations) && a.Jsons.Count == b.Jsons.Count
+            && a.Jsons.All(kv => b.Jsons.TryGetValue(kv.Key, out var v) && v == kv.Value);
     }
 
     List<string> PropertyKeys(Item item)
@@ -699,8 +709,8 @@ public sealed partial class InventorySystem : IWorldSystem
         item.Possessor = c.Id;
         EquipmentChanged(c, item, slot);
         PropertyEffects(c, item, slot, applied: true);
-        // Only for players: the original fires nothing when other creatures equip.
-        if (c.IsPC)
+        // Only for players: the original fires nothing when other creatures equip (unless NWNX_Tweaks says so).
+        if (c.IsPC || Nwnx.Plugins.NwnxTweaks.Of(_world).FireEquipEventsForAllCreatures)
             _world.RunEvent(_world.Module, "Mod_OnPlrEqItm",
                 new EventContext().Set("EquippedItem", item.Id).Set("EquippedBy", c.Id).Set("EquippedSlot", slot));
         return true;
@@ -775,7 +785,7 @@ public sealed partial class InventorySystem : IWorldSystem
 
     void FireUnequip(Creature c, Item item, int slot)
     {
-        if (!c.IsPC) return; // only for players, like OnPlayerEquipItem
+        if (!c.IsPC && !Nwnx.Plugins.NwnxTweaks.Of(_world).FireEquipEventsForAllCreatures) return; // only for players, like OnPlayerEquipItem
         _world.RunEvent(_world.Module, "Mod_OnPlrUnEqItm",
             new EventContext().Set("UnequippedItem", item.Id).Set("UnequippedBy", c.Id).Set("UnequippedSlot", slot));
     }

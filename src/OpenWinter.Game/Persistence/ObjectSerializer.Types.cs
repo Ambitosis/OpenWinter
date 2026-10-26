@@ -81,7 +81,7 @@ public static partial class ObjectSerializer
         s.SetFloat("Y", d.Position.Y);
         s.SetFloat("Z", d.Position.Z);
         s.SetFloat("Bearing", d.Facing);
-        WriteCommon(s, d);
+        WriteCommon(world, s, d);
         return s;
     }
 
@@ -97,7 +97,7 @@ public static partial class ObjectSerializer
             s.SetByte("MapNoteEnabled", w.MapNoteEnabled ? 1 : 0);
         }
         Positioned(s, w);
-        WriteCommon(s, w);
+        WriteCommon(world, s, w);
         return s;
     }
 
@@ -119,7 +119,7 @@ public static partial class ObjectSerializer
         Positioned(s, tr);
         s.SetList("Geometry", tr.Geometry.Select(p => new GffStruct(3)
             .SetFloat("PointX", p.X - tr.Position.X).SetFloat("PointY", p.Y - tr.Position.Y).SetFloat("PointZ", p.Z - tr.Position.Z)).ToList());
-        WriteCommon(s, tr);
+        WriteCommon(world, s, tr);
         return s;
     }
 
@@ -156,7 +156,7 @@ public static partial class ObjectSerializer
         }
         s.SetList("StoreList", panels);
         Positioned(s, st);
-        WriteCommon(s, st);
+        WriteCommon(world, s, st);
         return s;
     }
 
@@ -177,7 +177,7 @@ public static partial class ObjectSerializer
         s.SetFloat("XPosition", snd.Position.X);
         s.SetFloat("YPosition", snd.Position.Y);
         s.SetFloat("ZPosition", snd.Position.Z);
-        WriteCommon(s, snd);
+        WriteCommon(world, s, snd);
         return s;
     }
 
@@ -209,7 +209,7 @@ public static partial class ObjectSerializer
         s.SetFloat("ZPosition", e.Position.Z);
         s.SetList("Geometry", e.Geometry.Select(p => new GffStruct(1)
             .SetFloat("X", p.X - e.Position.X).SetFloat("Y", p.Y - e.Position.Y).SetFloat("Z", p.Z - e.Position.Z)).ToList());
-        WriteCommon(s, e);
+        WriteCommon(world, s, e);
         return s;
     }
 
@@ -231,8 +231,11 @@ public static partial class ObjectSerializer
 
     // ---- Reading ----------------------------------------------------------------------------
 
-    /// <summary>Doors, waypoints, triggers, stores, encounters and sounds at a location; null for other types.</summary>
-    static GameObject? DeserializePlaced(World world, GffStruct s, string type, Area area, Vector3 position, float facing, bool loadState)
+    /// <summary>
+    /// Doors, waypoints, triggers, stores, encounters and sounds at a location, or in no area at all (then without
+    /// walkmesh, added when they are placed); null for other types.
+    /// </summary>
+    static GameObject? DeserializePlaced(World world, GffStruct s, string type, Area? area, Vector3 position, float facing, bool loadState)
     {
         var loader = world.Loader ?? new AreaLoader(world);
         GameObject? o;
@@ -242,36 +245,39 @@ public static partial class ObjectSerializer
             {
                 var d = loader.CreateDoor(area, s, position, GameObject.BearingFor(facing));
                 d.Locked = s.GetInt("Locked") != 0;
-                // The walkmesh was built when the area loaded: rebuild it with the new door.
-                WalkmeshBuilder.Rebuild(world, area);
-                area.ResetPathfinder();
-                DoorService.SyncWalkmesh(area);
-                world.AddToArea(d, area, position, d.Facing);
+                if (area != null)
+                {
+                    // The walkmesh was built when the area loaded: rebuild it with the new door.
+                    WalkmeshBuilder.Rebuild(world, area);
+                    area.ResetPathfinder();
+                    DoorService.SyncWalkmesh(area);
+                    world.AddToArea(d, area, position, d.Facing);
+                }
                 o = d;
                 break;
             }
             case "UTW":
                 o = loader.CreateWaypoint(area, s, position, facing);
-                world.AddToArea(o, area, position, facing);
+                if (area != null) world.AddToArea(o, area, position, facing);
                 break;
             case "UTT":
                 o = loader.CreateTrigger(area, s, position);
-                world.AddToArea(o, area, position, facing);
+                if (area != null) world.AddToArea(o, area, position, facing);
                 break;
             case "UTM":
             {
                 var st = loader.CreateStore(area, s, position, facing);
-                world.AddToArea(st, area, position, facing);
+                if (area != null) world.AddToArea(st, area, position, facing);
                 o = st;
                 break;
             }
             case "UTS":
                 o = loader.CreateSound(area, s, position);
-                world.AddToArea(o, area, position, 0);
+                if (area != null) world.AddToArea(o, area, position, 0);
                 break;
             case "UTE":
                 o = loader.CreateEncounter(area, s, position);
-                world.AddToArea(o, area, position, 0);
+                if (area != null) world.AddToArea(o, area, position, 0);
                 break;
             default:
                 return null;

@@ -1,0 +1,1 @@
+{ "seconds": 10, "nwnx": true, "nwnxEnv": { "NWNX_SQL_TYPE": "sqlite", "NWNX_SQL_DATABASE": "other_db", "NWNX_SQL_USE_UTF8": "true" } }
