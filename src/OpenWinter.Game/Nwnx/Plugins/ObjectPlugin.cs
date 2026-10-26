@@ -12,19 +12,12 @@ static class ObjectPlugin
 {
     const string P = "Object";
 
-    /// <summary>Local variables in a stable order: (name, NWNX_OBJECT_LOCALVAR_TYPE_*).</summary>
-    static List<(string Name, int Type)> Locals(GameObject o)
-    {
-        var v = o.Locals;
-        var list = new List<(string, int)>();
-        list.AddRange(v.Ints.Keys.Select(k => (k, 1)));
-        list.AddRange(v.Floats.Keys.Select(k => (k, 2)));
-        list.AddRange(v.Strings.Keys.Select(k => (k, 3)));
-        list.AddRange(v.Objects.Keys.Select(k => (k, 4)));
-        list.AddRange(v.Locations.Keys.Select(k => (k, 5)));
-        list.AddRange(v.Jsons.Keys.Select(k => (k, 6)));
-        return list;
-    }
+    /// <summary>
+    /// Local variables as the original lists them (parity suite nwnx_object_locals): one entry per name, newest
+    /// first, skipping names that hold only default values; a name holding several types reports the lowest.
+    /// The original lists from a hash table, so beyond a few names its order also depends on the names themselves.
+    /// </summary>
+    static List<(string Name, int Type)> Locals(GameObject o) => o.Locals.NewestFirst();
 
     [NwnxFunc(P, "GetLocalVariableCount")] static void LocalCount(NwnxCall n) => n.Push(n.PopObject() is { } o ? Locals(o).Count : -1);
 
@@ -34,7 +27,7 @@ static class ObjectPlugin
         var o = n.PopObject();
         int index = n.PopInt();
         var list = o != null ? Locals(o) : new List<(string, int)>();
-        var (name, type) = index >= 0 && index < list.Count ? list[index] : ("", 0);
+        var (name, type) = index >= 0 && index < list.Count ? list[index] : ("", -1);
         n.Push(type);
         n.Push(name);
     }
@@ -285,6 +278,7 @@ static class ObjectPlugin
         if (o != null) n.State(o).Remove(VarKey("f", name));
     }
 
+    /// <summary>Removes only the plugin's own variables (Set/Get Int, String, Float), never locals (nwnx_object_locals).</summary>
     [NwnxFunc(P, "DeleteVarRegex")]
     static void DeleteVarRegex(NwnxCall n)
     {
@@ -292,15 +286,11 @@ static class ObjectPlugin
         var pattern = n.PopString();
         if (o == null) return;
         Regex re;
-        try { re = new Regex(pattern); }
+        try { re = new Regex("^(?:" + pattern + ")$"); }
         catch (ArgumentException) { return; }
-        var v = o.Locals;
-        foreach (var k in v.Ints.Keys.Where(k => re.IsMatch(k)).ToList()) v.Ints.Remove(k);
-        foreach (var k in v.Floats.Keys.Where(k => re.IsMatch(k)).ToList()) v.Floats.Remove(k);
-        foreach (var k in v.Strings.Keys.Where(k => re.IsMatch(k)).ToList()) v.Strings.Remove(k);
-        foreach (var k in v.Objects.Keys.Where(k => re.IsMatch(k)).ToList()) v.Objects.Remove(k);
-        foreach (var k in v.Locations.Keys.Where(k => re.IsMatch(k)).ToList()) v.Locations.Remove(k);
-        foreach (var k in v.Jsons.Keys.Where(k => re.IsMatch(k)).ToList()) v.Jsons.Remove(k);
+        var state = n.State(o);
+        foreach (var key in state.Keys.Where(k => k.StartsWith("var:", StringComparison.Ordinal) && re.IsMatch(k[(k.IndexOf(':', 4) + 1)..])).ToList())
+            state.Remove(key);
     }
 
     /// <summary>NWNX internal object type ids (CGameObject types).</summary>

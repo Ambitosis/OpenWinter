@@ -34,6 +34,48 @@ public sealed class LocalVariables
     public readonly Dictionary<string, Location> Locations = new();
     public readonly JsonLocals Jsons = new();
 
+    // When each name first got a value, for listing variables newest first (NWNX_Object_GetLocalVariable).
+    readonly Dictionary<string, long> _order = new(StringComparer.Ordinal);
+    long _sequence;
+
+    /// <summary>
+    /// Records a set or delete of <paramref name="name"/>: a name that just got its first value becomes the newest;
+    /// one left with no value (all deleted or set to the type's default) is forgotten.
+    /// </summary>
+    public void Touch(string name)
+    {
+        if (TypeOf(name) == 0) _order.Remove(name);
+        else _order.TryAdd(name, ++_sequence);
+    }
+
+    /// <summary>
+    /// The lowest local type (1 int, 2 float, 3 string, 4 object, 5 location, 6 json) holding a value other than the
+    /// type's default under <paramref name="name"/>, or 0 when none does.
+    /// </summary>
+    public int TypeOf(string name)
+    {
+        if (Ints.TryGetValue(name, out int i) && i != 0) return 1;
+        if (Floats.TryGetValue(name, out float f) && f != 0) return 2;
+        if (Strings.TryGetValue(name, out var s) && s.Length > 0) return 3;
+        if (Objects.TryGetValue(name, out uint o) && o != GameObject.InvalidId) return 4;
+        if (Locations.TryGetValue(name, out var l) && l.Area != GameObject.InvalidId) return 5;
+        if (Jsons.GetValue(name) is { Node: not null }) return 6;
+        return 0;
+    }
+
+    /// <summary>Names holding a value, newest first. Names never recorded with <see cref="Touch"/> come last.</summary>
+    public List<(string Name, int Type)> NewestFirst()
+    {
+        var names = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        void Add(IEnumerable<string> keys) { foreach (var k in keys) if (seen.Add(k)) names.Add(k); }
+        Add(Ints.Keys); Add(Floats.Keys); Add(Strings.Keys); Add(Objects.Keys); Add(Locations.Keys); Add(Jsons.Keys);
+        return names.Select(n => (Name: n, Type: TypeOf(n)))
+            .Where(v => v.Type != 0)
+            .OrderByDescending(v => _order.TryGetValue(v.Name, out long at) ? at : long.MinValue)
+            .ToList();
+    }
+
     /// <summary>
     /// Adds the variables of a VarTable. Entry types: 1 int, 2 float, 3 string, 4 object (id), 5 location (a struct of
     /// Area, PositionX/Y/Z, OrientationX/Y/Z), 7 json (a struct holding the text in "JSON"; the original's save games and
@@ -63,6 +105,9 @@ public sealed class LocalVariables
                 case 7: Jsons[name] = v.GetStruct("Value")?.GetString("JSON") ?? "null"; break;
             }
         }
+        // The original writes the newest variable first.
+        var list = owner.GetList("VarTable");
+        for (int i = list.Count - 1; i >= 0; i--) Touch(list[i].GetString("Name"));
     }
 }
 
