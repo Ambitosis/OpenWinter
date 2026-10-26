@@ -44,7 +44,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     readonly HashSet<int>[] _known = Enumerable.Range(0, ClassSlots).Select(_ => new HashSet<int>()).ToArray();
     readonly List<(int Index, int Spell, int CasterLevel, bool Ready)> _spellAbilities = [];
     int[] _formSpells = [];
-    uint _skillsUsable, _state;
+    uint _skillsUsable;
     bool _stateKnown;
     short _ac;
     uint _gold;
@@ -64,7 +64,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     float _walkRate, _runRate;
     NwnTagged?[] _quickbar = [];
     readonly List<GameObjUpdateMessages.GameObjUpdateObjList> _early = [];
-    bool _quickbarWanted, _abilitiesWanted, _sheetOpen;
+    bool _quickbarWanted, _abilitiesWanted, _sheetOpen, _resting;
     int _sheetVersion;
     string _sheetJson = "";
 
@@ -98,6 +98,8 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         bool spells = false, abilities = false, sheet = false;
         foreach (var entry in list.Entries)
         {
+            // Anyone's spell: its conjuring, then its casting at the target.
+            if (entry is GameObjUpdateObjListUpdateCreature { AnimTypeData.Spell: { } cast } caster) Casting(caster.ObjectId, cast, caster.AnimTypeData.CastTarget);
             switch (entry)
             {
                 case GameObjUpdateObjListPlayerInfo p when p.ObjectId == _player:
@@ -124,6 +126,14 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
                 case GameObjUpdateMessages.ObjListGuiEntry { Element: 'R' or 'r', Value: GuiRepositoryItemAdd a }:
                     _items[a.ItemId] = a.Item;
                     abilities = true;
+                    break;
+                case GameObjUpdateMessages.ObjListGuiEntry { Element: 'R' or 'r', Value: GuiRepositoryItemUpdate u } when _items.TryGetValue(u.ItemId, out var stack):
+                    stack.StackSize = u.StackSize;
+                    abilities = true;
+                    break;
+                case GameObjUpdateMessages.ObjListGuiEntry { Element: 'R' or 'r', Value: GuiRepositoryItemDelete d }:
+                    // Gone from the backpack: kept only while it is still equipped.
+                    abilities |= !_equipped.ContainsKey(d.ItemId) && _items.Remove(d.ItemId);
                     break;
             }
         }
@@ -304,6 +314,77 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         }
     }
 
+    /// <summary>A timed action's progress bar: resting (event type 6) is the client's "rest" notify.</summary>
+    public void TimingEvent(GuiTimingEventMessages.GuiTimingEventInfo m)
+    {
+        if (m.Starting && m.EventType == TimingRest)
+        {
+            _resting = true;
+            Notify("rest", new JsonObject { ["state"] = "started", ["duration"] = (m.Duration ?? 0) / 1000f, ["nwnxAnimation"] = -1 });
+        }
+        else if (!m.Starting && _resting) RestEnded("cancelled");
+    }
+
+    const byte TimingRest = 6;
+
+    /// <summary>Feedback about this area: a rest that finished or was cancelled.</summary>
+    public void Feedback(ClientSideMessageFeedbackMessages.ClientSideMessageFeedback m)
+    {
+        switch (m.Payload.Value)
+        {
+            case ClientSideMessageFeedbackMessages.FeedbackRestFinishedRest when _resting: RestEnded("finished"); break;
+            case ClientSideMessageFeedbackMessages.FeedbackRestCancelRest when _resting: RestEnded("cancelled"); break;
+        }
+    }
+
+    void RestEnded(string state)
+    {
+        _resting = false;
+        Notify("rest", new JsonObject { ["state"] = state, ["duration"] = 0f });
+    }
+
+    /// <summary>An item's uses left changed (a rest restores them, a use spends one).</summary>
+    public void ItemUses(ItemPropertyMessages.ItemPropertyUpdateUses m)
+    {
+        if (!_items.TryGetValue(m.Item, out var item)) return;
+        item.UsesLeft.Uses = [.. m.UsesLeft.Uses];
+        SendAbilities();
+    }
+
+    /// <summary>
+    /// A creature conjuring a spell (its animation carries the spell) or casting it (and the target): the client's
+    /// "spell-conjure" and "spell-cast" notifies, with the spell's spells.2da conjure or cast effects and timing.
+    /// </summary>
+    void Casting(uint caster, GameObjUpdateAnimationMessages.CastAnimData spell, GameObjUpdateAnimationMessages.CastTargetData? target)
+    {
+        int id = (int)spell.SpellId;
+        string Col(string column) => Lower(data.TwoDA("spells", id, column));
+        float Seconds(string column) => Cell("spells", id, column, 0) / 1000f;
+        var pos = target?.TargetPosition is { } p ? new JsonArray(p.Item1, p.Item2, p.Item3) : null;
+        uint item = spell.CastItemId;
+        if (target == null)
+        {
+            NotifyFor(caster, "spell-conjure", new JsonObject
+            {
+                ["spell"] = id, ["presentation"] = 0, ["target"] = GameObjUpdateMessages.InvalidObjectId, ["pos"] = null,
+                ["duration"] = Seconds("ConjTime"), ["animation"] = Col("ConjAnim"), ["headVfx"] = Col("ConjHeadVisual"),
+                ["handVfx"] = Col("ConjHandVisual"), ["groundVfx"] = Col("ConjGrndVisual"), ["sound"] = spell.Silent ? "" : Col("ConjSoundVFX"),
+                ["voice"] = "", ["metaMagic"] = 0, ["fake"] = false,
+            });
+            return;
+        }
+        NotifyFor(caster, "spell-cast", new JsonObject
+        {
+            ["spell"] = id, ["presentation"] = 0, ["target"] = target.TargetOid ?? GameObjUpdateMessages.InvalidObjectId, ["pos"] = pos,
+            ["duration"] = Seconds("CastTime"), ["recovery"] = 0f, ["animation"] = Col("CastAnim"), ["attackAnimation"] = "",
+            ["headVfx"] = Col("CastHeadVisual"), ["handVfx"] = Col("CastHandVisual"), ["groundVfx"] = Col("CastGrndVisual"),
+            ["sound"] = Col("CastSound"), ["item"] = item, ["fake"] = false,
+        });
+    }
+
+    void NotifyFor(uint subject, string kind, JsonNode payload) =>
+        emit(new NotifyMessage { Kind = kind, Subject = subject, Json = payload.ToJsonString() }.Write());
+
     // -- notifies -----------------------------------------------------------
 
     void Notify(string kind, JsonNode payload) =>
@@ -371,6 +452,8 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
             case "spell-memorize":
                 Memorize(d);
                 return true;
+            case "item-info":
+                return ItemInfo(d);
         }
         return false;
     }

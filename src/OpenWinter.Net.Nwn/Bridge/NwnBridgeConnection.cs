@@ -296,6 +296,13 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
                 NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
+                _abilities.Feedback(feedback);
+                break;
+            case GuiTimingEventMessages.GuiTimingEventInfo timing:
+                _abilities.TimingEvent(timing);
+                break;
+            case ItemPropertyMessages.ItemPropertyUpdateUses uses:
+                _abilities.ItemUses(uses);
                 break;
             case LoginMessages.LoginDeny or LoginMessages.LoginCharacterFail:
                 Tell("The server refused the character.");

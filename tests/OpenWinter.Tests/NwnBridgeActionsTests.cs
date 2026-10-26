@@ -34,6 +34,8 @@ public class NwnBridgeActionsTests
             [("feat", 294, "FEAT")] = "3", [("feat", 294, "SPELLID")] = "308", [("feat", 294, "ICON")] = "IFE_TURN",
             [("feat", 28, "FEAT")] = "4", [("feat", 28, "ICON")] = "IFE_POWERATT",
             [("iprp_spells", 68, "SpellIndex")] = "33", [("iprp_spells", 68, "Name")] = "5",
+            [("spells", 308, "Label")] = "Turn_Undead", [("spells", 308, "ConjTime")] = "1500", [("spells", 308, "ConjAnim")] = "head",
+            [("spells", 308, "ConjHeadVisual")] = "vco_mehanholy02", [("spells", 308, "CastAnim")] = "up", [("spells", 308, "CastTime")] = "500",
         };
 
         public int TwoDARowCount(string table) => table == "spells" ? 40 : 0;
@@ -268,5 +270,52 @@ public class NwnBridgeActionsTests
         b.Abilities.FromClient("rest", "{}");
         Assert.IsType<InputMessages.InputRest>(b.Sent[^1]);
         Assert.False(b.Abilities.FromClient("area-ready", "{}"));
+    }
+
+    [Fact]
+    public void RestingShowsItsProgressUntilItFinishes()
+    {
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        // As recorded: the rest bar (timing event 6, eleven seconds), then the finished feedback and the bar's end.
+        b.Abilities.TimingEvent(new GuiTimingEventMessages.GuiTimingEventInfo { Starting = true, Duration = 11000, EventType = 6 });
+        b.Abilities.Feedback(new ClientSideMessageFeedbackMessages.ClientSideMessageFeedback
+        {
+            Payload = new NwnTagged(0, new ClientSideMessageFeedbackMessages.FeedbackRestFinishedRest()),
+        });
+        b.Abilities.TimingEvent(new GuiTimingEventMessages.GuiTimingEventInfo { Starting = false });
+        var rests = b.Notes.Where(n => n.Kind == "rest").Select(n => JsonDocument.Parse(n.Json).RootElement).ToArray();
+        Assert.Equal(["started", "finished"], rests.Select(r => r.GetProperty("state").GetString()));
+        Assert.Equal(11f, rests[0].GetProperty("duration").GetSingle());
+    }
+
+    [Fact]
+    public void ACreaturesConjuringAndCastingShowTheSpellsEffects()
+    {
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        // As recorded for Turn Undead: the conjuring animation carries the spell, the casting one its target too.
+        b.Abilities.ObjectList(List(new GameObjUpdateObjListUpdateCreature
+        {
+            ObjectId = Player,
+            AnimTypeData = new GameObjUpdateAnimationMessages.AnimTypeData
+            {
+                AnimType = 16, Spell = new GameObjUpdateAnimationMessages.CastAnimData { SpellId = 308, CastItemId = 0x7F000000 },
+            },
+        }));
+        b.Abilities.ObjectList(List(new GameObjUpdateObjListUpdateCreature
+        {
+            ObjectId = Player,
+            AnimTypeData = new GameObjUpdateAnimationMessages.AnimTypeData
+            {
+                AnimType = 19, Spell = new GameObjUpdateAnimationMessages.CastAnimData { SpellId = 308, CastItemId = 0x7F000000 },
+                CastTarget = new GameObjUpdateAnimationMessages.CastTargetData { TargetType = 1, TargetOid = Player },
+            },
+        }));
+        var conjure = b.Last("spell-conjure");
+        Assert.Equal(("head", "vco_mehanholy02", 1.5f), (conjure.GetProperty("animation").GetString(), conjure.GetProperty("headVfx").GetString(),
+            conjure.GetProperty("duration").GetSingle()));
+        var cast = b.Last("spell-cast");
+        Assert.Equal((Player, "up"), (cast.GetProperty("target").GetUInt32(), cast.GetProperty("animation").GetString()));
     }
 }

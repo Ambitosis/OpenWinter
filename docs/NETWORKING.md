@@ -138,8 +138,25 @@ Supported so far:
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
+- the player's abilities (`Bridge/NwnAbilities*.cs`): the quickbar the server keeps with the character (edits are
+  stored on the server), the spellbook (prepared and known spells, slots and uses left, preparing and emptying
+  slots), casting at a creature, an object or the ground (spontaneous casts too), feats and their uses, skills,
+  items' cast-spell properties (potions, wands, scrolls), combat and stealth/detect modes, resting, cancelling a
+  queued action, the radial menu's use of all of these, and the character sheet (abilities, saves, base attack,
+  armour class, hit points, skills, feats, experience) as the server sends it; spells' conjure and cast effects
 
 Dialog, inventory, combat feedback, NWSync and character creation are still to come.
+
+What the server accepts, as measured against it:
+
+- A cast names the class by its place in the character's class list and the spell's spells.2da TargetType as its
+  target type; the server refuses a cast with any other target type.
+- The player state's mode bits are detect 0x1, stealth 0x2, parry 0x4, power attack 0x8, flurry of blows 0x20,
+  expertise 0x2000, improved expertise 0x4000 and defensive casting 0x8000 (detect and stealth also set 0x80).
+- The character sheet is filled while it is open: the main panel (0) brings abilities, saves, base attack, combat
+  figures and experience, the skills panel (1) each skill's total.
+- The client sets an item quickbar button with only the item's id and property field, not the full item
+  description the server's own item buttons carry (`Messages/Custom/GuiQuickbarItemButton.cs`).
 
 Testing:
 
@@ -148,6 +165,8 @@ Testing:
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
-  can also say a line, use objects, drive with the keyboard, click NUI elements and record (`--say`, `--use`,
-  `--drive`, `--nui-click`, `--record`). `nwn-dump` reads 2DAs with the haks the recorded server named, since
+  can also say a line, use objects, drive with the keyboard, click NUI elements, send any client request and record
+  (`--say`, `--use`, `--drive`, `--nui-click`, `--request kind=json|...`, `--record`). The client's
+  `--capture-nwn-actions` takes shots of the quickbar, character sheet and spellbook, then of a mode, a cast, a feat
+  and a rest. `nwn-dump` reads 2DAs with the haks the recorded server named, since
   some fields' presence depends on them.

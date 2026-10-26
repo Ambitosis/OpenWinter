@@ -75,7 +75,7 @@ public sealed partial class NwnAbilities
     void State(uint state)
     {
         bool first = !_stateKnown;
-        (_state, _stateKnown) = (state, true);
+        _stateKnown = true;
         foreach (var (m, bit) in ModeBits)
         {
             bool on = (state & bit) != 0;
@@ -273,7 +273,7 @@ public sealed partial class NwnAbilities
             {
                 ["item"] = id,
                 ["name"] = ItemName(item),
-                ["icon"] = new JsonArray(),
+                ["icon"] = Icon(item),
                 ["key"] = $"{item.BaseItemId}:{ItemName(item)}",
                 ["stack"] = item.StackSize,
                 ["charges"] = 0,
@@ -285,6 +285,44 @@ public sealed partial class NwnAbilities
             });
         }
         return list;
+    }
+
+    /// <summary>
+    /// An item's inventory icon: "i" + its baseitems.2da ItemClass and model number (three parts for composite
+    /// models), a spell scroll's spell (its first cast-spell property's iprp_spells.2da Icon), or the base item's
+    /// DefaultIcon for armour.
+    /// </summary>
+    JsonArray Icon(ItemAppearanceAndProps item)
+    {
+        int baseItem = (int)item.BaseItemId;
+        if (baseItem == 75 && item.Properties.FirstOrDefault(p => p.Name == PropCastSpell) is { } scroll
+            && data.TwoDA("iprp_spells", scroll.Subtype, "Icon") is { Length: > 0 } spell)
+            return [Lower(spell)];
+        string cls = Lower(data.TwoDA("baseitems", baseItem, "ItemClass"));
+        string fallback = Lower(data.TwoDA("baseitems", baseItem, "DefaultIcon"));
+        return item.ModelData?.Value switch
+        {
+            _ when cls.Length == 0 => fallback.Length > 0 ? [fallback] : [],
+            SimpleModel m => [$"i{cls}_{m.Part1:000}"],
+            LayeredModel m => [$"i{cls}_{m.Part1:000}"],
+            CompositeModel m => [$"i{cls}_b_{m.Part1:000}", $"i{cls}_m_{m.Part2:000}", $"i{cls}_t_{m.Part3:000}"],
+            _ => fallback.Length > 0 ? [fallback] : [],
+        };
+    }
+
+    /// <summary>item-info {item}: the name and icon of one of the player's items the server has described.</summary>
+    bool ItemInfo(JsonObject d)
+    {
+        var id = Id(d, "item");
+        if (!_items.TryGetValue(id, out var item)) return false;
+        int slot = _equipped.TryGetValue(id, out var s) ? s : -1;
+        int slots = Hex(data.TwoDA("baseitems", (int)item.BaseItemId, "EquipableSlots"));
+        Notify("item-info", new JsonObject
+        {
+            ["item"] = id, ["name"] = ItemName(item), ["icon"] = Icon(item), ["stack"] = item.StackSize,
+            ["equippable"] = slots != 0, ["equipped"] = slot >= 0, ["slot"] = slot, ["equipSlots"] = slots,
+        });
+        return true;
     }
 
     // -- using them ---------------------------------------------------------

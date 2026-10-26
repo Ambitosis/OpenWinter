@@ -30,7 +30,15 @@ public sealed partial class NwnAbilities
     {
         if (one.Button >= QuickbarSlots) return;
         if (_quickbar.Length == 0) _quickbar = new NwnTagged?[QuickbarSlots];
+        var was = _quickbar[one.Button]?.Value as ButtonItem;
         Button(one.Button, one.Slot);
+        // The server empties an item's buttons when the item is used up or leaves the player.
+        if (was?.Primary is { } gone && one.Slot.Value is ButtonEmpty && !_equipped.ContainsKey(gone.ObjectId)
+            && !_quickbar.Any(b => b?.Value is ButtonItem { Primary: { } p } && p.ObjectId == gone.ObjectId))
+        {
+            _items.Remove(gone.ObjectId);
+            SendAbilities();
+        }
         if (_quickbarWanted) SendQuickbar();
     }
 
