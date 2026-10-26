@@ -168,10 +168,14 @@ public sealed partial class World
         // A caller may reuse its context for several objects/events, including nested callbacks.
         // Stamp a copy so the event identity cannot leak back into its caller.
         int type = EventScripts.Type(o, field);
-        if (script.Length == 0) return 0;
+        // NWNX_ON_RUN_EVENT_SCRIPT (whitelisted by EVENT_SCRIPT_*, on by default): a skip runs neither the script nor
+        // the _AFTER half (nwnx_events_creature).
+        var nwnx = type > 0 ? Nwnx.NwnxEvent.Begin(this, "NWNX_ON_RUN_EVENT_SCRIPT", o, "NWNX_ON_RUN_EVENT_SCRIPT", type) : null;
+        if (nwnx != null && nwnx.Add("EVENT_TYPE", type).Add("EVENT_SCRIPT", script).Before()) return 0;
+        if (script.Length == 0) { nwnx?.After(); return 0; }
         var scoped = ctx.Clone().Set("EventScriptType", type).Set("DirectEventScriptType", type);
         try { return Scripts.Run(script, o.Id, scoped); }
-        finally { ctx.CopyPayloadFrom(scoped); }
+        finally { ctx.CopyPayloadFrom(scoped); nwnx?.After(); }
     }
 
     /// <summary>
@@ -542,20 +546,27 @@ public sealed partial class World
     {
         // Cached per area (rebuilt when a trigger is added or removed); an array, so events may change the area safely.
         var triggers = area.TriggerCache ??= area.Objects.OfType<Trigger>().ToArray();
+        bool trapEvents = Nwnx.Plugins.EventsPlugin.Listening(this, "NWNX_ON_TRAP_ENTER");
         foreach (var t in triggers)
         {
             if (t.IsDestroyed || t.Area != area) continue;
             bool inside = t.Contains(c.Position);
+            if (!inside && trapEvents) Nwnx.NwnxTraps.Left(t, c);
             if (inside && t.TriggerType == Trigger.TypeTrap && !t.Inside.Contains(c.Id))
             {
                 // A trap trigger notices only creatures it goes off for: the trap's script first, then OnEnter,
                 // both while it is still armed; a one-shot trap trigger then goes away (trap_trigger, traprules).
-                if (!WorldObjects.TrapSystem.Notices(this, t, c)) continue;
+                // NWNX_ON_TRAP_ENTER as a creature steps in, whether or not the trap goes off for it (nwnx_events_traps;
+                // TRAP_FORCE_SET only in the _BEFORE half); a skip leaves the trap unsprung.
+                var trapEvent = Nwnx.NwnxTraps.Entering(this, t, c);
+                if (!WorldObjects.TrapSystem.Notices(this, t, c)) { trapEvent?.Remove("TRAP_FORCE_SET").After(); continue; }
                 t.Inside.Add(c.Id);
+                if (trapEvent?.Skipped == true) { trapEvent.Remove("TRAP_FORCE_SET").After(); continue; }
                 WorldObjects.TrapSystem.Fire(this, t, c);
                 if (!t.IsDestroyed) RunEvent(t, "ScriptOnEnter", new EventContext().Set("Entering", c.Id));
                 TriggerEntered?.Invoke(t, c);
                 WorldObjects.TrapSystem.Spent(this, t);
+                trapEvent?.Remove("TRAP_FORCE_SET").After();
             }
             else if (inside && t.Inside.Add(c.Id))
             {

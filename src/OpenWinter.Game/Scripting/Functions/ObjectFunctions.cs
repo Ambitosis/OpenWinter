@@ -334,7 +334,8 @@ static class ObjectFunctions
         {
             if (o is Creature { IsDestroyable: false } or Creature { Player.FamiliarMaster: not null }) return;
             if (o is Door d && WorldObjects.DoorService.KeepOnDestroy(c.World, d)) return;
-            c.World.Destroy(o);
+            if (o is Item item) c.World.Inventory.DestroyItem(item);
+            else c.World.Destroy(o);
         });
         return null;
     }

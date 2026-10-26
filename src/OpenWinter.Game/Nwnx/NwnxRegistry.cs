@@ -228,6 +228,7 @@ public sealed class NwnxRegistry : IWorldSystem
     /// </summary>
     public void Step(float dt)
     {
+        NwnxCalendar.Check(_world);
         while (_posted.TryDequeue(out var action))
         {
             try { action(); }

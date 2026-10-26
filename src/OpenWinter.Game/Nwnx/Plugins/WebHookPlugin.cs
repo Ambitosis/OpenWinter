@@ -61,7 +61,13 @@ public static class WebHookPlugin
             if (double.TryParse(data.GetValueOrDefault("RETRY_AFTER"), NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds))
                 data["RETRY_AFTER"] = ((long)(seconds * 1000)).ToString(CultureInfo.InvariantCulture);
             if (!NwnxHttp.Succeeded(res.Status)) world.System<NwnxRegistry>().Log($"[nwnx] WebHook: {host}{path} answered {res.Status}: {res.Body}");
-            EventsPlugin.Signal(world, NwnxHttp.Succeeded(res.Status) ? "NWNX_ON_WEBHOOK_SUCCESS" : "NWNX_ON_WEBHOOK_FAILED", world.Module, data);
+            if (NwnxHttp.Succeeded(res.Status)) EventsPlugin.Signal(world, "NWNX_ON_WEBHOOK_SUCCESS", world.Module, data);
+            else
+            {
+                // nwnx_events.nss names the failure NWNX_ON_WEBHOOK_FAILURE, the WebHook README NWNX_ON_WEBHOOK_FAILED: both run.
+                EventsPlugin.Signal(world, "NWNX_ON_WEBHOOK_FAILURE", world.Module, data);
+                EventsPlugin.Signal(world, "NWNX_ON_WEBHOOK_FAILED", world.Module, data);
+            }
         }, NwnxHttp.ClientFor(n.Registry));
     }
 }

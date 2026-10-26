@@ -52,9 +52,12 @@ public sealed partial class SkillSystem
             if (pick < items.Count)
             {
                 var item = items[pick];
-                stolen = _world.Inventory.MoveTo(item, thief) ?? (item.IsDestroyed ? null : item);
-                if (stolen != null) stolen.Stolen = true;
-                Tell(thief, Format(SkillIds.StrStoleItem, "You stole a <CUSTOM1> from <CUSTOM0>.", Name(victim), Name(item)));
+                stolen = _world.Inventory.MoveTo(item, thief) ?? (item.IsDestroyed || _world.Inventory.Refused(item) ? null : item);
+                if (stolen != null)
+                {
+                    stolen.Stolen = true;
+                    Tell(thief, Format(SkillIds.StrStoleItem, "You stole a <CUSTOM1> from <CUSTOM0>.", Name(victim), Name(item)));
+                }
             }
             else
             {
