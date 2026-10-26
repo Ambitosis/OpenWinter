@@ -205,7 +205,7 @@ public sealed partial class CombatSystem
         AttackResolved?.Invoke(o);
 
         if (riposte && tc != null && !tc.IsDead && !att.IsDead) Riposte(tc, att);
-        if (o.Killed) Cleave(o);
+        if (o.Killed && !ScriptedCleave) Cleave(o);
         else if (hit && a.Unarmed && a.Kind is AttackKind.Normal) CircleKick(o);
     }
 

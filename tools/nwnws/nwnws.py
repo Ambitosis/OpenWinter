@@ -204,6 +204,8 @@ iptables -C OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,
 iptables -C OUTPUT -m owner --uid-owner $uid -o lo -j ACCEPT 2>/dev/null || iptables -A OUTPUT -m owner --uid-owner $uid -o lo -j ACCEPT
 iptables -C OUTPUT -m owner --uid-owner $uid -j REJECT 2>/dev/null || iptables -A OUTPUT -m owner --uid-owner $uid -j REJECT
 [ -f {sandbox}/server.pid ] && kill -9 "$(cat {sandbox}/server.pid)" 2>/dev/null || true
+# Copies of this suite's server a plugin forked (a child process whose exec failed) hold its port: end them too.
+pkill -9 -f -- "-userdirectory {sandbox} " 2>/dev/null || true
 rm -rf {sandbox}
 mkdir -p {sandbox}/modules {sandbox}/override {sandbox}/database
 cp "{wsl_path(module)}" "{sandbox}/modules/{module.stem}.mod"
@@ -235,6 +237,7 @@ done
 kill "$(cat {sandbox}/server.pid)" 2>/dev/null || true
 sleep 1
 kill -9 "$(cat {sandbox}/server.pid)" 2>/dev/null || true
+pkill -9 -f -- "-userdirectory {sandbox} " 2>/dev/null || true
 cat $log {sandbox}/logs.0/nwserverError1.txt 2>/dev/null > "{wsl_path(out)}" || true
 echo "--- stdout" >> "{wsl_path(out)}"
 grep -v "^$" {sandbox}/stdout.log >> "{wsl_path(out)}" || true
@@ -248,6 +251,10 @@ def scripts(cfg, args):
     dest.mkdir(parents=True, exist_ok=True)
     source = cfg.get("nwnxSource") or f"{BUILD}/unified"
     wsl(cfg, f'find "{source}" -name "nwnx*.nss" -exec cp {{}} "{wsl_path(dest)}/" \\;')
+    if args.risenholm:
+        # The Risenholm fork's own headers, from the build nwnxBinaries names (its Binaries folder's parent).
+        fork = cfg["nwnxBinaries"].rstrip("/").rsplit("/", 1)[0]
+        wsl(cfg, f'find "{fork}/Plugins/Risenholm" -name "nwnx_risenholm*.nss" -exec cp {{}} "{wsl_path(dest)}/" \\;')
 
 
 def stop(cfg, _args):
@@ -282,6 +289,7 @@ def main():
     r.add_argument("--env", action="append", default=[], help="KEY=VALUE exported for the server")
     c = sub.add_parser("scripts")
     c.add_argument("--dest", required=True)
+    c.add_argument("--risenholm", action="store_true")
     args = ap.parse_args()
     {"setup": setup, "start": start, "stop": stop, "status": status, "run-parity": run_parity,
      "scripts": scripts}[args.cmd](config(), args)

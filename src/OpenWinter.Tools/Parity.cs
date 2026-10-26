@@ -79,7 +79,7 @@ static partial class Parity
         if (Directory.Exists(buildDir)) Directory.Delete(buildDir, true);
         Directory.CreateDirectory(buildDir);
         var include = Path.Combine(Repo(cfg), "parity", "include");
-        if (s.Nwnx) include += "," + NwnxScripts(cfg);
+        if (s.Nwnx) include += "," + NwnxScripts(cfg, s.NwnxRisenholm);
         var sources = Directory.GetFiles(s.Dir, "*.nss").ToList();
 
         // Compile with the official compiler, so both engines run the same bytecode.
@@ -407,10 +407,11 @@ static partial class Parity
     }
 
     /// <summary>NWNX:EE's NWScript headers, copied from the WSL build once (tools/nwnws/nwnws.py scripts).</summary>
-    static string NwnxScripts(LocalConfig cfg)
+    static string NwnxScripts(LocalConfig cfg, bool risenholm = false)
     {
         var dir = Path.Combine(Repo(cfg), "out", "nwnx", "scripts");
         if (!File.Exists(Path.Combine(dir, "nwnx_core.nss"))) Nwnws(cfg, "scripts", "--dest", dir);
+        if (risenholm && !File.Exists(Path.Combine(dir, "nwnx_risenholm.nss"))) Nwnws(cfg, "scripts", "--dest", dir, "--risenholm");
         if (!File.Exists(Path.Combine(dir, "nwnx_core.nss"))) throw new FileNotFoundException("NWNX:EE scripts not found; run tools/nwnws/nwnws.py setup");
         return dir;
     }
