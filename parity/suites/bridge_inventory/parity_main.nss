@@ -1,5 +1,6 @@
 // A test bed for joining over the NWN bridge, not a comparison: a chest with loot, a store opened by using a
-// barrel, and a body bag. br_enter equips the player with a spread of items. It reports done at once.
+// barrel, a body bag, and a chair to a second area with another chest. br_enter equips the player with a spread
+// of items. It reports done at once.
 #include "parity_inc"
 
 void main()
@@ -22,5 +23,9 @@ void main()
     SetLootable(oGob, FALSE);
     AssignCommand(oGob, SetIsDestroyable(TRUE, FALSE, FALSE));
     DelayCommand(2.0, ApplyEffectToObject(DURATION_TYPE_INSTANT, EffectDeath(), oGob));
+    // The second area has a chest of its own.
+    object oChest2 = CreateObject(OBJECT_TYPE_PLACEABLE, "plc_chest1", Location(GetObjectByTag("BR_TWO"), Vector(22.0, 22.0, 0.0), 0.0), FALSE, "BR_CHEST2");
+    CreateItemOnObject("nw_wswdg001", oChest2);
+    CreateItemOnObject("nw_it_mpotion002", oChest2, 2);
     PDone();
 }

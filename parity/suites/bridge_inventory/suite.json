@@ -7,9 +7,17 @@
       "from": "plc_barrel",
       "type": "utp",
       "set": { "Tag": "BR_MERCHANT", "Useable": 1, "HasInventory": 0, "OnUsed": "br_store", "Plot": 1 }
+    },
+    "br_portal": {
+      "from": "plc_chair",
+      "type": "utp",
+      "set": { "Tag": "BR_PORTAL", "Useable": 1, "HasInventory": 0, "OnUsed": "br_jump", "Plot": 1 }
     }
   },
-  "instances": [
-    { "from": "br_merchant", "x": 17, "y": 22 }
+  "areas": [
+    { "resref": "parity", "tag": "PARITY_AREA", "name": "Parity",
+      "instances": [ { "from": "br_merchant", "x": 17, "y": 22 }, { "from": "br_portal", "x": 23, "y": 17 } ] },
+    { "resref": "br_two", "tag": "BR_TWO", "name": "Second",
+      "instances": [ { "from": "br_portal", "x": 18, "y": 20 } ] }
   ]
 }

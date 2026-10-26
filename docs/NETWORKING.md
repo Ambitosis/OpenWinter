@@ -159,8 +159,9 @@ The server shows the client only the panels an NWN client has open: the equipmen
 the inventory is open, one container or bag at a time, and a store's shown category and page. OpenWinter's windows
 list everything, so the bridge keeps the inventory open and shows the server each backpack page in turn, then each
 bag (only while no container is open, since opening a bag closes it), and each store category and page, and looks
-again after every change the server confirms. A page's answer comes with the server's next update, so the pages are
-shown one at a time. Item tooltips (category, damage, armour, properties, size, slots) come from the item's
+again after every change the server confirms; what a look doesn't see again is gone. A page's answer comes with the
+server's next update, so the pages are shown one at a time. An inventory the server closes stays closed until the
+player opens it, and a new area closes the open container, store and barter. Item tooltips (category, damage, armour, properties, size, slots) come from the item's
 appearance and the client's 2DAs.
 
 Combat feedback, NWSync and character creation are still to come.
@@ -179,7 +180,7 @@ Testing:
   2DAs with the haks the recorded server named, since some fields' presence depends on them.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
-- `parity/suites/bridge_inventory` builds a test module with a chest, a body bag and a store opened by using a
-  barrel; the entering player is given weapons, armour, stacks, a wand, an unidentified ring, a bag and gold. The
+- `parity/suites/bridge_inventory` builds a test module with a chest, a body bag, a store opened by using a
+  barrel and a chair to a second area with another chest; the entering player is given weapons, armour, stacks, a wand, an unidentified ring, a bag and gold. The
   client's `--capture-nwn-inventory dir` opens the inventory, equips a weapon, loots the chest, buys, sells and
   examines, with a shot after each step.
