@@ -150,6 +150,11 @@ Supported so far:
   then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
   and flashes the button.
 - cutscene mode and fades
+- the player's items (`NwnInventory`, `NwnItems`): the backpack, bags and equipment with icons, stacks, charges,
+  identified state, names, weight and gold; equipping, unequipping, dropping, splitting, using and moving items, into
+  and out of bags; examining items; placeable containers and body bags (open, take, take all, put, close); stores
+  (every category, buying, selling, identifying, the store's prices and gold); barter between players (asking starts
+  it for both at once, as the server does; offers of items and gold, locking, accepting, cancelling)
 - combat: attacking (the attack command, and a click on a hostile creature), each attack's swing, weapon sounds,
   the target's reaction and the damage floating over it; the combat log (attack rolls, damage by type, kills,
   initiative, saving throws, spell resistance, damage immunity, resistance and reduction, immunities, healing,
@@ -159,8 +164,17 @@ Supported so far:
   and respawn; battle music; impact visual effects and lasting ones on creatures. The HUD's experience comes from
   the server's character sheet updates; until one arrives the bar is empty.
 
+The server shows the client only the panels an NWN client has open: the equipment and the shown backpack page while
+the inventory is open, one container or bag at a time, and a store's shown category and page. OpenWinter's windows
+list everything, so the bridge keeps the inventory open and shows the server each backpack page in turn, then each
+bag (only while no container is open, since opening a bag closes it), and each store category and page, and looks
+again after every change the server confirms; what a look doesn't see again is gone. A page's answer comes with the
+server's next update, so the pages are shown one at a time. An inventory the server closes stays closed until the
+player opens it, and a new area closes the open container, store and barter. Item tooltips (category, damage,
+armour, properties, size, slots) come from the item's appearance and the client's 2DAs.
+
 The server names neither swing clips nor weapon sounds; the bridge picks them from what the attacker holds, as the
-client does on its own server. Inventory, NWSync and character creation are still to come.
+client does on its own server. NWSync and character creation are still to come.
 
 Testing:
 
@@ -171,10 +185,16 @@ Testing:
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
   click NUI elements, attack, respawn and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`,
-  `--nui-click`, `--attack`, `--respawn-at`, `--record`). `nwn-dump` reads 2DAs with the haks the recorded server
-  named, since some fields' presence depends on them.
+  `--nui-click`, `--attack`, `--respawn-at`, `--record`), and run a script of client requests as another player
+  (`--player`; `--do "use:Chest;req:container-take {\"item\":\"@c:Arrow\"}"`, items named from the last inventory,
+  container or store contents). `nwn-dump` reads 2DAs with the haks the recorded server named, since some fields'
+  presence depends on them.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
+- `parity/suites/bridge_inventory` builds a test module with a chest, a body bag, a store opened by using a
+  barrel and a chair to a second area with another chest; the entering player is given weapons, armour, stacks, a
+  wand, an unidentified ring, a bag and gold. The client's `--capture-nwn-inventory dir` opens the inventory, equips
+  a weapon, loots the chest, buys, sells and examines, with a shot after each step.
 - The visual scene `bridgecombat` (`visual-build bridgecombat`) is a fight to run on that server: goblins attack,
   effects, spells and saves, dying, death and respawn, each announced in chat. The client's `--capture-nwn-combat`
   follows it and takes shots; `NwnBridgeCombatTests` replays frames recorded from it.

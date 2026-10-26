@@ -29,6 +29,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly INwnBridgeData _data;
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
+    readonly NwnInventory _inventory;
     readonly NwnDialog _dialog;
     readonly NwnCombat _combat;
     readonly NwnSessionContext _context;
@@ -51,6 +52,8 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _data = data;
         _context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
+        _inventory = new NwnInventory(data, new NwnInventoryHost(ToServer, m => _toClient.Enqueue(m), () => _world.Controlled,
+            () => _world.TryPose(_world.Controlled, out var p, out _, out _, out _) ? p : default, _world.NameOf));
         _dialog = new NwnDialog(_world, data, m => _toClient.Enqueue(m));
         _combat = new NwnCombat(data, _world, m => _toClient.Enqueue(m));
     }
@@ -156,7 +159,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case ActionKind.PickUp or ActionKind.Use when _world.KindOf(a.Target) == ObjectKind.Item:
                 // Into the backpack wherever it fits: no container, no grid position.
-                ToServer(new InventoryMessages.InventoryPickupC2S { Item = a.Target, TargetRepository = GameObjUpdateMessages.InvalidObjectId, X = 255, Y = 255 });
+                _inventory.FromClient("pickup", $"{{\"item\":{a.Target}}}");
                 break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
                 ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use), _combat.Click(a.Target)));
@@ -242,6 +245,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             ToServer(handled);
             return;
         }
+        if (_inventory.FromClient(request.Kind, request.Json)) return;
         switch (request.Kind)
         {
             case "area-ready":
@@ -276,6 +280,11 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         }
         // Moving creatures report ten times a second; the client interpolates between.
         var now = _clock.Elapsed.TotalSeconds;
+        try { _inventory.Tick(now); }
+        catch (Exception e) when (e is not OutOfMemoryException)
+        {
+            _session.DecodeErrors.Add(new NwnDecodeError([], $"inventory not updated: {e.Message}"));
+        }
         if (now - _lastTick < 0.1) return;
         var dt = (float)Math.Min(0.25, now - _lastTick);
         _world.Tick(dt);
@@ -305,20 +314,24 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case AreaMessages.AreaClientArea area:
                 _world.Area(area);
+                _inventory.AreaChanged();
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
                 _combat.ObjectList(list, _world.ObjectList);
+                _inventory.ObjectList(list);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
                 break;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
                 if (!_combat.Feedback(feedback)) NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
+                _inventory.Feedback(feedback);
                 break;
             case LoginMessages.LoginDeny or LoginMessages.LoginCharacterFail:
                 Tell("The server refused the character.");
                 break;
             default:
+                if (_inventory.ToClient(message)) break;
                 if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !_combat.ToClient(message))
                     NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
                 break;

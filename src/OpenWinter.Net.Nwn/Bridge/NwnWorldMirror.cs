@@ -19,6 +19,8 @@ public interface INwnBridgeData
     string Text(uint strRef, byte gender);
     /// <summary>The server's haks and custom talk table, once it has named them.</summary>
     void UseContent(IReadOnlyList<string> haks, string customTlk);
+    /// <summary>Whether a resource of this type (ResType) is installed.</summary>
+    bool HasResource(string resref, ushort type) => false;
 }
 
 /// <summary>
