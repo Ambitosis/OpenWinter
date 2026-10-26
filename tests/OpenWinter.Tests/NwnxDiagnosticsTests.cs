@@ -48,7 +48,7 @@ public class NwnxDiagnosticsTests
         world.Register(item);
         var calls = new (string Plugin, string Function)[]
         {
-            ("Visibility", "SetVisibilityOverride"), ("Item", "SetWeight"),
+            ("Item", "SetWeight"),
             ("Dialog", "End"), ("Damage", "SetEventScript"),
             ("Player", "SetCustomToken"), ("Player", "PossessCreature"),
             ("Util", "SetResourceOverride"), ("Feedback", "SetMessageHidden"),

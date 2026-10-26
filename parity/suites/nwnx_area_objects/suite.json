@@ -1,0 +1,12 @@
+{
+ "seconds": 15,
+ "nwnx": true,
+ "areas": [
+  { "resref": "parity", "tag": "PARITY_AREA", "size": 4, "tile": 4 },
+  { "resref": "parity2", "tag": "PARITY2", "size": 3, "tileset": "ttr01", "tile": 120 },
+  { "resref": "parity3", "tag": "PARITY3", "size": 4, "tileset": "ttr01", "tile": 120 },
+  { "resref": "parity4", "tag": "PARITY4", "size": 2, "tile": 4 },
+  { "resref": "parity5", "tag": "PARITY5", "size": 2, "tile": 4 },
+  { "resref": "parity6", "tag": "PARITY6", "size": 2, "tile": 4 }
+ ]
+}

@@ -311,12 +311,12 @@ public sealed class PerceptionSystem : IWorldSystem
             else
             {
                 sees = lookable && los && (wasSeen || !t.StealthMode || trueSeeing || skills.AlwaysPerceives(c, t)
-                    || skills.Rank(t, Skills.SkillIds.Hide) == 0 || skills.SpotSucceeds(c, t));
+                    || skills.Rank(t, Skills.SkillIds.Hide) == 0 || skills.RevealedSeen(c, t) || skills.SpotSucceeds(c, t));
                 // An invisible creature, or anything near a blind observer, is heard only at close range.
                 bool closeOnly = blind || invisible;
                 hears = canHear && !silenced && audible && dist <= hearing && (!closeOnly || dist <= CloseRange(c, t))
                     && (wasHeard && los && !closeOnly || !t.StealthMode || skills.AlwaysPerceives(c, t)
-                        || skills.Rank(t, Skills.SkillIds.MoveSilently) == 0 || skills.ListenSucceeds(c, t, dist));
+                        || skills.Rank(t, Skills.SkillIds.MoveSilently) == 0 || skills.RevealedHeard(c, t) || skills.ListenSucceeds(c, t, dist));
             }
             // A player's character doesn't hear an invisible creature, whatever its Move Silently (visual scenes
             // stealthview and stealthself).

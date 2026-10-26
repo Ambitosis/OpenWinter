@@ -1,0 +1,26 @@
+{
+ "seconds": 12,
+ "nwnx": true,
+ "tile": 4,
+ "size": 6,
+ "templates": {
+  "ne_enc": {
+   "from": "nw_goblingrp",
+   "type": "ute",
+   "set": { "Tag": "NE_ENC" },
+   "creatures": [
+    { "resref": "nw_goblina", "cr": 0.25 },
+    { "resref": "nw_goblinb", "cr": 0.5 },
+    { "resref": "nw_gobchiefa", "cr": 3, "single": 1 }
+   ]
+  }
+ },
+ "instances": [
+  { "type": "ute", "from": "ne_enc", "x": 15, "y": 20, "w": 4, "h": 6,
+    "set": { "PlayerOnly": 0, "Faction": 1, "Tag": "E1", "MaxCreatures": 6, "RecCreatures": 2, "ResetTime": 45, "Reset": 1 },
+    "spawnPoints": [ [ 15, 30, 90 ], [ 12, 31, 45 ] ] },
+  { "type": "ute", "from": "ne_enc", "x": 40, "y": 20, "w": 4, "h": 4,
+    "set": { "PlayerOnly": 1, "Faction": 2, "Tag": "E2", "Reset": 0, "ResetTime": 0 },
+    "spawnPoints": [] }
+ ]
+}

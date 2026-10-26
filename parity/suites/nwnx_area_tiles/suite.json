@@ -1,0 +1,8 @@
+{
+ "seconds": 12,
+ "nwnx": true,
+ "areas": [
+  { "resref": "parity", "tag": "PARITY_AREA", "size": 4, "tile": 4 },
+  { "resref": "parity2", "tag": "PARITY2", "size": 3, "tileset": "ttr01", "tile": 120 }
+ ]
+}
