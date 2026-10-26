@@ -34,6 +34,12 @@ world.EnableScripts();
 // --harness <dir>: the multiplayer sync harness records the server's state and relays the scene's markers (MultiplayerHarness.cs).
 MultiplayerHarness? harness = null;
 if (opts.TryGetValue("harness", out var harnessDir)) world.Scripts!.Log = line => { Console.WriteLine(line); harness?.OnLog(line); };
+// Server settings before the module loads, so OnModuleLoad scripts (NWNX_Administration) can change them.
+world.Pvp = settings.PvpSetting;
+world.ItemLevelRestrictions = settings.ItemLevelRestrictions;
+world.OneParty = settings.OneParty;
+world.PlayerPartyControl = settings.PlayerPartyControl;
+world.System<ServerAdministration>().PlayerPassword = settings.PlayerPassword ?? "";
 world.LoadModule();
 // Game data older than the engine expects fails here rather than on the first tick.
 try { _ = OpenWinter.Game.Scripting.EffectConstants.Of(world); }
@@ -42,11 +48,7 @@ catch (KeyNotFoundException e)
     Console.Error.WriteLine($"[server] {e.Message}");
     Environment.Exit(1);
 }
-world.Pvp = settings.PvpSetting;
 world.GameDifficulty = settings.Difficulty;
-world.ItemLevelRestrictions = settings.ItemLevelRestrictions;
-world.OneParty = settings.OneParty;
-world.PlayerPartyControl = settings.PlayerPartyControl;
 // Like nwserver: players choose from their server vault unless the vault is "local".
 var server = new GameServer(world, new ServerOptions
 {
@@ -86,6 +88,7 @@ while (running)
     net.Poll();
     server.Tick(step);
     if (harness != null) { harness.AfterTick(); if (harness.Finished) running = false; }
+    if (server.ShutdownRequested) running = false; // NWNX_Administration_ShutdownServer
     next += step;
     double wait = next - clock.Elapsed.TotalSeconds;
     if (wait > 0) Thread.Sleep(TimeSpan.FromSeconds(wait));

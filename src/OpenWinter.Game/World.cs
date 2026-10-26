@@ -158,6 +158,7 @@ public sealed partial class World
     /// <summary>Runs an object's event script (the script named by one of its event fields).</summary>
     public int RunEvent(GameObject o, string field, EventContext ctx)
     {
+        if (o is Area entered && !o.IsDestroyed) entered.NoteEntryEvent(field, ctx);
         if (Scripts == null || o.IsDestroyed) return 0;
         // A dead creature runs none of its combat and awareness events (nwserver ai_caster: an aura signalling the
         // corpses of the creatures it killed runs no OnSpellCastAt; ai_melee: corpses fire no OnHeartbeat).

@@ -45,7 +45,9 @@ dotnet run --project src/OpenWinter.Tools -c Release -- parity-run basics --only
   NWNX:EE), and compiles against that fork's `nwnx_risenholm.nss`. `"nwnxEnv": { "NWNX_TWEAKS_...": "true" }` sets
   environment variables for NWNX on both engines, after the lab's defaults (`NWNX_SQL_TYPE=SQLITE`,
   `NWNX_SQL_DATABASE=nwnx_sql`). `nwnx_pilot` is the smallest example.
-  It never touches the real user folder.
+  It never touches the real user folder. `"exports": ["name.are", ...]` compares files the scripts wrote to the user
+  directory's nwnx folder (NWNX_Area_ExportARE/ExportGIT): their fields, values, tiles, variables and object lists
+  become readings `file.<name>.*` (`nwnx_area_objects`).
 - A suite can ship conversations as `<resref>.dlg.json`, in the format visual scenes use (`convo_busy`).
 - Results are written to `out/parity/results/<suite>/{nwn,openwinter}.txt`.
 

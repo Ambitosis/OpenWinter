@@ -25,6 +25,8 @@ public sealed class ServerConfig
     public bool ServeContent { get; set; } = true;
     /// <summary>Dungeon Master password; null/absent = no DMs allowed.</summary>
     public string? DMPassword { get; set; }
+    /// <summary>Password players need to join; null/absent = none.</summary>
+    public string? PlayerPassword { get; set; }
     /// <summary>Area resref players start in instead of the module's entry point (testing).</summary>
     public string? StartArea { get; set; }
     /// <summary>Players may pause the game (nwserver's PauseAndPlay); Dungeon Masters always can.</summary>
@@ -49,7 +51,7 @@ public sealed class ServerConfig
         return JsonSerializer.Deserialize<ServerConfig>(File.ReadAllText(path), Json) ?? new ServerConfig();
     }
 
-    /// <summary>Command-line flags override the file: --name, --module, --port, --maxplayers, --pvp, --difficulty, --localvault, --area, --oneparty 0|1.</summary>
+    /// <summary>Command-line flags override the file: --name, --module, --port, --maxplayers, --pvp, --difficulty, --localvault, --area, --dmpassword, --password, --oneparty 0|1.</summary>
     public void Apply(Dictionary<string, string> opts)
     {
         if (opts.TryGetValue("name", out var name)) Name = name;
@@ -61,6 +63,7 @@ public sealed class ServerConfig
         if (opts.ContainsKey("localvault")) Vault = "local";
         if (opts.TryGetValue("area", out var area)) StartArea = area;
         if (opts.TryGetValue("dmpassword", out var dm)) DMPassword = dm;
+        if (opts.TryGetValue("password", out var pw)) PlayerPassword = pw;
         if (opts.ContainsKey("pauseandplay")) AllowPlayerPausing = true;
         if (opts.TryGetValue("oneparty", out var oneParty)) OneParty = oneParty != "0";
     }

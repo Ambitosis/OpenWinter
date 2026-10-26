@@ -36,6 +36,26 @@ public sealed class FamiliarPossession : IWorldSystem
     public bool Possess(PlayerSession session, Creature familiar)
     {
         if (session.Creature is not { } master || !CanPossess(_world, master, familiar)) return false;
+        Take(session, master, familiar);
+        return true;
+    }
+
+    /// <summary>
+    /// NWNX_Player_PossessCreature: a player takes control of any living NPC in her area as she would of her familiar
+    /// (with or without a familiar of her own); UnpossessFamiliar and the usual releases give it back.
+    /// </summary>
+    public bool PossessCreature(PlayerSession session, Creature target)
+    {
+        if (session.Creature is not { } master || master.Player != session || session.FamiliarMaster != null || session.IsDM
+            || master.IsDead || master.IsDestroyed) return false;
+        if (target == master || target.IsPC || target.Player != null || target.FamiliarController != null || target.IsDead
+            || target.IsDestroyed || target.Area == null || target.Area != master.Area) return false;
+        Take(session, master, target);
+        return true;
+    }
+
+    void Take(PlayerSession session, Creature master, Creature familiar)
+    {
         session.FamiliarMaster = master;
         master.FamiliarController = session;
         master.PossessedFamiliar = familiar.Id;
@@ -44,7 +64,6 @@ public sealed class FamiliarPossession : IWorldSystem
         session.Creature = familiar;
         Stop(master); Stop(familiar);
         Publish(session, master, familiar);
-        return true;
     }
 
     public void Release(PlayerSession session)

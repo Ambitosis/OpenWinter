@@ -200,7 +200,7 @@ public sealed partial class CombatSystem : IWorldSystem
         if (HasFeat(c, FeatBlooded)) bonus += RI("BLOODED_INITIATIVE_BONUS", 2);
         if (HasFeat(c, FeatThug)) bonus += RI("THUG_INITIATIVE_BONUS", 2);
         int roll = Dice.Roll(20);
-        _world.Output?.SendMessage(c, $"{Name(c)} : Initiative Roll : {roll + bonus} : ({roll} + {bonus} = {roll + bonus})");
+        _world.Output?.SendFeedback(c, $"{Name(c)} : Initiative Roll : {roll + bonus} : ({roll} + {bonus} = {roll + bonus})", FeedbackKind.Initiative);
     }
 
     const int FeatImprovedInitiative = 377, FeatBlooded = 379, FeatThug = 402, FeatEpicSuperiorInitiative = 753;

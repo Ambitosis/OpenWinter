@@ -277,9 +277,23 @@ public partial class ClientSession : Node3D
                     using var data = System.Text.Json.JsonDocument.Parse(notice.Json);
                     UI.Classic.ClassicSounds.Play(UI.Classic.ClassicAssets.For(Content), data.RootElement.GetProperty("sound").GetString() ?? "");
                 }
+                if (notice.Kind == "nwnx-player") ApplyResourceOverride(notice);
                 NotifyReceived?.Invoke(notice);
                 break;
         }
+    }
+
+    /// <summary>
+    /// NWNX_Player_SetResManOverride: the server asks this client to read one resource in place of another (an empty
+    /// name clears it). Resources loaded from then on follow it.
+    /// </summary>
+    void ApplyResourceOverride(NotifyMessage message)
+    {
+        if (Content == null) return;
+        using var doc = System.Text.Json.JsonDocument.Parse(message.Json);
+        var d = doc.RootElement;
+        if (!d.TryGetProperty("op", out var op) || op.GetString() != "resman-override") return;
+        Content.Resources.SetOverride((ushort)d.GetProperty("type").GetInt32(), d.GetProperty("from").GetString() ?? "", d.GetProperty("to").GetString() ?? "");
     }
 
     void ApplyCreatureVisibility(NotifyMessage message)

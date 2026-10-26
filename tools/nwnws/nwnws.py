@@ -203,6 +203,11 @@ def run_parity(cfg, args):
         if len(pair) != 2 or not re.fullmatch(r"[A-Z0-9_]+", pair[0]):
             sys.exit(f"nwnws: bad --env entry {'='.join(pair)!r} (want NAME=value, NAME in A-Z, 0-9 and _)")
     extra = "\n".join(f"export {k}={shlex.quote(v)}" for k, v in env)
+    # --collect: copy what the server wrote to its nwnx folder (NWNX_Area exports) back for comparison.
+    collect = ""
+    if args.collect:
+        dest = wsl_path(args.collect)
+        collect = f'rm -rf "{dest}"\nmkdir -p "{dest}"\ncp {sandbox}/nwnx/* "{dest}/" 2>/dev/null || true\n'
     script = f"""
 uid=$(id -u nwnws)
 iptables -C OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \\
@@ -247,7 +252,7 @@ pkill -9 -f -- "-userdirectory {sandbox} " 2>/dev/null || true
 cat $log {sandbox}/logs.0/nwserverError1.txt 2>/dev/null > "{wsl_path(out)}" || true
 echo "--- stdout" >> "{wsl_path(out)}"
 grep -v "^$" {sandbox}/stdout.log >> "{wsl_path(out)}" || true
-"""
+{collect}"""
     wsl(cfg, script)
 
 
@@ -293,6 +298,7 @@ def main():
     r.add_argument("--override", action="append", default=[])
     r.add_argument("--risenholm", action="store_true")
     r.add_argument("--env", action="append", default=[], help="KEY=VALUE exported for the server")
+    r.add_argument("--collect")
     c = sub.add_parser("scripts")
     c.add_argument("--dest", required=True)
     c.add_argument("--risenholm", action="store_true")

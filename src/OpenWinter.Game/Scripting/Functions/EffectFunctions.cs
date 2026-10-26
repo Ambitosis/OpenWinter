@@ -278,7 +278,7 @@ static class EffectFunctions
     static object? Type(Call c)
     {
         var e = c.E(0);
-        if (!e.IsValid || e.IsLinked || e.Type == K(c).Resurrection) return 0;
+        if (!e.IsValid || e.IsLinked || e.Type == K(c).Resurrection || e.Property != null) return 0;
         return e.Type >= K(c).FirstHidden && c.I(1) == 0 ? 0 : e.Type;
     }
     [NwFunc("GetEffectSpellId")] static object? SpellId(Call c) => c.E(0).IsValid || c.E(0).Type == 0 ? c.E(0).SpellId : -1;

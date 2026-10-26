@@ -59,7 +59,7 @@ public sealed class KillRewards : IWorldSystem
         foreach (var (pc, xp) in award.Players)
         {
             if (xp > 0) CreatureRules.GiveXP(_world, pc, xp, multiclassPenalty: true);
-            _world.Output?.SendMessage(pc, award.Line);
+            _world.Output?.SendFeedback(pc, award.Line, FeedbackKind.Death);
         }
     }
 
