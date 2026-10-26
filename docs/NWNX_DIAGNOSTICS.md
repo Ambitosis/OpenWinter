@@ -10,10 +10,12 @@ reported once per world through the `NwnxRegistry.Log` sink.
   their argument, result and storage behaviour; the warning says the engine effect is missing. They are:
   Damage.SetEventScript, Item.SetWeight,
   Player.GetTURD and Player.RemoveEffectFromTURD (OpenWinter keeps no TURDs for players who leave),
-  Creature.GetAttackBonus (base attack and ability only), Creature.JumpToLimbo, Ruby.Evaluate (there is no Ruby
-  interpreter; the result is empty), Risenholm.ForceUpdateMageArmorStats (the plugin's MAGE_ARMOR armour rule is
-  not documented, so only the stats are recomputed) and Risenholm.RemoveAttackImmunityFeedback (it is meant for the
-  NWNX_Damage attack event, which combat does not run).
+  Ruby.Evaluate (there is no Ruby interpreter; the result is empty), Risenholm.ForceUpdateMageArmorStats (the
+  plugin's MAGE_ARMOR armour rule is not documented, so only the stats are recomputed) and
+  Risenholm.RemoveAttackImmunityFeedback (it is meant for the NWNX_Damage attack event, which combat does not run).
+  NWNX_Creature has none: every function has its engine behaviour (measured by the `nwnx_creature_*` parity
+  suites); only SetMulticlassLimit with bPersist warns, as that limit isn't kept in the character file (the other
+  bPersist settings are, in NWNX_POS as NWNX:EE keeps them).
 - **Services OpenWinter does not run** answer as if absent: Profiler scopes are matched but not recorded (one
   warning), Watchcat has no watchdog to disable, WSNetLayer reports no websocket players, and
   `NWNX_Core_PluginExists` returns FALSE for all four (and for Ruby) so scripts can check first.

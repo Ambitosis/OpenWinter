@@ -61,7 +61,9 @@ static class CombatFunctions
         return attacker?.Id ?? GameObject.InvalidId;
     }
 
-    [NwFunc("GetLastKiller")] static object? LastKiller(Call c) => Valid(c, c.Event.Obj("Killer"));
+    [NwFunc("GetLastKiller")]
+    static object? LastKiller(Call c) =>
+        c.Event.Obj("Killer") is var k && c.World.Get(k) != null ? k : Valid(c, (c.Self as Creature)?.LastKiller ?? GameObject.InvalidId);
 
     // The weapon of the creature's last attack (OBJECT_INVALID for unarmed strikes or before any attack).
     [NwFunc("GetLastWeaponUsed")]

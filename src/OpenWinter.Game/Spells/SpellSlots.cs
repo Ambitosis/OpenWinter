@@ -60,6 +60,12 @@ public static class SpellSlots
         int cl = CreatureRules.CasterLevel(w, c, cls);
         float mult = w.Resources.TwoDA("classes").GetFloat(cls, "CLMultiplier", 1f);
         if (mult > 0 && Math.Abs(mult - 1f) > 1e-4f) cl = Math.Max(1, (int)(cl * mult));
+        // Script adjustments (NWNX_Creature caster level): an override replaces it, a modifier adds to it.
+        if (c.Overrides is { } o)
+        {
+            if (o.CasterLevelOverride.TryGetValue(cls, out int over)) return over;
+            cl += o.CasterLevelModifier.GetValueOrDefault(cls);
+        }
         return cl;
     }
 

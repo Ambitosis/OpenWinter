@@ -266,7 +266,14 @@ public sealed partial class InventorySystem
             }
             case Creature cr when area != null:
             {
-                var c = _world.Creatures.FromTemplate(cr.Template);
+                // Settings kept with the saved form (NWNX_POS) go with the copy, as through the original's saved form.
+                var template = cr.Template;
+                if (cr.Overrides is { Persisted.Count: > 0 })
+                {
+                    template = template.DeepClone();
+                    global::OpenWinter.Game.Rules.CreatureOverridesPersistence.Save(cr, template);
+                }
+                var c = _world.Creatures.FromTemplate(template);
                 c.ResRef = cr.ResRef;
                 c.Name = cr.Name.Clone();
                 c.Description = cr.Description;

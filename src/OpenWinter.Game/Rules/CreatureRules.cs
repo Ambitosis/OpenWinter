@@ -175,21 +175,24 @@ public static partial class CreatureRules
     /// Class levels taken before character level 21 (which use the class tables), and the
     /// number of epic levels after them. The level history (LvlStatList) decides which
     /// classes were taken first; without one, classes fill the first 20 levels in order.
+    /// A history with an entry for every level counts levels by its classes, and an entry for a class the creature
+    /// no longer has counts for nothing (nwserver nwnx_creature_levels: a fighter 1 / bard 2 whose fighter position
+    /// became cleric, the history kept, has a bard's saves only).
     /// </summary>
     public static (List<(int Class, int Level)> PreEpic, int Epic) LevelSplit(Creature c)
     {
         int total = c.TotalLevel;
         var pre = new List<(int Class, int Level)>();
-        if (total <= 20)
+        var history = c.Template.Field("LvlStatList")?.Value as List<GffStruct>;
+        if (total <= 20 && (history?.Count ?? 0) != total)
         {
             foreach (var cc in c.Classes) pre.Add((cc.Class, cc.Level));
             return (pre, 0);
         }
         var counts = new Dictionary<int, int>();
-        var history = c.Template.GetList("LvlStatList");
-        if (history.Count >= 20)
+        if (history != null && history.Count >= Math.Min(20, total))
         {
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < Math.Min(20, total); i++)
             {
                 int cls = (int)history[i].GetInt("LvlStatClass");
                 counts[cls] = counts.GetValueOrDefault(cls) + 1;
@@ -207,7 +210,7 @@ public static partial class CreatureRules
         }
         foreach (var cc in c.Classes)
             if (counts.TryGetValue(cc.Class, out int n) && n > 0) { pre.Add((cc.Class, Math.Min(n, cc.Level))); counts[cc.Class] = 0; }
-        return (pre, total - 20);
+        return (pre, Math.Max(0, total - 20));
     }
 
     // ------------------------------------------------------------------ abilities
@@ -331,9 +334,29 @@ public static partial class CreatureRules
     /// 0.42, +50% with -90% is 0.15, -90% alone 0.125. Entangled, held, stunned, asleep or petrified creatures
     /// don't move at all.
     /// </summary>
-    public static float MovementSpeedFactor(World w, Creature c)
+    public static float MovementSpeedFactor(World w, Creature c) => IsHelpless(c) ? 0f : MovementRateFactor(w, c);
+
+    /// <summary>
+    /// The movement rate factor speed effects give (or one a script set, which stands until the speed effects
+    /// change: nwserver nwnx_creature_move), not counting conditions that stop the creature.
+    /// </summary>
+    public static float MovementRateFactor(World w, Creature c)
     {
-        if (IsHelpless(c)) return 0f;
+        var o = c.Overrides;
+        if (o?.MovementFactor is float set)
+        {
+            if (o.MovementFactorEffects == CreatureOverrides.EffectStamp(c, CreatureOverrides.IsSpeedEffect)) return set;
+            // A speed effect taken away changes the factor at the next update, not in the same moment (nwserver
+            // nwnx_creature_move: 0.8 read right after removing haste, 1.0 a tenth of a second later); one applied
+            // changes it at once.
+            if (c.Effects.Count(e => CreatureOverrides.IsSpeedEffect(e.Type)) < o.MovementFactorEffectCount)
+            {
+                o.MovementFactorRemovedAt ??= w.Time;
+                if (w.Time <= o.MovementFactorRemovedAt) return set;
+            }
+            o.MovementFactor = null;
+            o.MovementFactorRemovedAt = null;
+        }
         float up = 1f, down = 1f;
         foreach (var e in c.Effects)
         {
@@ -343,9 +366,13 @@ public static partial class CreatureRules
         var (hasted, slowed) = Speed(c);
         if (hasted) up *= 1.5f;
         if (slowed) down *= 0.5f;
-        up = Math.Min(up, Ruleset.Float(w, "MOVEMENT_SPEED_BONUS_DEFAULT_CAP", 1.5f));
+        up = Math.Min(up, MovementRateFactorCap(w, c));
         return Math.Max(up * down, Ruleset.Float(w, "MOVEMENT_SPEED_PENALTY_CAP", 0.125f));
     }
+
+    /// <summary>The highest movement rate factor: the creature's own cap, else MOVEMENT_SPEED_BONUS_DEFAULT_CAP.</summary>
+    public static float MovementRateFactorCap(World w, Creature c) =>
+        c.Overrides is { MovementFactorCap: > 0 } o ? o.MovementFactorCap : Ruleset.Float(w, "MOVEMENT_SPEED_BONUS_DEFAULT_CAP", 1.5f);
 
     // Native speed_payload/speed_absolute: below 100 is an additive percentage; 100+ is absolute.
     public static int MovementIncreasePercent(int amount) => amount < 100 ? 100 + amount : amount;
@@ -380,6 +407,7 @@ public static partial class CreatureRules
     /// <summary>Base attack bonus from the class attack tables (pre-epic levels) plus +1 per two epic levels.</summary>
     public static int BaseAttackBonus(World w, Creature c)
     {
+        if (c.Overrides is { BaseAttackBonus: > 0 } o) return o.BaseAttackBonus;
         var (pre, epic) = LevelSplit(c);
         int bab = 0;
         foreach (var (cls, lvl) in pre)
@@ -396,6 +424,8 @@ public static partial class CreatureRules
         int bab = 0;
         foreach (var (cls, lvl) in pre)
             if (lvl > 0) bab += ClassTable(w, cls, "AttackBonusTable").GetInt(lvl - 1, "BAB");
+        // A base attack bonus set by script counts for the attacks too (nwserver nwnx_creature_attack: 11 gives three).
+        if (c.Overrides is { BaseAttackBonus: > 0 } o) bab = o.BaseAttackBonus;
         int monk = ClassLevel(c, NwRules.ClassMonk);
         bool unarmed = !c.Equipment.ContainsKey(EquipSlot.RightHand) || c.Equipment[EquipSlot.RightHand].BaseItem == 40; // kama
         if (monk > 0 && unarmed && ArmourBaseAC(w, c) == 0 && ShieldBaseAC(w, c) == 0)
@@ -502,7 +532,7 @@ public static partial class CreatureRules
     }
 
     /// <summary>Item and effect save adjustments (bonus, penalty) for a save; a save type adds the bonuses specific to it.</summary>
-    static (int Bonus, int Penalty) SaveAdjustments(World w, Creature c, int save, int saveType, GameObject? versus)
+    internal static (int Bonus, int Penalty) SaveAdjustments(World w, Creature c, int save, int saveType, GameObject? versus)
     {
         int dec = 0;
         var bonuses = new SpellBonuses(w, Nwnx.Plugins.NoStackPlugin.Category.SavingThrow, penalty: false);
@@ -920,6 +950,13 @@ public static partial class CreatureRules
             break;
         }
         best = Math.Max(best, feat);
+        // A spell resistance a script set stands until the creature's spell resistance effects change, and then is
+        // gone (nwserver nwnx_creature_spells: 15 set, 20 from an effect, 0 once it ended).
+        if (c.Overrides?.SpellResistance is int set)
+        {
+            if (c.Overrides.SpellResistanceEffects == CreatureOverrides.EffectStamp(c, CreatureOverrides.IsSpellResistanceEffect)) best = Math.Max(best, set);
+            else c.Overrides.SpellResistance = null;
+        }
         return Math.Max(0, best - dec);
     }
 
