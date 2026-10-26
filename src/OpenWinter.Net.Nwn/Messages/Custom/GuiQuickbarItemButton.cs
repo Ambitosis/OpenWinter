@@ -15,8 +15,17 @@ public static partial class GuiQuickbarMessages
         public override byte Minor => GuiQuickbarSetButton.MinorId;
         public override NwnDirection Direction => NwnDirection.ClientToServer;
 
+        /// <summary>
+        /// Whether a recorded client frame's body (after its major and minor) sets an item button, so it is read as
+        /// this message rather than the schema's: the button and its kind come first, each after its type byte.
+        /// </summary>
+        public static bool Sets(ReadOnlySpan<byte> body) => body.Length >= 4 && body[3] == (byte)ButtonObjectType.Item;
+
+        [NwnField("button")]
         public byte Button { get; set; }
+        [NwnField("item")]
         public uint Item { get; set; }
+        [NwnField("property_id")]
         public int PropertyId { get; set; }
 
         public override void Read(NwnReader r)

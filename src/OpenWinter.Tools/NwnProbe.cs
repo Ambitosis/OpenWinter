@@ -150,7 +150,11 @@ static class NwnRecordingDump
             if (frame.Length >= 3 && frame[0] is (byte)'P' or (byte)'p')
             {
                 var direction = frame[0] == (byte)'P' ? NwnDirection.ServerToClient : NwnDirection.ClientToServer;
-                var m = NwnMessageRegistry.Create(frame[1], frame[2], direction);
+                // The client's item quickbar button differs from the schema's (Messages/Custom).
+                var m = direction == NwnDirection.ClientToServer && frame[1] == GuiQuickbarMessages.GuiQuickbarSetButton.MajorId
+                    && frame[2] == GuiQuickbarMessages.GuiQuickbarSetButton.MinorId && GuiQuickbarMessages.GuiQuickbarSetItemButton.Sets(frame.AsSpan(3))
+                    ? new GuiQuickbarMessages.GuiQuickbarSetItemButton()
+                    : NwnMessageRegistry.Create(frame[1], frame[2], direction);
                 if (m == null)
                 {
                     name = $"unknown {frame[1]:X2}.{frame[2]:X2}";
@@ -205,7 +209,7 @@ static class NwnRecordingDump
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
 /// once the list is used up; open the journal; send each client request four seconds apart from six seconds in (a "+SECONDS:" prefix
-/// sends one that long after the one before), where "@self" is the player's creature and "@NAME" the nearest object whose name contains NAME)
+/// sends one that long after the one before; "say=TEXT" talks), where "@self" is the player's creature and "@NAME" the nearest object whose name contains NAME)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -343,7 +347,9 @@ static class NwnBridgeProbe
                 body = System.Text.RegularExpressions.Regex.Replace(body, "\"@([^\"]*)\"", m => m.Groups[1].Value == "self" ? controlled.ToString()
                     : objects.Where(kv => kv.Value.Name.Contains(m.Groups[1].Value, StringComparison.OrdinalIgnoreCase))
                         .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault().ToString());
-                bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = kind, Json = body }.Write());
+                // "say=TEXT" talks instead (test modules take commands in chat).
+                bridge.Send(kind == "say" ? new OpenWinter.Net.ChatSendMessage { Channel = OpenWinter.Net.ChatChannel.Talk, Text = body }.Write()
+                    : new OpenWinter.Net.ClientRequestMessage { Kind = kind, Json = body }.Write());
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} request {kind} {body}");
             }
             if (clicks.Count > 0 && nextClick > 0 && clock.Elapsed.TotalSeconds > nextClick && clicks.Peek().Split(':') is [var window, var element] && windows.TryGetValue(window, out var token))
