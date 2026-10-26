@@ -170,6 +170,11 @@ public sealed partial class CreatureCombatRules
     {
         int inc = 0, dec = 0, levels = 0;
         int hand = a.OffHand ? CombatK.AttackBonusOffHand : CombatK.AttackBonusOnHand;
+        // NWNX_NoStack's rule for attack bonuses, when one is set.
+        var bonusRule = Nwnx.Plugins.NoStackPlugin.For(_w, Nwnx.Plugins.NoStackPlugin.Category.AttackBonus, penalty: false);
+        var penaltyRule = Nwnx.Plugins.NoStackPlugin.For(_w, Nwnx.Plugins.NoStackPlugin.Category.AttackBonus, penalty: true);
+        var bonuses = bonusRule != null ? new List<(int, uint, int)>() : null;
+        var penalties = penaltyRule != null ? new List<(int, uint, int)>() : null;
         // Touch attacks don't count bonuses versus the target's race or alignment (parity suite fx_versus).
         var versus = a.Touch ? null : a.Target;
         foreach (var e in a.Attacker.Effects)
@@ -177,12 +182,16 @@ public sealed partial class CreatureCombatRules
             switch (e.Type)
             {
                 case CombatK.EffectAttackIncrease when (e.Ints[1] == CombatK.AttackBonusMisc || e.Ints[1] == hand) && EffectQueries.AppliesVersus(e, versus):
-                    inc += e.Ints[0]; break;
+                    if (bonuses != null) bonuses.Add((e.SpellId, e.Creator, e.Ints[0])); else inc += e.Ints[0];
+                    break;
                 case CombatK.EffectAttackDecrease when (e.Ints[1] == CombatK.AttackBonusMisc || e.Ints[1] == hand) && EffectQueries.AppliesVersus(e, versus):
-                    dec += e.Ints[0]; break;
+                    if (penalties != null) penalties.Add((e.SpellId, e.Creator, e.Ints[0])); else dec += e.Ints[0];
+                    break;
                 case CombatK.EffectNegativeLevel: levels += Math.Max(0, e.Ints[0]); break;
             }
         }
+        if (bonuses != null) inc = bonusRule!.Total(bonuses);
+        if (penalties != null) dec = penaltyRule!.Total(penalties);
         // Slowed: -2 (measured on the original).
         if (CreatureRules.IsSlowed(a.Attacker)) dec += 2;
         int limit = _w.Limits.AttackBonus;

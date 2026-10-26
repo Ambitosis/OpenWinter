@@ -222,23 +222,40 @@ public static partial class CreatureRules
     {
         int _loose;
         Dictionary<int, int>? _bySpell;
+        // NWNX_NoStack's rule for this kind of bonus, when one is set.
+        readonly Nwnx.Plugins.NoStackPlugin.Rules? _rules;
+        readonly List<(int SpellId, uint Creator, int Value)>? _entries;
+
+        public SpellBonuses(World w, Nwnx.Plugins.NoStackPlugin.Category category, bool penalty)
+        {
+            _rules = Nwnx.Plugins.NoStackPlugin.For(w, category, penalty);
+            if (_rules != null) _entries = new();
+        }
 
         public void Add(Effect e, int value)
         {
+            if (_entries != null) { _entries.Add((e.SpellId, e.Creator, value)); return; }
             if (e.SpellId < 0) { _loose += value; return; }
             _bySpell ??= new Dictionary<int, int>();
             _bySpell[e.SpellId] = _bySpell.TryGetValue(e.SpellId, out int best) ? Math.Max(best, value) : value;
         }
 
-        public int Total => _loose + (_bySpell?.Values.Sum() ?? 0);
+        /// <summary>An equipped item's property: these all add up, unless a NoStack rule says otherwise.</summary>
+        public void AddItem(Item item, int value)
+        {
+            if (_entries != null) _entries.Add((-1, item.Id, value));
+            else _loose += value;
+        }
+
+        public int Total => _rules != null ? _rules.Total(_entries!) : _loose + (_bySpell?.Values.Sum() ?? 0);
     }
 
     /// <summary>Total item and effect adjustments to an ability: (bonus, penalty), both positive.</summary>
     public static (int Bonus, int Penalty) AbilityAdjustments(World w, Creature c, int ability, bool effects = true, bool items = true)
     {
         int dec = 0;
-        var bonuses = new SpellBonuses();
-        var penalties = new SpellBonuses();
+        var bonuses = new SpellBonuses(w, Nwnx.Plugins.NoStackPlugin.Category.Ability, penalty: false);
+        var penalties = new SpellBonuses(w, Nwnx.Plugins.NoStackPlugin.Category.Ability, penalty: true);
         foreach (var e in effects ? Effects(c) : Enumerable.Empty<Effect>())
         {
             switch (e.Type)
@@ -251,14 +268,14 @@ public static partial class CreatureRules
                     dec += e.Ints[ability]; break;
             }
         }
-        int inc = bonuses.Total;
-        dec += penalties.Total;
-        foreach (var (_, _, p) in items ? EquippedProperties(c) : Enumerable.Empty<(Item, int, ItemProperty)>())
+        foreach (var (item, _, p) in items ? EquippedProperties(c) : Enumerable.Empty<(Item, int, ItemProperty)>())
         {
             if (p.SubType != ability) continue;
-            if (p.Type == NwRules.IpAbilityBonus) inc += PropertyValue(w, p);
-            else if (p.Type == NwRules.IpDecreasedAbility) dec += Math.Abs(PropertyValue(w, p));
+            if (p.Type == NwRules.IpAbilityBonus) bonuses.AddItem(item, PropertyValue(w, p));
+            else if (p.Type == NwRules.IpDecreasedAbility) penalties.AddItem(item, Math.Abs(PropertyValue(w, p)));
         }
+        int inc = bonuses.Total;
+        dec += penalties.Total;
         return (Math.Max(0, inc), Math.Max(0, dec));
     }
 
@@ -293,7 +310,7 @@ public static partial class CreatureRules
         int b = BaseAbility(w, c, ability);
         if (baseOnly) return b;
         // A helpless creature (held, stunned, asleep, entangled, petrified) has a Dexterity of 3.
-        if (effects && helpless && ability == NwRules.AbilityDex && IsHelpless(c)) return 3;
+        if (effects && helpless && ability == NwRules.AbilityDex && IsHelpless(c) && !Nwnx.Plugins.NwnxTweaks.Of(w).AlwaysReturnFullDexStat) return 3;
         var (inc, dec) = AbilityAdjustments(w, c, ability, effects, items);
         int total = b + Clamp(inc, dec, w.Limits.AbilityBonus, w.Limits.AbilityPenalty);
         return Math.Max(3, total);
@@ -518,8 +535,8 @@ public static partial class CreatureRules
     internal static (int Bonus, int Penalty) SaveAdjustments(World w, Creature c, int save, int saveType, GameObject? versus)
     {
         int dec = 0;
-        var bonuses = new SpellBonuses();
-        var penalties = new SpellBonuses();
+        var bonuses = new SpellBonuses(w, Nwnx.Plugins.NoStackPlugin.Category.SavingThrow, penalty: false);
+        var penalties = new SpellBonuses(w, Nwnx.Plugins.NoStackPlugin.Category.SavingThrow, penalty: true);
         bool frightened = false;
         bool Applies(int effSave, int effType) =>
             (effSave == NwRules.SaveAll || effSave == save) && (effType == NwRules.SaveTypeAll || (saveType != NwRules.SaveTypeAll && effType == saveType));
@@ -532,12 +549,10 @@ public static partial class CreatureRules
             else if (e.Type == NwRules.EffectNegativeLevel) dec += e.Ints[0];
             else if (e.Type is NwRules.EffectFrightened or NwRules.EffectTurned) frightened = true;
         }
-        int inc = bonuses.Total;
-        dec += penalties.Total;
         // Fear and turning: -2 on all saves. Slow: -2 on reflex.
         if (frightened) dec += 2;
         if (save == NwRules.SaveReflex && Speed(c).Slowed) dec += 2;
-        foreach (var (_, _, p) in EquippedProperties(c))
+        foreach (var (item, _, p) in EquippedProperties(c))
         {
             switch (p.Type)
             {
@@ -545,7 +560,7 @@ public static partial class CreatureRules
                 {
                     int type = p.SubType >= 0 && p.SubType < SaveVsToType.Length ? SaveVsToType[p.SubType] : -1;
                     if (type < 0 || !Applies(NwRules.SaveAll, type)) continue;
-                    if (p.Type == NwRules.IpSaveBonus) inc += PropertyValue(w, p); else dec += Math.Abs(PropertyValue(w, p));
+                    if (p.Type == NwRules.IpSaveBonus) bonuses.AddItem(item, PropertyValue(w, p)); else penalties.AddItem(item, Math.Abs(PropertyValue(w, p)));
                     break;
                 }
                 case NwRules.IpSaveBonusSpecific or NwRules.IpDecreasedSavesSpecific:
@@ -553,11 +568,13 @@ public static partial class CreatureRules
                     // IP_CONST_SAVEBASETYPE: 1 fortitude, 2 will, 3 reflex.
                     int s = p.SubType switch { 1 => NwRules.SaveFort, 2 => NwRules.SaveWill, 3 => NwRules.SaveReflex, 0 => NwRules.SaveAll, _ => -1 };
                     if (s < 0 || !Applies(s, NwRules.SaveTypeAll)) continue;
-                    if (p.Type == NwRules.IpSaveBonusSpecific) inc += PropertyValue(w, p); else dec += Math.Abs(PropertyValue(w, p));
+                    if (p.Type == NwRules.IpSaveBonusSpecific) bonuses.AddItem(item, PropertyValue(w, p)); else penalties.AddItem(item, Math.Abs(PropertyValue(w, p)));
                     break;
                 }
             }
         }
+        int inc = bonuses.Total;
+        dec += penalties.Total;
         return (Math.Max(0, inc), Math.Max(0, dec));
     }
 
@@ -886,8 +903,8 @@ public static partial class CreatureRules
         if (c.Area != null) total += table.AreaModifier(c.Area.Id, skill);
 
         int dec = 0;
-        var bonuses = new SpellBonuses();
-        var penalties = new SpellBonuses();
+        var bonuses = new SpellBonuses(w, Nwnx.Plugins.NoStackPlugin.Category.Skill, penalty: false);
+        var penalties = new SpellBonuses(w, Nwnx.Plugins.NoStackPlugin.Category.Skill, penalty: true);
         bool blind = false;
         foreach (var e in Effects(c))
         {
@@ -899,16 +916,16 @@ public static partial class CreatureRules
             else if (e.Type == NwRules.EffectNegativeLevel) dec += 2 * e.Ints[0];
             else if (e.Type is NwRules.EffectBlindness or NwRules.EffectDarkness) blind = true;
         }
-        int inc = bonuses.Total;
-        dec += penalties.Total;
         // Blind: a penalty (4 unless a module changed it) on Dexterity skills; Discipline keeps its rank (nwnx_skillranks).
         if (blind && ability == NwRules.AbilityDex) dec += table.BlindnessPenalty;
-        foreach (var (_, _, p) in EquippedProperties(c))
+        foreach (var (item, _, p) in EquippedProperties(c))
         {
             if (p.SubType != skill && p.SubType != NwRules.SkillAll) continue;
-            if (p.Type == NwRules.IpSkillBonus) inc += PropertyValue(w, p);
-            else if (p.Type == NwRules.IpDecreasedSkill) dec += Math.Abs(PropertyValue(w, p));
+            if (p.Type == NwRules.IpSkillBonus) bonuses.AddItem(item, PropertyValue(w, p));
+            else if (p.Type == NwRules.IpDecreasedSkill) penalties.AddItem(item, Math.Abs(PropertyValue(w, p)));
         }
+        int inc = bonuses.Total;
+        dec += penalties.Total;
         return total + Clamp(Math.Max(0, inc), Math.Max(0, dec), w.Limits.SkillBonus, w.Limits.SkillBonus);
     }
 

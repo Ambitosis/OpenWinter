@@ -59,7 +59,9 @@ public sealed class CreatureLabelFeed : IWorldSystem
     }
 
     /// <summary>Index into damagelevels.2da, including temporary HP; measured by the nameplates visual scene.</summary>
-    public static int DamageLevel(World world, Creature c)
+    public static int DamageLevel(World world, Creature c) => Nwnx.Plugins.RisenholmPlugin.ShiftDamageLevel(world, c, HealthLevel(world, c));
+
+    static int HealthLevel(World world, Creature c)
     {
         if (c.IsDead) return 5;
         long hp = CreatureRules.CurrentHitPoints(world, c) + (long)CreatureRules.TemporaryHitPoints(c);

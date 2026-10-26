@@ -165,6 +165,23 @@ public sealed class NwnxRegistry : IWorldSystem
     /// <summary>NWNXGetIsAvailable. On by default: the bridge emulates the common plugins.</summary>
     public bool Available = true;
     public Action<string> Log = Console.WriteLine;
+    /// <summary>
+    /// Where plugins read their NWNX_* settings (NWNX:EE is configured through environment variables): the process
+    /// environment unless a host substitutes its own.
+    /// </summary>
+    public Func<string, string?> EnvironmentVariable = Environment.GetEnvironmentVariable;
+    /// <summary>A setting's value, or null when unset or empty.</summary>
+    public string? Env(string name) => EnvironmentVariable(name) is { Length: > 0 } v ? v : null;
+    /// <summary>A true/false setting: "1", "y", "yes", "t" and "true" (any case) are true.</summary>
+    public bool EnvBool(string name, bool fallback = false) => Env(name)?.Trim().ToLowerInvariant() switch
+    {
+        null => fallback,
+        "1" or "y" or "yes" or "t" or "true" or "on" => true,
+        _ => false,
+    };
+    /// <summary>An integer setting, or <paramref name="fallback"/> when unset or not a number.</summary>
+    public int EnvInt(string name, int fallback = 0) =>
+        int.TryParse(Env(name)?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var v) ? v : fallback;
     // Plugin state that isn't per object.
     public readonly Dictionary<string, string> ConsoleCommands = new(StringComparer.OrdinalIgnoreCase);
     public readonly Dictionary<(int Type, string Name), string> ResourceOverrides = new();
@@ -180,7 +197,54 @@ public sealed class NwnxRegistry : IWorldSystem
         world.ObjectRemoved += o => _objectState.Remove(o.Id);
     }
 
-    public void Step(float dt) { }
+    readonly System.Collections.Concurrent.ConcurrentQueue<Action> _posted = new();
+
+    /// <summary>Runs an action on the game thread at the next step: how plugins finish work done in the background.</summary>
+    public void Post(Action action) => _posted.Enqueue(action);
+
+    public void Step(float dt)
+    {
+        while (_posted.TryDequeue(out var action))
+        {
+            try { action(); }
+            catch (Exception e) when (e is not OutOfMemoryException)
+            {
+                Log($"[nwnx] a plugin's background work failed: {e.GetType().Name}: {e.Message}");
+            }
+        }
+    }
+
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, NwnxRegistry> Registries = new();
+
+    /// <summary>A world's registry, without searching its systems each time (rule code asks on hot paths).</summary>
+    public static NwnxRegistry Of(World w) => Registries.GetValue(w, x => x.System<NwnxRegistry>());
+
+    /// <summary>
+    /// Set by a dedicated server host for the whole process: plugins may then reach outside the game (run programs,
+    /// send HTTP requests, listen for RPC), each still only when its own setting asks for it. Single player never
+    /// sets it.
+    /// </summary>
+    public static bool DedicatedServer;
+
+    // Held in a type save games skip, so a loaded save cannot turn it on.
+    System.Runtime.CompilerServices.StrongBox<bool>? _allowOutside;
+
+    /// <summary>Whether this world's plugins may reach outside the game (<see cref="DedicatedServer"/> unless set).</summary>
+    public bool AllowOutside
+    {
+        get => _allowOutside?.Value ?? DedicatedServer;
+        set => _allowOutside = new(value);
+    }
+
+    /// <summary>An outward-facing feature: allowed by the host and switched on by its own setting.</summary>
+    public bool OutsideEnabled(string setting) => AllowOutside && EnvBool(setting);
+
+    /// <summary>Stops what plugins keep running for the world (the RPC listener, the SQL connection) as it shuts down.</summary>
+    public void Shutdown()
+    {
+        Plugins.SqlPlugin.Close(this);
+        _world.System<Plugins.RisenholmRpc>().Stop();
+    }
 
     /// <summary>"NWNX_Creature" and "Creature" both name the Creature plugin.</summary>
     public static string PluginKey(string plugin) =>
@@ -202,6 +266,9 @@ public sealed class NwnxRegistry : IWorldSystem
         var key = PluginKey(plugin);
         return Handlers.Keys.Any(k => k.Item1 == key);
     }
+
+    /// <summary>An object's plugin state if it has any (does not create it).</summary>
+    public bool TryGetObjectState(uint id, out Dictionary<string, NwnxValue> state) => _objectState.TryGetValue(id, out state!);
 
     public Dictionary<string, NwnxValue> ObjectState(uint id)
     {

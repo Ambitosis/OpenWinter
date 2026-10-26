@@ -305,7 +305,7 @@ public sealed class ItemRules
             if (p.Type == PropCastSpell)
             {
                 // Charge-based uses (iprp_chargecost rows 2-6) scale with the charges the item had when priced.
-                if (p.CostTableValue is >= 2 and <= 6) cost *= charges / 50f;
+                if (p.CostTableValue is >= 2 and <= 6) cost *= Nwnx.Plugins.NwnxTweaks.Of(_world).ChargeCostMultiplier(charges);
                 if (cost > best) { rest += best * 0.5f; best = cost; }
                 else if (cost > second) { rest += second * 0.5f; second = cost; }
                 else rest += cost * 0.5f;

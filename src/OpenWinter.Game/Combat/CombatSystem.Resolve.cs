@@ -214,7 +214,7 @@ public sealed partial class CombatSystem
         AttackResolved?.Invoke(o);
 
         if (riposte && tc != null && !tc.IsDead && !att.IsDead) Riposte(tc, att);
-        if (o.Killed) Cleave(o);
+        if (o.Killed) { if (!ScriptedCleave) Cleave(o); }
         else if (hit && a.Unarmed && a.Kind is AttackKind.Normal) CircleKick(o);
     }
 
@@ -349,7 +349,7 @@ public sealed partial class CombatSystem
         riposte = false;
         var a = o.Context;
         if (a.Target is not Creature tc || !tc.ActionModes.Contains(CombatK.ModeParry) || a.TargetDeniedDex || !CanAttack(tc)) return false;
-        bool parryAll = tc.Overrides?.ParryAllAttacks == true || OverrideSystem.ParryAllAttacks;
+        bool parryAll = tc.Overrides?.ParryAllAttacks == true || OverrideSystem.ParryAllAttacks || Nwnx.Plugins.NwnxTweaks.Of(_world).ParryAllAttacks;
         if (!parryAll && tState.Parries >= Math.Max(1, CreatureRules.AttacksPerRound(_world, tc))) return false;
         tState.Parries++;
         int parry = Dice.Roll(20) + CreatureRules.SkillRank(_world, tc, CombatK.SkillParry);

@@ -71,7 +71,9 @@ public static class CoreFunctions
         return bits < 0 ? "-" + digits : digits;
     }
 
-    [NwFunc("StringToInt")] static object? StringToInt(Call c) => ParseLeadingInt(c.S(0));
+    [NwFunc("StringToInt")]
+    static object? StringToInt(Call c) =>
+        Nwnx.Plugins.NwnxTweaks.Of(c.World).StringToIntBaseToAuto ? Nwnx.Plugins.NwnxTweaks.StringToIntAuto(c.S(0)) : ParseLeadingInt(c.S(0));
     [NwFunc("StringToFloat")] static object? StringToFloat(Call c) => ParseLeadingFloat(c.S(0));
 
     /// <summary>C isspace in the "C" locale.</summary>

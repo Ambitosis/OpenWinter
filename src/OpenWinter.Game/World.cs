@@ -216,6 +216,7 @@ public sealed partial class World
     {
         c.SpawnPending = true;
         _spawnQueue.Add(c);
+        if (!c.IsPC && Nwnx.Plugins.NwnxTweaks.Of(this).FireEquipEventsForAllCreatures) Nwnx.Plugins.NwnxTweaks.EquippedAtCreation(this, c);
     }
 
     /// <summary>Runs a creature's pending OnSpawn before anything else happens to it.</summary>

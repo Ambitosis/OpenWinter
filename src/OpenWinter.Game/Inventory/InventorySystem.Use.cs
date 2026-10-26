@@ -105,7 +105,8 @@ public sealed partial class InventorySystem
         else if (spentCharges)
         {
             // A wand's last charge does say "Lost Item" (castlines4).
-            if (item.Charges == 0) _world.After(0.5f, () => { if (!item.IsDestroyed) _world.Destroy(item); });
+            if (item.Charges == 0 && !Nwnx.Plugins.NwnxTweaks.Of(_world).PreserveDepletedItems)
+                _world.After(0.5f, () => { if (!item.IsDestroyed) _world.Destroy(item); });
         }
         else if (maxPerDay > 0) prop.UsesPerDay--;
         if (!item.IsDestroyed && (singleUse || maxPerDay > 0)) Changed(item);

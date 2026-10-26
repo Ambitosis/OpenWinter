@@ -19,6 +19,8 @@ networks) and the server is not listed. Clients on Windows reach it at ws://loca
 """
 import argparse
 import json
+import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -184,7 +186,8 @@ def run_parity(cfg, args):
     """Runs a parity module with NWNX until it logs PARITY|__done__|1 (or the time runs out) and copies the server
     log back. Each suite has its own sandbox and port, and only its own server is stopped."""
     game = wsl_path(cfg["gameRoot"])
-    binaries = cfg.get("nwnxBinaries") or f"{BUILD}/unified/Binaries"
+    # nwnxBinaries names the Risenholm fork's build; every other suite runs on upstream NWNX:EE.
+    binaries = (cfg.get("nwnxBinaries") if args.risenholm else None) or f"{BUILD}/unified/Binaries"
     name = args.name
     sandbox = f"{HOME}/parity/{name}"
     module = Path(args.module)
@@ -193,6 +196,13 @@ def run_parity(cfg, args):
     overrides = [Path(p) for p in args.override]
     plugins = PARITY_PLUGINS + (["RISENHOLM"] if args.risenholm else [])
     enabled = "\n".join(f"export NWNX_{p}_SKIP=n" for p in plugins)
+    # A suite's own environment ("nwnxEnv" in suite.json), set after the defaults so it can override them.
+    env = [e.split("=", 1) for e in args.env]
+    for pair in env:
+        # The script runs as root: only plain variable names may reach it.
+        if len(pair) != 2 or not re.fullmatch(r"[A-Z0-9_]+", pair[0]):
+            sys.exit(f"nwnws: bad --env entry {'='.join(pair)!r} (want NAME=value, NAME in A-Z, 0-9 and _)")
+    extra = "\n".join(f"export {k}={shlex.quote(v)}" for k, v in env)
     # --collect: copy what the server wrote to its nwnx folder (NWNX_Area exports) back for comparison.
     collect = ""
     if args.collect:
@@ -205,6 +215,8 @@ iptables -C OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,
 iptables -C OUTPUT -m owner --uid-owner $uid -o lo -j ACCEPT 2>/dev/null || iptables -A OUTPUT -m owner --uid-owner $uid -o lo -j ACCEPT
 iptables -C OUTPUT -m owner --uid-owner $uid -j REJECT 2>/dev/null || iptables -A OUTPUT -m owner --uid-owner $uid -j REJECT
 [ -f {sandbox}/server.pid ] && kill -9 "$(cat {sandbox}/server.pid)" 2>/dev/null || true
+# Copies of this suite's server a plugin forked (a child process whose exec failed) hold its port: end them too.
+pkill -9 -f -- "-userdirectory {sandbox} " 2>/dev/null || true
 rm -rf {sandbox}
 mkdir -p {sandbox}/modules {sandbox}/override {sandbox}/database
 cp "{wsl_path(module)}" "{sandbox}/modules/{module.stem}.mod"
@@ -220,6 +232,7 @@ export NWNX_CORE_SKIP_ALL=y
 {enabled}
 export NWNX_SQL_TYPE=SQLITE
 export NWNX_SQL_DATABASE=nwnx_sql
+{extra}
 exec ./nwserver-linux -userdirectory {sandbox} -module "{module.stem}" -port {args.port} -publicserver 0 \\
   -servername openwinter-parity -maxclients 1 -difficulty {args.difficulty}
 EOF
@@ -235,6 +248,7 @@ done
 kill "$(cat {sandbox}/server.pid)" 2>/dev/null || true
 sleep 1
 kill -9 "$(cat {sandbox}/server.pid)" 2>/dev/null || true
+pkill -9 -f -- "-userdirectory {sandbox} " 2>/dev/null || true
 cat $log {sandbox}/logs.0/nwserverError1.txt 2>/dev/null > "{wsl_path(out)}" || true
 echo "--- stdout" >> "{wsl_path(out)}"
 grep -v "^$" {sandbox}/stdout.log >> "{wsl_path(out)}" || true
@@ -248,6 +262,10 @@ def scripts(cfg, args):
     dest.mkdir(parents=True, exist_ok=True)
     source = cfg.get("nwnxSource") or f"{BUILD}/unified"
     wsl(cfg, f'find "{source}" -name "nwnx*.nss" -exec cp {{}} "{wsl_path(dest)}/" \\;')
+    if args.risenholm:
+        # The Risenholm fork's own headers, from the build nwnxBinaries names (its Binaries folder's parent).
+        fork = cfg["nwnxBinaries"].rstrip("/").rsplit("/", 1)[0]
+        wsl(cfg, f'find "{fork}/Plugins/Risenholm" -name "nwnx_risenholm*.nss" -exec cp {{}} "{wsl_path(dest)}/" \\;')
 
 
 def stop(cfg, _args):
@@ -279,9 +297,11 @@ def main():
     r.add_argument("--difficulty", type=int, default=3)
     r.add_argument("--override", action="append", default=[])
     r.add_argument("--risenholm", action="store_true")
+    r.add_argument("--env", action="append", default=[], help="KEY=VALUE exported for the server")
     r.add_argument("--collect")
     c = sub.add_parser("scripts")
     c.add_argument("--dest", required=True)
+    c.add_argument("--risenholm", action="store_true")
     args = ap.parse_args()
     {"setup": setup, "start": start, "stop": stop, "status": status, "run-parity": run_parity,
      "scripts": scripts}[args.cmd](config(), args)
