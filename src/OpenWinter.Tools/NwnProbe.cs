@@ -199,10 +199,13 @@ static class NwnRecordingDump
 /// <summary>
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
-///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
-///              [--nui-click WINDOW:ELEMENT,...] [--do STEP;...] [--player NAME] [--record FILE]
-/// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart;
-/// click each NUI element three seconds apart once its window is open)
+///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
+///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--do STEP;...] [--player NAME]
+///              [--record FILE]
+/// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
+/// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
+/// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
+/// once the list is used up; open the journal)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -221,12 +224,23 @@ static class NwnBridgeProbe
         var run = Array.IndexOf(args, "--run") >= 0;
         var axes = Opt("--axes", "0,1,0").Split(',').Select(float.Parse).ToArray();
         var driveState = 0;
-        var uses = new Queue<string>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var uses = new Queue<(string Name, bool Talk)>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => (n, false))
+            .Concat(Opt("--talk", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => (n, true))));
         var nextUse = 6.0;
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
         var steps = new NwnBridgeSteps(Opt("--do", ""));
+        var replies = new Queue<string>(Opt("--replies", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        if (replies.FirstOrDefault(r => r != "esc" && !(int.TryParse(r, out var n) && n >= 1)) is { } bad)
+        {
+            Console.Error.WriteLine($"--replies takes answer numbers from 1, or esc: \"{bad}\"");
+            return 2;
+        }
+        bool answering = Array.IndexOf(args, "--replies") >= 0;
+        OpenWinter.Net.DialogMessage? step = null;
+        var answerAt = 0.0;
+        var journalAt = double.Parse(Opt("--journal", "0"));
         var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
         var counts = new SortedDictionary<string, int>();
         uint controlled = 0;
@@ -284,6 +298,14 @@ static class NwnBridgeProbe
                         var c = OpenWinter.Net.ChatMessage.Read(r);
                         Console.WriteLine($"{clock.ElapsedMilliseconds,6} Chat {c.Channel} {c.Speaker:X} \"{c.SpeakerName}\": {c.Text}");
                         break;
+                    case OpenWinter.Net.MessageType.Dialog:
+                        var d = OpenWinter.Net.DialogMessage.Read(r);
+                        Console.WriteLine(d.Ended ? $"{clock.ElapsedMilliseconds,6} Dialog ended (owner {d.Owner:X})"
+                            : $"{clock.ElapsedMilliseconds,6} Dialog {d.Speaker:X} \"{d.SpeakerName}\" sound \"{d.Sound}\": {d.Text}\n"
+                              + string.Join("\n", d.Replies.Select(x => $"         [{x.Index}] {x.Text}")));
+                        step = d.Ended ? null : d;
+                        answerAt = clock.Elapsed.TotalSeconds + 2;
+                        break;
                     case OpenWinter.Net.MessageType.CharacterList:
                         Console.WriteLine($"{clock.ElapsedMilliseconds,6} CharacterList (the named character wasn't there)");
                         break;
@@ -304,12 +326,15 @@ static class NwnBridgeProbe
             if (walked && uses.Count > 0 && clock.Elapsed.TotalSeconds > nextUse)
             {
                 nextUse = clock.Elapsed.TotalSeconds + 5;
-                var name = uses.Dequeue();
+                var (name, talk) = uses.Dequeue();
                 var here = at;
                 var target = name.StartsWith('#') ? Convert.ToUInt32(name[1..], 16) : objects.Where(kv => kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
                     .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
-                Console.WriteLine($"{clock.ElapsedMilliseconds,6} using \"{name}\": {target:X}");
-                if (target != 0) bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} {(talk ? "talking to" : "using")} \"{name}\": {target:X}");
+                if (target != 0)
+                    bridge.Send((talk
+                        ? new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Talk, Target = target, Argument = OpenWinter.Net.ActionRequestMessage.TalkCommand }
+                        : new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }).Write());
             }
             if (clicks.Count > 0 && nextClick > 0 && clock.Elapsed.TotalSeconds > nextClick && clicks.Peek().Split(':') is [var window, var element] && windows.TryGetValue(window, out var token))
             {
@@ -321,6 +346,22 @@ static class NwnBridgeProbe
                     Json = new System.Text.Json.Nodes.JsonObject { ["token"] = token, ["type"] = "click", ["element"] = element, ["index"] = -1, ["payload"] = null }.ToJsonString(),
                 }.Write());
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} clicked {element} in {window} ({token})");
+            }
+            if (answering && step != null && clock.Elapsed.TotalSeconds > answerAt)
+            {
+                var pick = replies.Count > 0 ? replies.Dequeue() : "1";
+                var number = pick == "esc" ? 0 : int.Parse(pick);
+                if (number > step.Replies.Count) Console.WriteLine($"{clock.ElapsedMilliseconds,6} only {step.Replies.Count} answers: taking the first");
+                var choice = pick == "esc" ? -1 : step.Replies[(number > step.Replies.Count ? 1 : number) - 1].Index;
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} answering {pick} ({choice})");
+                bridge.Send(new OpenWinter.Net.DialogReplyMessage { Choice = choice }.Write());
+                step = null;
+            }
+            if (journalAt > 0 && clock.Elapsed.TotalSeconds > journalAt)
+            {
+                journalAt = 0;
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} opening the journal");
+                bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "journal", Json = "{}" }.Write());
             }
             if (walked && drive > 0 && driveState < 2 && clock.Elapsed.TotalSeconds > (driveState == 0 ? 5 : 5 + drive))
             {

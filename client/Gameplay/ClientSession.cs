@@ -264,6 +264,11 @@ public partial class ClientSession : Node3D
                     UpdateSpaceProcess();
                 }
                 if (notice.Kind == "creature-visibility") ApplyCreatureVisibility(notice);
+                if (notice.Kind == "object-portrait" && Objects.GetValueOrDefault(notice.Subject) is { } portrayed)
+                {
+                    using var portrait = System.Text.Json.JsonDocument.Parse(notice.Json);
+                    portrayed.Portrait = portrait.RootElement.GetProperty("portrait").GetString() ?? "";
+                }
                 // Engine feedback floated over a creature without a chat line (a coup de grace's "*Coup De Grace!*").
                 if (notice.Kind == "float-text" && Objects.ContainsKey(notice.Subject))
                 {

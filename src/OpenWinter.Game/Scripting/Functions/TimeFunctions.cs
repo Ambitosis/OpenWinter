@@ -22,6 +22,7 @@ static class TimeFunctions
         var k = c.World.Clock;
         long before = k.TotalMs;
         k.SetTime(c.I(0), c.I(1), c.I(2), c.I(3));
+        Nwnx.NwnxCalendar.Check(c.World);
         c.World.SkipTime((k.TotalMs - before) / 1000.0);
         return null;
     }
@@ -31,6 +32,7 @@ static class TimeFunctions
         var k = c.World.Clock;
         long before = k.TotalMs;
         k.SetCalendar(c.I(0), c.I(1), c.I(2));
+        Nwnx.NwnxCalendar.Check(c.World);
         c.World.SkipTime((k.TotalMs - before) / 1000.0);
         return null;
     }

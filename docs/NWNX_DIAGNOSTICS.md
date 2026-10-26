@@ -20,9 +20,16 @@ reported once per world through the `NwnxRegistry.Log` sink.
   `NWNX_Core_PluginExists` returns FALSE for all four (and for Ruby) so scripts can check first.
 - **Unknown Set/Get calls** use the generic compatibility store and warn that storing a value does not implement
   the engine behaviour.
-- **Events.SubscribeEvent** warns, once per event name, when a script subscribes to an automatic `NWNX_ON_*` event
-  outside the `NWNX_ON_DM_*` family that OpenWinter emits. The subscription is kept, so explicit script signals
-  still work. Custom events and DM subscriptions do not warn.
+- **Events.SubscribeEvent** (and SubscribeEventScriptChunk) warns, once per event name, when a script subscribes to
+  an automatic `NWNX_ON_*` event OpenWinter never raises: `NWNX_ON_ITEM_SCROLL_LEARN` (no scroll learning yet),
+  `NWNX_ON_COMBAT_DR_BROKEN` (not reproduced on the original server),
+  `NWNX_ON_RESOURCE_*` (resource folders aren't watched) and `NWNX_ON_DEBUG_RUN_SCRIPT[_CHUNK]` (no debug console).
+  It also warns for the events raised by client windows and notices the OpenWinter client has no message for:
+  `NWNX_ON_INVENTORY_CLOSE`, `NWNX_ON_INVENTORY_SELECT_PANEL`, `NWNX_ON_ITEM_INVENTORY_OPEN` / `_CLOSE`,
+  `NWNX_ON_JOURNAL_CLOSE`, `NWNX_ON_CHARACTER_SHEET_CLOSE`, `NWNX_ON_CLIENT_SET_DEVICE_PROPERTY`,
+  `NWNX_ON_CLIENT_EXPORT_CHARACTER` and `NWNX_ON_INPUT_FORCE_MOVE_TO_OBJECT`. The subscription is kept, so explicit
+  script signals still work. Custom events and every other automatic event (`Nwnx/NwnxEvent.cs` lists them) do not
+  warn.
 
 - **Partly carried out** (no warning): NWNX_Appearance overrides of hit points, sound set and footsteps are kept and
   reported by GetOverride but not yet sent to the player; NWNX_Race's SKILL, FEATUSAGE and INITIATIVE modifiers and

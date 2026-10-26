@@ -231,7 +231,12 @@ public static class DMActions
     /// <summary>Plays a visual effect (visualeffects.2da row) on an object or at a point.</summary>
     public static bool Vfx(World w, PlayerSession s, GameObject? target, Areas.Area? area, Vector3 pos, int vfx)
     {
-        if (Dm(w, s) == null || vfx < 0) return false;
+        if (Dm(w, s) is not { } dm || vfx < 0) return false;
+        // NWNX_ON_DEBUG_PLAY_VISUAL_EFFECT (dm_visualeffect); a skip shows nothing.
+        var ev = Nwnx.NwnxEvent.Begin(w, "NWNX_ON_DEBUG_PLAY_VISUAL_EFFECT", dm)?.Add("TARGET_OBJECT_ID", target).Add("VISUAL_EFFECT", vfx)
+            .Add("DURATION", 0f).Position("TARGET_POSITION_", target != null ? Vector3.Zero : pos);
+        if (ev?.Before() == true) { ev.After(); return false; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         float[] zero = { 0, 0, 0 };
         if (target != null) w.Output?.Notify("vfx", target, new { vfx, miss = false, scale = 1f, translate = zero, rotate = zero, duration = 0f, id = 0L });
         else if (area != null)

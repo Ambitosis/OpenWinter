@@ -133,13 +133,21 @@ public sealed partial class FactionTable
     }
 
     /// <summary>SetStandardFactionReputation: how faction <paramref name="faction"/> feels about <paramref name="creature"/>.</summary>
-    public void SetStanding(int faction, Creature creature, int value)
+    public void SetStanding(int faction, Creature creature, int value, World? world = null)
     {
         value = Math.Clamp(value, 0, 100);
         int cf = FactionOf(creature) ?? creature.Faction;
         if (cf == faction) return;
-        if (IsPartyFaction(cf)) _pcStanding[(faction, creature.Id)] = value;
-        else SetFactionReputation(faction, cf, value);
+        if (IsPartyFaction(cf)) { _pcStanding[(faction, creature.Id)] = value; return; }
+        if (world == null) { SetFactionReputation(faction, cf, value); return; }
+        // NWNX_ON_SET_NPC_FACTION_REPUTATION, OBJECT_SELF the module (nwnx_events_creature: FACTION_ID the creature
+        // faction, SUBJECT_FACTION_ID the standard one). A skip keeps it; a result is the reputation to set.
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_SET_NPC_FACTION_REPUTATION", world.Module)?.Add("FACTION_ID", cf)
+            .Add("SUBJECT_FACTION_ID", faction).Add("PREVIOUS_REPUTATION", FactionReputation(faction, cf)).Add("NEW_REPUTATION", value);
+        if (ev?.Before() == true) { ev.After(); return; }
+        if (ev is { HasResult: true } && int.TryParse(ev.Result, out var r)) value = Math.Clamp(r, 0, 100);
+        SetFactionReputation(faction, cf, value);
+        ev?.Add("NEW_REPUTATION", value).After();
     }
 
     /// <summary>GetStandardFactionReputation: how faction <paramref name="faction"/> feels about <paramref name="creature"/> (no personal adjustments).</summary>

@@ -199,6 +199,7 @@ public partial class ClassicJournal : ClassicWindow
     {
         base.Close();
         foreach (var q in Ctx.Journal.Quests.Where(q => _open.Contains(q.Tag)).ToList()) Ctx.Journal.MarkRead(q.Tag);
+        Ctx.Session.Request("journal-closed");
     }
 
     /// <summary>0 quests, 1 completed, 2 notes, 3 the World page (no tab of its own, as on the original).</summary>

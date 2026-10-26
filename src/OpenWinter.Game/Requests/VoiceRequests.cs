@@ -11,6 +11,10 @@ static class VoiceRequests
         int slot = r.Int("id", -1);
         if (!QuickChat.IsSelectable(slot) || r.Player.IsDead || r.Player.Area == null) return;
         if (slot == 1) slot += Random.Shared.Next(3);
+        // NWNX_ON_QUICKCHAT (QUICKCHAT_COMMAND a VOICE_CHAT_* constant); a skip says nothing.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_QUICKCHAT", r.Player)?.Add("QUICKCHAT_COMMAND", slot);
+        if (ev?.Before() == true) { ev.After(); return; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         VoiceService.Play(r.World, r.Player, slot);
         int command = QuickChat.AssociateCommand(slot);
         if (command != 0)

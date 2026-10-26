@@ -165,6 +165,16 @@ public sealed partial class CombatSystem
     /// </summary>
     public AttackOutcome? AttackOfOpportunity(Creature c, Creature target)
     {
+        // NWNX_ON_COMBAT_ATTACK_OF_OPPORTUNITY around it (nwnx_events_combat); a skip makes none.
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_COMBAT_ATTACK_OF_OPPORTUNITY", c)?.Add("TARGET_OBJECT_ID", target);
+        if (ev?.Before() == true) { ev.After(); return null; }
+        var outcome = AttackOfOpportunityNow(c, target);
+        ev?.After();
+        return outcome;
+    }
+
+    AttackOutcome? AttackOfOpportunityNow(Creature c, Creature target)
+    {
         var s = State(c);
         Counters(s);
         if (s.AttacksOfOpportunity >= MaxAttacksOfOpportunity(c) || Creature is not { } r) return null;

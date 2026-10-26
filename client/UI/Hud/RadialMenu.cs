@@ -967,7 +967,7 @@ public partial class RadialMenu : Control
             switch (t.Kind)
             {
                 case ObjectKind.Creature:
-                    if (!dead && !hostile) Add("Talk", "talk", () => Session.Send(new ActionRequestMessage { Action = ActionKind.Talk, Target = t.ObjectId }.Write()));
+                    if (!dead && !hostile) Add("Talk", "talk", () => Session.Send(new ActionRequestMessage { Action = ActionKind.Talk, Target = t.ObjectId, Argument = ActionRequestMessage.TalkCommand }.Write()));
                     if (!dead) Add("Attack", "attack", () => Session.Request("attack", new { target = t.ObjectId }), hostile ? "Hostile" : "Not hostile");
                     if (!dead && Fact("injured") && _book.Skill(4) is { } heal)
                         list.Add(SkillEntry(heal, t, "heal"));

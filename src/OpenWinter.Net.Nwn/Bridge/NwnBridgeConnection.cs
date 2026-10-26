@@ -30,6 +30,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
     readonly NwnInventory _inventory;
+    readonly NwnDialog _dialog;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -52,6 +53,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
         _inventory = new NwnInventory(data, new NwnInventoryHost(ToServer, m => _toClient.Enqueue(m), () => _world.Controlled,
             () => _world.TryPose(_world.Controlled, out var p, out _, out _, out _) ? p : default, _world.NameOf));
+        _dialog = new NwnDialog(_world, data, m => _toClient.Enqueue(m));
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -87,6 +89,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case MessageType.DriveInput:
                 _drive = DriveInputMessage.Read(r);
+                break;
+            case MessageType.DialogReply:
+                if (_dialog.Reply(DialogReplyMessage.Read(r).Choice) is { } reply) ToServer(reply);
                 break;
         }
     }
@@ -155,8 +160,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 _inventory.FromClient("pickup", $"{{\"item\":{a.Target}}}");
                 break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
-                // Doors change state; everything else is used (the server walks the player there first).
-                ToServer((NwnMessage?)_world.DoorRequest(a.Target, a.Action == ActionKind.Use) ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true });
+                ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use)));
                 break;
             case ActionKind.Attack:
                 ToServer(new InputMessages.InputAttack { Target = a.Target });
@@ -209,6 +213,16 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         });
     }
 
+    /// <summary>
+    /// What a click, use or Talk sends. The Talk command (radial menu, quickbar) on a creature asks for a
+    /// conversation; a click on a creature (also Talk, without the command) is a use, for which the server picks the
+    /// default action (talk, attack). Doors change state; everything else is used. The server walks the player there.
+    /// </summary>
+    public static NwnMessage UseOrTalk(ActionRequestMessage a, ObjectKind? kind, NwnMessage? doorRequest) =>
+        a.Action == ActionKind.Talk && a.Argument == ActionRequestMessage.TalkCommand && kind == ObjectKind.Creature
+            ? new InputMessages.InputDialog { Target = a.Target }
+            : doorRequest ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true };
+
     /// <summary>A facing as the drive message's bearing: tenths of a degree counter-clockwise from +X.</summary>
     public static ushort Bearing(float facing) => (ushort)(((int)MathF.Round(facing * 1800f / MathF.PI) % 3600 + 3600) % 3600);
 
@@ -221,9 +235,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void Request(ClientRequestMessage request)
     {
-        if (NwnNui.FromClient(request.Kind, request.Json) is { } nui)
+        if ((NwnNui.FromClient(request.Kind, request.Json) ?? _dialog.FromClient(request.Kind, request.Json)) is { } handled)
         {
-            ToServer(nui);
+            ToServer(handled);
             return;
         }
         if (_inventory.FromClient(request.Kind, request.Json)) return;
@@ -250,10 +264,22 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             _session.Send(new ServerStatusMessages.ServerStatusRequest());
             _session.Send(new CharListMessages.CharListRequest());
         }
-        foreach (var m in _received) FromServer(m);
+        foreach (var m in _received)
+        {
+            // One message the bridge can't translate mustn't drop the rest of the pump: record it and go on.
+            try { FromServer(m); }
+            catch (Exception e) when (e is not OutOfMemoryException)
+            {
+                _session.DecodeErrors.Add(new NwnDecodeError([m.Major, m.Minor], $"{m.GetType().Name} not translated: {e.Message}"));
+            }
+        }
         // Moving creatures report ten times a second; the client interpolates between.
         var now = _clock.Elapsed.TotalSeconds;
-        _inventory.Tick(now);
+        try { _inventory.Tick(now); }
+        catch (Exception e) when (e is not OutOfMemoryException)
+        {
+            _session.DecodeErrors.Add(new NwnDecodeError([], $"inventory not updated: {e.Message}"));
+        }
         if (now - _lastTick < 0.1) return;
         var dt = (float)Math.Min(0.25, now - _lastTick);
         _world.Tick(dt);
@@ -263,6 +289,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void FromServer(NwnMessage message)
     {
+        if (_dialog.ToClient(message)) return;
         switch (message)
         {
             case ServerStatusMessages.ServerStatusModuleRunning status:

@@ -138,6 +138,17 @@ Supported so far:
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
+- conversations: the speaker's line, name, portrait and voice-over, the answers, picking one, Esc and the end
+  choice, the lines in the chat window, and one-liners spoken over the talker. The server sends text as written or
+  as a talk table reference, with the creature its tokens describe, and leaves the tokens (names, race, class,
+  gender words, custom tokens) to the client; the bridge fills them in. Text for a female character comes from the
+  female talk tables (dialogf.tlk and the custom table's "f" file) where the language has them; English has none.
+- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature, as
+  on any object, is a use, and the server picks the default action (talking, attacking).
+- the journal: opening its window opens the quest screen, and the server sends the whole journal (it sends it only
+  then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
+  and flashes the button.
+- cutscene mode and fades
 - the player's items (`NwnInventory`, `NwnItems`): the backpack, bags and equipment with icons, stacks, charges,
   identified state, names, weight and gold; equipping, unequipping, dropping, splitting, using and moving items, into
   and out of bags; examining items; placeable containers and body bags (open, take, take all, put, close); stores
@@ -152,7 +163,7 @@ again after every change the server confirms. A page's answer comes with the ser
 shown one at a time. Item tooltips (category, damage, armour, properties, size, slots) come from the item's
 appearance and the client's 2DAs.
 
-Dialog, combat feedback, NWSync and character creation are still to come.
+Combat feedback, NWSync and character creation are still to come.
 
 Testing:
 
@@ -161,10 +172,13 @@ Testing:
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
-  can also say a line, use objects, drive with the keyboard, click NUI elements and record (`--say`, `--use`,
-  `--drive`, `--nui-click`, `--record`), and run a script of client requests (`--do "use:Chest;req:container-take
+  can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
+  click NUI elements and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`,
+  `--record`), and run a script of client requests as another player (`--player`; `--do "use:Chest;req:container-take
   {\"item\":\"@c:Arrow\"}"`, items named from the last inventory, container or store contents). `nwn-dump` reads
   2DAs with the haks the recorded server named, since some fields' presence depends on them.
+- The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
+  every line, then opens the journal.
 - `parity/suites/bridge_inventory` builds a test module with a chest, a body bag and a store opened by using a
   barrel; the entering player is given weapons, armour, stacks, a wand, an unidentified ring, a bag and gold. The
   client's `--capture-nwn-inventory dir` opens the inventory, equips a weapon, loots the chest, buys, sells and

@@ -27,14 +27,22 @@ public static class LevelUpRequests
             if (r.Bool("summary") && ProgressionRules.ClassExists(w, ch.Class)) w.Output?.Notify("levelup-summary", c, Summary(w, c, ch, plan), c);
             return;
         }
+        // Opening the level-up window: NWNX_ON_CLIENT_LEVEL_UP_BEGIN; a skip keeps it shut.
+        var ev = Nwnx.NwnxEvent.Begin(w, "NWNX_ON_CLIENT_LEVEL_UP_BEGIN", c);
+        if (ev?.Before() == true) { ev.After(); return; }
         w.Output?.Notify("levelup-data", c, Summary(w, c), c);
+        ev?.After();
     }
 
     [ClientRequest("levelup-apply")]
     static void Apply(Request r)
     {
         var ch = r.Element("choice") is { ValueKind: JsonValueKind.Object } json ? LevelChoice.FromJson(json) : new LevelChoice();
+        // NWNX_ON_LEVEL_UP around the player's level-up; a skip refuses it.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_LEVEL_UP", r.Player);
+        if (ev?.Before() == true) { ev.After(); return; }
         var errors = LevelUp(r.World, r.Player, ch);
+        ev?.After();
         r.World.Output?.Notify("levelup-result", r.Player, new
         {
             ok = errors.Count == 0,

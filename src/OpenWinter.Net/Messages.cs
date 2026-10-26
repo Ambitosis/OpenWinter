@@ -473,6 +473,12 @@ public enum ActionKind : byte { Use, Attack, Talk, PickUp, Emote, ToggleStance, 
 
 public sealed class ActionRequestMessage
 {
+    /// <summary>
+    /// The Argument of a Talk from the Talk command (radial menu, quickbar), as opposed to a click on a creature,
+    /// which also sends Talk and leaves the server to pick the default action.
+    /// </summary>
+    public const string TalkCommand = "talk";
+
     public ActionKind Action;
     public uint Target;
     public string Argument = "";

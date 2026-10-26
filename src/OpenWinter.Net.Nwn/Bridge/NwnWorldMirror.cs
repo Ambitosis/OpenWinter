@@ -52,6 +52,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         public Vector3 Position;
         public float Facing;
         public string Name = "";
+        public string Portrait = "";
         public Appearance Appearance = new();
         public readonly Dictionary<int, ItemVisual> Equipment = [];
         public ObjectFlags Flags;
@@ -340,6 +341,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
             else if (m.Mode == MovementMode.Stand) m.Mover = null;
         }
         if (u.InCombat is { } combat) m.InCombat = combat;
+        if (u.PortraitId is { } portrait) SetPortrait(m, PortraitResRef(portrait, u.CustomPortrait));
         m.StateChanged = true;
     }
 
@@ -361,6 +363,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         if (g.Useable is { } useable)
             m.Flags = useable ? m.Flags | ObjectFlags.Useable | ObjectFlags.Selectable : m.Flags & ~ObjectFlags.Useable;
         if (g.Animation is { } anim && m.Kind == ObjectKind.Door) DoorAnim(m, anim);
+        if (g.PortraitId is { } portrait) SetPortrait(m, PortraitResRef(portrait, g.CustomPortrait));
         m.StateChanged = true;
     }
 
@@ -422,8 +425,20 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         else _pendingControl = objectId;
     }
 
-    /// <summary>A known object's name; empty when it isn't known.</summary>
+    /// <summary>A known object's name; "" when it isn't known.</summary>
     public string NameOf(uint id) => _objects.TryGetValue(id, out var m) ? m.Name : "";
+
+    /// <summary>A portrait that changes after the spawn (SetPortraitId) reaches the client as "object-portrait".</summary>
+    void SetPortrait(Mirror m, string portrait)
+    {
+        if (m.Portrait == portrait) return;
+        m.Portrait = portrait;
+        if (m.Spawned) emit(new NotifyMessage { Kind = "object-portrait", Subject = m.Id, Json = JsonSerializer.Serialize(new { portrait }) }.Write());
+    }
+
+    /// <summary>A portrait id as a texture base name: "po_" + portraits.2da BaseResRef, or the custom resref.</summary>
+    string PortraitResRef(ushort id, string? custom) =>
+        id >= 0xFFFE ? custom ?? "" : data.TwoDA("portraits", id, "BaseResRef") is { Length: > 0 } b ? "po_" + b.ToLowerInvariant() : "";
 
     /// <summary>The kind of a known object; null when it isn't known.</summary>
     public ObjectKind? KindOf(uint id) => _objects.TryGetValue(id, out var m) ? m.Kind : null;
@@ -489,6 +504,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
                     Appearance = m.Appearance,
                     WalkSpeed = m.WalkRate,
                     RunSpeed = m.RunRate,
+                    Portrait = m.Portrait,
                 }.Write());
                 m.Spawned = true;
                 m.AppearanceChanged = m.StateChanged = false;
