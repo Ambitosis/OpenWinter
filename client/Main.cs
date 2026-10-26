@@ -449,6 +449,7 @@ public partial class Main : Node3D
         else if (_args.TryGetValue("capture-nwn", out var nwnDir)) _ = CaptureNwn(nwnDir);
         else if (_args.TryGetValue("capture-nwn-nui", out var nwnNuiDir)) _ = CaptureNwnNui(nwnNuiDir);
         else if (_args.TryGetValue("capture-nwn-dialog", out var nwnDialogDir)) _ = CaptureNwnDialog(nwnDialogDir);
+        else if (_args.TryGetValue("capture-nwn-combat", out var nwnCombatDir)) _ = CaptureNwnCombat(nwnCombatDir);
         else if (_args.TryGetValue("capture-cutscene", out var cutDir)) _ = CaptureCutscene(cutDir);
         else if (_args.TryGetValue("capture-world", out var worldDir)) _ = CaptureWorld(worldDir);
         else if (_args.TryGetValue("capture-items", out var itemsDir)) _ = CaptureItems(itemsDir);

@@ -120,7 +120,8 @@ no scripts, settings or other plugins.
   [nwn-message.py](https://github.com/niv/nwn-message.py) (GPL-3.0); the types that library codes by hand are written
   by hand in `Messages/Custom`. Where recorded traffic differs from those definitions, the generator corrects them
   (`apply_corrections`): NUI windows, binds, events and layouts carry JSON fields (type byte, length, text) rather
-  than length-prefixed blobs, and a NUI bind entry ends after its value.
+  than length-prefixed blobs, and a NUI bind entry ends after its value. A body bag's creature is an object id,
+  not a dword.
 - **Session.** It handles login, keep-alives and echoes.
 - **Bridge.** `NwnBridgeConnection` is an `IConnection` that turns NWN messages into the OpenWinter messages the client
   already understands, and the client's requests into NWN input. NWN sends a walking creature's path once; the bridge
@@ -143,14 +144,23 @@ Supported so far:
   as a talk table reference, with the creature its tokens describe, and leaves the tokens (names, race, class,
   gender words, custom tokens) to the client; the bridge fills them in. Text for a female character comes from the
   female talk tables (dialogf.tlk and the custom table's "f" file) where the language has them; English has none.
-- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature, as
-  on any object, is a use, and the server picks the default action (talking, attacking).
+- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature is
+  an attack when the creature is hostile to the player, otherwise a use, and the server picks the default action.
 - the journal: opening its window opens the quest screen, and the server sends the whole journal (it sends it only
   then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
   and flashes the button.
 - cutscene mode and fades
+- combat: attacking (the attack command, and a click on a hostile creature), each attack's swing, weapon sounds,
+  the target's reaction and the damage floating over it; the combat log (attack rolls, damage by type, kills,
+  initiative, saving throws, spell resistance, damage immunity, resistance and reduction, immunities, healing,
+  experience); hit points, temporary hit points and effect icons in the HUD, the selected target's health and
+  attitude, health bars over creatures, hostile creatures coloured as such; dead and dying creatures lying down and
+  corpses fading; the death panel (also shown to the living when a script asks, and closed when the server says)
+  and respawn; battle music; impact visual effects and lasting ones on creatures. The HUD's experience comes from
+  the server's character sheet updates; until one arrives the bar is empty.
 
-Inventory, combat feedback, NWSync and character creation are still to come.
+The server names neither swing clips nor weapon sounds; the bridge picks them from what the attacker holds, as the
+client does on its own server. Inventory, NWSync and character creation are still to come.
 
 Testing:
 
@@ -160,8 +170,11 @@ Testing:
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
-  click NUI elements and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`,
-  `--record`). `nwn-dump` reads 2DAs with the haks the recorded server named, since some fields' presence depends
-  on them.
+  click NUI elements, attack, respawn and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`,
+  `--nui-click`, `--attack`, `--respawn-at`, `--record`). `nwn-dump` reads 2DAs with the haks the recorded server
+  named, since some fields' presence depends on them.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
+- The visual scene `bridgecombat` (`visual-build bridgecombat`) is a fight to run on that server: goblins attack,
+  effects, spells and saves, dying, death and respawn, each announced in chat. The client's `--capture-nwn-combat`
+  follows it and takes shots; `NwnBridgeCombatTests` replays frames recorded from it.
