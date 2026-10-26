@@ -13,9 +13,9 @@ const string TARGET = "nw_bandit001";
 
 void Perm(object o, effect e) { ApplyEffectToObject(DURATION_TYPE_PERMANENT, e, o); }
 
-object One(string g, string sWeapon, int nFeat1 = -1, int nFeat2 = -1, int nFeat3 = -1)
+object One(string g, string sWeapon, int nFeat1 = -1, int nFeat2 = -1, int nFeat3 = -1, string sAttacker = FIGHTER)
 {
-    object a = PPair(g, FIGHTER, TARGET);
+    object a = PPair(g, sAttacker, TARGET);
     Perm(a, EffectAttackIncrease(20));
     Perm(a, EffectModifyAttacks(5));
     if (nFeat1 >= 0) Perm(a, EffectBonusFeat(nFeat1));
@@ -27,10 +27,10 @@ object One(string g, string sWeapon, int nFeat1 = -1, int nFeat2 = -1, int nFeat
     return a;
 }
 
-void Group(string g, string sWeapon, int nFeat1 = -1, int nFeat2 = -1, int nFeat3 = -1, int nThreat = 0)
+void Group(string g, string sWeapon, int nFeat1 = -1, int nFeat2 = -1, int nFeat3 = -1, int nThreat = 0, string sAttacker = FIGHTER)
 {
     int i;
-    for (i = 0; i < 3; i++) One(g, sWeapon, nFeat1, nFeat2, nFeat3);
+    for (i = 0; i < 3; i++) One(g, sWeapon, nFeat1, nFeat2, nFeat3, sAttacker);
     SetLocalInt(GetModule(), g + ".threat", nThreat);
 }
 
@@ -67,7 +67,7 @@ int Is(int b) { return b ? 1 : 0; }
 
 void Report()
 {
-    string s = "plain wf wfboth ewf gwf ws ews gws ic woc dcbypass dcon finesse finctl unarmed unarmed2 half half2h rangedef rangeovr ";
+    string s = "plain wf wfboth ewf gwf ws ews gws ic woc dcbypass dcon finesse finctl unarmed unarmed2 smallss smallssctl largels largelsctl half half2h rangedef rangeovr ";
     while (s != "")
     {
         int sp = FindSubString(s, " ");
@@ -145,6 +145,11 @@ void main()
     Group("finctl", "nw_wswls001", FEAT_WEAPON_FINESSE);
     Group("unarmed", "nw_wswgs001", FEAT_WEAPON_FINESSE);
     Group("unarmed2", "nw_wblcl001", FEAT_WEAPON_FINESSE);
+    // Finesse by baseitems WeaponFinesseMinimumCreatureSize: a small creature's short sword, a large one's longsword.
+    Group("smallss", "nw_wswss001", FEAT_WEAPON_FINESSE, -1, -1, 0, "nw_halfling001");
+    Group("smallssctl", "nw_wswss001", -1, -1, -1, 0, "nw_halfling001");
+    Group("largels", "nw_wswls001", FEAT_WEAPON_FINESSE, -1, -1, 0, "nw_ogre01");
+    Group("largelsctl", "nw_wswls001", -1, -1, -1, 0, "nw_ogre01");
     int i;
     for (i = 0; i < 3; i++)
     {
@@ -152,8 +157,11 @@ void main()
         SetTag(a, "HALF");
         NWNX_Weapon_SetOneHalfStrength(GetLocalObject(a, "W"), TRUE);
     }
-    a = One("half2h", "nw_waxgr001");
-    NWNX_Weapon_SetOneHalfStrength(GetLocalObject(a, "W"), TRUE);
+    for (i = 0; i < 3; i++)
+    {
+        a = One("half2h", "nw_waxgr001");
+        NWNX_Weapon_SetOneHalfStrength(GetLocalObject(a, "W"), TRUE);
+    }
     object o = GetFirstObjectInArea(GetObjectByTag("PARITY_AREA"));
     while (GetIsObjectValid(o))
     {
@@ -164,7 +172,7 @@ void main()
             Perm(o, EffectTemporaryHitpoints(1000));
             SetEventScript(o, EVENT_SCRIPT_CREATURE_ON_DEATH, "nw_death");
         }
-        if ((g == "finesse" || g == "finctl" || g == "unarmed" || g == "unarmed2") && GetIsObjectValid(GetLocalObject(o, "T"))) Perm(o, EffectAbilityIncrease(ABILITY_DEXTERITY, 12));
+        if ((g == "finesse" || g == "finctl" || g == "unarmed" || g == "unarmed2" || GetStringLeft(g, 5) == "small" || GetStringLeft(g, 5) == "large") && GetIsObjectValid(GetLocalObject(o, "T"))) Perm(o, EffectAbilityIncrease(ABILITY_DEXTERITY, 12));
         o = GetNextObjectInArea(GetObjectByTag("PARITY_AREA"));
     }
     Archer("rangedef", "nw_wbwln001", 72.0, 50.0);

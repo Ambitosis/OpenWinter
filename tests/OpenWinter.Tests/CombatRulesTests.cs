@@ -147,7 +147,8 @@ public class CombatRulesTests
         var dummy = Target(f, new Vector3(11, 10, 0));
 
         // damienoneknife6: halfling rogue 15 (small), +3 short sword, Weapon Finesse, Str 10 / Dex 21.
-        // The short sword isn't light for a small creature, so Strength applies; small size adds +1.
+        // A small creature finesses a short sword (baseitems WeaponFinesseMinimumCreatureSize 2; parity suite
+        // nwnx_weapon smallss), so Dexterity applies; small size adds +1.
         var small = LoadBic(f, "damienoneknife6", new Vector3(10, 10, 0));
         CreatureRules.EnsureInit(f.W, small);
         var t = small.Template;
@@ -160,8 +161,8 @@ public class CombatRulesTests
         Assert.Equal(2, small.Size);
         int enhancement = CreatureRules.PropertyValue(f.W, main.Properties.Single(p => p.Type == 6));
         Assert.Equal(3, enhancement);
-        int strMod = CreatureRules.AbilityModifier(f.W, small, NwRules.AbilityStr);
-        Assert.Equal(bab + strMod + 1 + enhancement, Ab(f, small, dummy));
+        int dexModSmall = CreatureRules.AbilityModifier(f.W, small, NwRules.AbilityDex);
+        Assert.Equal(bab + dexModSmall + 1 + enhancement, Ab(f, small, dummy));
         // Iterative attacks at -5 each.
         var plan = f.Rules.PlanRound(small);
         Assert.Equal(new[] { 0, 5, 10 }, plan.Select(p => p.Penalty));

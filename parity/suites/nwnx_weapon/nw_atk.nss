@@ -25,7 +25,9 @@ void main()
         PAdd(g + ".dist", FloatToInt(GetDistanceBetween(OBJECT_SELF, d.oTarget) * 10.0));
         PAdd(g + ".distn");
     }
-    if (PClock() - GetLocalInt(OBJECT_SELF, "START") > 140 && d.iAttackNumber == 1) Max(g + ".mod", d.iToHitModifier);
+    // The attack bonus of a round's first attack from the second round on (the least: a target fighting someone
+    // else gives a flanking bonus now and then).
+    if (PClock() - GetLocalInt(OBJECT_SELF, "START") > 140 && d.iAttackNumber == 1) Min(g + ".mod", d.iToHitModifier);
     if (d.iAttackResult == 1) { Min(g + ".dmin", d.iBase); PAdd(g + ".hits"); }
     if (d.iAttackResult == 3 || d.iAttackResult == 10) PAdd(g + ".crits");
     if (d.iAttackResult == 10) PAdd(g + ".res10");
