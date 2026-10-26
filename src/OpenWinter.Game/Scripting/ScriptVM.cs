@@ -160,6 +160,8 @@ public sealed class ScriptVM
     public readonly NssDefinitions Definitions;
     public readonly IScriptEngine Engine;
     public int InstructionLimit = DefaultInstructionLimit;
+    /// <summary>The result of the last StartingConditional script to finish.</summary>
+    public int LastConditionalResult;
     /// <summary>Runs before a program is compiled; 0 compiles on first use, negative disables the JIT.</summary>
     public int JitThreshold = 8;
     public int CompiledPrograms => Volatile.Read(ref _compiledPrograms);
@@ -639,7 +641,7 @@ public sealed partial class ScriptThread
     /// <summary>The outermost RETN: a StartingConditional result sits in the bottom cell.</summary>
     public void Finish()
     {
-        if (_sp > 0) ConditionalResult = _stack[0].I;
+        if (_sp > 0) _vm.LastConditionalResult = ConditionalResult = _stack[0].I;
     }
 
     /// <summary>Pseudo-function used to build engine-structure constants (EE json literals).</summary>

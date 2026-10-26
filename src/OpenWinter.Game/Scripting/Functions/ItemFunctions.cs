@@ -343,15 +343,4 @@ static class ItemFunctions
         if (c.Self is Creature { IsPC: true } pc) c.World.Output?.Notify("camera-store", pc, new { }, pc);
         return null;
     }
-
-    // ----- NWNX bridge -----
-
-    [NwFunc("NWNXPushItemProperty")]
-    static object? NwnxPush(Call c)
-    {
-        c.World.System<Nwnx.NwnxRegistry>().Stack.Push(new Nwnx.NwnxValue(Nwnx.NwnxType.ItemProperty, c.IP(0)));
-        return null;
-    }
-    [NwFunc("NWNXPopItemProperty")]
-    static object? NwnxPop(Call c) => c.World.System<Nwnx.NwnxRegistry>().PopAs(Nwnx.NwnxType.ItemProperty) as ItemProperty ?? new ItemProperty();
 }

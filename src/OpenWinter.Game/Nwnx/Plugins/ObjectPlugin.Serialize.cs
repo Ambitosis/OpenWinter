@@ -22,7 +22,7 @@ static partial class ObjectPlugin
     internal static byte[]? Bytes(World world, GameObject o)
     {
         if (!ObjectSerializer.CanStore(o) || ObjectSerializer.Serialize(world, o, saveObjectState: true) is not { } s) return null;
-        NwnxPersistence.WriteField(world, o, s, always: true);
+        NwnxPersistence.WriteField(o, s, always: true);
         return Gff.Write(s, o is Creature ? "BIC " : ObjectSerializer.FileType(o));
     }
 

@@ -10,6 +10,8 @@ public interface IConnection
     void Send(byte[] message, bool reliable = true);
     bool TryReceive(out byte[] message);
     void Disconnect();
+    /// <summary>The remote IP address ("" for in-process links).</summary>
+    string Address => "";
 }
 
 /// <summary>A remote connection that can fail: why, and whether it got as far as joining.</summary>

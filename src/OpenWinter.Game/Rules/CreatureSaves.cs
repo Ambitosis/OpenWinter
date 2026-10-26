@@ -49,6 +49,30 @@ public static partial class CreatureRules
     /// <summary>GetIsImmune: immunity effects, item properties (immunity, mind blank, freedom) and feats.</summary>
     public static bool IsImmune(World w, Creature c, int immunity, GameObject? versus = null)
     {
+        bool immune = IsImmuneByRules(w, c, immunity, versus);
+        if (c.Overrides == null && (versus as Creature)?.Overrides == null) return immune;
+        return BypassImmunity(w, c, immunity, versus as Creature, immune);
+    }
+
+    /// <summary>
+    /// A chance to bypass an immunity (NWNX_Creature_SetBypassEffectImmunity): the source's outgoing chance and the
+    /// target's incoming one each roll; positive makes the target not immune, negative immune. Outcomes that disagree
+    /// cancel out and the immunity stands as the rules have it.
+    /// </summary>
+    internal static bool BypassImmunity(World w, Creature c, int immunity, Creature? versus, bool immune)
+    {
+        static int? Chance(CreatureOverrides? o, int key, int all) =>
+            o == null ? null : o.BypassImmunity.TryGetValue(key, out int v) || o.BypassImmunity.TryGetValue(all, out v) ? v : null;
+        var dice = w.System<Combat.CombatSystem>().Dice;
+        bool? Roll(int? chance) => chance is int ch && ch != 0 && dice.Roll(100) <= Math.Abs(ch) ? ch < 0 : null;
+        var outgoing = Roll(Chance(versus?.Overrides, immunity, 255));
+        var incoming = Roll(Chance(c.Overrides, -immunity, -255));
+        if (outgoing is bool a && incoming is bool b) return a == b ? a : immune;
+        return outgoing ?? incoming ?? immune;
+    }
+
+    internal static bool IsImmuneByRules(World w, Creature c, int immunity, GameObject? versus)
+    {
         if (immunity <= NwRules.ImmunityNone) return false;
         // Immunities versus a race or alignment only count against a matching object.
         foreach (var e in Effects(c))
@@ -116,7 +140,7 @@ public static partial class CreatureRules
     static void Feedback(World w, GameObject target, GameObject? versus, string text)
     {
         if (w.Output == null) return;
-        if (target is Creature { IsPC: true } pc) w.Output.SendMessage(pc, text);
-        if (versus is Creature { IsPC: true } other && other != target) w.Output.SendMessage(other, text);
+        if (target is Creature { IsPC: true } pc) w.Output.SendFeedback(pc, text, FeedbackKind.SavingThrow);
+        if (versus is Creature { IsPC: true } other && other != target) w.Output.SendFeedback(other, text, FeedbackKind.SavingThrow);
     }
 }

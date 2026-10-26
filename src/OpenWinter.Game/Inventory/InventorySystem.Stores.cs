@@ -156,7 +156,9 @@ public sealed partial class InventorySystem
             : Rules.UnitValue(item, includeProperties: false) * Math.Max(1, item.StackSize);
         int markDown = (item.Stolen ? s.BlackMarketMarkDown : s.MarkDown) + Bonus(s, pc).Down;
         long price = (long)(value * Math.Max(0, markDown) / 100);
-        if (s.MaxBuyPrice >= 0) price = Math.Min(price, s.MaxBuyPrice);
+        // A creature's own limit for this store (NWNX_Creature_SetMaxSellToStorePriceOverride, -1: none) replaces the store's.
+        int maxPrice = pc?.Overrides is { } o && o.MaxSellToStorePrice.TryGetValue(s.Id, out int own) ? own : s.MaxBuyPrice;
+        if (maxPrice >= 0) price = Math.Min(price, maxPrice);
         return (int)Math.Clamp(price, 0, int.MaxValue);
     }
 

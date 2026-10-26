@@ -250,7 +250,7 @@ static partial class ObjectPlugin
     static string VarKey(string kind, string name) => "NWNX_Object!PER" + kind + "!" + name;
     const string IntKind = "INT", StringKind = "STR", FloatKind = "FLT";
 
-    static NwnxValue? GetVar(NwnxCall n, GameObject? o, string kind, string name) => o == null ? null : NwnxPersistence.Get(n.Registry, o.Id, VarKey(kind, name));
+    static NwnxValue? GetVar(NwnxCall n, GameObject? o, string kind, string name) => o == null ? null : NwnxPersistence.Get(o, VarKey(kind, name));
 
     [NwnxFunc(P, "GetInt")]
     static void GetInt(NwnxCall n)
@@ -262,13 +262,13 @@ static partial class ObjectPlugin
     static void SetInt(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString(); int value = n.PopInt(); bool persist = n.PopInt() != 0;
-        if (o != null) NwnxPersistence.Set(n.Registry, o.Id, VarKey(IntKind, name), NwnxValue.Int(value), persist);
+        if (o != null) NwnxPersistence.Set(o, VarKey(IntKind, name), NwnxValue.Int(value), persist);
     }
     [NwnxFunc(P, "DeleteInt")]
     static void DeleteInt(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        if (o != null) NwnxPersistence.Delete(n.Registry, o.Id, VarKey(IntKind, name));
+        if (o != null) NwnxPersistence.Delete(o, VarKey(IntKind, name));
     }
     [NwnxFunc(P, "GetString")]
     static void GetString(NwnxCall n)
@@ -280,13 +280,13 @@ static partial class ObjectPlugin
     static void SetString(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString(); var value = n.PopString(); bool persist = n.PopInt() != 0;
-        if (o != null) NwnxPersistence.Set(n.Registry, o.Id, VarKey(StringKind, name), NwnxValue.String(value), persist);
+        if (o != null) NwnxPersistence.Set(o, VarKey(StringKind, name), NwnxValue.String(value), persist);
     }
     [NwnxFunc(P, "DeleteString")]
     static void DeleteString(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        if (o != null) NwnxPersistence.Delete(n.Registry, o.Id, VarKey(StringKind, name));
+        if (o != null) NwnxPersistence.Delete(o, VarKey(StringKind, name));
     }
     [NwnxFunc(P, "GetFloat")]
     static void GetFloat(NwnxCall n)
@@ -298,13 +298,13 @@ static partial class ObjectPlugin
     static void SetFloat(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString(); float value = n.PopFloat(); bool persist = n.PopInt() != 0;
-        if (o != null) NwnxPersistence.Set(n.Registry, o.Id, VarKey(FloatKind, name), NwnxValue.Float(value), persist);
+        if (o != null) NwnxPersistence.Set(o, VarKey(FloatKind, name), NwnxValue.Float(value), persist);
     }
     [NwnxFunc(P, "DeleteFloat")]
     static void DeleteFloat(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        if (o != null) NwnxPersistence.Delete(n.Registry, o.Id, VarKey(FloatKind, name));
+        if (o != null) NwnxPersistence.Delete(o, VarKey(FloatKind, name));
     }
 
     /// <summary>Removes only the plugin's own variables (Set/Get Int, String, Float), never locals (nwnx_object_locals).</summary>
@@ -317,11 +317,11 @@ static partial class ObjectPlugin
         Regex re;
         try { re = new Regex("^(?:" + pattern + ")$"); }
         catch (ArgumentException) { return; }
-        foreach (var key in NwnxPersistence.Keys(n.Registry, o.Id))
+        foreach (var key in NwnxPersistence.Keys(o))
         {
             foreach (var kind in new[] { IntKind, StringKind, FloatKind })
                 if (key.StartsWith(VarKey(kind, ""), StringComparison.Ordinal) && re.IsMatch(key[VarKey(kind, "").Length..]))
-                    NwnxPersistence.Delete(n.Registry, o.Id, key);
+                    NwnxPersistence.Delete(o, key);
         }
     }
 

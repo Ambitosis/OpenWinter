@@ -128,7 +128,8 @@ public static class ItemPlugin
     const string LevelOverride = "NWNX_Item!MINIMUM_EQUIP_LEVEL_OVERRIDE", LevelModifier = "NWNX_Item!MINIMUM_EQUIP_LEVEL_MODIFIER";
 
     static int Setting(World w, Item item, string key) =>
-        NwnxRegistry.Of(w) is { } r && NwnxPersistence.Get(r, item.Id, key) is { Value: int v } ? v : 0;
+        (item.PluginValues != null || TemplateAccess.TemplateOf(item)?.Has(NwnxPersistence.Field) == true)
+        && NwnxPersistence.Get(item, key) is { Value: int v } ? v : 0;
 
     /// <summary>
     /// The level an item needs (item level restriction): its override if set, else the first itemvalue.2da row
@@ -160,7 +161,7 @@ public static class ItemPlugin
         var item = n.PopObject<Item>();
         int value = n.PopInt();
         bool persist = n.PopInt() != 0;
-        if (item != null) NwnxPersistence.Set(n.Registry, item.Id, key, NwnxValue.Int(value), persist);
+        if (item != null) NwnxPersistence.Set(item, key, NwnxValue.Int(value), persist);
     }
 
     // ---------------------------------------------------------------- moving

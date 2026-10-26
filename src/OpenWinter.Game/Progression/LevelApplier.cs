@@ -43,6 +43,8 @@ public static class LevelApplier
     public static int Apply(World w, Creature c, LevelChoice ch, LevelPlan plan, int? hitDie = null)
     {
         CreatureRules.EnsureInit(w, c);
+        // A blueprint creature's history starts with its first level (CreatureRules.LevelHistory).
+        CreatureRules.LevelHistory(w, c);
         var opts = w.System<ProgressionSystem>();
         int cls = ch.Class;
         var cc = c.Classes.FirstOrDefault(x => x.Class == cls);
@@ -64,6 +66,9 @@ public static class LevelApplier
         var gained = new List<int>();
         foreach (var f in plan.GrantedFeats.Concat(ch.Feats))
             if (!gained.Contains(f) && !c.Feats.Contains(f)) gained.Add(f);
+        // The level's history lists the chosen feats, then every feat the class grants at the level, also one the
+        // creature had already (nwserver nwnx_creature_levels: a rogue level lists Light Armour Proficiency again).
+        var listed = ch.Feats.Concat(plan.AllGrantedFeats).Distinct().ToList();
         c.Feats.AddRange(gained);
 
         var learnt = new Dictionary<int, List<int>>();
@@ -120,7 +125,7 @@ public static class LevelApplier
                 e.SetList($"KnownList{lvl}", list.Select(sp => new GffStruct().SetWord("Spell", sp)).ToList());
             e.SetWord("SkillPoints", Math.Max(0, plan.SkillPointsLeft));
             e.SetList("SkillList", Enumerable.Range(0, rows).Select(sk => new GffStruct().SetByte("Rank", Math.Max(0, ch.Skills.GetValueOrDefault(sk)))).ToList());
-            e.SetList("FeatList", gained.Select(f => new GffStruct().SetWord("Feat", f)).ToList());
+            e.SetList("FeatList", listed.Select(f => new GffStruct().SetWord("Feat", f)).ToList());
             history.Add(e);
         }
 

@@ -269,6 +269,6 @@ public sealed partial class InventorySystem
 
     void InventoryFull(GameObject target)
     {
-        if (target is Creature { IsPC: true } pc) _world.Output?.SendMessage(pc, "Your inventory is full.");
+        if (target is Creature { IsPC: true } pc) _world.Output?.SendFeedback(pc, "Your inventory is full.", FeedbackKind.Message, 12); // NWNX_FEEDBACK_INVENTORY_FULL
     }
 }

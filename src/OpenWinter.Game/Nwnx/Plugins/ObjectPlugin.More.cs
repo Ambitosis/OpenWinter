@@ -207,12 +207,12 @@ static partial class ObjectPlugin
         if (o is not Creature) return;
         if (type < 0)
         {
-            foreach (var key in new[] { ProjectileType, ProjectilePath, ProjectileSpell }) NwnxPersistence.Delete(n.Registry, o.Id, key);
+            foreach (var key in new[] { ProjectileType, ProjectilePath, ProjectileSpell }) NwnxPersistence.Delete(o, key);
             return;
         }
-        NwnxPersistence.Set(n.Registry, o.Id, ProjectileType, NwnxValue.Int(type), persist);
-        NwnxPersistence.Set(n.Registry, o.Id, ProjectilePath, NwnxValue.Int(path), persist);
-        NwnxPersistence.Set(n.Registry, o.Id, ProjectileSpell, NwnxValue.Int(spell), persist);
+        NwnxPersistence.Set(o, ProjectileType, NwnxValue.Int(type), persist);
+        NwnxPersistence.Set(o, ProjectilePath, NwnxValue.Int(path), persist);
+        NwnxPersistence.Set(o, ProjectileSpell, NwnxValue.Int(spell), persist);
     }
 
     const string ProjectileType = "NWNX_Object!OSPVFX_TYPE", ProjectilePath = "NWNX_Object!OSPVFX_PATH", ProjectileSpell = "NWNX_Object!OSPVFX_SPELLID";
@@ -220,10 +220,10 @@ static partial class ObjectPlugin
     /// <summary>The PROJECTILE_PATH_TYPE_* a creature's projectile for <paramref name="spell"/> takes instead, or -1.</summary>
     public static int ProjectilePathOverride(World world, GameObject caster, int spell)
     {
-        if (NwnxRegistry.Of(world) is not { } r) return -1;
-        if (NwnxPersistence.Get(r, caster.Id, ProjectileType) is not { Value: int type } || type != 7) return -1; // NWNX_OBJECT_SPELL_PROJECTILE_TYPE_USE_PATH
-        int only = NwnxPersistence.Get(r, caster.Id, ProjectileSpell) is { Value: int sp } ? sp : -1;
-        int path = NwnxPersistence.Get(r, caster.Id, ProjectilePath) is { Value: int p } ? p : -1;
+        if (caster.PluginValues == null && TemplateAccess.TemplateOf(caster)?.Has(NwnxPersistence.Field) != true) return -1;
+        if (NwnxPersistence.Get(caster, ProjectileType) is not { Value: int type } || type != 7) return -1; // NWNX_OBJECT_SPELL_PROJECTILE_TYPE_USE_PATH
+        int only = NwnxPersistence.Get(caster, ProjectileSpell) is { Value: int sp } ? sp : -1;
+        int path = NwnxPersistence.Get(caster, ProjectilePath) is { Value: int p } ? p : -1;
         return only >= 0 && only != spell ? -1 : path;
     }
 

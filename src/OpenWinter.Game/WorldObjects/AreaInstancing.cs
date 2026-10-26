@@ -32,7 +32,13 @@ public static class AreaInstancing
         // Only module areas (with .are data) can be instanced; run-time "nw_" copies can't.
         if (string.IsNullOrEmpty(sourceResRef) || !world.Resources.Contains(sourceResRef, ResType.Are)) return null;
         Area area;
-        try { area = Loader(world).Load(sourceResRef); }
+        try
+        {
+            var are = world.Resources.ReadGff(sourceResRef, ResType.Are) ?? throw new FileNotFoundException(sourceResRef);
+            var git = world.Resources.ReadGff(sourceResRef, ResType.Git) ?? new GffStruct();
+            world.System<TileOverrides>().Apply(sourceResRef, are);
+            area = Loader(world).Load(sourceResRef, are, git);
+        }
         catch (Exception e) when (e is FileNotFoundException or InvalidDataException) { return null; }
         area.SourceResRef = sourceResRef;
         area.ResRef = NextResRef(world);

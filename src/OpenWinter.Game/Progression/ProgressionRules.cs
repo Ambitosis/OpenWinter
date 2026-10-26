@@ -65,7 +65,9 @@ public static partial class ProgressionRules
         int total = c.TotalLevel, current = CreatureRules.ClassLevel(c, cls);
         if (total >= CreatureRules.MaxLevel) errors.Add(new("class", "The maximum level has been reached."));
         if (total == 0 && IsPrestige(w, cls)) errors.Add(new("class", $"{name} is a prestige class and cannot be taken at first level."));
-        if (current == 0 && c.Classes.Count >= MaxClasses) errors.Add(new("class", $"A character can have at most {MaxClasses} classes."));
+        // A player's own multiclass limit (NWNX_Creature_SetMulticlassLimit) lowers the server's for classes not yet taken.
+        int maxClasses = c.IsPC && c.Overrides is { MulticlassLimit: > 0 } mc ? Math.Min(MaxClasses, mc.MulticlassLimit) : MaxClasses;
+        if (current == 0 && c.Classes.Count >= maxClasses) errors.Add(new("class", $"A character can have at most {maxClasses} classes."));
         int max = Classes(w).GetInt(cls, "MaxLevel");
         if (max > 0 && current >= max) errors.Add(new("class", $"{name} has a maximum of {max} levels."));
         if (!AlignmentAllowed(w, cls, c.LawfulChaotic, c.GoodEvil)) errors.Add(new("alignment", $"Your alignment does not allow {name} levels."));

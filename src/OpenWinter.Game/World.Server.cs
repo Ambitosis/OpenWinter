@@ -43,7 +43,7 @@ public sealed partial class World
     {
         if (PvpAllows(actor, target)) return false;
         if ((actor.IsPC || actor.Player != null) && Society.AssociateService.PlayerMaster(this, actor) is { } player)
-            Output?.SendMessage(player, Resources.TlkString(66245));
+            Output?.SendFeedback(player, Resources.TlkString(66245), FeedbackKind.Message, 187); // NWNX_FEEDBACK_ACTION_NOT_POSSIBLE_PVP
         return true;
     }
 

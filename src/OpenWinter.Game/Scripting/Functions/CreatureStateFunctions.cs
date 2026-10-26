@@ -168,21 +168,37 @@ static class CreatureStateFunctions
 
     // ---------------------------------------------------------------- familiars and animal companions
 
+    // The choice a creature has stored, feat or not (nwserver nwnx_creature_misc: a bandit without the feats reads 0
+    // and "", and what a script set); 255 internally means none was ever chosen.
     [NwFunc("GetFamiliarCreatureType")]
-    static object? FamiliarType(Call c) =>
-        Cr(c, 0) is { } cr && CreatureRules.HasAssociateAbility(c.World, cr, NwRules.AssociateFamiliar) ? cr.FamiliarType : 255;
+    static object? FamiliarType(Call c) => Cr(c, 0) is { } cr ? Chosen(c, cr, NwRules.AssociateFamiliar) : 255;
 
     [NwFunc("GetAnimalCompanionCreatureType")]
-    static object? CompanionType(Call c) =>
-        Cr(c, 0) is { } cr && CreatureRules.HasAssociateAbility(c.World, cr, NwRules.AssociateCompanion) ? cr.CompanionType : 255;
+    static object? CompanionType(Call c) => Cr(c, 0) is { } cr ? Chosen(c, cr, NwRules.AssociateCompanion) : 255;
+
+    static int Chosen(Call c, Creature cr, int associate)
+    {
+        CreatureRules.EnsureInit(c.World, cr);
+        int now = associate == NwRules.AssociateFamiliar ? cr.FamiliarType : cr.CompanionType;
+        if (now != 255) return now;
+        return CreatureRules.HasAssociateAbility(c.World, cr, associate) ? 255 : 0;
+    }
 
     [NwFunc("GetFamiliarName")]
-    static object? FamiliarName(Call c) =>
-        Cr(c, 0) is { } cr && CreatureRules.HasAssociateAbility(c.World, cr, NwRules.AssociateFamiliar) ? cr.FamiliarName : "";
+    static object? FamiliarName(Call c)
+    {
+        if (Cr(c, 0) is not { } cr) return "";
+        CreatureRules.EnsureInit(c.World, cr);
+        return cr.FamiliarName;
+    }
 
     [NwFunc("GetAnimalCompanionName")]
-    static object? CompanionName(Call c) =>
-        Cr(c, 0) is { } cr && CreatureRules.HasAssociateAbility(c.World, cr, NwRules.AssociateCompanion) ? cr.CompanionName : "";
+    static object? CompanionName(Call c)
+    {
+        if (Cr(c, 0) is not { } cr) return "";
+        CreatureRules.EnsureInit(c.World, cr);
+        return cr.CompanionName;
+    }
 
     [NwFunc("SummonAnimalCompanion")]
     static object? SummonCompanion(Call c)

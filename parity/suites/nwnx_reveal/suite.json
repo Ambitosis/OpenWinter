@@ -1,0 +1,18 @@
+{
+ "seconds": 30,
+ "nwnx": true,
+ "tile": 4,
+ "size": 6,
+ "factions": "Prelude",
+ "templates": {
+  "nr_bandit": {
+   "from": "nw_bandit001",
+   "type": "utc",
+   "set": {
+    "ScriptSpawn": "", "ScriptHeartbeat": "", "ScriptUserDefine": "", "ScriptDeath": "", "ScriptOnNotice": "",
+    "ScriptAttacked": "", "ScriptDamaged": "", "ScriptDialogue": "", "ScriptDisturbed": "", "ScriptEndRound": "",
+    "ScriptOnBlocked": "", "ScriptRested": "", "ScriptSpellAt": "", "PerceptionRange": 8
+   }
+  }
+ }
+}

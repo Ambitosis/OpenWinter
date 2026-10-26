@@ -57,6 +57,8 @@ public sealed partial class InventorySystem
         foreach (var kv in src.PartColorOverrides) item.PartColorOverrides[kv.Key] = kv.Value;
         foreach (var kv in src.Scripts) item.Scripts[kv.Key] = kv.Value;
         if (copyVars) CopyLocals(src.Locals, item.Locals);
+        // Persisted plugin values go with the item's saved form, so with copies of it.
+        if (src.PluginValues != null) global::OpenWinter.Game.Nwnx.NwnxPersistence.WriteField(src, item.Template);
         _world.Register(item);
         foreach (var inner in asStored ? Enumerable.Reverse(src.Inventory) : src.Inventory)
         {
@@ -266,7 +268,14 @@ public sealed partial class InventorySystem
             }
             case Creature cr when area != null:
             {
-                var c = _world.Creatures.FromTemplate(cr.Template);
+                // Settings kept with the saved form (NWNX_POS) go with the copy, as through the original's saved form.
+                var template = cr.Template;
+                if (cr.PluginValues != null)
+                {
+                    template = template.DeepClone();
+                    global::OpenWinter.Game.Nwnx.NwnxPersistence.WriteField(cr, template);
+                }
+                var c = _world.Creatures.FromTemplate(template);
                 c.ResRef = cr.ResRef;
                 c.Name = cr.Name.Clone();
                 c.Description = cr.Description;

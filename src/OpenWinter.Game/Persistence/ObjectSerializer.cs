@@ -403,7 +403,7 @@ public static partial class ObjectSerializer
     {
         WriteLocals(s, o.Locals);
         if (o.Uuid != null) s.SetString("UUID", o.Uuid);
-        Nwnx.NwnxPersistence.WriteField(world, o, s);
+        Nwnx.NwnxPersistence.WriteField(o, s);
     }
 
     /// <summary>
@@ -584,7 +584,7 @@ public static partial class ObjectSerializer
     static void ClaimUuid(World world, GameObject o, GffStruct s)
     {
         if (s.GetString("UUID") is { Length: > 0 } uuid) world.System<PersistenceSystem>().TryClaim(o, uuid);
-        Nwnx.NwnxPersistence.ReadField(world, o, s);
+        Nwnx.NwnxPersistence.ReadField(o, s);
     }
 
     /// <summary>Puts an item into a creature's, placeable's, store's or container's inventory. False if the owner cannot hold items.</summary>

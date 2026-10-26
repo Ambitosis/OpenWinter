@@ -59,19 +59,63 @@ public class NwnxObjectsTests
     [DataFact]
     public void PersistentVariablesRoundTripThroughTheirGffText()
     {
-        var (_, r) = Setup();
-        NwnxPersistence.Set(r, 5, "NWNX_Object!PERINT!pi", NwnxValue.Int(5), persist: true);
-        NwnxPersistence.Set(r, 5, "NWNX_Object!PERINT!ti", NwnxValue.Int(6), persist: false);
-        NwnxPersistence.Set(r, 5, "NWNX_Object!PERSTR!ps", NwnxValue.String("a b;c"), persist: true);
-        NwnxPersistence.Set(r, 5, "NWNX_Object!PERFLT!pf", NwnxValue.Float(2.5f), persist: true);
-        string text = NwnxPersistence.Write(r, 5);
+        var (world, _) = Setup();
+        var a = new Waypoint();
+        var b = new Waypoint();
+        world.Register(a); world.Register(b);
+        NwnxPersistence.Set(a, "NWNX_Object!PERINT!pi", NwnxValue.Int(5), persist: true);
+        NwnxPersistence.Set(a, "NWNX_Object!PERINT!ti", NwnxValue.Int(6), persist: false);
+        NwnxPersistence.Set(a, "NWNX_Object!PERSTR!ps", NwnxValue.String("a b;c"), persist: true);
+        NwnxPersistence.Set(a, "NWNX_Object!PERFLT!pf", NwnxValue.Float(2.5f), persist: true);
+        string text = NwnxPersistence.Write(a);
         Assert.Equal("[INTMAP:1]<21>NWNX_Object!PERINT!pi = 5;[FLTMAP:1]<21>NWNX_Object!PERFLT!pf = 2.5;[STRMAP:1]<21>NWNX_Object!PERSTR!ps = <5>a b;c;", text);
-        Assert.True(NwnxPersistence.Read(r, 9, text));
-        Assert.Equal(5, NwnxPersistence.Get(r, 9, "NWNX_Object!PERINT!pi")?.Value);
-        Assert.Equal("a b;c", NwnxPersistence.Get(r, 9, "NWNX_Object!PERSTR!ps")?.Value);
-        Assert.Equal(2.5f, NwnxPersistence.Get(r, 9, "NWNX_Object!PERFLT!pf")?.Value);
-        Assert.Null(NwnxPersistence.Get(r, 9, "NWNX_Object!PERINT!ti"));
-        Assert.False(NwnxPersistence.Read(r, 9, "[INTMAP:1]<99>broken"));
+        Assert.True(NwnxPersistence.Read(b, text));
+        Assert.Equal(5, NwnxPersistence.Get(b, "NWNX_Object!PERINT!pi")?.Value);
+        Assert.Equal("a b;c", NwnxPersistence.Get(b, "NWNX_Object!PERSTR!ps")?.Value);
+        Assert.Equal(2.5f, NwnxPersistence.Get(b, "NWNX_Object!PERFLT!pf")?.Value);
+        Assert.Null(NwnxPersistence.Get(b, "NWNX_Object!PERINT!ti"));
+        foreach (var bad in new[] { "[INTMAP:1]<99>broken", "[INTMAP:1]<-1>x = 1;", "[INTMAP:1]<2147483647>x = 1;", "[OBJMAP:0]" })
+            Assert.Null(NwnxPersistence.Parse(bad));
+    }
+
+    [DataFact]
+    public void PersistedValuesSurviveARelogAndKeepTheOldOnes()
+    {
+        var (world, r) = Setup(baseGame: true);
+        var bic = new GffStruct().SetString("Tag", "RELOG").SetByte("IsPC", 1)
+            .SetString(NwnxPersistence.Field, "[INTMAP:2]<28>NWNX_Creature!INITIATIVE_MOD = 4;<25>NWNX_Object!PERINT!posvar = 11;");
+        // Logging in builds the character from its file.
+        var pc = world.Creatures.FromTemplate(bic);
+        world.Register(pc);
+        Assert.Equal(4, pc.Overrides!.InitiativeModifier);
+        Call(r, "Object", "GetInt", NwnxValue.String("posvar"), NwnxValue.Object(pc.Id));
+        Assert.Equal(11, r.PopAs(NwnxType.Int));
+        Call(r, "Object", "SetString", NwnxValue.Int(1), NwnxValue.String("abc"), NwnxValue.String("poss"), NwnxValue.Object(pc.Id));
+        // Saving writes the old values with the new one; the next login reads them all.
+        var saved = OpenWinter.Game.Persistence.ObjectSerializer.Serialize(world, pc)!;
+        Assert.Equal("[INTMAP:2]<28>NWNX_Creature!INITIATIVE_MOD = 4;<25>NWNX_Object!PERINT!posvar = 11;[STRMAP:1]<23>NWNX_Object!PERSTR!poss = <3>abc;",
+            saved.GetString(NwnxPersistence.Field));
+        var again = world.Creatures.FromTemplate(saved);
+        world.Register(again);
+        Assert.Equal(4, again.Overrides!.InitiativeModifier);
+        Call(r, "Object", "GetString", NwnxValue.String("poss"), NwnxValue.Object(again.Id));
+        Assert.Equal("abc", r.PopAs(NwnxType.String));
+    }
+
+    [DataFact]
+    public void PersistedValuesSurviveASavedGame()
+    {
+        using var f = new ModuleTransitionTests.Fixture();
+        var (s, _) = f.Join("Alice");
+        var w = f.Server.World;
+        NwnxPersistence.Set(s.Creature!, "NWNX_Object!PERINT!saved", NwnxValue.Int(7), persist: true);
+        var snapshot = OpenWinter.Game.SaveGames.WorldSnapshot.Capture(w, out _);
+        using var rm = ResMan.ForModule(w.Resources.Paths, f.Module("source"));
+        var restoredWorld = new World(rm);
+        restoredWorld.EnableScripts();
+        restoredWorld.LoadModule();
+        var pc = Assert.Single(OpenWinter.Game.SaveGames.WorldSnapshot.Apply(restoredWorld, snapshot).Players).Creature;
+        Assert.Equal(7, NwnxPersistence.Get(pc, "NWNX_Object!PERINT!saved")?.Value);
     }
 
     [DataFact]
