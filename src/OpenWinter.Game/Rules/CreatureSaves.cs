@@ -116,7 +116,7 @@ public static partial class CreatureRules
     static void Feedback(World w, GameObject target, GameObject? versus, string text)
     {
         if (w.Output == null) return;
-        if (target is Creature { IsPC: true } pc) w.Output.SendMessage(pc, text);
-        if (versus is Creature { IsPC: true } other && other != target) w.Output.SendMessage(other, text);
+        if (target is Creature { IsPC: true } pc) w.Output.SendFeedback(pc, text, FeedbackKind.SavingThrow);
+        if (versus is Creature { IsPC: true } other && other != target) w.Output.SendFeedback(other, text, FeedbackKind.SavingThrow);
     }
 }

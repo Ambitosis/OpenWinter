@@ -46,6 +46,8 @@ namespace OpenWinter.Game.Objects
     public sealed partial class Creature
     {
         public readonly ClientInfo Client = new();
+        /// <summary>Walks wherever it is sent (NWNX_Player_SetAlwaysWalk).</summary>
+        public bool AlwaysWalk;
 
         // Cutscenes and camera.
         public bool InCutscene, CutsceneLeftClick;

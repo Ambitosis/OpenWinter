@@ -401,6 +401,7 @@ public partial class Main : Node3D
             CharacterResRef = _args.ContainsKey("connect-nwn") ? _args.GetValueOrDefault("character", "") : "",
             DM = _args.ContainsKey("dm") || _args.ContainsKey("capture-dm"), DMPassword = _args.GetValueOrDefault("dm-password", ""),
             PortalWaypoint = _args.GetValueOrDefault("portal-waypoint", ""), // arriving through ActivatePortal (Main.Portal.cs)
+            Password = _args.GetValueOrDefault("password", ""),
         }.Write());
         _session.AreaLoaded += () => GD.Print($"[client] area loaded at {sw.ElapsedMilliseconds} ms");
         if (_args.TryGetValue("capture-prologue", out var prologueDir)) _ = CapturePrologue(prologueDir);

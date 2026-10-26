@@ -37,7 +37,11 @@ public sealed class CreatureLabelFeed : IWorldSystem
             {
                 if (c.IsDestroyed || !player.Known.Contains(c.Id) || c.IsDMUndetectable && !player.IsDM && c.DMOwner != player) continue;
                 visible.Add(c.Id);
-                var label = new Label(c.DisplayName(_world.Resources.Talk), c.Player?.PlayerName ?? "", DamageLevel(_world, c));
+                // Names this player sees overridden (NWNX_Player's creature names, NWNX_Rename's player names).
+                string name = Nwnx.Plugins.PlayerPlugin.ShownName(_world, c, pc, c.DisplayName(_world.Resources.Talk));
+                string playerName = c.Player?.PlayerName ?? "";
+                if (c.IsPC) (name, playerName) = Nwnx.Plugins.RenamePlugin.Shown(_world, c, pc, name, playerName);
+                var label = new Label(name, playerName, DamageLevel(_world, c));
                 if (state!.Sent.TryGetValue(c.Id, out var old) && old == label) continue;
                 state.Sent[c.Id] = label;
                 changes[c.Id.ToString()] = label;

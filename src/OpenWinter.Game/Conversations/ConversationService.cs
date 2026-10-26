@@ -26,6 +26,11 @@ public sealed class ConversationSession
     public bool NoSpeaker;
     /// <summary>Participants playing a looping animation a line asked for (see <see cref="ConversationService"/>).</summary>
     public readonly HashSet<uint> Looping = new();
+    /// <summary>Node texts a script replaced in this conversation (NWNX_Dialog_SetCurrentNodeText), by (node type, id).</summary>
+    public readonly Dictionary<(int Type, int Id), string> TextOverrides = new();
+    /// <summary>The node whose scripts are running, for NWNX_Dialog: its type (0 start, 1 entry, 2 reply), id and
+    /// position in its parent's list of links.</summary>
+    public (int Type, int Id, int Index) Node = (-1, -1, 0);
 }
 
 /// <summary>What a player sees for one conversation step.</summary>
@@ -80,6 +85,43 @@ public sealed class ConversationService : IWorldSystem
     readonly Dictionary<string, Dialog?> _dialogs = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>SetCustomToken values (CUSTOMnnn).</summary>
     public readonly Dictionary<int, string> CustomTokens = new();
+    /// <summary>Tokens set for one player (NWNX_Player_SetCustomToken), until SetCustomToken sets that token for everyone.</summary>
+    public readonly Dictionary<(uint Pc, int Token), string> PlayerTokens = new();
+
+    /// <summary>SetCustomToken: the value every player sees from now on, replacing any player's own.</summary>
+    public void SetCustomToken(int token, string value)
+    {
+        CustomTokens[token] = value;
+        if (PlayerTokens.Count > 0)
+            foreach (var key in PlayerTokens.Keys.Where(k => k.Token == token).ToList()) PlayerTokens.Remove(key);
+    }
+
+    /// <summary>The text of a node as this conversation shows it.</summary>
+    string NodeText(ConversationSession s, int type, int id, DialogNode n) =>
+        s.TextOverrides.Count > 0 && s.TextOverrides.TryGetValue((type == 0 ? 1 : type, id), out var text) ? text : n.Text.Resolve(_world.Resources.Talk);
+
+    /// <summary>NWNX_Dialog_SetCurrentNodeText from a script of <paramref name="s"/>: replaces the current node's text.</summary>
+    public static void SetNodeText(ConversationSession s, string text)
+    {
+        if (s.Node.Id >= 0) s.TextOverrides[(s.Node.Type == 0 ? 1 : s.Node.Type, s.Node.Id)] = text;
+    }
+
+    /// <summary>The current node's text in the conversation of <paramref name="s"/> (for NWNX_Dialog_GetCurrentNodeText).</summary>
+    public string CurrentNodeText(ConversationSession s, int language, int gender)
+    {
+        if (s.Node.Id < 0) return "";
+        var list = s.Node.Type == 2 ? s.Dialog.Replies : s.Dialog.Entries;
+        if (s.Node.Id >= list.Count) return "";
+        if (s.TextOverrides.TryGetValue((s.Node.Type == 0 ? 1 : s.Node.Type, s.Node.Id), out var text)) return text;
+        var loc = list[s.Node.Id].Text;
+        return loc.Strings.TryGetValue(language * 2 + gender, out var own) && own.Length > 0 ? own : loc.Resolve(_world.Resources.Talk, language);
+    }
+
+    /// <summary>NWNX_Dialog_End: aborts the conversation <paramref name="o"/> takes part in (its abort script runs).</summary>
+    public void Abort(GameObject o)
+    {
+        if (SessionWith(o) is { } s) End(s.Pc, aborted: true);
+    }
 
     /// <summary>Raised when a player's dialogue window should change (the server sends it).</summary>
     public event Action<Creature, DialogView>? Show;
@@ -92,7 +134,16 @@ public sealed class ConversationService : IWorldSystem
     /// <summary>"The object is busy and can not talk to you right now." and "You are too excited to talk right now."</summary>
     public const uint BusyMessage = 6625, TooExcitedMessage = 63229;
 
-    public ConversationService(World world) { _world = world; }
+    public ConversationService(World world)
+    {
+        _world = world;
+        // A player's own tokens go with her character.
+        world.ObjectRemoved += o =>
+        {
+            if (PlayerTokens.Count > 0)
+                foreach (var key in PlayerTokens.Keys.Where(k => k.Pc == o.Id).ToList()) PlayerTokens.Remove(key);
+        };
+    }
 
     public void Step(float dt)
     {
@@ -230,11 +281,11 @@ public sealed class ConversationService : IWorldSystem
         if (_byPc.ContainsKey(pc.Id)) Stop(pc);
         var s = new ConversationSession { Pc = pc, Owner = owner, Dialog = dialog, ResRef = resref, Private = isPrivate };
         _byPc[pc.Id] = s;
-        int start = FirstPassing(s, dialog.Starts);
+        int start = FirstPassing(s, dialog.Starts, 0);
         if (start < 0) { _byPc.Remove(pc.Id); return false; }
         // Starting a conversation ends the player's barter (not measured).
         _world.System<Requests.BarterService>().Interrupt(pc);
-        if (dialog.Entries[start].Links.All(l => l.Index < 0 || l.Index >= dialog.Replies.Count || !Passes(s, l)))
+        if (dialog.Entries[start].Links.Select((l, i) => (l, i)).All(x => x.l.Index < 0 || x.l.Index >= dialog.Replies.Count || !Passes(s, x.l, 2, x.i)))
         {
             SpeakFirstLine(s, start);
             return true;
@@ -257,12 +308,13 @@ public sealed class ConversationService : IWorldSystem
         var entry = s.Dialog.Entries[start];
         // The action script sees no PC speaker; a store it opens doesn't change how it ends.
         s.NoSpeaker = s.InEntryAction = true;
-        if (entry.Script.Length > 0) _world.Scripts?.Run(entry.Script, s.Owner.Id, new EventContext());
+        s.Node = (0, start, LinkPosition(s.Dialog.Starts, start));
+        if (entry.Script.Length > 0) _world.Scripts?.Run(entry.Script, s.Owner.Id, NodeContext(new EventContext(), s, 2));
         s.NoSpeaker = s.InEntryAction = false;
         // Measured (journalpc): a first line without answers, spoken over the talker, doesn't update the journal.
         if (_byPc.GetValueOrDefault(s.Pc.Id) != s) return;
         _byPc.Remove(s.Pc.Id);
-        _world.Output?.Speak(s.Owner, Tokens(entry.Text.Resolve(_world.Resources.Talk), s.Pc, s.Owner, markup: false), 0);
+        _world.Speak(s.Owner, Tokens(NodeText(s, 1, start, entry), s.Pc, s.Owner, markup: false), 0);
         if (s.Dialog.EndScript.Length > 0) _world.Scripts?.Run(s.Dialog.EndScript, s.Owner.Id, Context(s));
     }
 
@@ -273,11 +325,12 @@ public sealed class ConversationService : IWorldSystem
         var dialog = Load(resref);
         if (dialog == null) return;
         var fake = new ConversationSession { Pc = tokenTarget ?? new Creature(), Owner = owner, Dialog = dialog, ResRef = resref };
-        int start = FirstPassing(fake, dialog.Starts);
+        int start = FirstPassing(fake, dialog.Starts, 0);
         if (start < 0) return;
         var entry = dialog.Entries[start];
+        fake.Node = (0, start, LinkPosition(dialog.Starts, start));
         RunAction(fake, entry);
-        _world.Output?.Speak(owner, Tokens(entry.Text.Resolve(_world.Resources.Talk), fake.Pc, owner, markup: false), 0);
+        _world.Speak(owner, Tokens(NodeText(fake, 1, start, entry), fake.Pc, owner, markup: false), 0);
     }
 
     static string DefaultConversation(GameObject owner) => owner switch
@@ -293,16 +346,18 @@ public sealed class ConversationService : IWorldSystem
     {
         if (!_byPc.TryGetValue(pc.Id, out var s) || s.Paused) return;
         if (s.Offered.Count == 0 || choice < 0 || choice >= s.Offered.Count) { End(pc, aborted: false); return; }
-        var reply = s.Dialog.Replies[s.Offered[choice]];
+        int replyId = s.Offered[choice];
+        var reply = s.Dialog.Replies[replyId];
         LineAnimation(s, pc, reply.Animation);
-        var said = Tokens(reply.Text.Resolve(_world.Resources.Talk), s.Pc, s.Owner, markup: false);
+        var said = Tokens(NodeText(s, 2, replyId, reply), s.Pc, s.Owner, markup: false);
         if (said.Length > 0) Line?.Invoke(pc, pc, said);
         s.InReply = true;
+        s.Node = (2, replyId, s.Entry >= 0 ? LinkPosition(s.Dialog.Entries[s.Entry].Links, replyId) : 0);
         RunAction(s, reply);
         s.InReply = false;
         UpdateJournal(s, reply);
         if (!_byPc.ContainsKey(pc.Id)) return; // the action script ended the conversation
-        int next = FirstPassing(s, reply.Links);
+        int next = FirstPassing(s, reply.Links, 1);
         if (next < 0) End(pc, aborted: false);
         else ShowEntry(s, next);
     }
@@ -370,19 +425,36 @@ public sealed class ConversationService : IWorldSystem
         return ctx;
     }
 
-    int FirstPassing(ConversationSession s, List<DialogLink> links)
+    /// <summary>Event context keys NWNX_Dialog reads in a conversation's condition and action scripts.</summary>
+    public const string NodeSessionKey = "nwnx:dialog:session", NodeTypeKey = "nwnx:dialog:nodeType", ScriptTypeKey = "nwnx:dialog:scriptType",
+        NodeIdKey = "nwnx:dialog:nodeId", NodeIndexKey = "nwnx:dialog:nodeIndex";
+
+    /// <param name="scriptType">NWNX_DIALOG_SCRIPT_TYPE_*: 1 a StartingConditional, 2 an action.</param>
+    static EventContext NodeContext(EventContext ctx, ConversationSession s, int scriptType) =>
+        ctx.Set(NodeSessionKey, s).Set(NodeTypeKey, s.Node.Type).Set(ScriptTypeKey, scriptType).Set(NodeIdKey, s.Node.Id).Set(NodeIndexKey, s.Node.Index);
+
+    static int LinkPosition(List<DialogLink> links, int index) => Math.Max(0, links.FindIndex(l => l.Index == index));
+
+    /// <param name="type">The kind of node the links lead to: 0 a starting entry, 1 an entry, 2 a reply.</param>
+    int FirstPassing(ConversationSession s, List<DialogLink> links, int type)
     {
-        foreach (var l in links)
-            if (Passes(s, l)) return l.Index;
+        for (int i = 0; i < links.Count; i++)
+            if (Passes(s, links[i], type, i)) return links[i].Index;
         return -1;
     }
 
-    bool Passes(ConversationSession s, DialogLink l) =>
-        l.Active.Length == 0 || _world.Scripts == null || _world.Scripts.Run(l.Active, s.Owner.Id, Context(s, l.ConditionParams)) != 0;
+    bool Passes(ConversationSession s, DialogLink l, int type, int position)
+    {
+        if (l.Active.Length == 0 || _world.Scripts == null) return true;
+        var previous = s.Node;
+        s.Node = (type, l.Index, position);
+        try { return _world.Scripts.Run(l.Active, s.Owner.Id, NodeContext(Context(s, l.ConditionParams), s, 1)) != 0; }
+        finally { s.Node = previous; }
+    }
 
     void RunAction(ConversationSession s, DialogNode n)
     {
-        if (n.Script.Length > 0) _world.Scripts?.Run(n.Script, s.Owner.Id, Context(s, n.ActionParams));
+        if (n.Script.Length > 0) _world.Scripts?.Run(n.Script, s.Owner.Id, NodeContext(Context(s, n.ActionParams), s, 2));
     }
 
     /// <summary>
@@ -399,11 +471,15 @@ public sealed class ConversationService : IWorldSystem
     void ShowEntry(ConversationSession s, int index)
     {
         if (index < 0 || index >= s.Dialog.Entries.Count) { End(s.Pc, aborted: false); return; }
+        // The links that led here: the starting list, or the chosen reply's.
+        int parentType = s.Entry < 0 ? 0 : 1;
+        var parentLinks = s.Entry >= 0 && s.Node is { Type: 2, Id: >= 0 } chosen && chosen.Id < s.Dialog.Replies.Count ? s.Dialog.Replies[chosen.Id].Links : s.Dialog.Starts;
         s.Entry = index;
         var entry = s.Dialog.Entries[index];
         var speaker = s.Owner;
         if (entry.Speaker.Length > 0 && _world.ByTag(entry.Speaker).FirstOrDefault(o => o.Area == s.Owner.Area) is { } tagged) speaker = tagged;
         s.InEntryAction = true;
+        s.Node = (parentType, index, LinkPosition(parentLinks, index));
         RunAction(s, entry);
         s.InEntryAction = false;
         UpdateJournal(s, entry);
@@ -412,16 +488,17 @@ public sealed class ConversationService : IWorldSystem
 
         s.Offered.Clear();
         var replies = new List<(int, string)>();
-        foreach (var l in entry.Links)
+        for (int i = 0; i < entry.Links.Count; i++)
         {
-            if (!Passes(s, l) || l.Index < 0 || l.Index >= s.Dialog.Replies.Count) continue;
+            var l = entry.Links[i];
+            if (!Passes(s, l, 2, i) || l.Index < 0 || l.Index >= s.Dialog.Replies.Count) continue;
             s.Offered.Add(l.Index);
-            var text = s.Dialog.Replies[l.Index].Text.Resolve(_world.Resources.Talk);
+            var text = NodeText(s, 2, l.Index, s.Dialog.Replies[l.Index]);
             replies.Add((s.Offered.Count - 1, text.Length == 0 ? "[Continue]" : Tokens(text, s.Pc, s.Owner)));
         }
         if (replies.Count == 0) replies.Add((-1, "[End Dialog]"));
-        var line = Tokens(entry.Text.Resolve(_world.Resources.Talk), s.Pc, s.Owner);
-        var said = Tokens(entry.Text.Resolve(_world.Resources.Talk), s.Pc, s.Owner, markup: false);
+        var line = Tokens(NodeText(s, 1, index, entry), s.Pc, s.Owner);
+        var said = Tokens(NodeText(s, 1, index, entry), s.Pc, s.Owner, markup: false);
         if (said.Length > 0) Line?.Invoke(s.Pc, speaker, said);
         // A store opened by the line's own action: closed by the last-line rule, no answer chosen (rep_tail_end).
         if (s.CloseWhenShown)
@@ -448,11 +525,11 @@ public sealed class ConversationService : IWorldSystem
         {
             int index = s.Offered[i];
             if (index < 0 || index >= s.Dialog.Replies.Count) continue;
-            var text = s.Dialog.Replies[index].Text.Resolve(_world.Resources.Talk);
+            var text = NodeText(s, 2, index, s.Dialog.Replies[index]);
             replies.Add((i, text.Length == 0 ? "[Continue]" : Tokens(text, s.Pc, s.Owner)));
         }
         if (replies.Count == 0) replies.Add((-1, "[End Dialog]"));
-        var line = Tokens(entry.Text.Resolve(_world.Resources.Talk), s.Pc, s.Owner);
+        var line = Tokens(NodeText(s, 1, s.Entry, entry), s.Pc, s.Owner);
         Show?.Invoke(s.Pc, new DialogView(s.Owner.Id, speaker.Id, speaker.Name.Resolve(_world.Resources.Talk), line, replies, false, Voice(entry)));
         return true;
     }
@@ -486,7 +563,7 @@ public sealed class ConversationService : IWorldSystem
         {
             var t = m.Groups[1].Value;
             if (t.StartsWith("CUSTOM", StringComparison.OrdinalIgnoreCase) && int.TryParse(t[6..], out var n))
-                return CustomTokens.GetValueOrDefault(n, "");
+                return PlayerTokens.Count > 0 && PlayerTokens.TryGetValue((pc.Id, n), out var own) ? own : CustomTokens.GetValueOrDefault(n, "");
             string Cap(string v) => char.IsUpper(t[0]) && v.Length > 0 ? char.ToUpperInvariant(v[0]) + v[1..] : v;
             return t switch
             {

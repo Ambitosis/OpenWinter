@@ -20,6 +20,10 @@ public sealed class PlayerSession
     public bool IsDM;
     public string PublicKey = "";
     public string Address = "";
+    /// <summary>The character was deleted from the vault (NWNX_Administration_DeletePlayerCharacter): don't save it on leaving.</summary>
+    public bool SkipVaultSave;
+    /// <summary>Server time the connection is dropped at (a refused login or a boot); nothing more is read from it.</summary>
+    internal double? DropAt;
     /// <summary>The waypoint a portal sent this player to (HelloMessage.PortalWaypoint), until the player is placed.</summary>
     public string PortalWaypoint = "";
     public bool AreaReadyHandshake;
@@ -118,6 +122,8 @@ public sealed partial class GameServer : IWorldOutput
     /// <summary>Hooks the server up to a world's events (constructor, and after a saved game replaced the world).</summary>
     void Attach(World world)
     {
+        // Settings OnModuleLoad changed through NWNX_Administration before this server existed win over the configuration.
+        world.System<ServerAdministration>().Adopt(_options);
         _commandReticles = new Players.CommandReticles(world);
         var progression = world.System<Progression.ProgressionSystem>();
         progression.AllowCharacterCreation = _options.AllowCharacterCreation;
@@ -166,6 +172,8 @@ public sealed partial class GameServer : IWorldOutput
         _pendingLooks.Clear();
         _nextClock = 0;
         if (World.Output == this) World.Output = null;
+        // The server's run-time settings (NWNX_Administration) outlive the world a saved game replaces.
+        next.System<ServerAdministration>().TakeOver(World.System<ServerAdministration>());
         World = next;
         Attach(next);
     }
@@ -221,6 +229,7 @@ public sealed partial class GameServer : IWorldOutput
         {
             while (s.Connection.TryReceive(out var data))
             {
+                if (s.DropAt != null) continue;
                 // Clients are untrusted: a malformed message drops the connection, and a failure while handling
                 // one is logged rather than taking the server down.
                 try { Handle(s, new MessageReader(data), data); }
@@ -237,6 +246,7 @@ public sealed partial class GameServer : IWorldOutput
             }
             // A connection that never logs in would hold a place on the server.
             if (!s.HelloReceived && _running - s.AcceptedAt > HelloTimeout) s.Connection.Disconnect();
+            if (s.DropAt is { } dropAt && _running >= dropAt) s.Connection.Disconnect();
             if (!s.Connection.IsConnected) Disconnect(s);
         }
         if (_options.ExportInterval > 0 && _options.Vault == VaultMode.Server && (_exportTimer += dt) >= _options.ExportInterval)
@@ -402,7 +412,11 @@ public sealed partial class GameServer : IWorldOutput
         World.RunEvent(World.Module, "Mod_OnPlrChat", ctx);
         var text = ctx.Str("ChatMessage");
         if (text.Length == 0) return;
+        // The server's "disallow shouting" option turns a player's shout into talk.
+        if (ctx.Int("ChatVolume") == 2 && !s.IsDM && Admin.Enabled(ServerAdministration.DisallowShouting)) ctx.Set("ChatVolume", 0);
         var channel = ctx.Int("ChatVolume") switch { 1 => ChatChannel.Whisper, 2 => ChatChannel.Shout, 5 => ChatChannel.Party, 6 => ChatChannel.Tell, 4 => ChatChannel.Dm, _ => ChatChannel.Talk };
+        // Players' tells carry no addressee in OpenWinter's chat protocol, so the chat script's GetTarget is OBJECT_INVALID.
+        if (Nwnx.Plugins.ChatPlugin.Intercept(World, Nwnx.Plugins.ChatPlugin.Channel(ctx.Int("ChatVolume"), s.IsDM), text, pc)) return;
         var msg = new ChatMessage { Speaker = pc.Id, Channel = channel, SpeakerName = pc.Name.Resolve(World.Resources.Talk), Text = text }.Write();
         // The DM channel reaches every DM (and echoes to the sender); players never see each other's DM messages.
         if (channel == ChatChannel.Dm) { foreach (var x in _sessions) if (x.IsDM || x == s) x.Send(msg); }
@@ -416,7 +430,7 @@ public sealed partial class GameServer : IWorldOutput
                 if (x == s || x.PlayerCreature is { } member && members.Contains(member)) x.Send(msg);
         }
         else if (channel == ChatChannel.Shout) Broadcast(null, msg);
-        else BroadcastHeard(pc, channel == ChatChannel.Whisper ? 1 : 0, msg);
+        else BroadcastHeard(pc, channel == ChatChannel.Whisper ? 1 : 0, msg, s.IsDM);
         Society.SocietyService.OnChat(World, pc, text, ctx.Int("ChatVolume"));
     }
 
@@ -617,13 +631,13 @@ public sealed partial class GameServer : IWorldOutput
         Json = System.Text.Json.JsonSerializer.Serialize(new
         {
             name = _options.ServerName,
-            module = World.Module.Name.Resolve(World.Resources.Talk),
+            module = Admin.ModuleName ?? World.Module.Name.Resolve(World.Resources.Talk),
             players = _sessions.Count(x => x.Creature != null && !x.IsDM),
             maxPlayers = _options.MaxPlayers,
-            // Levels allowed: OpenWinter servers set no limits, so the game's whole range (nwserver's default 1 - 40).
-            minLevel = 1,
-            maxLevel = 40,
-            password = false, // OpenWinter servers take no player password
+            // Levels allowed (nwserver's default 1 - 40; NWNX_Administration_SetMinLevel / SetMaxLevel).
+            minLevel = Admin.MinLevel,
+            maxLevel = Admin.MaxLevel,
+            password = Admin.PlayerPassword.Length > 0,
             localCharacters = _options.Vault == VaultMode.Local,
         }),
     }.Write();
@@ -640,6 +654,8 @@ public sealed partial class GameServer : IWorldOutput
         s.AreaReadyHandshake = hello.AreaReadyHandshake;
         s.PublicKey = hello.PlayerKey;
         s.PortalWaypoint = hello.PortalWaypoint;
+        if (s.Address.Length == 0) s.Address = s.Connection.Address;
+        if (!AdmitLogin(s, hello)) return;
         if (hello.DM && !DungeonMaster.DungeonMasterSystem.PasswordAccepted(_options.DMPassword, hello.DMPassword))
         {
             s.Send(new NotifyMessage { Kind = "login-refused", Json = "{\"reason\":\"Invalid DM password.\"}" }.Write());
@@ -692,7 +708,9 @@ public sealed partial class GameServer : IWorldOutput
             }.Write());
             return;
         }
-        EnterWorld(s, CreatePlayerCreature(hello));
+        var character = CreatePlayerCreature(hello);
+        if (!AdmitLevel(s, character)) { Drop(s); return; }
+        EnterWorld(s, character);
     }
 
     static bool IsPlainFileName(string name) =>
@@ -734,6 +752,7 @@ public sealed partial class GameServer : IWorldOutput
             s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That character could not be loaded." }.Write());
             return;
         }
+        if (!AdmitLevel(s, c)) return;
         SetPlayerSpeeds(c);
         EnterWorld(s, c);
     }
@@ -773,6 +792,8 @@ public sealed partial class GameServer : IWorldOutput
         else if (area.Walkmesh.NearestWalkable(pos) is { } ground) pos = ground;
         World.Register(creature);
         World.RunEvent(World.Module, "Mod_OnClientEntr", new Scripting.EventContext().Set("Entering", creature.Id));
+        // A spot a script chose for this player (NWNX_Player_SetSpawnLocation / SetPersistentLocation).
+        if (Nwnx.Plugins.PlayerPlugin.SpawnOverride(World, s, creature) is { } spot) (area, pos, facing) = spot;
         World.Inventory.FireLoginAcquires(creature);
         // The join line comes before the first area's PvP line (mp_join), after the area itself is on its way.
         _joining = s;
@@ -879,6 +900,8 @@ public sealed partial class GameServer : IWorldOutput
     /// </summary>
     void AnnouncePlayer(PlayerSession s, bool joined)
     {
+        // The server's "show DM joins" and "show player joins" options (NWNX_ADMINISTRATION_OPTION_*).
+        if (!Admin.Enabled(s.IsDM ? ServerAdministration.ShowDMJoinMessage : ServerAdministration.ShowPlayerJoinMessages)) return;
         uint strref = (uint)(joined ? (s.IsDM ? 6611 : 6610) : (s.IsDM ? 6613 : 6612));
         string text = World.Resources.TlkString(strref).Replace("<PlayerName>", s.PlayerName) + ".";
         var msg = new ChatMessage { Channel = ChatChannel.Server, Text = text }.Write();
@@ -1217,7 +1240,7 @@ public sealed partial class GameServer : IWorldOutput
         {
             World.RunEvent(World.Module, "Mod_OnClientLeav", new Scripting.EventContext().Set("Exiting", s.Creature.Id));
             // Server-vault characters are saved as they leave, like the original server does.
-            if (_options.Vault == VaultMode.Server && _options.CharacterSelection && !s.IsDM)
+            if (_options.Vault == VaultMode.Server && _options.CharacterSelection && !s.IsDM && !s.SkipVaultSave)
                 try { Persistence.ServerVault.Export(World, s.Creature); }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Console.WriteLine($"[server] saving {s.PlayerName}'s character failed: {e.Message}"); }
             World.Destroy(s.Creature);
@@ -1245,14 +1268,15 @@ public sealed partial class GameServer : IWorldOutput
     /// <summary>
     /// Talk reaches the players within <see cref="Society.SocietyService.TalkRange"/> of the speaker and a whisper
     /// those within <see cref="Society.SocietyService.WhisperRange"/>, in the same area (parity/visual/scenes/mp_delivery:
-    /// talk heard from 20 m, not 25; a whisper from 2.5 m, not 3.5; a shout from 65 m).
+    /// talk heard from 20 m, not 25; a whisper from 2.5 m, not 3.5; a shout from 65 m). NWNX_Chat's hearing distances,
+    /// server-wide or per player, replace those ranges.
     /// </summary>
-    void BroadcastHeard(GameObject speaker, int volume, byte[] message)
+    void BroadcastHeard(GameObject speaker, int volume, byte[] message, bool dm = false)
     {
-        float range = volume == 1 ? Society.SocietyService.WhisperRange : Society.SocietyService.TalkRange;
+        int channel = Nwnx.Plugins.ChatPlugin.Channel(volume == 1 ? 1 : 0, dm);
         foreach (var s in _sessions)
             if (s.Area == speaker.Area && s.Area != null && s.Creature is { } listener
-                && (listener == speaker || Vector3.Distance(listener.Position, speaker.Position) <= range))
+                && (listener == speaker || Vector3.Distance(listener.Position, speaker.Position) <= Nwnx.Plugins.ChatPlugin.HearingDistance(World, s.PlayerCreature ?? listener, channel)))
                 s.Send(message);
     }
 
@@ -1317,8 +1341,14 @@ public sealed partial class GameServer : IWorldOutput
             if (area == null || session.Area == area) Send(session);
     }
 
-    public void SendMessage(Creature pc, string text) =>
+    public void SendMessage(Creature pc, string text) => SendFeedback(pc, text, FeedbackKind.Message);
+
+    /// <summary>A feedback line, unless NWNX_Feedback hides its kind or message from this player.</summary>
+    public void SendFeedback(Creature pc, string text, int kind, int message = -1)
+    {
+        if (Nwnx.Plugins.FeedbackPlugin.Hides(World, pc, kind, message)) return;
         Players.FamiliarPossession.SessionOf(pc)?.Send(new ChatMessage { Channel = ChatChannel.Server, Text = text }.Write());
+    }
 
     /// <summary>Floating text broadcast to a faction reaches its members this close (mp_delivery: a henchman's 25 m, not 35 m).</summary>
     public const float FloatingTextFactionRange = 30f;

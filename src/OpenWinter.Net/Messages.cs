@@ -17,14 +17,17 @@ public sealed class HelloMessage
     public bool AreaReadyHandshake;
     /// <summary>Arriving through a portal (ActivatePortal's sWaypointTag): the player starts at the waypoint with this tag.</summary>
     public string PortalWaypoint = "";
+    /// <summary>The server's player password, when it has one.</summary>
+    public string Password = "";
 
-    public byte[] Write() => new MessageWriter(MessageType.Hello).Str(PlayerName).Str(CharacterResRef).Str(PlayerKey).Bool(DM).Str(DMPassword).Bool(AreaReadyHandshake).Str(PortalWaypoint).ToArray();
+    public byte[] Write() => new MessageWriter(MessageType.Hello).Str(PlayerName).Str(CharacterResRef).Str(PlayerKey).Bool(DM).Str(DMPassword).Bool(AreaReadyHandshake).Str(PortalWaypoint).Str(Password).ToArray();
     public static HelloMessage Read(MessageReader r)
     {
         var m = new HelloMessage { PlayerName = r.Str(), CharacterResRef = r.Str(), PlayerKey = r.Remaining > 0 ? r.Str() : "" };
         if (r.Remaining > 0) { m.DM = r.Bool(); m.DMPassword = r.Str(); }
         if (r.Remaining > 0) m.AreaReadyHandshake = r.Bool();
         if (r.Remaining > 0) m.PortalWaypoint = r.Str();
+        if (r.Remaining > 0) m.Password = r.Str();
         return m;
     }
 }

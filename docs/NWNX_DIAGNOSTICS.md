@@ -8,9 +8,8 @@ reported once per world through the `NwnxRegistry.Log` sink.
 - **Unknown functions** get one warning each and return their empty result stack.
 - **Registered placeholders** (handlers marked with `NwnxFunc.UnsupportedReason`) warn the same way. They keep
   their argument, result and storage behaviour; the warning says the engine effect is missing. They are:
-  Damage.SetEventScript, Dialog.End, Item.SetWeight, Player.SetCustomToken,
-  Player.PossessCreature, Util.SetResourceOverride, Feedback.SetMessageHidden,
-  Administration.DeletePlayerCharacter (boots the player but keeps the vault file),
+  Damage.SetEventScript, Item.SetWeight,
+  Player.GetTURD and Player.RemoveEffectFromTURD (OpenWinter keeps no TURDs for players who leave),
   Creature.GetAttackBonus (base attack and ability only) and Creature.JumpToLimbo.
 - **Unknown Set/Get calls** use the generic compatibility store and warn that storing a value does not implement
   the engine behaviour.
@@ -55,3 +54,30 @@ server runs without players, so some of it is implemented from the NWNX headers 
 `dotnet test tests/OpenWinter.Tests --filter FullyQualifiedName~Nwnx` covers warning deduplication for the native
 and legacy calling conventions, generic store round trips, placeholder reporting, retained arguments, results and
 storage, and subscription diagnostics.
+
+## Player, Administration, Chat, Dialog, Feedback, Rename and Util
+
+- Per-player views (NWNX_Player's effects, sounds, music, fog, sky box, wind, highlight colours, cursors, discovery
+  masks, visual transforms) go to that player's client alone, with the notify kinds the area-wide versions use. The
+  views the client has no general notify for go as `nwnx-player` notifies (`{op, ...}`): the client applies
+  `resman-override` (NWNX_Player_SetResManOverride) to the resources it loads from then on; timing bars, placeable
+  usability, per-player TLK overrides and palette reloads are sent but not yet drawn.
+- NWNX_Administration's settings are the server's own: the player password and the bans are checked at login, the
+  level limits when a character enters, the play options are the rules' settings. Changes made before the server is
+  attached (OnModuleLoad) carry over to it, and they survive a saved game replacing the world.
+- Only IP bans rest on what the server observes. The CD key (the client's player key) and the player name are what
+  the client says; until keys are verified, CD key and name bans and the CD key allow list stop honest clients only.
+- The NWNX chat script runs for every line the server sends out (players' chat, SpeakString, ActionSpeakString,
+  NWNX_Chat_SendMessage); a skipped line reaches no player or listening creature. Hearing distances apply to players.
+- NWNX_Feedback hides feedback messages, combat log lines (by kind) and the journal-updated line where the server
+  sends them; SendMessageToPC counts as combat log kind 11. Which lines nwserver hides needs a player to measure and
+  is not matched; whitelist mode follows the header (hidden unless the global state is set to FALSE).
+- NWNX_Util's AddScript and AddNSSFile write to the NWNX folder whatever sAlias names. CleanResourceDirectory and
+  RemoveNWNXResourceFile only ever delete inside the NWNX folder and refuse names that aren't plain resource names;
+  OpenWinter servers have no custom resource directory file, so other aliases fail. GetUserDirectory is the folder the
+  server writes to (a sandbox in development runs).
+- Voice captions (PlayVoiceChat, battle cries) don't run the chat script; that path is unmeasured on nwserver.
+
+`dotnet test tests/OpenWinter.Tests --filter FullyQualifiedName~NwnxPlayerGroupTests` covers the calls that need a
+connected player; the parity suites `nwnx_administration`, `nwnx_util`, `nwnx_chat`, `nwnx_feedback`, `nwnx_dialog`,
+`nwnx_rename` and `nwnx_player` measure the rest against nwserver with NWNX.
