@@ -50,7 +50,7 @@ public static partial class CreatureRules
             : NwRules.AbilityCha;
         int mod = ability >= 0 ? AbilityModifier(w, c, ability) : 0;
         return 10 + level + mod + SpellFocusBonus(w, c, info.SpellId)
-            + Nwnx.Plugins.RulesModifiers.SpellSaveDCBonus(w, c, info.SpellId, Spells.SpellTable.School(w, info.SpellId));
+            + Nwnx.Plugins.RulesModifiers.SpellSaveDCBonus(w, c, info.SpellId);
     }
 
     /// <summary>

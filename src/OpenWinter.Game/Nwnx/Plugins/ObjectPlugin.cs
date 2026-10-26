@@ -57,7 +57,17 @@ static partial class ObjectPlugin
         var o = n.PopObject();
         var area = n.PopObject<Area>();
         var pos = PopPosition(n, zyx: false);
-        if (o != null && area != null) n.World.AddToArea(o, area, pos, o.Facing, exact: true);
+        if (o == null || area == null) return;
+        var from = o.Area;
+        n.World.AddToArea(o, area, pos, o.Facing, exact: true);
+        // A placeable or door takes its walkmesh with it (one made in no area gets it here).
+        if (o is Placeable or Door)
+            foreach (var changed in new[] { from, area }.OfType<Area>().Distinct())
+            {
+                WorldObjects.WalkmeshBuilder.Rebuild(n.World, changed);
+                changed.ResetPathfinder();
+                WorldObjects.DoorService.SyncWalkmesh(changed);
+            }
     }
 
     [NwnxFunc(P, "GetCurrentHitPoints")]

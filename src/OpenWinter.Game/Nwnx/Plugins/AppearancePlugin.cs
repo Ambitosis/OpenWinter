@@ -1,4 +1,3 @@
-using System.Globalization;
 using OpenWinter.Game.Objects;
 using OpenWinter.Net;
 
@@ -18,7 +17,18 @@ public static class AppearancePlugin
     const int Appearance = 0, Gender = 1, HitPoints = 2, HairColor = 3, SkinColor = 4, Phenotype = 5, Head = 6, SoundSet = 7, Tail = 8, Wings = 9,
         Footstep = 10, Portrait = 11;
 
-    static string Key(uint player, int type) => "appearance:" + player.ToString(CultureInfo.InvariantCulture) + ":" + type.ToString(CultureInfo.InvariantCulture);
+    // Overrides by (player, creature): one value per type, -1 for none. Only creatures someone overrides are listed.
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<NwnxRegistry, Dictionary<(uint Player, uint Creature), int[]>> _overrides = new();
+
+    static Dictionary<(uint, uint), int[]> Overrides(NwnxRegistry r) => _overrides.GetValue(r, _ => new());
+
+    /// <summary>Forgets the overrides of destroyed players and creatures.</summary>
+    public static void Attach(World world, NwnxRegistry registry) =>
+        world.ObjectRemoved += o =>
+        {
+            if (!o.IsDestroyed || !_overrides.TryGetValue(registry, out var all) || all.Count == 0) return;
+            foreach (var key in all.Keys.Where(k => k.Player == o.Id || k.Creature == o.Id).ToList()) all.Remove(key);
+        };
 
     [NwnxFunc(P, "SetOverride")]
     static void SetOverride(NwnxCall n)
@@ -27,14 +37,16 @@ public static class AppearancePlugin
         var creature = n.PopObject<Creature>();
         int type = n.PopInt(), value = n.PopInt();
         if (player is not { IsPC: true } || creature == null || type >= Count) return;
-        var state = n.State(creature);
-        if (type < 0)
+        var all = Overrides(n.Registry);
+        var key = (player.Id, creature.Id);
+        if (type < 0) { all.Remove(key); return; }
+        if (!all.TryGetValue(key, out var values))
         {
-            for (int t = 0; t < Count; t++) state.Remove(Key(player.Id, t));
-            return;
+            if (value < 0) return;
+            all[key] = values = Enumerable.Repeat(-1, Count).ToArray();
         }
-        if (value < 0) state.Remove(Key(player.Id, type));
-        else state[Key(player.Id, type)] = NwnxValue.Int(value);
+        values[type] = value < 0 ? -1 : value;
+        if (values.All(v => v < 0)) all.Remove(key);
     }
 
     [NwnxFunc(P, "GetOverride")]
@@ -43,11 +55,9 @@ public static class AppearancePlugin
         var player = n.PopObject<Creature>();
         var creature = n.PopObject<Creature>();
         int type = n.PopInt();
-        n.Push(player != null && creature != null ? Get(n.Registry, player.Id, creature.Id, type) : -1);
+        n.Push(player != null && creature != null && type is >= 0 and < Count
+            && _overrides.TryGetValue(n.Registry, out var all) && all.TryGetValue((player.Id, creature.Id), out var values) ? values[type] : -1);
     }
-
-    static int Get(NwnxRegistry r, uint player, uint creature, int type) =>
-        r.HasState(creature) && r.ObjectState(creature).TryGetValue(Key(player, type), out var v) && v.Value is int i ? i : -1;
 
     /// <summary>
     /// The look <paramref name="viewer"/> is sent for <paramref name="subject"/>: a changed copy of
@@ -55,11 +65,8 @@ public static class AppearancePlugin
     /// </summary>
     public static Net.Appearance? ForViewer(World world, Creature? viewer, GameObject subject, Net.Appearance look, ref string portrait)
     {
-        if (viewer == null || subject is not Creature || world.Systems.OfType<NwnxRegistry>().FirstOrDefault() is not { } r || !r.HasState(subject.Id)) return null;
-        var values = new int[Count];
-        bool any = false;
-        for (int t = 0; t < Count; t++) { values[t] = Get(r, viewer.Id, subject.Id, t); any |= values[t] >= 0; }
-        if (!any) return null;
+        if (viewer == null || subject is not Creature || NwnxRegistry.Of(world) is not { } r || !_overrides.TryGetValue(r, out var all)
+            || all.Count == 0 || !all.TryGetValue((viewer.Id, subject.Id), out var values)) return null;
         var a = new Net.Appearance
         {
             Type = look.Type, GenericDoorType = look.GenericDoorType, Gender = look.Gender, Phenotype = look.Phenotype,

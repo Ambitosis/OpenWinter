@@ -48,15 +48,24 @@ public static class RulesModifiers
             d.Creatures[c.Id] = new Tracked { Feats = c.Feats.ToHashSet(), Level = c.TotalLevel, PlayerSeen = c.IsPC };
         return d;
     });
-    static Data? Of(World w) => w.Systems.OfType<NwnxRegistry>().FirstOrDefault() is { } r && _data.TryGetValue(r, out var d) ? d : null;
+    static Data? Of(World w) => NwnxRegistry.Of(w) is { } r && _data.TryGetValue(r, out var d) ? d : null;
 
     /// <summary>Follows creatures as they appear and change, once the plugins have modifiers.</summary>
     public static void Attach(World world, NwnxRegistry registry)
     {
         world.ObjectAdded += o => { if (o is Creature c) Changed(world, registry, c); };
-        world.ObjectChanged += o => { if (o is Creature c) Changed(world, registry, c); };
+        // Other changes only matter once the level or the number of feats moved (a level-up, a feat granted).
+        world.ObjectChanged += o =>
+        {
+            if (o is Creature c && _data.TryGetValue(registry, out var d) && d.Creatures.TryGetValue(c.Id, out var t)
+                && (t.Level != c.TotalLevel || t.Feats?.Count != c.Feats.Count)) Changed(world, registry, c);
+        };
         world.ObjectRemoved += o => { if (o.IsDestroyed && _data.TryGetValue(registry, out var d)) d.Creatures.Remove(o.Id); };
-        registry.Called += (call, subject) => { if (subject is Creature c) Changed(world, registry, c); };
+        // Plugin calls that can change feats, levels or races (NWNX_Creature AddFeat, RemoveFeat, levels...).
+        registry.Called += (call, subject) =>
+        {
+            if (subject is Creature c && call.Plugin is "creature" or "feat" or "race") Changed(world, registry, c);
+        };
     }
 
     static void Changed(World w, NwnxRegistry r, Creature c)
@@ -120,7 +129,7 @@ public static class RulesModifiers
             .SetDWord("CasterLevel", 0xFFFFFFFF)
             .SetString("CustomTag", tag);
         s.SetList("IntList", all.Select(v => new GffStruct(3).SetInt("Value", v)).ToList());
-        var e = NativeEffects.Read(w, s, out _);
+        var e = NativeEffects.Read(w, s, out _, unpacked: true);
         if (e == null) return null;
         // A slower speed is kept as a smaller factor of the same kind of effect (nwnx_race: -20 reads 80).
         if (native == 28) e.Ints[0] = ints[0] - 100;
@@ -183,17 +192,17 @@ public static class RulesModifiers
     }
 
     /// <summary>Spell save DC bonuses from the caster's feats (SPELLSAVEDC, ...FORSCHOOL, ...FORSPELL).</summary>
-    public static int SpellSaveDCBonus(World w, Creature c, int spell, int school)
+    public static int SpellSaveDCBonus(World w, Creature c, int spell)
     {
         if (Of(w) is not { Feats.Count: > 0 } d) return 0;
-        int bonus = 0;
+        int bonus = 0, school = int.MinValue;
         foreach (int feat in c.Feats)
             if (d.Feats.TryGetValue(feat, out var mods))
                 foreach (var m in mods)
                     bonus += m.Type switch
                     {
                         21 => m.Get(1),
-                        28 when m.Get(1) == school => m.Get(2),
+                        28 when m.Get(1) == (school = school == int.MinValue ? Spells.SpellTable.School(w, spell) : school) => m.Get(2),
                         29 when m.Get(1) == spell => m.Get(2),
                         _ => 0,
                     };

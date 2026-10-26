@@ -231,8 +231,11 @@ public static partial class ObjectSerializer
 
     // ---- Reading ----------------------------------------------------------------------------
 
-    /// <summary>Doors, waypoints, triggers, stores, encounters and sounds at a location; null for other types.</summary>
-    static GameObject? DeserializePlaced(World world, GffStruct s, string type, Area area, Vector3 position, float facing, bool loadState)
+    /// <summary>
+    /// Doors, waypoints, triggers, stores, encounters and sounds at a location, or in no area at all (then without
+    /// walkmesh, added when they are placed); null for other types.
+    /// </summary>
+    static GameObject? DeserializePlaced(World world, GffStruct s, string type, Area? area, Vector3 position, float facing, bool loadState)
     {
         var loader = world.Loader ?? new AreaLoader(world);
         GameObject? o;
@@ -242,36 +245,39 @@ public static partial class ObjectSerializer
             {
                 var d = loader.CreateDoor(area, s, position, GameObject.BearingFor(facing));
                 d.Locked = s.GetInt("Locked") != 0;
-                // The walkmesh was built when the area loaded: rebuild it with the new door.
-                WalkmeshBuilder.Rebuild(world, area);
-                area.ResetPathfinder();
-                DoorService.SyncWalkmesh(area);
-                world.AddToArea(d, area, position, d.Facing);
+                if (area != null)
+                {
+                    // The walkmesh was built when the area loaded: rebuild it with the new door.
+                    WalkmeshBuilder.Rebuild(world, area);
+                    area.ResetPathfinder();
+                    DoorService.SyncWalkmesh(area);
+                    world.AddToArea(d, area, position, d.Facing);
+                }
                 o = d;
                 break;
             }
             case "UTW":
                 o = loader.CreateWaypoint(area, s, position, facing);
-                world.AddToArea(o, area, position, facing);
+                if (area != null) world.AddToArea(o, area, position, facing);
                 break;
             case "UTT":
                 o = loader.CreateTrigger(area, s, position);
-                world.AddToArea(o, area, position, facing);
+                if (area != null) world.AddToArea(o, area, position, facing);
                 break;
             case "UTM":
             {
                 var st = loader.CreateStore(area, s, position, facing);
-                world.AddToArea(st, area, position, facing);
+                if (area != null) world.AddToArea(st, area, position, facing);
                 o = st;
                 break;
             }
             case "UTS":
                 o = loader.CreateSound(area, s, position);
-                world.AddToArea(o, area, position, 0);
+                if (area != null) world.AddToArea(o, area, position, 0);
                 break;
             case "UTE":
                 o = loader.CreateEncounter(area, s, position);
-                world.AddToArea(o, area, position, 0);
+                if (area != null) world.AddToArea(o, area, position, 0);
                 break;
             default:
                 return null;

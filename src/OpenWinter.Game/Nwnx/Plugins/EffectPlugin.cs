@@ -96,7 +96,7 @@ static class EffectPlugin
             u.LeftValid = u.RightValid = true;
             return u;
         }
-        var s = NativeEffects.Write(w, e);
+        var s = NativeEffects.Write(w, e, unpacked: true);
         u.Id = IdOf(w, e).ToString(CultureInfo.InvariantCulture);
         u.Type = (int)s.GetInt("Type");
         u.SubType = (int)s.GetInt("SubType");
@@ -248,7 +248,7 @@ static class EffectPlugin
         s.SetList("StringList", u.Strings.Select(v => new GffStruct(5).SetString("Value", v)).ToList());
         s.SetList("ObjectList", u.Objects.Select(v => new GffStruct(6).SetDWord("Value", v)).ToList());
         s.SetList("VectorList", u.Vectors.Select(v => new GffStruct(7).SetFloat("ValueX", v.X).SetFloat("ValueY", v.Y).SetFloat("ValueZ", v.Z)).ToList());
-        var e = NativeEffects.Read(w, s, out remaining);
+        var e = NativeEffects.Read(w, s, out remaining, unpacked: true);
         if (e == null) return null;
         e.Target = GameObject.InvalidId;
         return e;
@@ -327,12 +327,10 @@ static class EffectPlugin
         return list.OrderBy(x => x.Native).ThenBy(x => x.Order).Select(x => x.Entry).ToList();
     }
 
-    static int NativeOf(EffectConstants k, Effect e) => NativeEffects.NativeType(k, e).Native;
+    static int NativeOf(EffectConstants k, Effect e) => NativeEffects.NativeType(k, e, unpacked: true).Native;
 
     /// <summary>The race the creature's racial record was made with: a later NWNX_Creature_SetRacialType leaves it (nwnx_race).</summary>
-    static int BirthRace(World w, Creature c) =>
-        w.Systems.OfType<NwnxRegistry>().FirstOrDefault() is { } r && r.HasState(c.Id) && r.ObjectState(c.Id).TryGetValue(NwnxRegistry.BirthRaceKey, out var v) && v.Value is int race
-            ? race : c.Race;
+    static int BirthRace(World w, Creature c) => NwnxRegistry.Of(w)?.BirthRace(c) ?? c.Race;
 
     static Unpacked UnpackEntry(World w, GameObject o, TrueEntry t) =>
         t.Race >= 0 ? UnpackRace(o.Id, t.Race) : t.Vision > 0 ? UnpackVision(w, t.Effect, t.Vision)

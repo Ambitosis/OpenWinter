@@ -115,7 +115,7 @@ public static class NwnxPersistence
     /// <summary>Writes the field on a serialized object when it has persisted values.</summary>
     public static void WriteField(World world, GameObject o, GffStruct s, bool always = false)
     {
-        if (world.Systems.OfType<NwnxRegistry>().FirstOrDefault() is not { } r) return;
+        if (NwnxRegistry.Of(world) is not { } r) return;
         // A field this engine never read or wrote (one it could not parse, say) is kept as it was.
         if (!r.HasState(o.Id) || !r.ObjectState(o.Id).ContainsKey(Owned))
         {
@@ -128,7 +128,7 @@ public static class NwnxPersistence
     /// <summary>Restores the field of a deserialized object.</summary>
     public static void ReadField(World world, GameObject o, GffStruct s)
     {
-        if (s.GetString(Field) is not { Length: > 0 } text || world.Systems.OfType<NwnxRegistry>().FirstOrDefault() is not { } r) return;
+        if (s.GetString(Field) is not { Length: > 0 } text || NwnxRegistry.Of(world) is not { } r) return;
         Read(r, o.Id, text);
     }
 
@@ -139,7 +139,7 @@ public static class NwnxPersistence
         if (close < 0 || !int.TryParse(text.AsSpan(at + 1, close - at - 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int len)) return null;
         int start = close + 1;
         // Lengths count the string's bytes in the game's single-byte encoding.
-        if (start + len > text.Length) return null;
+        if (len < 0 || len > text.Length - start) return null;
         at = start + len;
         return text.Substring(start, len);
     }

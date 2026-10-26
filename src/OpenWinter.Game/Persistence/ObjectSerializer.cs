@@ -463,21 +463,20 @@ public static partial class ObjectSerializer
         string type = fileType.Trim().ToUpperInvariant();
         if (type is "GFF" or "") type = s.Has("BaseItem") ? "UTI" : s.Has("Appearance_Type") ? "UTC" : s.Has("Appearance") && s.Has("Static") ? "UTP" : type;
         if (type == "CAF") return DeserializeArea(world, s);
+        // Objects registered while reading a struct that turns out unusable go with it.
+        uint firstNew = world.NextObjectId;
         GameObject? o;
-        if (limbo && world.Get(at.Area) is not Area && type is not ("UTI" or "UTC" or "BIC"))
+        try
         {
-            // The other kinds are built in an area: build them in the first one and take them out again.
-            if (world.Areas.FirstOrDefault() is not { } host) return null;
-            o = DeserializeObject(world, s, type, new Location(host.Id, Vector3.Zero, 0), owner, loadObjectState, limbo: true);
-            if (o != null)
-            {
-                world.MoveToLimbo(o);
-                // Out of any area a waypoint keeps the position it was saved with (nwnx_object_serialize).
-                if (o is not (Placeable or Door)) o.Position = new Vector3(s.GetFloat("XPosition"), s.GetFloat("YPosition"), s.GetFloat("ZPosition"));
-            }
+            o = DeserializeObject(world, s, type, at, owner, loadObjectState, limbo);
+            if (o != null && (loadObjectState || o is Item)) ObjectStateGff.Read(world, o, s);
         }
-        else o = DeserializeObject(world, s, type, at, owner, loadObjectState, limbo);
-        if (o != null && (loadObjectState || o is Item)) ObjectStateGff.Read(world, o, s);
+        catch (Exception e) when (e is InvalidCastException or InvalidDataException or KeyNotFoundException or IndexOutOfRangeException
+                                      or ArgumentException or FormatException or NullReferenceException or OverflowException)
+        {
+            o = null;
+        }
+        if (o == null) world.DestroyRegisteredSince(firstNew);
         return o;
     }
 
@@ -533,8 +532,8 @@ public static partial class ObjectSerializer
             }
             case "UTP":
             {
-                if (area == null || world.Loader == null) return null;
-                var p = world.Loader.CreatePlaceable(area, s, at.Position, GameObject.BearingFor(facing), walkmesh: !limbo);
+                if (area == null && !limbo || world.Loader == null) return null;
+                var p = world.Loader.CreatePlaceable(area, s, area == null ? Vector3.Zero : at.Position, GameObject.BearingFor(facing));
                 p.OpenLockDC = (int)s.GetInt("OpenLockDC");
                 p.CloseLockDC = (int)s.GetInt("CloseLockDC");
                 p.KeyName = s.GetString("KeyName");
@@ -558,11 +557,13 @@ public static partial class ObjectSerializer
                             p.Inventory.Add(item);
                         }
                 ClaimUuid(world, p, s);
-                world.AddToArea(p, area, at.Position, facing);
+                if (area != null) world.AddToArea(p, area, at.Position, facing);
                 return p;
             }
             default:
-                return area == null ? null : DeserializePlaced(world, s, type, area, at.Position, facing, loadObjectState);
+                if (area != null) return DeserializePlaced(world, s, type, area, at.Position, facing, loadObjectState);
+                // Out of any area a waypoint keeps the position it was saved with (nwnx_object_serialize).
+                return limbo ? DeserializePlaced(world, s, type, null, new Vector3(s.GetFloat("XPosition"), s.GetFloat("YPosition"), s.GetFloat("ZPosition")), facing, loadObjectState) : null;
         }
     }
 

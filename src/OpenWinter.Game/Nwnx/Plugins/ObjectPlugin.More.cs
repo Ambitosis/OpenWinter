@@ -220,7 +220,7 @@ static partial class ObjectPlugin
     /// <summary>The PROJECTILE_PATH_TYPE_* a creature's projectile for <paramref name="spell"/> takes instead, or -1.</summary>
     public static int ProjectilePathOverride(World world, GameObject caster, int spell)
     {
-        if (world.Systems.OfType<NwnxRegistry>().FirstOrDefault() is not { } r) return -1;
+        if (NwnxRegistry.Of(world) is not { } r) return -1;
         if (NwnxPersistence.Get(r, caster.Id, ProjectileType) is not { Value: int type } || type != 7) return -1; // NWNX_OBJECT_SPELL_PROJECTILE_TYPE_USE_PATH
         int only = NwnxPersistence.Get(r, caster.Id, ProjectileSpell) is { Value: int sp } ? sp : -1;
         int path = NwnxPersistence.Get(r, caster.Id, ProjectilePath) is { Value: int p } ? p : -1;
@@ -241,7 +241,7 @@ static partial class ObjectPlugin
 
     /// <summary>Whether conversations an object starts are private by default (SetConversationPrivate).</summary>
     public static bool ConversationPrivate(World world, GameObject owner) =>
-        world.Systems.OfType<NwnxRegistry>().FirstOrDefault() is { } r && r.HasState(owner.Id) && r.ObjectState(owner.Id).ContainsKey(ConversationPrivateKey);
+        NwnxRegistry.Of(world) is { } r && r.HasState(owner.Id) && r.ObjectState(owner.Id).ContainsKey(ConversationPrivateKey);
 
     // ---------------------------------------------------------------- UUIDs and export
 
@@ -258,8 +258,8 @@ static partial class ObjectPlugin
     }
 
     /// <summary>
-    /// Writes the object as a blueprint file (.uti, .utc, ...) into the server's "nwnx" folder (or the folder an
-    /// alias other than "NWNX" names, under the same root).
+    /// Writes the object as a blueprint file (.uti, .utc, ...) into the server's "nwnx" folder (alias "NWNX", the only
+    /// one accepted).
     /// </summary>
     [NwnxFunc("Object", "Export")]
     static void Export(NwnxCall n)
@@ -267,17 +267,21 @@ static partial class ObjectPlugin
         var o = n.PopObject();
         var name = n.PopString();
         var alias = n.PopString();
-        if (o is not (Creature or Item or Placeable or Waypoint or Door or Store or Trigger) || name.Length is 0 or > 16) return;
+        if (o is not (Creature or Item or Placeable or Waypoint or Door or Store or Trigger)) return;
+        // A resource name, into the NWNX folder only (the alias the server sets up); anything else is refused.
+        if (name.Length is 0 or > 16 || !name.All(ch => ch is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9') or '_')) return;
+        if (alias.Length > 0 && !alias.Equals("NWNX", StringComparison.OrdinalIgnoreCase)) return;
         // The file is only written; the original does not look resources up in that folder (nwnx_object).
         if (ObjectSerializer.ToBytes(n.World, o) is not { } data) return;
-        string root = n.World.System<PersistenceSystem>().UserRoot;
-        string folder = Path.Combine(root, alias.Length == 0 || alias.Equals("NWNX", StringComparison.OrdinalIgnoreCase) ? "nwnx" : alias.ToLowerInvariant());
+        string folder = Path.GetFullPath(Path.Combine(n.World.System<PersistenceSystem>().UserRoot, "nwnx"));
         string ext = ObjectSerializer.FileType(o).Trim().ToLowerInvariant();
         if (ext == "bic") ext = "utc";
         try
         {
             Directory.CreateDirectory(folder);
-            File.WriteAllBytes(Path.Combine(folder, name.ToLowerInvariant() + "." + ext), data);
+            string file = Path.GetFullPath(Path.Combine(folder, name.ToLowerInvariant() + "." + ext));
+            if (!file.StartsWith(folder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) return;
+            File.WriteAllBytes(file, data);
         }
         catch (IOException e) { n.Registry.Log($"[nwnx] Object.Export: {e.Message}"); }
         catch (UnauthorizedAccessException e) { n.Registry.Log($"[nwnx] Object.Export: {e.Message}"); }

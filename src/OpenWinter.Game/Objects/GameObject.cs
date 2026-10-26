@@ -35,7 +35,7 @@ public sealed class LocalVariables
     public readonly JsonLocals Jsons = new();
 
     // When each name first got a value, for listing variables newest first (NWNX_Object_GetLocalVariable).
-    readonly Dictionary<string, long> _order = new(StringComparer.Ordinal);
+    Dictionary<string, long>? _order;
     long _sequence;
 
     /// <summary>
@@ -44,8 +44,8 @@ public sealed class LocalVariables
     /// </summary>
     public void Touch(string name)
     {
-        if (TypeOf(name) == 0) _order.Remove(name);
-        else _order.TryAdd(name, ++_sequence);
+        if (TypeOf(name) == 0) _order?.Remove(name);
+        else (_order ??= new(StringComparer.Ordinal)).TryAdd(name, ++_sequence);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public sealed class LocalVariables
         Add(Ints.Keys); Add(Floats.Keys); Add(Strings.Keys); Add(Objects.Keys); Add(Locations.Keys); Add(Jsons.Keys);
         return names.Select(n => (Name: n, Type: TypeOf(n)))
             .Where(v => v.Type != 0)
-            .OrderByDescending(v => _order.TryGetValue(v.Name, out long at) ? at : long.MinValue)
+            .OrderByDescending(v => _order != null && _order.TryGetValue(v.Name, out long at) ? at : long.MinValue)
             .ToList();
     }
 

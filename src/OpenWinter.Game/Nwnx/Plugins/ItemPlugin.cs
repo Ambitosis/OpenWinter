@@ -128,11 +128,12 @@ public static class ItemPlugin
     const string LevelOverride = "NWNX_Item!MINIMUM_EQUIP_LEVEL_OVERRIDE", LevelModifier = "NWNX_Item!MINIMUM_EQUIP_LEVEL_MODIFIER";
 
     static int Setting(World w, Item item, string key) =>
-        w.Systems.OfType<NwnxRegistry>().FirstOrDefault() is { } r && NwnxPersistence.Get(r, item.Id, key) is { Value: int v } ? v : 0;
+        NwnxRegistry.Of(w) is { } r && NwnxPersistence.Get(r, item.Id, key) is { Value: int v } ? v : 0;
 
     /// <summary>
     /// The level an item needs (item level restriction): its override if set, else the first itemvalue.2da row
-    /// whose MAXSINGLEITEMVALUE covers its value, plus its modifier, kept to a byte as the original does.
+    /// whose MAXSINGLEITEMVALUE covers its value (one past the table when none does: no level can equip it), plus its
+    /// modifier, kept to a byte as the original does.
     /// </summary>
     public static int MinEquipLevel(World w, Item item)
     {
@@ -141,7 +142,7 @@ public static class ItemPlugin
         {
             var table = w.Resources.TwoDA("itemvalue");
             int value = w.Inventory.Rules.GoldValue(item);
-            level = Math.Max(1, table.RowCount);
+            level = table.RowCount + 1;
             for (int row = 0; row < table.RowCount; row++)
                 if (table.GetInt(row, "MAXSINGLEITEMVALUE", int.MaxValue) >= value) { level = row + 1; break; }
         }

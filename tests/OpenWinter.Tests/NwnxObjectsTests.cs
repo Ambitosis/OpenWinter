@@ -154,14 +154,12 @@ public class NwnxObjectsTests
             NwnxValue.Int(3), NwnxValue.Int(4), NwnxValue.Int(10)); // feat 10: AC +3
         var c = new Creature();
         world.Register(c);
-        c.Feats.Add(10);
-        world.MarkChanged(c);
+        Call(r, "Creature", "AddFeat", NwnxValue.Int(10), NwnxValue.Object(c.Id));
         var innate = c.Effects.Where(e => e.Innate).ToList();
         Assert.Single(innate);
         Assert.Equal("NWNX_Feat_FeatMod_10", innate[0].Tag);
         Assert.True(innate[0].Hidden);
-        c.Feats.Remove(10);
-        world.MarkChanged(c);
+        Call(r, "Creature", "RemoveFeat", NwnxValue.Int(10), NwnxValue.Object(c.Id));
         Assert.DoesNotContain(c.Effects, e => e.Innate);
     }
 }

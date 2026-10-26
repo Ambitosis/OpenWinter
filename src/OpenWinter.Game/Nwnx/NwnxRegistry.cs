@@ -174,19 +174,28 @@ public sealed class NwnxRegistry : IWorldSystem
     /// <summary>Counts of unknown calls and known handlers with missing engine behavior.</summary>
     public readonly Dictionary<string, int> MissingCalls = new(StringComparer.OrdinalIgnoreCase);
 
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, NwnxRegistry> _byWorld = new();
+
+    /// <summary>The world's registry, for engine code that consults plugin settings.</summary>
+    public static NwnxRegistry? Of(World world) => _byWorld.TryGetValue(world, out var r) ? r : null;
+
     public NwnxRegistry(World world)
     {
         _world = world;
+        _byWorld.AddOrUpdate(world, this);
         // Lifting an item off the ground also reports it removed; only destruction ends its plugin state.
-        world.ObjectRemoved += o => { if (o.IsDestroyed) { _objectState.Remove(o.Id); _limbo.Remove(o.Id); } };
+        world.ObjectRemoved += o => { if (o.IsDestroyed) { _objectState.Remove(o.Id); _limbo.Remove(o.Id); _birthRace.Remove(o.Id); } };
         Plugins.RulesModifiers.Attach(world, this);
-        world.ObjectAdded += o => { if (o is Creature c) ObjectState(c.Id).TryAdd(BirthRaceKey, NwnxValue.Int(c.Race)); };
+        world.ObjectAdded += o => { if (o is Creature c) _birthRace.TryAdd(c.Id, c.Race); };
+        Plugins.AppearancePlugin.Attach(world, this);
     }
 
-    /// <summary>A creature's race when it first entered an area (its racial effect record keeps it).</summary>
-    public const string BirthRaceKey = "creature:birthRace";
+    readonly Dictionary<uint, int> _birthRace = new();
 
-    /// <summary>After each plugin call, with the first object it was given (feat and race modifiers follow changes).</summary>
+    /// <summary>A creature's race when it first entered an area (its racial effect record keeps it).</summary>
+    public int BirthRace(Creature c) => _birthRace.TryGetValue(c.Id, out int race) ? race : c.Race;
+
+    /// <summary>After each Creature, Feat or Race plugin call, with the first object it was given (feat and race modifiers follow changes).</summary>
     public event Action<NwnxCall, GameObject?>? Called;
 
     // Objects created in no area (NWNX_Object_Deserialize): their actions still run, so a jump places them.
@@ -194,13 +203,18 @@ public sealed class NwnxRegistry : IWorldSystem
 
     public void TrackLimbo(GameObject o) => _limbo.Add(o.Id);
 
+    readonly List<uint> _limboStep = new();
+
+    /// <summary>Objects in no area only carry out jumps and assigned commands (what places them).</summary>
     public void Step(float dt)
     {
         if (_limbo.Count == 0) return;
-        foreach (uint id in _limbo.ToList())
+        _limboStep.Clear();
+        _limboStep.AddRange(_limbo);
+        foreach (uint id in _limboStep)
         {
             if (_world.Get(id) is not { Area: null } o || o is Item) { _limbo.Remove(id); continue; }
-            ActionQueues.Step(_world, o, dt);
+            if (o.Actions.FirstOrDefault() is JumpAction or DoCommandAction) ActionQueues.Step(_world, o, dt);
         }
     }
 
@@ -248,7 +262,8 @@ public sealed class NwnxRegistry : IWorldSystem
         if (Handlers.TryGetValue((call.Plugin, function.ToLowerInvariant()), out var handler))
         {
             if (handler.UnsupportedReason is { } reason) call.ReportUnsupported(reason);
-            var subject = Called != null && call.Args.TopDown().FirstOrDefault(v => v.Type == NwnxType.Object) is { Value: uint id } ? _world.Get(id) : null;
+            var subject = Called != null && call.Plugin is "creature" or "feat" or "race"
+                && call.Args.TopDown().FirstOrDefault(v => v.Type == NwnxType.Object) is { Value: uint id } ? _world.Get(id) : null;
             handler.Invoke(call);
             Called?.Invoke(call, subject);
             return true;
@@ -340,4 +355,3 @@ public sealed class NwnxRegistry : IWorldSystem
         };
     }
 }
-

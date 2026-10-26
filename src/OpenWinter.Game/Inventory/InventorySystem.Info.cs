@@ -129,7 +129,7 @@ public sealed partial class InventorySystem
         if (_world.ItemLevelRestrictions && item.Identified)
         {
             int level = Nwnx.Plugins.ItemPlugin.MinEquipLevel(_world, item);
-            if (level > 1) requirements.Add(new { text = $"Character level {level}", met = viewer == null || !viewer.IsPC || _world.CanEquipByLevel(viewer, item) });
+            if (level > 1 && level <= res.TwoDA("itemvalue").RowCount) requirements.Add(new { text = $"Character level {level}", met = viewer == null || !viewer.IsPC || _world.CanEquipByLevel(viewer, item) });
         }
 
         int maxCharges = valid ? bi.GetInt(item.BaseItem, "ChargesStarting", 0) : 0;
