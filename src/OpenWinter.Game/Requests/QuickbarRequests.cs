@@ -90,12 +90,30 @@ public static class QuickbarRequests
                 QuickbarItemState.Remember(r.World, r.Player, item, slot);
             }
         }
+        // NWNX_ON_QUICKBAR_SET_BUTTON (TYPE as NWNX_PLAYER_QBS_TYPE_*); a skip keeps the button as it was server side.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_QUICKBAR_SET_BUTTON", r.Player)?.Add("BUTTON", index).Add("TYPE", NwnxButtonType(slot));
+        if (ev?.Before() == true) { ev.After(); return; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         r.Player.QuickbarEdits[index] = slot;
         r.Player.QuickbarItems.Remove(index);
         r.Player.QuickbarSecondaryItems.Remove(index);
         if (item != null) r.Player.QuickbarItems[index] = item;
         if (secondary != null) r.Player.QuickbarSecondaryItems[index] = secondary;
     }
+
+    /// <summary>NWNX_PLAYER_QBS_TYPE_* of a button.</summary>
+    static int NwnxButtonType(QuickbarSlot? s) => s?.Kind switch
+    {
+        null => 0,
+        "item" => s.Prop >= 0 ? 9 : 1,
+        "spell" => 2,
+        "skill" => 3,
+        "feat" => 4,
+        "mode" => 10,
+        "emote" => 8,
+        "macro" => 18,
+        _ => 0,
+    };
 
     static bool Valid(QuickbarSlot s) => s.Name is { Length: <= 512 } && s.Arg is { Length: <= 64 } && s.Text is { Length: <= MacroTextLimit }
         && (s.Kind == "macro" || s.Text.Length == 0)

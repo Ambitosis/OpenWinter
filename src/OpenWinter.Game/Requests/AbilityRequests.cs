@@ -251,6 +251,11 @@ public static class AbilityRequests
         if (r.World.Get(r.Id("target")) is not { } t || t == r.Player || t.Area != r.Player.Area || r.Player.IsDead || !r.Player.Commandable) return;
         if (t is not (Creature or Door or Placeable)) return;
         if (r.World.RefusesPvp(r.Player, t)) return; // e.g. her own summon (associateradial)
+        // NWNX_ON_INPUT_ATTACK_OBJECT; a skip ignores the order.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_INPUT_ATTACK_OBJECT", r.Player)?.Add("TARGET", t).Add("PASSIVE", false)
+            .Add("CLEAR_ALL_ACTIONS", true).Add("ADD_TO_FRONT", false);
+        if (ev?.Before() == true) { ev.After(); return; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         ActionQueues.Clear(r.World, r.Player);
         // On the action queue, so the player's next order (or a script's ClearAllActions) ends the fight.
         r.Player.Actions.Add(new AttackAction { Target = t.Id });

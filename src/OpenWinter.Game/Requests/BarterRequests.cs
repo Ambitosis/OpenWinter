@@ -85,6 +85,10 @@ public sealed class BarterService : IWorldSystem
         _asked.Remove(to.Id);
         if (_world.Get<Creature>(fromId) is not { IsDestroyed: false } from || from.Area != to.Area || _sessions.ContainsKey(from.Id)) return;
         if (!accept) { Say(from, Tlk(6797).Replace("<FirstName>", Name(to))); return; }
+        // NWNX_ON_BARTER_START, OBJECT_SELF the player who asked; a skip opens no barter.
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_BARTER_START", from)?.Add("BARTER_TARGET", to);
+        if (ev?.Before() == true) { ev.After(); return; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         var s = new Session { A = new Side { Player = from }, B = new Side { Player = to } };
         _sessions[from.Id] = s;
         _sessions[to.Id] = s;
@@ -96,6 +100,10 @@ public sealed class BarterService : IWorldSystem
     {
         if (SessionOf(pc) is not { } s || s.Of(pc) is not { Offered: false } side) return false;
         if (!Tradeable(pc, item) || side.Items.Contains(item.Id)) return false;
+        // NWNX_ON_BARTER_ADD_ITEM; a skip keeps the item out of the offer.
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_BARTER_ADD_ITEM", pc)?.Add("ITEM", item).Add("BARTER_TARGET", s.Other(pc).Player);
+        if (ev?.Before() == true) { ev.After(); return false; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         side.Items.Add(item.Id);
         side.Stacks[item.Id] = item.StackSize;
         Changed(s);
@@ -198,6 +206,19 @@ public sealed class BarterService : IWorldSystem
 
     void End(Session s, bool cancelled)
     {
+        // NWNX_ON_BARTER_END, OBJECT_SELF the player who asked; the items traded are only in the _BEFORE half.
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_BARTER_END", s.A.Player)?.Add("BARTER_TARGET", s.B.Player).Add("BARTER_COMPLETE", !cancelled);
+        if (ev != null)
+        {
+            ev.Add("BARTER_INITIATOR_ITEM_COUNT", s.A.Items.Count).Add("BARTER_TARGET_ITEM_COUNT", s.B.Items.Count);
+            for (int i = 0; i < s.A.Items.Count; i++) ev.AddObject("BARTER_INITIATOR_ITEM_" + i, s.A.Items[i]);
+            for (int i = 0; i < s.B.Items.Count; i++) ev.AddObject("BARTER_TARGET_ITEM_" + i, s.B.Items[i]);
+            ev.Before();
+            ev.Remove("BARTER_INITIATOR_ITEM_COUNT").Remove("BARTER_TARGET_ITEM_COUNT");
+            for (int i = 0; i < s.A.Items.Count; i++) ev.Remove("BARTER_INITIATOR_ITEM_" + i);
+            for (int i = 0; i < s.B.Items.Count; i++) ev.Remove("BARTER_TARGET_ITEM_" + i);
+        }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         _sessions.Remove(s.A.Player.Id);
         _sessions.Remove(s.B.Player.Id);
         foreach (var pc in new[] { s.A.Player, s.B.Player })

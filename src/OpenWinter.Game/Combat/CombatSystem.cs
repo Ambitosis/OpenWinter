@@ -187,6 +187,10 @@ public sealed partial class CombatSystem : IWorldSystem
     {
         if (attacker.InCombat) return;
         State(attacker).LastHostile = _world.Time;
+        // A player going into combat: NWNX_ON_COMBAT_ENTER (players only).
+        var ev = attacker.IsPC ? Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_COMBAT_ENTER", attacker) : null;
+        ev?.Before();
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         attacker.InCombat = true;
         _world.MarkChanged(attacker);
         if (attacker.IsPC) TellInitiative(attacker);
@@ -219,7 +223,7 @@ public sealed partial class CombatSystem : IWorldSystem
             s.PendingFeat = -1;
             if (s.Approach != null) { s.Approach.Cancel(_world, attacker); s.Approach = null; }
         }
-        if (leaveCombat && attacker.InCombat) { attacker.InCombat = false; _world.MarkChanged(attacker); }
+        if (leaveCombat && attacker.InCombat) LeaveCombat(attacker);
     }
 
     /// <summary>
@@ -402,7 +406,7 @@ public sealed partial class CombatSystem : IWorldSystem
             {
                 s.Target = GameObject.InvalidId;
                 s.SwingTarget = GameObject.InvalidId;
-                if (c.InCombat) { c.InCombat = false; _world.MarkChanged(c); }
+                if (c.InCombat) LeaveCombat(c);
                 continue;
             }
             var target = _world.Get(s.Target);
@@ -414,7 +418,7 @@ public sealed partial class CombatSystem : IWorldSystem
                 // so the stock AI's next round keeps after it (interarea_pursuit).
                 if (target == null || target.IsDestroyed || HitPoints.IsDead(target)) s.SwingTarget = GameObject.InvalidId;
                 // Weapon hostility lasts a round; script hostility has its independently measured lifetime.
-                if (c.InCombat && now - s.LastHostile >= HostilitySeconds && now >= s.ScriptHostilityUntil) { c.InCombat = false; _world.MarkChanged(c); }
+                if (c.InCombat && now - s.LastHostile >= HostilitySeconds && now >= s.ScriptHostilityUntil) LeaveCombat(c);
                 // A round of attacks in progress still ends on time (sooner when the target died with attacks left);
                 // then the creature defends while in combat.
                 if (s.Pursuing) { s.RoundStart = -1; continue; }

@@ -76,6 +76,14 @@ public sealed class NwnxEvent
         return Skipped;
     }
 
+    /// <summary>Runs the event's _AFTER half when disposed (handlers with several ways out).</summary>
+    public readonly struct AfterScope : IDisposable
+    {
+        readonly NwnxEvent? _ev;
+        public AfterScope(NwnxEvent? ev) => _ev = ev;
+        public void Dispose() => _ev?.After();
+    }
+
     /// <summary>Before, then <paramref name="work"/> unless skipped, then After.</summary>
     public static void Wrap(World world, string name, GameObject? self, Action<NwnxEvent>? data, Action work)
     {
@@ -107,6 +115,15 @@ public sealed class NwnxEvent
         "NWNX_ON_CREATURE_JUMP_TO_OBJECT", "NWNX_ON_CREATURE_TILE_CHANGE", "NWNX_ON_MATERIALCHANGE",
         "NWNX_ON_ATTACK_TARGET_CHANGE", "NWNX_ON_START_COMBAT_ROUND", "NWNX_ON_BROADCAST_ATTACK_OF_OPPORTUNITY",
         "NWNX_ON_COMBAT_ATTACK_OF_OPPORTUNITY", "NWNX_ON_DISARM", "NWNX_ON_ITEM_DECREMENT_STACKSIZE", "NWNX_ON_ITEM_AMMO_RELOAD",
+        "NWNX_ON_INVENTORY_OPEN", "NWNX_ON_INPUT_DROP_ITEM", "NWNX_ON_STORE_REQUEST_BUY", "NWNX_ON_STORE_REQUEST_SELL",
+        "NWNX_ON_ITEM_PAY_TO_IDENTIFY", "NWNX_ON_CHARACTER_SHEET_PERMITTED", "NWNX_ON_CHARACTER_SHEET_OPEN", "NWNX_ON_JOURNAL_OPEN",
+        "NWNX_ON_EXAMINE_OBJECT", "NWNX_ON_ITEM_SPLIT", "NWNX_ON_INPUT_TOGGLE_PAUSE", "NWNX_ON_PVP_ATTITUDE_CHANGE",
+        "NWNX_ON_QUICKBAR_SET_BUTTON", "NWNX_ON_QUICKCHAT", "NWNX_ON_MAP_PIN_ADD_PIN", "NWNX_ON_MAP_PIN_CHANGE_PIN",
+        "NWNX_ON_MAP_PIN_DESTROY_PIN", "NWNX_ON_POSSESS_FAMILIAR", "NWNX_ON_UNPOSSESS_FAMILIAR", "NWNX_ON_CLIENT_LEVEL_UP_BEGIN",
+        "NWNX_ON_LEVEL_UP", "NWNX_ON_INPUT_ATTACK_OBJECT", "NWNX_ON_PLACEABLE_OPEN", "NWNX_ON_PLACEABLE_CLOSE", "NWNX_ON_OBJECT_USE",
+        "NWNX_ON_CLIENT_CONNECT", "NWNX_ON_CLIENT_DISCONNECT", "NWNX_ON_CHECK_STICKY_PLAYER_NAME_RESERVED", "NWNX_ON_SERVER_SEND_AREA",
+        "NWNX_ON_SERVER_CHARACTER_SAVE", "NWNX_ON_COMBAT_ENTER", "NWNX_ON_COMBAT_EXIT", "NWNX_ON_INPUT_WALK_TO_WAYPOINT",
+        "NWNX_ON_INPUT_EMOTE", "NWNX_ON_INPUT_KEYBOARD", "NWNX_ON_BARTER_START", "NWNX_ON_BARTER_ADD_ITEM", "NWNX_ON_BARTER_END",
     };
 
     /// <summary>Why an automatic event is never raised, or null when it is (or is a script-defined event).</summary>

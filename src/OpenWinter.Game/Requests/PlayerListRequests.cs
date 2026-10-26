@@ -28,7 +28,12 @@ static class PlayerListRequests
         }
         int before = r.World.PauseState;
         int wanted = r.Int("state", -1);
-        r.World.PauseState = wanted == 1 ? before | 2 : wanted == 0 ? before & ~2 : (before & 2) != 0 ? before & ~2 : before | 2;
+        int next = wanted == 1 ? before | 2 : wanted == 0 ? before & ~2 : (before & 2) != 0 ? before & ~2 : before | 2;
+        // NWNX_ON_INPUT_TOGGLE_PAUSE; a skip leaves the game as it is.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_INPUT_TOGGLE_PAUSE", r.Player)?.Add("PAUSE_STATE", (next & 2) != 0);
+        if (ev?.Before() == true) { ev.After(); return; }
+        r.World.PauseState = next;
+        ev?.After();
         if (r.World.PauseState != before || wanted < 0) r.World.NotifyAllPlayers("pause", new { state = r.World.PauseState });
     }
 
@@ -43,7 +48,11 @@ static class PlayerListRequests
     static void Like(Request r)
     {
         if (r.Obj<Creature>("other") is not { IsPC: true } other || other == r.Player || other.IsDMAvatar || r.Player.IsDMAvatar) return;
+        // NWNX_ON_PVP_ATTITUDE_CHANGE (ATTITUDE 1 like, 0 dislike); a skip keeps the attitude.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_PVP_ATTITUDE_CHANGE", r.Player)?.Add("TARGET_OBJECT_ID", other).Add("ATTITUDE", r.Bool("like"));
+        if (ev?.Before() == true) { ev.After(); return; }
         PlayerRelations.SetLike(r.World, r.Player, other, r.Bool("like"));
+        ev?.After();
         PartyService.Of(r.World).ListenToPlayerList(r.Player);
         PartyService.Of(r.World).PlayerListChanged();
     }

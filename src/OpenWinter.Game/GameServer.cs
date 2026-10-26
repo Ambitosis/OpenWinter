@@ -301,6 +301,8 @@ public sealed partial class GameServer : IWorldOutput
                 var m = MoveInputMessage.Read(r);
                 // A dying, dead or otherwise uncommandable player can't move.
                 if (s.Creature.IsDying || !ActionQueues.Accepts(s.Creature)) break;
+                if (m.Direction.LengthSquared() <= 0.0001f) Nwnx.NwnxInput.Released(s.Creature);
+                else if (Nwnx.NwnxInput.Keyboard(World, s.Creature, m.Direction)) break;
                 if (m.Direction.LengthSquared() > 0.0001f)
                 {
                     // Steering by keys overrides click-to-move and other queued actions.
@@ -349,7 +351,13 @@ public sealed partial class GameServer : IWorldOutput
         switch (a.Action)
         {
             case ActionKind.Emote:
-                if (OpenWinter.Content.Emotes.All.FirstOrDefault(e => e.Key == a.Argument) is { } emote) Emote(s.Creature!, emote);
+                if (OpenWinter.Content.Emotes.All.FirstOrDefault(e => e.Key == a.Argument) is { } emote)
+                {
+                    // NWNX_ON_INPUT_EMOTE (ANIMATION the engine animation); a skip plays nothing.
+                    var ev = Nwnx.NwnxEvent.Begin(World, "NWNX_ON_INPUT_EMOTE", s.Creature)?.Add("ANIMATION", emote.Animation);
+                    if (ev?.Before() != true) Emote(s.Creature!, emote);
+                    ev?.After();
+                }
                 else Broadcast(s.Area, new PlayAnimationMessage { ObjectId = s.Creature!.Id, Animation = a.Argument, Gesture = true }.Write());
                 break;
             case ActionKind.ToggleStance:
@@ -361,6 +369,13 @@ public sealed partial class GameServer : IWorldOutput
                 break;
             case ActionKind.MoveTo:
                 if (s.Creature!.IsDying || !ActionQueues.Accepts(s.Creature)) break;
+                {
+                    // NWNX_ON_INPUT_WALK_TO_WAYPOINT; a skip ignores the click.
+                    var ev = Nwnx.NwnxEvent.Begin(World, "NWNX_ON_INPUT_WALK_TO_WAYPOINT", s.Creature)?.Add("AREA", s.Creature.Area)
+                        .Position("POS_", a.Position).Add("RUN_TO_POINT", a.Run);
+                    if (ev?.Before() == true) { ev.After(); break; }
+                    ev?.After();
+                }
                 ActionQueues.Clear(World, s.Creature!);
                 Movement.Stop(s.Creature!);
                 var move = new MoveAction { Target = a.Position, Run = a.Run, Range = 0.3f, AllowBackward = true };
@@ -640,6 +655,12 @@ public sealed partial class GameServer : IWorldOutput
         s.AreaReadyHandshake = hello.AreaReadyHandshake;
         s.PublicKey = hello.PlayerKey;
         s.PortalWaypoint = hello.PortalWaypoint;
+        if (Nwnx.NwnxSession.Connect(World, hello.PlayerName, hello.PlayerKey, hello.DM, s.Address) is { } refused)
+        {
+            s.Send(new NotifyMessage { Kind = "login-refused", Json = System.Text.Json.JsonSerializer.Serialize(new { reason = refused }) }.Write());
+            s.Connection.Disconnect();
+            return;
+        }
         if (hello.DM && !DungeonMaster.DungeonMasterSystem.PasswordAccepted(_options.DMPassword, hello.DMPassword))
         {
             s.Send(new NotifyMessage { Kind = "login-refused", Json = "{\"reason\":\"Invalid DM password.\"}" }.Write());
@@ -647,7 +668,8 @@ public sealed partial class GameServer : IWorldOutput
             return;
         }
         if (!hello.DM && _options.Vault == VaultMode.Server && _options.CharacterSelection
-            && !Persistence.ServerVault.ClaimFolder(World, hello.PlayerName, hello.PlayerKey))
+            && !Nwnx.NwnxSession.StickyName(World, hello.PlayerName, hello.PlayerKey, hello.DM,
+                () => Persistence.ServerVault.ClaimFolder(World, hello.PlayerName, hello.PlayerKey)))
         {
             s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That player name is in use with a different key." }.Write());
             s.Connection.Disconnect();
@@ -854,7 +876,7 @@ public sealed partial class GameServer : IWorldOutput
             viewer.Society.PerceptionArea = GameObject.InvalidId;
             viewer.Society.NextPerception = -1;
         }
-        s.Send(area.Describe(World.Resources.Talk).Write());
+        Nwnx.NwnxSession.SendArea(World, s.Creature!, s.PlayerName + "/" + s.PublicKey, area, () => s.Send(area.Describe(World.Resources.Talk).Write()));
         s.Send(Clock().Write());
         if (!alreadyPlaced) World.AddToArea(s.Creature!, area, position, facing);
         foreach (var o in area.Objects) SendSpawn(s, o);
@@ -1195,6 +1217,8 @@ public sealed partial class GameServer : IWorldOutput
 
     void Disconnect(PlayerSession s)
     {
+        var nwnx = Nwnx.NwnxSession.Disconnecting(World, s.Creature, s.PlayerName, s.PublicKey);
+        using var after = new Nwnx.NwnxEvent.AfterScope(nwnx);
         if (s.Creature != null) AnnouncePlayer(s, joined: false);
         _sessions.Remove(s);
         Content?.Forget(s);

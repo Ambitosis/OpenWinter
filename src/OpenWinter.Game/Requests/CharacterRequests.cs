@@ -16,11 +16,31 @@ public static class CharacterRequests
         // Polls carrying the current token never build the expensive payload.
         string version = CharacterSheetVersion.Read(r.World, r.Player);
         if (r.Str("version") == version) return;
+        // An explicit open (no token): NWNX_ON_CHARACTER_SHEET_PERMITTED (a skip's result "0" refuses), then
+        // NWNX_ON_CHARACTER_SHEET_OPEN.
+        if (r.Element("version") == null)
+        {
+            var permitted = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_CHARACTER_SHEET_PERMITTED", r.Player)?.Add("TARGET", r.Player);
+            bool allowed = permitted?.Before() != true || permitted.Result != "0";
+            permitted?.After();
+            if (!allowed) return;
+            var open = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_CHARACTER_SHEET_OPEN", r.Player)?.Add("TARGET", r.Player);
+            open?.Before();
+            r.World.Output?.Notify("character-sheet", r.Player, Sheet(r.World, r.Player), r.Player);
+            open?.After();
+            return;
+        }
         r.World.Output?.Notify("character-sheet", r.Player, Sheet(r.World, r.Player), r.Player);
     }
 
     [ClientRequest("journal")]
-    static void Journal(Request r) => r.World.System<Players.JournalService>().SendAll(r.Player);
+    static void Journal(Request r)
+    {
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_JOURNAL_OPEN", r.Player);
+        ev?.Before();
+        r.World.System<Players.JournalService>().SendAll(r.Player);
+        ev?.After();
+    }
 
     /// <summary>Builds the "character-sheet" payload from the creature rules.</summary>
     public static object Sheet(World w, Creature c)

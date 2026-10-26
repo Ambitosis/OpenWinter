@@ -26,4 +26,14 @@ public sealed partial class CombatSystem
         ev.Add("NEW_TARGET_OBJECT_ID", chosen ?? next).Add("RETARGETABLE", false).After();
         return chosen;
     }
+
+    /// <summary>A creature leaves combat; a player raises NWNX_ON_COMBAT_EXIT around it.</summary>
+    void LeaveCombat(Creature c)
+    {
+        var ev = c.IsPC ? Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_COMBAT_EXIT", c) : null;
+        ev?.Before();
+        c.InCombat = false;
+        _world.MarkChanged(c);
+        ev?.After();
+    }
 }
