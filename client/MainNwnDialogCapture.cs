@@ -9,7 +9,8 @@ public partial class Main
     /// --connect-nwn ws://host:port --character resref --capture-nwn-dialog dir [--talk-to NAME] [--nwn-replies 1,2,esc,...]:
     /// on an NWN:EE server, talks to the nearest creature (or the nearest whose name contains NAME), then answers each
     /// line with the next number key from the list (1 when it runs out, Esc for "esc") two seconds after it shows,
-    /// with a shot of every line, until the conversation closes (at most 30 lines); then opens the journal for a shot.
+    /// with a shot of every line, until the conversation closes (at most 30 lines); then opens the journal for a shot and
+    /// closes it.
     /// </summary>
     async Task CaptureNwnDialog(string dir)
     {
@@ -57,6 +58,9 @@ public partial class Main
             await PressKey(key.PhysicalKeycode != Key.None ? key.PhysicalKeycode : key.Keycode);
             await Wait(2);
             await Shot(dir, "91_journal");
+            // Closed again: the quest screen closes on the server too.
+            await PressKey(key.PhysicalKeycode != Key.None ? key.PhysicalKeycode : key.Keycode);
+            await Wait(1);
         }
         GetTree().Quit();
     }
