@@ -15,6 +15,15 @@ public sealed partial class UseSkillAction
     System.Numerics.Vector3? _trapStart;
     bool _trapSetOff;
 
+    /// <summary>NWNX_EVENTS_TIMING_BAR_* of a trap skill.</summary>
+    int TimingBarId => Skill == SkillIds.SetTrap ? 5 : SubSkill switch
+    {
+        SkillIds.SubSkillFlagTrap => 1,
+        SkillIds.SubSkillRecoverTrap => 2,
+        SkillIds.SubSkillExamineTrap => 4,
+        _ => 3,
+    };
+
     string TrapEventName => Skill == SkillIds.SetTrap ? "NWNX_ON_TRAP_SET" : SubSkill switch
     {
         SkillIds.SubSkillFlagTrap => "NWNX_ON_TRAP_FLAG",
@@ -49,6 +58,20 @@ public sealed partial class UseSkillAction
         ev.Remove("NEEDS_TO_MOVE").Add("ACTION_RESULT", false).After();
         _trapEvent = null;
         return true;
+    }
+
+    /// <summary>
+    /// NWNX_ON_HEALER_KIT around a Heal skill use with a kit (ACTION_RESULT 2 done, 3 failed); a skip uses nothing
+    /// and its result is the outcome.
+    /// </summary>
+    bool HealerKit(World world, Creature c, Creature patient, Item? kit, Func<bool> heal)
+    {
+        var ev = kit != null ? NwnxEvent.Begin(world, "NWNX_ON_HEALER_KIT", c) : null;
+        if (ev == null) return heal();
+        ev.Add("TARGET_OBJECT_ID", patient).Add("ITEM_OBJECT_ID", kit).Add("ITEM_PROPERTY_INDEX", 0).Add("MOVE_TO_TARGET", false);
+        bool ok = ev.Before() ? ev.Result != "3" : heal();
+        ev.Add("ACTION_RESULT", ok ? 2 : 3).After();
+        return ok;
     }
 
     /// <summary>The _AFTER half once the attempt is decided.</summary>

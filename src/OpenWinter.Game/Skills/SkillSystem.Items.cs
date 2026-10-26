@@ -88,6 +88,10 @@ public sealed partial class SkillSystem
     public bool TryIdentify(Creature c, Item item)
     {
         if (item.Identified || item.IsDestroyed) return item.Identified;
+        // NWNX_ON_ITEM_USE_LORE for a player trying Lore on an item; a skip leaves it unidentified.
+        var ev = c.IsPC ? Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_ITEM_USE_LORE", c)?.Add("ITEM", item) : null;
+        if (ev?.Before() == true) { ev.After(); return false; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         if (ItemValue(item) > LoreLimit(c)) return false;
         item.Identified = true;
         _world.MarkChanged(item);

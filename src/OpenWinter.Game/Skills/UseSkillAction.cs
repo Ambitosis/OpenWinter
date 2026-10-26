@@ -166,6 +166,7 @@ public sealed partial class UseSkillAction : ApproachAction
                 Face(world, c, Spot?.Position ?? target.Position);
                 float duration = skills.TrapSkillDuration(Skill, SubSkill);
                 _resolveAt = world.GameTime + LeadIn + duration;
+                Nwnx.NwnxTimingBar.Start(world, c, TimingBarId, (int)MathF.Round(duration * 1000));
                 world.Output?.PlayAnimation(c, 12, 1, duration); // ANIMATION_LOOPING_GET_LOW
                 return ActionStatus.InProgress;
             }
@@ -177,6 +178,7 @@ public sealed partial class UseSkillAction : ApproachAction
                 : item != null && skills.SetTrap(c, item, on, Spot ?? target.Location);
             tev?.Add("ACTION_RESULT", done).After();
             TrapAfter(done);
+            Nwnx.NwnxTimingBar.Ended(world, c, cancelled: false);
             return done ? ActionStatus.Done : ActionStatus.Failed;
         }
         var ev = SkillEvent(world, c, target, item);
@@ -187,7 +189,7 @@ public sealed partial class UseSkillAction : ApproachAction
             SkillIds.OpenLock => skills.OpenLock(c, target, item),
             SkillIds.PickPocket => target is Creature victim && skills.PickPocket(c, victim),
             SkillIds.Taunt => target is Creature t && skills.Taunt(c, t),
-            SkillIds.Heal => target is Creature patient && skills.Heal(c, patient, item),
+            SkillIds.Heal => target is Creature patient && HealerKit(world, c, patient, item, () => skills.Heal(c, patient, item)),
             SkillIds.AnimalEmpathy => target is Creature animal && skills.AnimalEmpathy(c, animal),
             SkillIds.Hide or SkillIds.MoveSilently => skills.SetActionMode(c, SkillIds.ModeStealth, !c.StealthMode),
             SkillIds.Search or SkillIds.Spot or SkillIds.Listen => skills.SetActionMode(c, SkillIds.ModeDetect, !c.DetectMode),
@@ -213,6 +215,7 @@ public sealed partial class UseSkillAction : ApproachAction
 
     public override void Cancel(World world, GameObject owner)
     {
+        if (owner is Creature pc && !double.IsNaN(_resolveAt)) Nwnx.NwnxTimingBar.Ended(world, pc, cancelled: true);
         _walk?.Cancel(world, owner);
         base.Cancel(world, owner);
     }

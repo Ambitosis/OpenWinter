@@ -107,6 +107,27 @@ public sealed partial class CastSpellAction
         return !skipped;
     }
 
+    /// <summary>
+    /// NWNX_ON_BROADCAST_SAFE_PROJECTILE for a spell's projectile (PROJECTILE_TYPE 6, or 7 along a script-chosen path;
+    /// whitelists NWNX_ON_BROADCAST_SAFE_PROJECTILE_TYPE and _SPELL); a skip sends no projectile, the impact still lands.
+    /// </summary>
+    void SafeProjectile(World world, GameObject owner)
+    {
+        if (_flight <= 0.001f || !Plugins_Listening(world)) return;
+        int type = ProjectilePathType != 0 ? 7 : 6;
+        if (!Nwnx.Plugins.EventsPlugin.Allows(world, "NWNX_ON_BROADCAST_SAFE_PROJECTILE_TYPE", type)
+            || !Nwnx.Plugins.EventsPlugin.Allows(world, "NWNX_ON_BROADCAST_SAFE_PROJECTILE_SPELL", Spell)) return;
+        var ev = NwnxEvent.Begin(world, "NWNX_ON_BROADCAST_SAFE_PROJECTILE", owner);
+        if (ev == null) return;
+        ev.AddObject("TARGET_OBJECT_ID", world.Get(Target) == null ? GameObject.InvalidId : Target).Position("TARGET_POSITION_", TargetPoint(world))
+            .Add("DELTA", (int)MathF.Round(_flight * 1000)).Add("PROJECTILE_TYPE", type).Add("SPELL_ID", Spell).Add("ATTACK_RESULT", 0)
+            .Add("PROJECTILE_PATH_TYPE", ProjectilePathType);
+        ev.Before();
+        ev.After();
+    }
+
+    static bool Plugins_Listening(World world) => Nwnx.Plugins.EventsPlugin.Listening(world, "NWNX_ON_BROADCAST_SAFE_PROJECTILE");
+
     /// <summary>NWNX_EVENTS_SPELLFAIL_REASON_* for a lost cast.</summary>
     static int FailReason(string reason) => reason switch
     {

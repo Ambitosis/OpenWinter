@@ -738,12 +738,16 @@ public sealed partial class GameServer : IWorldOutput
             else if (_options.Vault == VaultMode.Local && choice.Bic.Length > 0)
             {
                 var bic = Gff.Read(choice.Bic);
+                // NWNX_ON_ELC_VALIDATE_CHARACTER around the legal character check; the _AFTER half only for a character that passes.
+                var elc = _options.EnforceLegalCharacters ? Nwnx.NwnxEvent.Begin(World, "NWNX_ON_ELC_VALIDATE_CHARACTER", (GameObject?)null) : null;
+                elc?.Before();
                 if (_options.EnforceLegalCharacters && Progression.LegalCharacterCheck.Check(World, bic) is { Count: > 0 } illegal)
                 {
                     Console.WriteLine($"[server] {s.PlayerName}: illegal character: {string.Join("; ", illegal.Take(5))}");
                     s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That character is not legal on this server: " + string.Join(" ", illegal.Take(5).Select(e => e.Message)) }.Write());
                     return;
                 }
+                elc?.After();
                 c = World.Creatures.FromTemplate(bic);
             }
         }

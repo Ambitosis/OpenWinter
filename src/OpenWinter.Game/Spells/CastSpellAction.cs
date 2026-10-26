@@ -625,6 +625,7 @@ public sealed partial class CastSpellAction : GameAction
             world.System<SpellSystem>().RunImpact(caster, info);
         }
         // The original's 1 ms flight (a speed of zero or less) lands in the same update as the release.
+        SafeProjectile(world, owner);
         if (_flight > 0.001f) world.After(_flight, Impact);
         else Impact();
     }

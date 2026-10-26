@@ -227,10 +227,14 @@ public sealed partial class InventorySystem
                 if (moved != item.StackSize) return false;
                 return MoveTo(item, target, actor, merge: true) != null;
             }
+            // NWNX_ON_ITEM_MERGE for a player putting one stack onto another; a skip keeps them apart.
+            var ev = actor is Creature { IsPC: true } ? Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_ITEM_MERGE", actor)?.Add("ITEM_TO_MERGE_INTO", other).Add("ITEM_TO_MERGE", item) : null;
+            if (ev?.Before() == true) { ev.After(); return false; }
             other.StackSize += moved;
             item.StackSize -= moved;
             if (item.StackSize == 0) { item.StackSize = moved; Detach(item); _world.Destroy(item); }
             _world.MarkChanged(target); Changed(target);
+            ev?.After();
             return true;
         }
         // Onto one item of the same size in the same grid: swap them.

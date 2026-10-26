@@ -206,7 +206,11 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
         var owner = Owner(uuid);
         if (owner != null && owner != o)
         {
+            // NWNX_ON_UUID_COLLISION, OBJECT_SELF the newcomer.
+            var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_UUID_COLLISION", o)?.Add("UUID", uuid);
+            ev?.Before();
             Log($"[uuid] {o}: UUID {uuid} already belongs to {owner}; the new object gets none");
+            ev?.After();
             return false;
         }
         if (o.Uuid != null && o.Uuid != uuid && Owner(o.Uuid) == o) _uuids.Remove(o.Uuid);
