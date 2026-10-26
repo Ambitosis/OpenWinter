@@ -62,37 +62,42 @@ public static class RulesModifiers
     static void Changed(World w, NwnxRegistry r, Creature c)
     {
         if (!_data.TryGetValue(r, out var d) || c.IsDestroyed) return;
-        if (!d.Creatures.TryGetValue(c.Id, out var t)) d.Creatures[c.Id] = t = new Tracked();
+        bool first = !d.Creatures.TryGetValue(c.Id, out var t);
+        if (t == null) d.Creatures[c.Id] = t = new Tracked();
+        int level = c.TotalLevel;
+        if (!first && t.Level == level && (t.PlayerSeen || !c.IsPC) && t.Feats != null && t.Feats.Count == c.Feats.Count && c.Feats.All(t.Feats.Contains)) return;
+        // A creature read back with its modifier effects (a saved character) gets them afresh.
+        if (first) RemoveTagged(w, c, e => e.Tag.StartsWith("NWNX_Feat_FeatMod_", StringComparison.Ordinal) || e.Tag == RaceTag);
         // Feats gained or lost bring or take their modifiers (a new creature gains all it has).
         var feats = c.Feats.ToHashSet();
         var before = t.Feats ?? [];
         t.Feats = feats;
+        int oldLevel = t.Level;
+        t.Level = level;
+        bool newPlayer = c.IsPC && !t.PlayerSeen;
+        if (c.IsPC) t.PlayerSeen = true;
         foreach (int lost in before.Where(f => !feats.Contains(f))) RemoveTagged(w, c, FeatTag(lost));
         foreach (int gained in feats.Where(f => !before.Contains(f)))
             if (d.Feats.TryGetValue(gained, out var mods)) ApplyAll(w, c, FeatEffects(mods), FeatTag(gained));
         // Levelling up grants the race's feats for the levels reached; players get the race's effects again.
-        int level = c.TotalLevel;
-        if (t.Level >= 0 && level > t.Level)
+        if (oldLevel >= 0 && level > oldLevel)
         {
-            GrantRaceFeats(w, d, c, t.Level + 1, level);
-            if (c.IsPC) { t.RaceSuppressed = false; ApplyRace(w, d, c, t); }
+            GrantRaceFeats(w, d, c, oldLevel + 1, level);
+            if (c.IsPC) { t.RaceSuppressed = false; ApplyRace(w, d, c, t); return; }
         }
-        t.Level = level;
         // Players carry their race's effects from when they enter.
-        if (c.IsPC && !t.PlayerSeen)
-        {
-            t.PlayerSeen = true;
-            if (!t.RaceSuppressed) ApplyRace(w, d, c, t);
-        }
+        if (newPlayer && !t.RaceSuppressed) ApplyRace(w, d, c, t);
     }
 
     static string FeatTag(int feat) => "NWNX_Feat_FeatMod_" + feat.ToString(System.Globalization.CultureInfo.InvariantCulture);
     const string RaceTag = "NWNX_Race_RacialMod";
 
-    static void RemoveTagged(World w, Creature c, string tag)
+    static void RemoveTagged(World w, Creature c, string tag) => RemoveTagged(w, c, e => e.Tag == tag);
+
+    static void RemoveTagged(World w, Creature c, Func<Effect, bool> match)
     {
         var sys = w.System<EffectSystem>();
-        foreach (var e in c.Effects.Where(e => e.Innate && e.Tag == tag).ToList()) sys.RemoveOnly(c, e);
+        foreach (var e in c.Effects.Where(e => e.Innate && match(e)).ToList()) sys.RemoveOnly(c, e);
     }
 
     static void ApplyAll(World w, Creature c, IEnumerable<(int Native, int[] Ints)> effects, string tag)
