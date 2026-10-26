@@ -199,10 +199,11 @@ static class NwnRecordingDump
 /// <summary>
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
-///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
-///              [--nui-click WINDOW:ELEMENT,...] [--record FILE]
+///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use|--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
+///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart;
-/// click each NUI element three seconds apart once its window is open)
+/// click each NUI element three seconds apart once its window is open; answer each conversation line, two seconds after it shows,
+/// with the next reply (an index into the answers shown, or esc), the first answer once the list is used up; open the journal)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -221,11 +222,17 @@ static class NwnBridgeProbe
         var run = Array.IndexOf(args, "--run") >= 0;
         var axes = Opt("--axes", "0,1,0").Split(',').Select(float.Parse).ToArray();
         var driveState = 0;
-        var uses = new Queue<string>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var talk = Array.IndexOf(args, "--talk") >= 0;
+        var uses = new Queue<string>((talk ? Opt("--talk", "") : Opt("--use", "")).Split(',', StringSplitOptions.RemoveEmptyEntries));
         var nextUse = 6.0;
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
+        var replies = new Queue<string>(Opt("--replies", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        bool answering = Array.IndexOf(args, "--replies") >= 0;
+        OpenWinter.Net.DialogMessage? step = null;
+        var answerAt = 0.0;
+        var journalAt = double.Parse(Opt("--journal", "0"));
         var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
         var counts = new SortedDictionary<string, int>();
         uint controlled = 0;
@@ -283,6 +290,14 @@ static class NwnBridgeProbe
                         var c = OpenWinter.Net.ChatMessage.Read(r);
                         Console.WriteLine($"{clock.ElapsedMilliseconds,6} Chat {c.Channel} {c.Speaker:X} \"{c.SpeakerName}\": {c.Text}");
                         break;
+                    case OpenWinter.Net.MessageType.Dialog:
+                        var d = OpenWinter.Net.DialogMessage.Read(r);
+                        Console.WriteLine(d.Ended ? $"{clock.ElapsedMilliseconds,6} Dialog ended (owner {d.Owner:X})"
+                            : $"{clock.ElapsedMilliseconds,6} Dialog {d.Speaker:X} \"{d.SpeakerName}\" sound \"{d.Sound}\": {d.Text}\n"
+                              + string.Join("\n", d.Replies.Select(x => $"         [{x.Index}] {x.Text}")));
+                        step = d.Ended ? null : d;
+                        answerAt = clock.Elapsed.TotalSeconds + 2;
+                        break;
                     case OpenWinter.Net.MessageType.CharacterList:
                         Console.WriteLine($"{clock.ElapsedMilliseconds,6} CharacterList (the named character wasn't there)");
                         break;
@@ -305,7 +320,7 @@ static class NwnBridgeProbe
                 var target = name.StartsWith('#') ? Convert.ToUInt32(name[1..], 16) : objects.Where(kv => kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
                     .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} using \"{name}\": {target:X}");
-                if (target != 0) bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }.Write());
+                if (target != 0) bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = talk ? OpenWinter.Net.ActionKind.Talk : OpenWinter.Net.ActionKind.Use, Target = target }.Write());
             }
             if (clicks.Count > 0 && nextClick > 0 && clock.Elapsed.TotalSeconds > nextClick && clicks.Peek().Split(':') is [var window, var element] && windows.TryGetValue(window, out var token))
             {
@@ -317,6 +332,20 @@ static class NwnBridgeProbe
                     Json = new System.Text.Json.Nodes.JsonObject { ["token"] = token, ["type"] = "click", ["element"] = element, ["index"] = -1, ["payload"] = null }.ToJsonString(),
                 }.Write());
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} clicked {element} in {window} ({token})");
+            }
+            if (answering && step != null && clock.Elapsed.TotalSeconds > answerAt)
+            {
+                var pick = replies.Count > 0 ? replies.Dequeue() : "0";
+                var choice = pick == "esc" ? -1 : step.Replies.Count > int.Parse(pick) ? step.Replies[int.Parse(pick)].Index : -1;
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} answering {pick} ({choice})");
+                bridge.Send(new OpenWinter.Net.DialogReplyMessage { Choice = choice }.Write());
+                step = null;
+            }
+            if (journalAt > 0 && clock.Elapsed.TotalSeconds > journalAt)
+            {
+                journalAt = 0;
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} opening the journal");
+                bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "journal", Json = "{}" }.Write());
             }
             if (walked && drive > 0 && driveState < 2 && clock.Elapsed.TotalSeconds > (driveState == 0 ? 5 : 5 + drive))
             {

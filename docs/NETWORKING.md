@@ -138,8 +138,16 @@ Supported so far:
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
+- conversations: the speaker's line, name, portrait and voice-over, the answers, picking one, Esc and the end
+  choice, the lines in the chat window, and one-liners spoken over the talker. The client fills in the text tokens
+  (names, race, class, gender words, custom tokens) as the original client does: the server sends text as written,
+  with the creature the tokens describe. Talk (radial menu, quickbar) sends the Talk command, a click uses the
+  creature.
+- the journal: opening it asks the server for the whole journal (the original sends it only then); the server's
+  journal-updated message prints the journal line and flashes the button
+- cutscene mode and fades
 
-Dialog, inventory, combat feedback, NWSync and character creation are still to come.
+Inventory, combat feedback, NWSync and character creation are still to come.
 
 Testing:
 
@@ -148,6 +156,7 @@ Testing:
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
-  can also say a line, use objects, drive with the keyboard, click NUI elements and record (`--say`, `--use`,
-  `--drive`, `--nui-click`, `--record`). `nwn-dump` reads 2DAs with the haks the recorded server named, since
+  can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
+  click NUI elements and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`,
+  `--record`). The client's `--capture-nwn-dialog` talks to a creature and takes a shot of every line it answers. `nwn-dump` reads 2DAs with the haks the recorded server named, since
   some fields' presence depends on them.

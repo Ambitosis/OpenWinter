@@ -29,6 +29,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly INwnBridgeData _data;
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
+    readonly NwnDialog _dialog;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -49,6 +50,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _data = data;
         _context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
+        _dialog = new NwnDialog(_world, data, m => _toClient.Enqueue(m));
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -84,6 +86,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case MessageType.DriveInput:
                 _drive = DriveInputMessage.Read(r);
+                break;
+            case MessageType.DialogReply:
+                if (_dialog.Reply(DialogReplyMessage.Read(r).Choice) is { } reply) ToServer(reply);
                 break;
         }
     }
@@ -150,6 +155,10 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             case ActionKind.PickUp or ActionKind.Use when _world.KindOf(a.Target) == ObjectKind.Item:
                 // Into the backpack wherever it fits: no container, no grid position.
                 ToServer(new InventoryMessages.InventoryPickupC2S { Item = a.Target, TargetRepository = GameObjUpdateMessages.InvalidObjectId, X = 255, Y = 255 });
+                break;
+            case ActionKind.Talk when _world.KindOf(a.Target) == ObjectKind.Creature:
+                // The Talk command (radial menu, quickbar): the server walks the player there and starts the conversation.
+                ToServer(new InputMessages.InputDialog { Target = a.Target });
                 break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
                 // Doors change state; everything else is used (the server walks the player there first).
@@ -218,9 +227,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void Request(ClientRequestMessage request)
     {
-        if (NwnNui.FromClient(request.Kind, request.Json) is { } nui)
+        if ((NwnNui.FromClient(request.Kind, request.Json) ?? _dialog.FromClient(request.Kind, request.Json)) is { } handled)
         {
-            ToServer(nui);
+            ToServer(handled);
             return;
         }
         switch (request.Kind)
@@ -258,6 +267,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void FromServer(NwnMessage message)
     {
+        if (_dialog.ToClient(message)) return;
         switch (message)
         {
             case ServerStatusMessages.ServerStatusModuleRunning status:
