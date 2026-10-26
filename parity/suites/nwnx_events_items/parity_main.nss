@@ -113,7 +113,8 @@ void Step7()
     object oQ = CreateItemOnObject("nw_it_mpotion001", T(), 1, "POTT");
     SetCurrentHitPoints(C(), 1);
     AssignCommand(C(), ActionUseItemOnObject(oP, GetFirstItemProperty(oP), C()));
-    AssignCommand(T(), ActionUseItemOnObject(oQ, GetFirstItemProperty(oQ), T()));
+    // A second later: two creatures acting in one update take turns in no fixed order.
+    DelayCommand(1.5, AssignCommand(T(), ActionUseItemOnObject(oQ, GetFirstItemProperty(oQ), T())));
 }
 
 void Step8()
