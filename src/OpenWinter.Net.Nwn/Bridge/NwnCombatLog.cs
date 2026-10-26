@@ -30,11 +30,16 @@ public static class NwnCombatLog
         CoupDeGrace = 61629, SneakAttack = 981, DeathAttack = 3952, Opportunity = 6626, Someone = 8349,
         Fortitude = 520, Reflex = 519, Will = 745, Success = 5352, Failure = 5353;
 
-    /// <summary>Saving throw types (SAVING_THROW_TYPE_*) as the original names them after "vs.".</summary>
-    static readonly string[] SaveTypeNames =
+    /// <summary>
+    /// Saving throw types (SAVING_THROW_TYPE_*) as the original names them after "vs.": talk table lines where it
+    /// has them, the English word where it doesn't (no line reads just "Positive").
+    /// </summary>
+    static readonly (uint StrRef, string Word)[] SaveTypeNames =
     [
-        "", "Mind Affecting", "Poison", "Disease", "Fear", "Sonic", "Acid", "Fire", "Electricity", "Positive", "Negative",
-        "Death", "Cold", "Divine", "Traps", "Spells", "Good", "Evil", "Law", "Chaos", "Paralysis",
+        (0, ""), (5157, "Mind Affecting"), (879, "Poison"), (1006, "Disease"), (804, "Fear"), (2202, "Sonic"), (1027, "Acid"),
+        (1028, "Fire"), (8114, "Electricity"), (0, "Positive"), (6620, "Negative"), (5154, "Death"), (1029, "Cold"),
+        (5155, "Divine"), (5563, "Traps"), (2295, "Spells"), (265, "Good"), (266, "Evil"), (4943, "Law"), (4944, "Chaos"),
+        (5161, "Paralysis"),
     ];
 
     /// <summary>Attack results, as the server numbers them.</summary>
@@ -91,13 +96,18 @@ public static class NwnCombatLog
             }
             case ClientSideMessageSavingThrow s:
             {
-                string label = (s.SaveType switch { 1 => T(Fortitude), 2 => T(Reflex), 3 => T(Will), _ => "" })
-                    + (s.SaveSpecificType > 0 && s.SaveSpecificType < SaveTypeNames.Length ? " vs. " + SaveTypeNames[s.SaveSpecificType] : "");
+                string vs = s.SaveSpecificType > 0 && s.SaveSpecificType < SaveTypeNames.Length
+                    && SaveTypeNames[s.SaveSpecificType] is var (strRef, word) ? " vs. " + (strRef != 0 && T(strRef) is { Length: > 0 } t ? t : word) : "";
+                string label = (s.SaveType switch { 1 => T(Fortitude), 2 => T(Reflex), 3 => T(Will), _ => "" }) + vs;
                 int total = s.DieRoll + s.Modifier;
-                bool ok = s.DieRoll == 20 || (s.DieRoll != 1 && total >= s.DifficultyClass);
+                // A natural 1 fails only when the server says so (auto_fail_on_1, sent with a roll of 1); a 20 succeeds.
+                bool ok = s.DieRoll == 20 || (!(s.DieRoll == 1 && s.AutoFailOn1 != false) && total >= s.DifficultyClass);
                 var (sign, amount) = Mod(s.Modifier);
-                return Fill(Save, Who(s.Target), label, T(ok ? Success : Failure), s.DieRoll.ToString(), sign, amount, total.ToString(),
+                var line = Fill(Save, Who(s.Target), label, T(ok ? Success : Failure), s.DieRoll.ToString(), sign, amount, total.ToString(),
                     s.DifficultyClass.ToString());
+                // A feat that bore on the save (has_feat) is named before the line, as the attack kinds are.
+                return s.HasFeat && s.Feat is { } feat && uint.TryParse(data.TwoDA("feat", feat, "FEAT"), out var featRef) && T(featRef) is { Length: > 0 } featName
+                    ? featName + " : " + line : line;
             }
             // Measured: 1 is a resisted spell (no damage followed), 0 one that got through, which prints nothing.
             case ClientSideMessageSpellResistance { Result: 1 } r:

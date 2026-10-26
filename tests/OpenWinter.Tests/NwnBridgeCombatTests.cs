@@ -27,7 +27,7 @@ public class NwnBridgeCombatTests
             [10484] = "<CUSTOM0> : <CUSTOM1> : *<CUSTOM2>* : (<CUSTOM3> <CUSTOM4> <CUSTOM5> = <CUSTOM6> vs. DC: <CUSTOM7>)",
             [519] = "Reflex Save", [520] = "Fortitude Save", [5352] = "success", [5353] = "failure", [8349] = "Someone",
             [52961] = "<CUSTOM0> : Damage Immunity absorbs <CUSTOM1> point(s) of<CUSTOM2>", [12567] = "Goblin",
-            [62462] = "<CUSTOM0> : Immune to Sneak Attacks.",
+            [62462] = "<CUSTOM0> : Immune to Sneak Attacks.", [1028] = "Fire",
         };
 
         public int TwoDARowCount(string table) => table == "baseitems" ? 200 : 0;
@@ -192,9 +192,115 @@ public class NwnBridgeCombatTests
         Assert.Equal(ObjectFlags.Dead, rig.Updates(Player).Last().Flags & (ObjectFlags.Dead | ObjectFlags.Dying));
         rig.Server(DeathPanel);
         Assert.Equal("""{"respawn":true,"waitForHelp":true,"help":""}""", Assert.Single(rig.Notices("gui-death")).Json);
+        // Respawning (or a raise, or any heal) has the server close the panel.
+        Assert.True(rig.Combat.ToClient(new PopupGuiPanelMessages.PopUpGUIPanelDestroyPlayerDeathPanel()));
+        Assert.Single(rig.Notices("gui-death-close"));
         // The panel's respawn button sends no arguments; the server reads an empty respawn message.
         Assert.Equal("702501", Encoded(rig.Combat.FromClient("respawn", "")!));
         Assert.Equal("70060211" + "14000000", Encoded(rig.Combat.FromClient("attack", """{"target":20}""")!));
+    }
+
+    static GameObjUpdateMessages.GameObjUpdateObjList Creature(uint id, Action<GameObjUpdateUpdateMessages.GameObjUpdateObjListUpdateCreature> set)
+    {
+        var u = new GameObjUpdateUpdateMessages.GameObjUpdateObjListUpdateCreature { ObjectId = id };
+        set(u);
+        return new GameObjUpdateMessages.GameObjUpdateObjList { Entries = { u } };
+    }
+
+    static GameObjUpdateAnimationMessages.AnimTypeData Attacks(params GameObjUpdateAnimationMessages.AttackRecord[] attacks) =>
+        new() { AnimType = GameObjUpdateAnimationMessages.AnimAttack, Attacks = [.. attacks] };
+
+    static GameObjUpdateAnimationMessages.AttackRecord Blow(uint target, ushort damage) =>
+        new() { TargetId = target, Result = NwnCombatLog.ResultHit, Damage = damage, AnimLen = 1000, WeaponAttackType = 1 };
+
+    [Fact]
+    public void AClickAttacksAHostileCreatureButTheTalkCommandStillTalks()
+    {
+        var rig = new Rig();
+        // A bystander the server rates neutral (reaction 0).
+        rig.List(Creature(0x11, u => u.AiReaction = 0));
+        NwnMessage Send(uint target, string argument = "") => NwnBridgeConnection.UseOrTalk(
+            new ActionRequestMessage { Action = ActionKind.Talk, Target = target, Argument = argument }, ObjectKind.Creature, null, rig.Combat.Click(target));
+        Assert.IsType<InputMessages.InputDialog>(Send(Goblin, ActionRequestMessage.TalkCommand));
+        Assert.Equal("70060211" + "14000000", Encoded(Send(Goblin)));
+        Assert.IsType<InputMessages.InputUseObject>(Send(0x11));
+    }
+
+    [Fact]
+    public void LyingDownAliveIsNotDeath()
+    {
+        // As recorded: a living bystander playing ANIMATION_LOOPING_DEAD_FRONT is sent animation 6, DEAD_BACK 8,
+        // the codes a dying creature lies in; only the dead damage level (or a player's hit points) is death.
+        var rig = new Rig();
+        foreach (ushort lying in new ushort[] { 6, 8 })
+        {
+            rig.List(Creature(Goblin, u => u.AnimTypeData = new() { AnimType = lying }));
+            Assert.Equal(ObjectFlags.None, rig.Updates(Goblin).Last().Flags & (ObjectFlags.Dead | ObjectFlags.Dying));
+        }
+        Assert.Equal("70060211" + "14000000", Encoded(rig.Combat.Click(Goblin)!));
+        // A creature that isn't a player character at negative hit points (an associate) is dead, never dying.
+        rig.List(Creature(Goblin, u => (u.HpCurrent, u.HpMax, u.DamageLevel) = (-4, 20, 5)));
+        Assert.Equal(ObjectFlags.Dead, rig.Updates(Goblin).Last().Flags & (ObjectFlags.Dead | ObjectFlags.Dying));
+    }
+
+    [Fact]
+    public void SwingsFollowEachOtherAndTheirDamageWaitsForThem()
+    {
+        var rig = new Rig();
+        // Two attacks in one update and a third arriving at once after a stall: one second apart, in order.
+        rig.List(Creature(Goblin, u => u.AnimTypeData = Attacks(Blow(Player, 3), Blow(Player, 4))));
+        rig.List(Creature(Goblin, u => u.AnimTypeData = Attacks(Blow(Player, 5))));
+        int[] Damages() => rig.Notices("attack").Select(n => System.Text.Json.JsonDocument.Parse(n.Json).RootElement.GetProperty("damage").GetInt32()).ToArray();
+        Assert.Equal([3], Damages());
+        var damage = new ClientSideMessageCombatMessages.ClientSideMessageComplexDamage
+        {
+            Effector = Goblin, Target = Player,
+            Damages = [.. Enumerable.Range(0, 32).Select(i => new ClientSideMessageCombatMessages.DamageEntry { HasDamage = i == 12, Damage = i == 12 ? (ushort)3 : null })],
+        };
+        rig.Combat.ToClient(damage);
+        rig.Combat.ToClient(damage);
+        // The first blow's damage goes now, the second's with its swing.
+        Assert.Single(rig.Notices("hp-change"));
+        for (int i = 0; i < 10; i++) rig.Combat.Tick(0.1f);
+        Assert.Equal([3, 4], Damages());
+        Assert.Equal(2, rig.Notices("hp-change").Count);
+        for (int i = 0; i < 10; i++) rig.Combat.Tick(0.1f);
+        Assert.Equal([3, 4, 5], Damages());
+        Assert.All(rig.Notices("hp-change"), n => Assert.Contains("\"combat\":true", n.Json));
+        // A hit whose damage never came stops waiting: later damage (a spell) floats on its own.
+        for (int i = 0; i < 30; i++) rig.Combat.Tick(0.1f);
+        rig.Combat.ToClient(damage);
+        Assert.Contains("\"combat\":false", rig.Notices("hp-change").Last().Json);
+    }
+
+    [Fact]
+    public void LastingEffectsAreToldApartAndImpactsOutsideTheWorldAreDropped()
+    {
+        var rig = new Rig();
+        GameObjUpdateSharedMessages.VisualEffectUpdate Change(char change) => new() { ChangeType = (byte)change, EffectId = 15 };
+        rig.List(Creature(Player, u => u.Effects = [Change('A'), Change('A')]));
+        rig.List(Creature(Player, u => u.Effects = [Change('D'), Change('D')]));
+        long Id(NotifyMessage n) => System.Text.Json.JsonDocument.Parse(n.Json).RootElement.GetProperty("id").GetInt64();
+        var shown = rig.Notices("vfx").Select(Id).ToList();
+        Assert.Equal(2, shown.Distinct().Count());
+        Assert.Equal(shown.OrderBy(i => i), rig.Notices("effect-removed").Select(Id).OrderBy(i => i));
+        Assert.True(rig.Combat.ToClient(new GameObjUpdateMessages.GameObjUpdateVisEffect { TargetId = 0x99, VisualEffectId = 119, TargetLocation = (float.NaN, 1, 0) }));
+        Assert.Equal(2, rig.Notices("vfx").Count);
+    }
+
+    [Fact]
+    public void ANaturalOneFailsOnlyWhenTheServerSaysSo()
+    {
+        var rig = new Rig();
+        ClientSideMessageCombatMessages.ClientSideMessageSavingThrow Save(bool autoFail) =>
+            new() { Target = Player, DifficultyClass = 10, Modifier = 15, DieRoll = 1, AutoFailOn1 = autoFail, SaveType = 2 };
+        rig.Combat.ToClient(Save(true));
+        rig.Combat.ToClient(Save(false));
+        Assert.Equal(
+        [
+            "Aluvian Darkstar : Reflex Save : *failure* : (1 + 15 = 16 vs. DC: 10)",
+            "Aluvian Darkstar : Reflex Save : *success* : (1 + 15 = 16 vs. DC: 10)",
+        ], rig.Chat());
     }
 
     [Fact]

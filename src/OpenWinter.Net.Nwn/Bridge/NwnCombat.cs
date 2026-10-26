@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using OpenWinter.Net.Nwn.Messages;
 using OpenWinter.Net.Nwn.Wire;
 using static OpenWinter.Net.Nwn.Messages.ClientSideMessageCombatMessages;
-using static OpenWinter.Net.Nwn.Messages.GameObjUpdateAddMessages;
+using static OpenWinter.Net.Nwn.Messages.GameObjUpdateGuiMessages;
 using static OpenWinter.Net.Nwn.Messages.GameObjUpdatePlayerinfoMessages;
 using static OpenWinter.Net.Nwn.Messages.GameObjUpdateUpdateMessages;
 
@@ -13,25 +13,25 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// Combat, as the client knows it from OpenWinter's own server: attacks become "attack" notifies (the swing, the
 /// target's reaction, hit or miss and the damage), damage and healing "hp-change", the combat messages and combat
 /// feedback chat lines; hit points, damage levels, reactions and effect icons feed the "hud", "creature-labels" and
-/// "reactions" notifies; lying creatures are dead or dying; the death panel and battle music are passed on. The
+/// "reactions" notifies; dead and dying creatures are flagged; the death panel and battle music are passed on. The
 /// client's attack and respawn requests go back as the input nwmain sends.
 /// </summary>
 public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<byte[]> emit)
 {
-    /// <summary>Animation codes in creature updates: lying dead or dying (8; 6 for one killed outright).</summary>
-    const ushort AnimDead = 8, AnimDeadOutright = 6;
-
-    /// <summary>Hit reaction codes, which leave a lying creature lying.</summary>
-    static readonly ushort[] HitReactions = [77, 99, 100];
-
     /// <summary>How the server rates a creature for the player (its AI state's reaction): neutral, friendly, hostile.</summary>
     public const int Neutral = 0, Friendly = 1, Hostile = 2;
 
-    /// <summary>A player character dies at -10 hit points; above that, lying, she is dying.</summary>
+    /// <summary>A player character dies at -10 hit points; from 0 down to there she is dying.</summary>
     const int DeadAt = -10;
+
+    /// <summary>The damagelevels.2da row of a dead creature.</summary>
+    const int DamageLevelDead = 5;
 
     /// <summary>NWN's equipment slot bit for the chest.</summary>
     const int ChestSlot = 0x2;
+
+    /// <summary>How long a hit waits for its damage message before later damage is no longer taken for it.</summary>
+    const double HitWait = 2;
 
     const uint InvalidObject = GameObjUpdateMessages.InvalidObjectId;
 
@@ -40,7 +40,7 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
         public int? Hp, MaxHp, TempHp;
         public int DamageLevel = -1;
         public int Reaction;
-        public bool Lying;
+        public bool IsPc;
         public string Portrait = "";
         public int Level;
         public uint Master = InvalidObject;
@@ -50,17 +50,24 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
 
     readonly Dictionary<uint, Creature> _creatures = [];
     readonly List<(ushort Icon, bool Flashing)> _icons = [];
-    readonly Dictionary<(uint, uint), int> _pendingHits = [];
+    /// <summary>Hits waiting for their damage message, by attacker and target: when each swing is shown.</summary>
+    readonly Dictionary<(uint, uint), Queue<double>> _pendingHits = [];
+    /// <summary>When each attacker's last swing ends, so the next one follows it.</summary>
+    readonly Dictionary<uint, double> _swingEnds = [];
     readonly List<(double At, byte[] Message)> _later = [];
     readonly List<byte[]> _afterList = [];
     readonly Dictionary<uint, int> _reactionsSent = [];
     readonly Dictionary<uint, (string, int)> _labelsSent = [];
+    readonly List<uint> _gone = [];
+    readonly Dictionary<(uint, ushort), Stack<long>> _effects = [];
+    long _nextEffect;
     uint _labelArea = uint.MaxValue, _reactionArea = uint.MaxValue, _area;
     uint _target;
     int _gold, _ac;
-    bool _canLevelUp, _hudDirty;
+    uint? _xp;
+    bool _canLevelUp, _hudDirty, _inList;
     string _lastHud = "";
-    double _clock, _nextHud;
+    double _clock, _nextHud, _hudHeld;
     int _roll = Environment.TickCount & int.MaxValue;
 
     // -- client to server ---------------------------------------------------
@@ -116,6 +123,7 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
                 Log(NwnCombatLog.Line(message, data, Name));
                 return true;
             case PopupGuiPanelMessages.PopUpGUIPanelPopUpPlayerDeathPanel p:
+                // Shown whenever the server asks, dead or not: some modules show it to the living.
                 Notify("gui-death", world.Controlled, new JsonObject
                 {
                     ["respawn"] = p.RespawnButton, ["waitForHelp"] = p.WaitForHelpButton,
@@ -123,7 +131,7 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
                 });
                 return true;
             case PopupGuiPanelMessages.PopUpGUIPanelDestroyPlayerDeathPanel:
-                // The client closes the panel itself once the player is alive again.
+                Notify("gui-death-close", world.Controlled, []);
                 return true;
             case AmbientMessages.AmbientBattleMusicPlay music:
                 Notify("battle-music", world.Controlled, new JsonObject { ["on"] = music.Play });
@@ -147,8 +155,8 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
 
     /// <summary>
     /// The object list: hit points, damage levels, reactions, deaths, attacks and effects of creatures, and the
-    /// player's icons, gold and armour class. Conditions are given to the world mirror before it describes the list
-    /// (<paramref name="mirror"/>), so a creature that arrives dead spawns lying; the attacks follow it.
+    /// player's icons, gold, armour class and experience. Conditions are given to the world mirror before it
+    /// describes the list (<paramref name="mirror"/>), so a creature that arrives dead spawns dead; the attacks follow.
     /// </summary>
     public void ObjectList(GameObjUpdateMessages.GameObjUpdateObjList list, Action<GameObjUpdateMessages.GameObjUpdateObjList> mirror)
     {
@@ -158,35 +166,46 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
             _area = world.AreaId;
             foreach (var id in _creatures.Keys.Where(id => id != world.Controlled).ToList()) _creatures.Remove(id);
             _pendingHits.Clear();
+            _swingEnds.Clear();
+            _effects.Clear();
         }
+        _inList = true;
         foreach (var entry in list.Entries)
         {
             switch (entry)
             {
-                case GameObjUpdateObjListAddCreature add:
-                    Of(add.ObjectId).Lying = add.Anim is AnimDead or AnimDeadOutright;
-                    Condition(add.ObjectId);
-                    break;
                 case GameObjUpdateObjListUpdateCreature u:
                     Update(u);
                     break;
                 case GameObjUpdateObjListPlayerInfo p when p.ObjectId == world.Controlled || world.Controlled == 0:
                     PlayerInfo(p);
                     break;
+                case GameObjUpdateMessages.ObjListGuiEntry { Value: GuiCharacterSheet { Experience: { } xp } }:
+                    (_xp, _hudDirty) = (xp, true);
+                    break;
                 case GameObjUpdateDeleteMessages.ObjListDeleteCreature d:
-                    _creatures.Remove(d.ObjectId);
+                    Forget(d.ObjectId);
                     break;
             }
         }
+        _inList = false;
         mirror(list);
         foreach (var m in _afterList) emit(m);
         _afterList.Clear();
+    }
+
+    void Forget(uint id)
+    {
+        _creatures.Remove(id);
+        _swingEnds.Remove(id);
+        foreach (var key in _pendingHits.Keys.Where(k => k.Item1 == id || k.Item2 == id).ToList()) _pendingHits.Remove(key);
     }
 
     void Update(GameObjUpdateObjListUpdateCreature u)
     {
         var c = Of(u.ObjectId);
         bool watched = u.ObjectId == world.Controlled || c.Master == world.Controlled || u.ObjectId == _target;
+        if (u.PcPartyStatus is { } status) c.IsPc = status.IsPc;
         if (u.HpCurrent is { } hp)
         {
             (c.Hp, c.MaxHp, c.TempHp) = (hp, u.HpMax, u.HpTemp);
@@ -197,38 +216,34 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
             c.DamageLevel = level;
             _hudDirty |= watched;
         }
-        if (u.AiReaction is { } reaction) c.Reaction = reaction;
+        if (u.AiReaction is { } reaction && reaction != c.Reaction)
+        {
+            c.Reaction = reaction;
+            _hudDirty |= watched;
+        }
         if (u.PortraitId is { } portrait)
             c.Portrait = portrait >= 65534 ? (u.CustomPortrait ?? "").ToLowerInvariant()
                 : data.TwoDA("portraits", portrait, "BaseResRef") is { Length: > 0 } baseRef && baseRef != "****" ? "po_" + baseRef.ToLowerInvariant() : "";
         if (u.PrimaryAttributes is { } attributes) c.Level = attributes.Classes.Sum(k => k.Level);
         if (u.MasterAndAssoc is { } master) (c.Master, c.Associate) = (master.MasterId, master.AssociateType);
         if (u.AnimTypeData is { } anim)
-        {
-            if (anim.AnimType is AnimDead or AnimDeadOutright) c.Lying = true;
-            else if (!HitReactions.Contains(anim.AnimType)) c.Lying = false;
-            double delay = 0;
-            for (int i = 0; i < anim.Attacks.Count; i++)
-            {
-                Swing(u.ObjectId, anim.Attacks[i], delay);
-                delay += anim.Attacks[i].AnimLen / 1000.0;
-            }
-        }
+            foreach (var attack in anim.Attacks) Swing(u.ObjectId, attack);
         Condition(u.ObjectId);
         if (u.Effects is { } effects) DurationEffects(u.ObjectId, effects);
     }
 
     /// <summary>
-    /// Dead or dying from what the server shows: a lying creature is dead, except a player character (whose hit
-    /// points the server sends) above -10, who is dying; one at -10 or below is dead however she lies.
+    /// Dead or dying. A player character (whose hit points the server sends) is dying from 0 down to -10 and dead
+    /// below; any other creature is dead at the "dead" damage level. Lying down alone tells nothing: the dead
+    /// animations a script plays on the living send the same animation codes (bridgecombat's bystanders).
     /// </summary>
     void Condition(uint id)
     {
         var c = Of(id);
-        var condition = c.Hp is { } hp && hp <= DeadAt ? ObjectFlags.Dead
-            : !c.Lying ? ObjectFlags.None
-            : c.Hp is { } dying && dying > DeadAt && dying <= 0 ? ObjectFlags.Dying
-            : ObjectFlags.Dead;
+        bool player = c.IsPc || id == world.Controlled;
+        var condition = player && c.Hp is { } hp
+            ? hp <= DeadAt ? ObjectFlags.Dead : hp <= 0 ? ObjectFlags.Dying : ObjectFlags.None
+            : c.DamageLevel == DamageLevelDead ? ObjectFlags.Dead : ObjectFlags.None;
         if (condition == c.Condition) return;
         c.Condition = condition;
         world.SetFlags(id, condition, ObjectFlags.Dead | ObjectFlags.Dying);
@@ -253,24 +268,32 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
             {
                 _icons.Add((added.Icon, added.Flashing));
                 // A flashing icon is one about to run out (removed and added again flashing).
-                _afterList.Add(new NotifyMessage
-                {
-                    Kind = "effect-icon-flash", Subject = world.Controlled,
-                    Json = new JsonObject { ["icon"] = (int)added.Icon, ["flashing"] = added.Flashing }.ToJsonString(),
-                }.Write());
+                _afterList.Add(Notice("effect-icon-flash", world.Controlled, new JsonObject { ["icon"] = (int)added.Icon, ["flashing"] = added.Flashing }));
             }
             _hudDirty = true;
         }
     }
 
-    /// <summary>An attack in the attacker's update: the swing, the target's reaction, hit or miss and its damage.</summary>
-    void Swing(uint attacker, GameObjUpdateAnimationMessages.AttackRecord a, double delay)
+    /// <summary>
+    /// An attack in the attacker's update: the swing, the target's reaction, hit or miss and its damage. Each swing
+    /// starts when the attacker's previous one ends (anim_len), so several in one update, or updates arriving
+    /// together after a stall, play in order without overlapping.
+    /// </summary>
+    void Swing(uint attacker, GameObjUpdateAnimationMessages.AttackRecord a)
     {
+        double start = Math.Max(_clock, _swingEnds.GetValueOrDefault(attacker));
+        _swingEnds[attacker] = start + a.AnimLen / 1000.0;
         bool hit = NwnCombatLog.IsHit(a.Result);
         bool critical = a.Result is NwnCombatLog.ResultCritical or NwnCombatLog.ResultDevastating;
         bool parried = a.Result == NwnCombatLog.ResultParried;
         bool offHand = a.WeaponAttackType == 2;
-        if (hit) _pendingHits[(attacker, a.TargetId)] = _pendingHits.GetValueOrDefault((attacker, a.TargetId)) + 1;
+        if (hit)
+        {
+            if (!_pendingHits.TryGetValue((attacker, a.TargetId), out var waiting)) _pendingHits[(attacker, a.TargetId)] = waiting = new();
+            waiting.Enqueue(start);
+            // The player's hit points drop in the HUD when the blow is shown, not before.
+            if (a.TargetId == world.Controlled) _hudHeld = Math.Max(_hudHeld, start);
+        }
         var appearance = world.AppearanceOf(attacker);
         int Hand(int slot) => appearance?.Equipment.FirstOrDefault(e => e.Slot == slot)?.BaseItem ?? -1;
         int right = Hand(NwnSwings.SlotRight), left = Hand(NwnSwings.SlotLeft);
@@ -284,39 +307,37 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
                 System.Globalization.CultureInfo.InvariantCulture, out var ac) ? (int)ac : 0;
         var sounds = NwnSwings.Sounds(data, offHand ? left : right, appearance?.Type ?? 0, clip, target?.Type ?? 0, armour,
             hit, critical, parried, a.Ranged, _roll >> 4);
-        var notice = new NotifyMessage
+        At(start, Notice("attack", attacker, new JsonObject
         {
-            Kind = "attack",
-            Subject = attacker,
-            Json = new JsonObject
-            {
-                ["pending"] = false, ["attacker"] = attacker, ["target"] = a.TargetId, ["hit"] = hit, ["critical"] = critical,
-                ["damage"] = (int)a.Damage, ["dealt"] = (int)a.Damage, ["ranged"] = a.Ranged, ["animation"] = clip,
-                ["parried"] = parried, ["concealed"] = a.Result is NwnCombatLog.ResultConcealed or NwnCombatLog.ResultMissChance,
-                ["killed"] = a.Killing, ["offHand"] = offHand, ["kind"] = "normal",
-                ["sounds"] = new JsonArray(sounds.Select(s => (JsonNode)s).ToArray()),
-            }.ToJsonString(),
-        }.Write();
-        // Further attacks in one update follow the first, each when the swing before it ends.
-        if (delay <= 0) _afterList.Add(notice);
-        else _later.Add((_clock + delay, notice));
+            ["pending"] = false, ["attacker"] = attacker, ["target"] = a.TargetId, ["hit"] = hit, ["critical"] = critical,
+            ["damage"] = (int)a.Damage, ["dealt"] = (int)a.Damage, ["ranged"] = a.Ranged, ["animation"] = clip,
+            ["parried"] = parried, ["concealed"] = a.Result is NwnCombatLog.ResultConcealed or NwnCombatLog.ResultMissChance,
+            ["killed"] = a.Killing, ["offHand"] = offHand, ["kind"] = "normal",
+            ["sounds"] = new JsonArray(sounds.Select(s => (JsonNode)s).ToArray()),
+        }));
     }
 
-    /// <summary>Damage dealt: a weapon blow's numbers float with its attack; anything else gets an "hp-change".</summary>
+    /// <summary>
+    /// Damage dealt. A weapon blow's numbers float with its attack, so its hp-change is marked as combat damage and
+    /// goes with the swing; anything else (spells, scripts, a hit whose damage never came) floats on its own.
+    /// </summary>
     void Damage(ClientSideMessageComplexDamage d)
     {
         var (total, _) = NwnCombatLog.DamageParts(d.Damages, data);
-        var key = (d.Effector, d.Target);
-        bool blow = _pendingHits.TryGetValue(key, out var pending) && pending > 0;
-        if (blow)
+        double? swing = null;
+        if (_pendingHits.TryGetValue((d.Effector, d.Target), out var waiting))
         {
-            if (pending == 1) _pendingHits.Remove(key);
-            else _pendingHits[key] = pending - 1;
+            while (waiting.Count > 0 && swing == null)
+            {
+                double start = waiting.Dequeue();
+                if (start + HitWait >= _clock) swing = start;
+            }
+            if (waiting.Count == 0) _pendingHits.Remove((d.Effector, d.Target));
         }
-        Notify("hp-change", d.Target, new JsonObject
+        At(swing ?? _clock, Notice("hp-change", d.Target, new JsonObject
         {
-            ["target"] = d.Target, ["source"] = d.Effector, ["amount"] = -total, ["type"] = NwnCombatLog.MainType(d.Damages), ["combat"] = blow,
-        });
+            ["target"] = d.Target, ["source"] = d.Effector, ["amount"] = -total, ["type"] = NwnCombatLog.MainType(d.Damages), ["combat"] = swing != null,
+        }));
     }
 
     // -- visual effects -----------------------------------------------------
@@ -327,38 +348,44 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
         var type = data.TwoDA("visualeffects", v.VisualEffectId, "Type_FD");
         if (!type.Equals("F", StringComparison.OrdinalIgnoreCase)) return;
         var json = new JsonObject { ["vfx"] = (int)v.VisualEffectId, ["duration"] = 0f, ["id"] = 0L };
-        if (world.KindOf(v.TargetId) is null)
+        if (world.KindOf(v.TargetId) is not null)
         {
-            json["pos"] = new JsonArray(v.TargetLocation.Item1, v.TargetLocation.Item2, v.TargetLocation.Item3);
-            Notify("vfx", world.AreaId, json);
+            Notify("vfx", v.TargetId, json);
+            return;
         }
-        else Notify("vfx", v.TargetId, json);
+        var (x, y, z) = v.TargetLocation;
+        if (!float.IsFinite(x) || !float.IsFinite(y) || !float.IsFinite(z)) return;
+        json["pos"] = new JsonArray(x, y, z);
+        Notify("vfx", world.AreaId, json);
     }
 
-    /// <summary>A creature's lasting visual effects coming and going (change 'A' added, 'D' removed).</summary>
+    /// <summary>
+    /// A creature's lasting visual effects coming and going (change 'A' added, 'D' removed). Each one shown gets its
+    /// own id; a removal ends the latest of that effect on the creature.
+    /// </summary>
     void DurationEffects(uint id, List<GameObjUpdateSharedMessages.VisualEffectUpdate> effects)
     {
         foreach (var e in effects)
         {
-            long effect = (1L << 40) | ((long)id << 16) | e.EffectId;
+            var key = (id, e.EffectId);
             if (e.ChangeType == 'A')
-                _afterList.Add(new NotifyMessage
-                {
-                    Kind = "vfx", Subject = id,
-                    Json = new JsonObject { ["vfx"] = (int)e.EffectId, ["duration"] = -1f, ["id"] = effect }.ToJsonString(),
-                }.Write());
-            else if (e.ChangeType == 'D')
-                _afterList.Add(new NotifyMessage
-                {
-                    Kind = "effect-removed", Subject = id,
-                    Json = new JsonObject { ["id"] = effect, ["type"] = 0, ["linkId"] = "", ["icon"] = 0 }.ToJsonString(),
-                }.Write());
+            {
+                long effect = (1L << 40) | ++_nextEffect;
+                if (!_effects.TryGetValue(key, out var shown)) _effects[key] = shown = new();
+                shown.Push(effect);
+                _afterList.Add(Notice("vfx", id, new JsonObject { ["vfx"] = (int)e.EffectId, ["duration"] = -1f, ["id"] = effect }));
+            }
+            else if (e.ChangeType == 'D' && _effects.TryGetValue(key, out var shown) && shown.TryPop(out var effect))
+            {
+                if (shown.Count == 0) _effects.Remove(key);
+                _afterList.Add(Notice("effect-removed", id, new JsonObject { ["id"] = effect, ["type"] = 0, ["linkId"] = "", ["icon"] = 0 }));
+            }
         }
     }
 
     // -- the HUD, labels and reactions --------------------------------------
 
-    /// <summary>Called ten times a second: later attacks, and the HUD, labels and reactions when they changed.</summary>
+    /// <summary>Called ten times a second: swings and damage due, and the HUD, labels and reactions when they changed.</summary>
     public void Tick(float seconds)
     {
         _clock += seconds;
@@ -371,7 +398,7 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
         if (world.Controlled == 0) return;
         Reactions();
         Labels();
-        if (!_hudDirty || _clock < _nextHud) return;
+        if (!_hudDirty || _clock < _nextHud || _clock < _hudHeld) return;
         _hudDirty = false;
         _nextHud = _clock + 0.25;
         var hud = Hud().ToJsonString();
@@ -387,13 +414,16 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
         var party = new JsonArray();
         foreach (var (id, c) in _creatures)
             if (id != me && c.Master == me) party.Add(Member(id, c));
+        // Experience as the character sheet last reported it, within its level's band of exptable.2da.
+        int Exp(int level) => level > 0 && int.TryParse(data.TwoDA("exptable", level - 1, "XP"), out var xp) ? xp : 0;
+        int xpNow = (int)(_xp ?? 0), xpLevel = _xp == null ? 0 : Exp(self.Level), xpNext = _xp == null ? 0 : Math.Max(xpNow, Exp(self.Level + 1));
         return new JsonObject
         {
             ["self"] = new JsonObject
             {
                 ["id"] = me, ["name"] = Name(me), ["portrait"] = self.Portrait, ["hp"] = self.Hp ?? 0, ["maxHp"] = self.MaxHp ?? 0,
                 ["tempHp"] = self.TempHp ?? 0, ["dead"] = self.Condition == ObjectFlags.Dead, ["level"] = self.Level,
-                ["xp"] = 0, ["xpLevel"] = 0, ["xpNext"] = 0, ["canLevelUp"] = _canLevelUp, ["gold"] = _gold, ["ac"] = _ac,
+                ["xp"] = xpNow, ["xpLevel"] = xpLevel, ["xpNext"] = xpNext, ["canLevelUp"] = _canLevelUp, ["gold"] = _gold, ["ac"] = _ac,
                 ["queue"] = new JsonArray(), ["effects"] = new JsonArray(_icons.Select(i => (JsonNode)(int)i.Icon).ToArray()),
             },
             ["party"] = party,
@@ -401,13 +431,14 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
         };
     }
 
+    /// <summary>A party member (the player's associate): dead at the "dead" damage level, never dying.</summary>
     JsonObject Member(uint id, Creature c)
     {
         var (hp, max) = Health(c);
         return new JsonObject
         {
-            ["id"] = id, ["name"] = Name(id), ["portrait"] = c.Portrait, ["hp"] = hp, ["maxHp"] = max,
-            ["dead"] = c.Condition == ObjectFlags.Dead, ["pc"] = false, ["associate"] = c.Associate, ["master"] = c.Master,
+            ["id"] = id, ["name"] = Name(id), ["portrait"] = c.Portrait, ["hp"] = Math.Max(0, hp), ["maxHp"] = max,
+            ["dead"] = c.Condition == ObjectFlags.Dead, ["pc"] = c.IsPc, ["associate"] = c.Associate, ["master"] = c.Master,
         };
     }
 
@@ -475,10 +506,13 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
             _labelsSent[id] = label;
             changes[id.ToString()] = new JsonObject { ["name"] = label.Item1, ["playerName"] = "", ["damageLevel"] = label.DamageLevel };
         }
-        foreach (var gone in _labelsSent.Keys.Where(id => !_creatures.ContainsKey(id)).ToList())
+        _gone.Clear();
+        foreach (var id in _labelsSent.Keys)
+            if (!_creatures.ContainsKey(id)) _gone.Add(id);
+        foreach (var id in _gone)
         {
-            _labelsSent.Remove(gone);
-            changes[gone.ToString()] = null;
+            _labelsSent.Remove(id);
+            changes[id.ToString()] = null;
         }
         if (changes.Count > 0) Notify("creature-labels", world.Controlled, changes);
     }
@@ -498,6 +532,16 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
         if (!string.IsNullOrEmpty(line)) emit(new ChatMessage { Channel = ChatChannel.Server, Text = line }.Write());
     }
 
-    void Notify(string kind, uint subject, JsonObject json) =>
-        emit(new NotifyMessage { Kind = kind, Subject = subject, Json = json.ToJsonString() }.Write());
+    /// <summary>Sends a message now (after the object list being read) or when it is due.</summary>
+    void At(double when, byte[] message)
+    {
+        if (when > _clock) _later.Add((when, message));
+        else if (_inList) _afterList.Add(message);
+        else emit(message);
+    }
+
+    static byte[] Notice(string kind, uint subject, JsonObject json) =>
+        new NotifyMessage { Kind = kind, Subject = subject, Json = json.ToJsonString() }.Write();
+
+    void Notify(string kind, uint subject, JsonObject json) => emit(Notice(kind, subject, json));
 }

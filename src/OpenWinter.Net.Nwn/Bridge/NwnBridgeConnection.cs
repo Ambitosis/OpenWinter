@@ -158,11 +158,8 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 // Into the backpack wherever it fits: no container, no grid position.
                 ToServer(new InventoryMessages.InventoryPickupC2S { Item = a.Target, TargetRepository = GameObjUpdateMessages.InvalidObjectId, X = 255, Y = 255 });
                 break;
-            case ActionKind.Use or ActionKind.Talk when _combat.Click(a.Target) is { } attack:
-                ToServer(attack);
-                break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
-                ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use)));
+                ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use), _combat.Click(a.Target)));
                 break;
             case ActionKind.Attack when a.Target != 0:
                 ToServer(new InputMessages.InputAttack { Target = a.Target });
@@ -217,12 +214,15 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     /// <summary>
     /// What a click, use or Talk sends. The Talk command (radial menu, quickbar) on a creature asks for a
-    /// conversation; a click on a creature (also Talk, without the command) is a use, for which the server picks the
-    /// default action (talk, attack). Doors change state; everything else is used. The server walks the player there.
+    /// conversation, hostile or not. A click on a creature hostile to the player (<paramref name="hostileAttack"/>,
+    /// <see cref="NwnCombat.Click"/>) attacks it, as nwmain does; a click on any other creature (also Talk, without
+    /// the command) is a use, for which the server picks the default action. Doors change state; everything else is
+    /// used. The server walks the player there.
     /// </summary>
-    public static NwnMessage UseOrTalk(ActionRequestMessage a, ObjectKind? kind, NwnMessage? doorRequest) =>
+    public static NwnMessage UseOrTalk(ActionRequestMessage a, ObjectKind? kind, NwnMessage? doorRequest, NwnMessage? hostileAttack = null) =>
         a.Action == ActionKind.Talk && a.Argument == ActionRequestMessage.TalkCommand && kind == ObjectKind.Creature
             ? new InputMessages.InputDialog { Target = a.Target }
+            : a.Action is ActionKind.Use or ActionKind.Talk && hostileAttack != null ? hostileAttack
             : doorRequest ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true };
 
     /// <summary>A facing as the drive message's bearing: tenths of a degree counter-clockwise from +X.</summary>

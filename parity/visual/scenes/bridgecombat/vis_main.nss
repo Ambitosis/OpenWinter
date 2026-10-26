@@ -1,11 +1,11 @@
 #include "visual_inc"
 // bridgecombat: a fight on a stock server, for the NWN bridge's combat presentation. The player stays in control.
-// From her arrival: a commoner and a defender stand by (neutral and friendly reactions); two hostile goblins attack
-// her with their stock scripts; she is given lasting effects (haste, a stoneskin glow, fire immunity and resistance,
-// spell resistance) and a goblin caster throws a fireball and magic missiles at her (a reflex save, spell
-// resistance, immunity and resistance lines) before she is healed; a goblin chieftain attacks; she is brought to
-// dying, healed, and finally killed, so the death panel and respawn can be seen. The module's death and respawn
-// events run the stock scripts. Every step is announced in the chat window ("BC <step>").
+// From her arrival: three bandits stand by (neutral, and one a temporary friend), two of them lying down alive for a
+// while (the dead animations); two hostile goblins attack her with their stock scripts; she is given lasting effects
+// (haste, a stoneskin glow, fire immunity, resistance and reduction, spell resistance) and makes saving throws; a
+// goblin caster throws a fireball and magic missiles at her (spell resistance) before she is healed; a goblin
+// chieftain attacks; she is brought to dying, healed, and finally killed, so the death panel and respawn can be seen.
+// The module's death and respawn events run the stock scripts. Every step is announced in the chat window ("BC <step>").
 
 void Mark(string s) { SendMessageToPC(GetFirstPC(), "BC " + s); }
 
@@ -44,6 +44,9 @@ void Bystanders(object oPC)
     SetIsTemporaryFriend(f, oPC);
     int i; for (i = 5000; i <= 5012; i++) { SetEventScript(c, i, ""); SetEventScript(d, i, ""); SetEventScript(f, i, ""); }
     SetPlotFlag(c, TRUE); SetPlotFlag(d, TRUE); SetPlotFlag(f, TRUE);
+    // Two of them lie down alive (the dead animations), to tell lying from dying apart.
+    DelayCommand(1.0, AssignCommand(c, ActionPlayAnimation(ANIMATION_LOOPING_DEAD_FRONT, 1.0, 6.0)));
+    DelayCommand(1.0, AssignCommand(d, ActionPlayAnimation(ANIMATION_LOOPING_DEAD_BACK, 1.0, 6.0)));
 }
 
 void Goblins(object oPC)

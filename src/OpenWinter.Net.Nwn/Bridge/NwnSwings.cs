@@ -4,7 +4,8 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// The swing clip and weapon sounds of an attack the server reports. The server names neither: as the original
 /// client does, they follow from what the attacker holds and what the blow lands on. The rules are those of
 /// OpenWinter's own server (the weapon stance scenes weaponstance1..3 and the creature swing scenes creatureswing,
-/// creatureswing2..7 and creaturereach), read from the same 2DAs.
+/// creatureswing2..7 and creaturereach), read from the same 2DAs. They are kept in step with the game server's
+/// WeaponStances and attack sounds by hand: those read whole tables, the bridge only the cells its data gives it.
 /// </summary>
 public static class NwnSwings
 {
