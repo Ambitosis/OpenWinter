@@ -29,6 +29,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly INwnBridgeData _data;
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
+    readonly NwnAbilities _abilities;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -49,6 +50,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _data = data;
         _context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
+        _abilities = new NwnAbilities(data, m => _toClient.Enqueue(m), ToServer);
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -223,6 +225,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             ToServer(nui);
             return;
         }
+        if (_abilities.FromClient(request.Kind, request.Json)) return;
         switch (request.Kind)
         {
             case "area-ready":
@@ -279,9 +282,17 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
                 _world.ObjectList(list);
+                _abilities.ObjectList(list);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
+                _abilities.Player = control.ObjectId;
+                break;
+            case GuiQuickbarMessages.GuiQuickbarSetAllButtons quickbar:
+                _abilities.Quickbar(quickbar);
+                break;
+            case GuiQuickbarMessages.GuiQuickbarSetButton button:
+                _abilities.QuickbarButton(button);
                 break;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
                 NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));

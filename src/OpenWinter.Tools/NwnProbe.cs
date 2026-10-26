@@ -200,9 +200,10 @@ static class NwnRecordingDump
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
-///              [--nui-click WINDOW:ELEMENT,...] [--record FILE]
+///              [--nui-click WINDOW:ELEMENT,...] [--request KIND=JSON|KIND=JSON...] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart;
-/// click each NUI element three seconds apart once its window is open)
+/// click each NUI element three seconds apart once its window is open; send each client request four seconds apart from six
+/// seconds in (a "+SECONDS:" prefix sends one that long after the one before), where "@self" is the player's creature and "@NAME" the nearest object whose name contains NAME)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -226,6 +227,8 @@ static class NwnBridgeProbe
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
+        var requests = new Queue<string>(Opt("--request", "").Split('|', StringSplitOptions.RemoveEmptyEntries));
+        var nextRequest = 6.0;
         var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
         var counts = new SortedDictionary<string, int>();
         uint controlled = 0;
@@ -306,6 +309,18 @@ static class NwnBridgeProbe
                     .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} using \"{name}\": {target:X}");
                 if (target != 0) bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }.Write());
+            }
+            if (walked && requests.Count > 0 && clock.Elapsed.TotalSeconds > nextRequest && requests.Dequeue().Split('=', 2) is [var kind, var body])
+            {
+                // "+SECONDS:" before the next request sends it that soon instead of four seconds later.
+                nextRequest = clock.Elapsed.TotalSeconds + (requests.TryPeek(out var next) && next.StartsWith('+') ? double.Parse(next[1..next.IndexOf(':')]) : 4);
+                if (kind.StartsWith('+')) kind = kind[(kind.IndexOf(':') + 1)..];
+                var here = at;
+                body = System.Text.RegularExpressions.Regex.Replace(body, "\"@([^\"]*)\"", m => m.Groups[1].Value == "self" ? controlled.ToString()
+                    : objects.Where(kv => kv.Value.Name.Contains(m.Groups[1].Value, StringComparison.OrdinalIgnoreCase))
+                        .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault().ToString());
+                bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = kind, Json = body }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} request {kind} {body}");
             }
             if (clicks.Count > 0 && nextClick > 0 && clock.Elapsed.TotalSeconds > nextClick && clicks.Peek().Split(':') is [var window, var element] && windows.TryGetValue(window, out var token))
             {
