@@ -23,8 +23,15 @@ public sealed class DirectorySource : IResourceSource
     public DirectorySource(string path)
     {
         Description = path;
-        if (!Directory.Exists(path)) return;
-        foreach (var file in Directory.EnumerateFiles(path))
+        Refresh();
+    }
+
+    /// <summary>Indexes the folder again (files added or removed since).</summary>
+    public void Refresh()
+    {
+        _files.Clear();
+        if (!Directory.Exists(Description)) return;
+        foreach (var file in Directory.EnumerateFiles(Description))
             if (ResKey.TryParse(Path.GetFileName(file), out var key))
                 _files[key] = file;
     }
