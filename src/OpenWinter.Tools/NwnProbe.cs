@@ -200,7 +200,7 @@ static class NwnRecordingDump
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
-///              [--nui-click WINDOW:ELEMENT,...] [--record FILE]
+///              [--nui-click WINDOW:ELEMENT,...] [--do STEP;...] [--player NAME] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart;
 /// click each NUI element three seconds apart once its window is open)
 /// </summary>
@@ -212,7 +212,7 @@ static class NwnBridgeProbe
         var bridge = new OpenWinter.Net.Nwn.Bridge.NwnBridgeConnection(
             new OpenWinter.Net.Nwn.Bridge.NwnBridgeOptions(new Uri(args[1]), NwnCdKey.Generate()) { RecordTo = Opt("--record", "") is { Length: > 0 } rec ? rec : null },
             new OpenWinter.Net.Nwn.Bridge.NwnResManData(paths));
-        bridge.Send(new OpenWinter.Net.HelloMessage { PlayerName = "probe", CharacterResRef = args[2], AreaReadyHandshake = true }.Write());
+        bridge.Send(new OpenWinter.Net.HelloMessage { PlayerName = Opt("--player", "probe"), CharacterResRef = args[2], AreaReadyHandshake = true }.Write());
         var clock = Stopwatch.StartNew();
         var seconds = double.Parse(Opt("--seconds", "10"));
         var walk = Opt("--walk", "");
@@ -226,6 +226,7 @@ static class NwnBridgeProbe
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
+        var steps = new NwnBridgeSteps(Opt("--do", ""));
         var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
         var counts = new SortedDictionary<string, int>();
         uint controlled = 0;
@@ -250,7 +251,7 @@ static class NwnBridgeProbe
                         break;
                     case OpenWinter.Net.MessageType.Notify:
                         var n = OpenWinter.Net.NotifyMessage.Read(r);
-                        Console.WriteLine($"{clock.ElapsedMilliseconds,6} Notify {n.Kind} {(n.Json.Length > 300 ? n.Json[..300] + "..." : n.Json)}");
+                        if (!steps.Observe(n, clock.ElapsedMilliseconds)) Console.WriteLine($"{clock.ElapsedMilliseconds,6} Notify {n.Kind} {(n.Json.Length > 300 ? n.Json[..300] + "..." : n.Json)}");
                         if (n.Kind == "nui-open" && System.Text.Json.JsonDocument.Parse(n.Json).RootElement is var open)
                         {
                             windows[open.GetProperty("id").GetString()!] = open.GetProperty("token").GetInt32();
@@ -297,6 +298,9 @@ static class NwnBridgeProbe
                     Console.WriteLine($"{clock.ElapsedMilliseconds,6} said \"{say}\"");
                 }
             }
+            if (walked && uses.Count == 0)
+                steps.Step(bridge, clock.Elapsed.TotalSeconds, name => objects.Where(kv => kv.Key != controlled && kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, at)).Select(kv => kv.Key).FirstOrDefault());
             if (walked && uses.Count > 0 && clock.Elapsed.TotalSeconds > nextUse)
             {
                 nextUse = clock.Elapsed.TotalSeconds + 5;

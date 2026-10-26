@@ -1,0 +1,15 @@
+{
+  "seconds": 600,
+  "tile": 4,
+  "events": { "OnClientEntr": "br_enter" },
+  "templates": {
+    "br_merchant": {
+      "from": "plc_barrel",
+      "type": "utp",
+      "set": { "Tag": "BR_MERCHANT", "Useable": 1, "HasInventory": 0, "OnUsed": "br_store", "Plot": 1 }
+    }
+  },
+  "instances": [
+    { "from": "br_merchant", "x": 17, "y": 22 }
+  ]
+}

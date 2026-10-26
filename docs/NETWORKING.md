@@ -120,7 +120,7 @@ no scripts, settings or other plugins.
   [nwn-message.py](https://github.com/niv/nwn-message.py) (GPL-3.0); the types that library codes by hand are written
   by hand in `Messages/Custom`. Where recorded traffic differs from those definitions, the generator corrects them
   (`apply_corrections`): NUI windows, binds, events and layouts carry JSON fields (type byte, length, text) rather
-  than length-prefixed blobs, and a NUI bind entry ends after its value.
+  than length-prefixed blobs, and a NUI bind entry ends after its value; a body bag names its creature by object id.
 - **Session.** It handles login, keep-alives and echoes.
 - **Bridge.** `NwnBridgeConnection` is an `IConnection` that turns NWN messages into the OpenWinter messages the client
   already understands, and the client's requests into NWN input. NWN sends a walking creature's path once; the bridge
@@ -138,8 +138,21 @@ Supported so far:
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
+- the player's items (`NwnInventory`, `NwnItems`): the backpack, bags and equipment with icons, stacks, charges,
+  identified state, names, weight and gold; equipping, unequipping, dropping, splitting, using and moving items, into
+  and out of bags; examining items; placeable containers and body bags (open, take, take all, put, close); stores
+  (every category, buying, selling, identifying, the store's prices and gold); barter between players (asking starts
+  it for both at once, as the server does; offers of items and gold, locking, accepting, cancelling)
 
-Dialog, inventory, combat feedback, NWSync and character creation are still to come.
+The server shows the client only the panels an NWN client has open: the equipment and the shown backpack page while
+the inventory is open, one container or bag at a time, and a store's shown category and page. OpenWinter's windows
+list everything, so the bridge keeps the inventory open and shows the server each backpack page in turn, then each
+bag (only while no container is open, since opening a bag closes it), and each store category and page, and looks
+again after every change the server confirms. A page's answer comes with the server's next update, so the pages are
+shown one at a time. Item tooltips (category, damage, armour, properties, size, slots) come from the item's
+appearance and the client's 2DAs.
+
+Dialog, combat feedback, NWSync and character creation are still to come.
 
 Testing:
 
@@ -149,5 +162,10 @@ Testing:
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use objects, drive with the keyboard, click NUI elements and record (`--say`, `--use`,
-  `--drive`, `--nui-click`, `--record`). `nwn-dump` reads 2DAs with the haks the recorded server named, since
-  some fields' presence depends on them.
+  `--drive`, `--nui-click`, `--record`), and run a script of client requests (`--do "use:Chest;req:container-take
+  {\"item\":\"@c:Arrow\"}"`, items named from the last inventory, container or store contents). `nwn-dump` reads
+  2DAs with the haks the recorded server named, since some fields' presence depends on them.
+- `parity/suites/bridge_inventory` builds a test module with a chest, a body bag and a store opened by using a
+  barrel; the entering player is given weapons, armour, stacks, a wand, an unidentified ring, a bag and gold. The
+  client's `--capture-nwn-inventory dir` opens the inventory, equips a weapon, loots the chest, buys, sells and
+  examines, with a shot after each step.
