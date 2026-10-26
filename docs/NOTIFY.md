@@ -20,6 +20,7 @@ New kinds go in the file of the package that sends them. Kinds that belong to no
 
 | kind | subject | data |
 | --- | --- | --- |
+| `object-portrait` | object | `portrait`: the portrait's texture base name (add the size letter), "" for none. Sent by the NWN bridge when an object's portrait changes after it spawned. |
 | `creature-bump` | displaced creature | `from`, `to`: three-number world positions (Z-up); `facing`: retained radians. Server position changes immediately; the client presents a directional step across one clip cycle. |
 | `inventory-denied` | current controlled familiar | `strref`:68708. Closes an attempted inventory window while possessed; the server separately sends the localized feedback message. Does not restrict the character sheet. |
 | `quickbar` | current controlled creature | `present`: whether a character/creature layout exists; `slots`: 36 nullable quickbar entries (or null when absent); `authoritative`: saved server character state wins over legacy client layouts; `localCache`: whether the client may read/write its named character cache. A possessed familiar returns `localCache=false`, `authoritative=true`, and an empty present layout when it has no QBList. |

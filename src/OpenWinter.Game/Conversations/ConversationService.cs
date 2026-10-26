@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.RegularExpressions;
 using OpenWinter.Aurora.Resources;
 using OpenWinter.Game.Objects;
 using OpenWinter.Game.Scripting;
@@ -545,91 +544,37 @@ public sealed class ConversationService : IWorldSystem
     string Voice(DialogNode line) => line.Sound.Length > 0 ? line.Sound
         : line.Text.StrRef >= 0 ? _world.Resources.Talk.Sound((uint)line.Text.StrRef) : "";
 
-    static readonly Regex TokenPattern = new(@"<([^<>]+)>", RegexOptions.Compiled);
-
     /// <summary>
-    /// Replaces the original's text tokens: names, gendered word pairs, class and race (in the forms
-    /// classes.2da and racialtypes.2da give), alignment, time, CUSTOMnnn (SetCustomToken), and the
-    /// action/check/highlight markup (which <paramref name="markup"/> false drops, for text with no
-    /// conversation styling such as the journal). Capitalised tokens give capitalised words.
+    /// Replaces the original's text tokens (<see cref="OpenWinter.Content.TextTokens"/>) for <paramref name="pc"/>, with
+    /// CUSTOMnnn from SetCustomToken. <paramref name="markup"/> false drops the action/check/highlight markup, for text
+    /// with no conversation styling such as the journal.
     /// </summary>
-    public string Tokens(string text, Creature pc, GameObject owner, bool markup = true)
-    {
-        if (text.IndexOf('<') < 0) return text;
-        var rm = _world.Resources;
-        bool female = pc.Gender == 1;
-        string Name(int part) => part switch
-        {
-            0 => pc.Template.GetLocString("FirstName").Resolve(rm.Talk),
-            1 => pc.Template.GetLocString("LastName").Resolve(rm.Talk),
-            _ => pc.Name.Resolve(rm.Talk),
-        };
-        // The first class taken, as the original does.
-        string ClassName(string column) => pc.Classes.Count > 0 ? rm.TlkString((uint)rm.TwoDA("classes").GetInt(pc.Classes[0].Class, column)) : "";
-        string RaceName(string column) => rm.TlkString((uint)rm.TwoDA("racialtypes").GetInt(pc.Race, column));
-        return TokenPattern.Replace(text, m =>
-        {
-            var t = m.Groups[1].Value;
-            if (t.StartsWith("CUSTOM", StringComparison.OrdinalIgnoreCase) && int.TryParse(t[6..], out var n))
-                return PlayerTokens.Count > 0 && PlayerTokens.TryGetValue((pc.Id, n), out var own) ? own : CustomTokens.GetValueOrDefault(n, "");
-            string Cap(string v) => char.IsUpper(t[0]) && v.Length > 0 ? char.ToUpperInvariant(v[0]) + v[1..] : v;
-            return t switch
-            {
-                "FirstName" => Name(0),
-                "LastName" => Name(1),
-                "FullName" => Name(2),
-                "PlayerName" => pc.Player?.PlayerName ?? "",
-                "Class" => ClassName("Name"),
-                "class" => ClassName("Lower"),
-                "Classes" => ClassName("Plural"),
-                "classes" => ClassName("Plural").ToLowerInvariant(),
-                // racialtypes.2da's conversation forms: "Dwarven" / "dwarven", and the plural "Dwarves".
-                "Race" => RaceName("ConverName"),
-                "race" => RaceName("ConverNameLower"),
-                "Races" => RaceName("NamePlural"),
-                "races" => RaceName("NamePlural").ToLowerInvariant(),
-                "Subrace" or "subrace" => pc.Subrace,
-                "Deity" or "deity" => pc.Deity,
-                "Level" or "level" => pc.TotalLevel.ToString(),
-                "Gender" or "gender" => Cap(female ? "female" : "male"),
-                "Lord/Lady" or "lord/lady" => Cap(female ? "lady" : "lord"),
-                "Sir/Madam" or "sir/madam" => Cap(female ? "madam" : "sir"),
-                "Brother/Sister" or "brother/sister" => Cap(female ? "sister" : "brother"),
-                "Boy/Girl" or "boy/girl" => Cap(female ? "girl" : "boy"),
-                "Lad/Lass" or "lad/lass" => Cap(female ? "lass" : "lad"),
-                "Mister/Missus" or "mister/missus" => Cap(female ? "missus" : "mister"),
-                "Man/Woman" or "man/woman" => Cap(female ? "woman" : "man"),
-                "Male/Female" or "male/female" => Cap(female ? "female" : "male"),
-                "Master/Mistress" or "master/mistress" => Cap(female ? "mistress" : "master"),
-                "King/Queen" or "king/queen" => Cap(female ? "queen" : "king"),
-                "He/She" or "he/she" => Cap(female ? "she" : "he"),
-                "Him/Her" or "him/her" => Cap(female ? "her" : "him"),
-                "His/Her" or "his/her" => Cap(female ? "her" : "his"),
-                "His/Hers" or "his/hers" => Cap(female ? "hers" : "his"),
-                "Bitch/Bastard" or "bitch/bastard" => Cap(female ? "bitch" : "bastard"),
-                "Day/Night" or "day/night" => Cap(_world.Clock.IsDay ? "day" : "night"),
-                "QuarterDay" or "quarterday" => Cap(_world.Clock.Hour switch { < 6 => "night", < 12 => "morning", < 18 => "afternoon", _ => "evening" }),
-                "GameTime" or "gametime" => $"{_world.Clock.Hour:00}:{_world.Clock.Minute:00}",
-                "GameYear" or "gameyear" => _world.Clock.Year.ToString(),
-                "GameMonth" or "gamemonth" => _world.Clock.Month.ToString(),
-                "Alignment" or "alignment" => Cap(AlignmentWord(pc)),
-                "Good/Evil" or "good/evil" => Cap(pc.GoodEvil >= 70 ? "good" : pc.GoodEvil <= 30 ? "evil" : "neutral"),
-                "Lawful/Chaotic" or "lawful/chaotic" => Cap(pc.LawfulChaotic >= 70 ? "lawful" : pc.LawfulChaotic <= 30 ? "chaotic" : "neutral"),
-                "Law/Chaos" or "law/chaos" => Cap(pc.LawfulChaotic >= 70 ? "law" : pc.LawfulChaotic <= 30 ? "chaos" : "neutrality"),
-                // Markup the client renders: keep as lightweight tags.
-                "StartAction" => markup ? "[[action]]" : "",
-                "StartCheck" => markup ? "[[check]]" : "",
-                "StartHighlight" => markup ? "[[highlight]]" : "",
-                "/Start" => markup ? "[[/]]" : "",
-                _ => m.Value,
-            };
-        });
-    }
+    public string Tokens(string text, Creature pc, GameObject owner, bool markup = true) =>
+        text.IndexOf('<') < 0 ? text : OpenWinter.Content.TextTokens.Replace(text, new PcTokens(this, pc), markup);
 
-    static string AlignmentWord(Creature c)
+    /// <summary>What the tokens read about a player.</summary>
+    sealed class PcTokens(ConversationService service, Creature pc) : OpenWinter.Content.ITokenSubject
     {
-        string law = c.LawfulChaotic >= 70 ? "lawful" : c.LawfulChaotic <= 30 ? "chaotic" : "neutral";
-        string good = c.GoodEvil >= 70 ? "good" : c.GoodEvil <= 30 ? "evil" : "neutral";
-        return law == "neutral" && good == "neutral" ? "true neutral" : $"{law} {good}";
+        ResMan Rm => service._world.Resources;
+        public string FirstName => pc.Template.GetLocString("FirstName").Resolve(Rm.Talk);
+        public string LastName => pc.Template.GetLocString("LastName").Resolve(Rm.Talk);
+        public string FullName => pc.Name.Resolve(Rm.Talk);
+        public string PlayerName => pc.Player?.PlayerName ?? "";
+        // The first class taken, as the original does.
+        public string ClassName(string column) => pc.Classes.Count > 0 ? Rm.TlkString((uint)Rm.TwoDA("classes").GetInt(pc.Classes[0].Class, column)) : "";
+        public string RaceName(string column) => Rm.TlkString((uint)Rm.TwoDA("racialtypes").GetInt(pc.Race, column));
+        public string Subrace => pc.Subrace;
+        public string Deity => pc.Deity;
+        public int Level => pc.TotalLevel;
+        public bool Female => pc.Gender == 1;
+        public int GoodEvil => pc.GoodEvil;
+        public int LawChaos => pc.LawfulChaotic;
+        public bool IsDay => service._world.Clock.IsDay;
+        public int Hour => service._world.Clock.Hour;
+        public int Minute => service._world.Clock.Minute;
+        public int Year => service._world.Clock.Year;
+        public int Month => service._world.Clock.Month;
+        public string Custom(int number) =>
+            service.PlayerTokens.Count > 0 && service.PlayerTokens.TryGetValue((pc.Id, number), out var own) ? own : service.CustomTokens.GetValueOrDefault(number, "");
     }
 }

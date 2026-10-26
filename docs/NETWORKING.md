@@ -139,12 +139,15 @@ Supported so far:
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
 - conversations: the speaker's line, name, portrait and voice-over, the answers, picking one, Esc and the end
-  choice, the lines in the chat window, and one-liners spoken over the talker. The client fills in the text tokens
-  (names, race, class, gender words, custom tokens) as the original client does: the server sends text as written,
-  with the creature the tokens describe. Talk (radial menu, quickbar) sends the Talk command, a click uses the
-  creature.
-- the journal: opening it asks the server for the whole journal (the original sends it only then); the server's
-  journal-updated message prints the journal line and flashes the button
+  choice, the lines in the chat window, and one-liners spoken over the talker. The server sends text as written or
+  as a talk table reference, with the creature its tokens describe, and leaves the tokens (names, race, class,
+  gender words, custom tokens) to the client; the bridge fills them in. Text for a female character comes from the
+  female talk tables (dialogf.tlk and the custom table's "f" file) where the language has them; English has none.
+- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature, as
+  on any object, is a use, and the server picks the default action (talking, attacking).
+- the journal: opening its window opens the quest screen, and the server sends the whole journal (it sends it only
+  then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
+  and flashes the button.
 - cutscene mode and fades
 
 Inventory, combat feedback, NWSync and character creation are still to come.
@@ -158,5 +161,7 @@ Testing:
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
   click NUI elements and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`,
-  `--record`). The client's `--capture-nwn-dialog` talks to a creature and takes a shot of every line it answers. `nwn-dump` reads 2DAs with the haks the recorded server named, since
-  some fields' presence depends on them.
+  `--record`). `nwn-dump` reads 2DAs with the haks the recorded server named, since some fields' presence depends
+  on them.
+- The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
+  every line, then opens the journal.

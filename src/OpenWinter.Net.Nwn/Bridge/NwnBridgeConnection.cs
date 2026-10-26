@@ -156,13 +156,8 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 // Into the backpack wherever it fits: no container, no grid position.
                 ToServer(new InventoryMessages.InventoryPickupC2S { Item = a.Target, TargetRepository = GameObjUpdateMessages.InvalidObjectId, X = 255, Y = 255 });
                 break;
-            case ActionKind.Talk when _world.KindOf(a.Target) == ObjectKind.Creature:
-                // The Talk command (radial menu, quickbar): the server walks the player there and starts the conversation.
-                ToServer(new InputMessages.InputDialog { Target = a.Target });
-                break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
-                // Doors change state; everything else is used (the server walks the player there first).
-                ToServer((NwnMessage?)_world.DoorRequest(a.Target, a.Action == ActionKind.Use) ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true });
+                ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use)));
                 break;
             case ActionKind.Attack:
                 ToServer(new InputMessages.InputAttack { Target = a.Target });
@@ -215,6 +210,16 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         });
     }
 
+    /// <summary>
+    /// What a click, use or Talk sends. The Talk command (radial menu, quickbar) on a creature asks for a
+    /// conversation; a click on a creature (also Talk, without the command) is a use, for which the server picks the
+    /// default action (talk, attack). Doors change state; everything else is used. The server walks the player there.
+    /// </summary>
+    public static NwnMessage UseOrTalk(ActionRequestMessage a, ObjectKind? kind, NwnMessage? doorRequest) =>
+        a.Action == ActionKind.Talk && a.Argument == ActionRequestMessage.TalkCommand && kind == ObjectKind.Creature
+            ? new InputMessages.InputDialog { Target = a.Target }
+            : doorRequest ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true };
+
     /// <summary>A facing as the drive message's bearing: tenths of a degree counter-clockwise from +X.</summary>
     public static ushort Bearing(float facing) => (ushort)(((int)MathF.Round(facing * 1800f / MathF.PI) % 3600 + 3600) % 3600);
 
@@ -255,7 +260,15 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             _session.Send(new ServerStatusMessages.ServerStatusRequest());
             _session.Send(new CharListMessages.CharListRequest());
         }
-        foreach (var m in _received) FromServer(m);
+        foreach (var m in _received)
+        {
+            // One message the bridge can't translate mustn't drop the rest of the pump: record it and go on.
+            try { FromServer(m); }
+            catch (Exception e) when (e is not OutOfMemoryException)
+            {
+                _session.DecodeErrors.Add(new NwnDecodeError([m.Major, m.Minor], $"{m.GetType().Name} not translated: {e.Message}"));
+            }
+        }
         // Moving creatures report ten times a second; the client interpolates between.
         var now = _clock.Elapsed.TotalSeconds;
         if (now - _lastTick < 0.1) return;

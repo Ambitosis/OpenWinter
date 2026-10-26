@@ -36,7 +36,7 @@ public partial class Main
         int steps = 0;
         _session.DialogReceived += m => { step = m; steps++; };
         GD.Print($"[nwn-dialog] talking to {npc.ObjectId} {npc.DisplayName}");
-        _session.Send(new ActionRequestMessage { Action = ActionKind.Talk, Target = npc.ObjectId }.Write());
+        _session.Send(new ActionRequestMessage { Action = ActionKind.Talk, Target = npc.ObjectId, Argument = ActionRequestMessage.TalkCommand }.Write());
         var picks = new Queue<string>(_args.GetValueOrDefault("nwn-replies", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         for (int n = 1; n <= 30; n++)
         {

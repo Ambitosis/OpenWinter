@@ -95,7 +95,12 @@ public partial class JournalPanel : UiTheme.Window
         Body.AddChild(_emptyState);
 
         Session.NotifyReceived += OnNotify;
-        Closed += () => { if (_reading != null) _unread.Remove(_reading); _reading = null; };
+        Closed += () =>
+        {
+            if (_reading != null) _unread.Remove(_reading);
+            _reading = null;
+            Session.Request("journal-closed");
+        };
         Fill();
     }
 

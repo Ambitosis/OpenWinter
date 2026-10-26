@@ -100,7 +100,8 @@ public class NwnBridgeDialogTests
         Assert.Equal((ChatChannel.Dialog, Pavel, "You're Aluvian Darkstar, aren't you?"), (chat.Channel, chat.Speaker, chat.Text));
         var step = DialogMessage.Read(output[1]);
         Assert.Equal((Pavel, Pavel, false), (step.Owner, step.Speaker, step.Ended));
-        // The line is the female form (the token target's gender), tokens filled in from the player list.
+        // The line is looked up with its gender byte (1: the female talk table where the language has one), and its
+        // tokens filled in from the player list.
         Assert.Equal("You're Aluvian Darkstar, aren't you?", step.Text);
         Assert.Equal("vs_hhenchm1_069", step.Sound);
         Assert.Equal([(0, "Yes, I am Aluvian."), (1, "No, I think you have me confused with someone else.")], step.Replies);
@@ -112,13 +113,43 @@ public class NwnBridgeDialogTests
     {
         var (dialog, _) = Dialog();
         Step(dialog, Entry, EntryChat, Answers);
+        Assert.Null(dialog.Reply(2));
         // As recorded after picking the first answer of entry 0.
         Assert.Equal("7014031113000000070000000003000700000000", Bytes(dialog.Reply(0)!));
+        // Further picks wait for the next answers.
+        Assert.Null(dialog.Reply(1));
+        Assert.Null(dialog.Reply(-1));
+        Step(dialog, Entry, EntryChat, Answers);
         // The second answer shown is the server's reply 2 (reply 1 failed its condition).
         Assert.Equal("7014031113000000070200000003000700000000", Bytes(dialog.Reply(1)!));
-        Assert.Null(dialog.Reply(2));
+        Step(dialog, Entry, EntryChat, Answers);
         // Esc anywhere but the last line escapes (recorded; the server closed the conversation).
         Assert.Equal("701403111300000007FFFFFFFF03010700000000", Bytes(dialog.Reply(-1)!));
+    }
+
+    [Fact]
+    public void ALineWithNoAnswersIsEndedNotEscaped()
+    {
+        var (dialog, output) = Dialog();
+        dialog.ToClient(Frame(LastEntry, new DialogMessages.DialogEntry()));
+        dialog.ToClient(new DialogMessages.DialogReplies { CurrentEntryIndex = 16, TokenTarget = Pc });
+        Assert.Equal([(-1, NwnDialog.EndDialog)], DialogMessage.Read(output.Single(m => m.Type == MessageType.Dialog)).Replies);
+        var end = Assert.IsType<DialogMessages.DialogReply>(dialog.Reply(-1));
+        Assert.Equal((NwnDialog.NoReply, (byte)0), (end.ReplyIndex, end.EscapeDialog));
+    }
+
+    [Fact]
+    public void TheTalkCommandAsksForAConversationAndAClickUses()
+    {
+        var click = new ActionRequestMessage { Action = ActionKind.Talk, Target = Pavel };
+        var command = new ActionRequestMessage { Action = ActionKind.Talk, Target = Pavel, Argument = ActionRequestMessage.TalkCommand };
+        // A click on a creature (hostile, party member or talker alike): the server picks the default action.
+        var use = Assert.IsType<InputMessages.InputUseObject>(NwnBridgeConnection.UseOrTalk(click, ObjectKind.Creature, null));
+        Assert.Equal((Pavel, true), (use.Target, use.LeftClick));
+        // The radial menu's or quickbar's Talk (recorded: the server walked over and started the conversation).
+        Assert.Equal("7006081113000000", Bytes(NwnBridgeConnection.UseOrTalk(command, ObjectKind.Creature, null)));
+        // Talk to a placeable is a use.
+        Assert.IsType<InputMessages.InputUseObject>(NwnBridgeConnection.UseOrTalk(command, ObjectKind.Placeable, null));
     }
 
     [Fact]
@@ -176,6 +207,17 @@ public class NwnBridgeDialogTests
         Assert.Equal("Well met, Elven Wizard, my lady. Level 3, Chaotic neutral. [[action]][Bow][[/]]",
             dialog.Tokens.Resolve("Well met, <Race> <Class>, my <lord/lady>. Level <Level>, <Alignment>. <StartAction>[Bow]</Start>", Pc));
         Assert.Equal("[Bow] <Unknown>", dialog.Tokens.Resolve("<StartAction>[Bow]</Start> <Unknown>", Pc, markup: false));
+        // Leaving the area drops the creature's attributes, not the player's names.
+        dialog.ToClient(new GameObjUpdateMessages.GameObjUpdateObjList { Entries = { new GameObjUpdateDeleteMessages.ObjListDeleteCreature { ObjectId = Pc } } });
+        Assert.Equal("Aluvian, my lord", dialog.Tokens.Resolve("<FirstName>, my <lord/lady>", Pc));
+    }
+
+    [Fact]
+    public void UntilTheTargetIsKnownGenderWordsFollowTheTextsGender()
+    {
+        var (dialog, _) = Dialog();
+        Assert.Equal("my lady", dialog.Tokens.Resolve("my <lord/lady>", 77, gender: 1));
+        Assert.Equal("my lord", dialog.Tokens.Resolve("my <lord/lady>", 77, gender: 0));
     }
 
     [Fact]
@@ -213,6 +255,25 @@ public class NwnBridgeDialogTests
         output.Clear();
         dialog.ToClient(new JournalMessages.JournalRemoveQuest { PlotId = "JOUR_M1Q0Training" });
         Assert.Contains("\"removed\":true", NotifyMessage.Read(Assert.Single(output)).Json);
+        // Asked again while open, nothing more is sent; closing the window closes the quest screen, once.
+        Assert.Null(dialog.FromClient("journal", "{}"));
+        Assert.Equal("701C0B", Bytes(dialog.FromClient("journal-closed", "{}")!));
+        Assert.Null(dialog.FromClient("journal-closed", "{}"));
+        Assert.Equal("701C0A", Bytes(dialog.FromClient("journal", "{}")!));
+    }
+
+    [Fact]
+    public void JournalNumbersFitTheClient()
+    {
+        var (dialog, output) = Dialog();
+        dialog.ToClient(new JournalMessages.JournalAddQuest
+        {
+            PlotId = "q", Name = NwnLocString.FromText("Q"), Text = NwnLocString.FromText("T"), Priority = uint.MaxValue,
+            CalendarDay = uint.MaxValue, TimeOfDay = 5, PictureIndex = ushort.MaxValue,
+        });
+        var quest = JsonDocument.Parse(NotifyMessage.Read(Assert.Single(output)).Json).RootElement;
+        Assert.Equal((int.MaxValue, int.MaxValue, 5, -1),
+            (quest.GetProperty("priority").GetInt32(), quest.GetProperty("day").GetInt32(), quest.GetProperty("time").GetInt32(), quest.GetProperty("picture").GetInt32()));
     }
 
     [Fact]
@@ -224,6 +285,10 @@ public class NwnBridgeDialogTests
         var notes = output.Select(NotifyMessage.Read).ToList();
         Assert.Equal(("cutscene", """{"enabled":true,"leftClick":false}"""), (notes[0].Kind, notes[0].Json));
         Assert.Equal(("fade", """{"op":"to-black","speed":0.5}"""), (notes[1].Kind, notes[1].Json));
+        // A speed JSON can't hold doesn't stop the bridge.
+        output.Clear();
+        dialog.ToClient(new CutsceneMessages.CutsceneFadeFromBlack { Speed = float.NaN });
+        Assert.Equal("""{"op":"from-black","speed":0}""", NotifyMessage.Read(Assert.Single(output)).Json);
         Assert.IsType<CutsceneMessages.CutsceneCancel>(dialog.FromClient("cutscene-abort", "{}"));
         Assert.Null(dialog.FromClient("area-ready", "{}"));
     }
@@ -250,5 +315,32 @@ public class NwnBridgeDialogTests
         var spawn = SpawnMessage.Read(output.Single(m => m.Type == MessageType.Spawn));
         Assert.Equal("po_hhenchm1_", spawn.Portrait);
         Assert.Equal("Pavel", mirror.NameOf(Pavel));
+        // A later change (SetPortraitResRef) reaches the client's view of the creature.
+        output.Clear();
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries = { new GameObjUpdateObjListUpdateCreature { ObjectId = Pavel, PortraitId = 0xFFFF, CustomPortrait = "po_custom_" } },
+        });
+        var note = NotifyMessage.Read(output.Single(m => m.Type == MessageType.Notify));
+        Assert.Equal(("object-portrait", Pavel, """{"portrait":"po_custom_"}"""), (note.Kind, note.Subject, note.Json));
+    }
+
+    [DataFact]
+    public void FemaleTextComesFromTheFemaleTalkTable()
+    {
+        // A language with a female table (English has none): the first entry whose female text differs.
+        foreach (var language in new[] { "fr", "de", "es", "it" })
+        {
+            var paths = new OpenWinter.Aurora.Resources.GamePaths(TestData.Config!.GameRoot, Path.Combine(Path.GetTempPath(), "openwinter-nwn-tlk"), language);
+            var female = Path.Combine(Path.GetDirectoryName(paths.BaseTlk)!, "dialogf.tlk");
+            if (!File.Exists(female) || !File.Exists(paths.BaseTlk)) continue;
+            var m = new OpenWinter.Aurora.Formats.TalkTable(File.ReadAllBytes(paths.BaseTlk), null);
+            var f = new OpenWinter.Aurora.Formats.TalkTable(File.ReadAllBytes(female), null);
+            var strRef = Enumerable.Range(0, 20000).Select(i => (uint)i).First(i => f.Get(i).Length > 0 && f.Get(i) != m.Get(i));
+            var data = new NwnResManData(paths);
+            Assert.Equal(f.Get(strRef), data.Text(strRef, 1));
+            Assert.Equal(m.Get(strRef), data.Text(strRef, 0));
+            return;
+        }
     }
 }

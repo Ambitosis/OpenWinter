@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using OpenWinter.Net.Nwn.Messages;
 using OpenWinter.Net.Nwn.Wire;
@@ -15,12 +14,13 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// <list type="bullet">
 /// <item>A conversation step arrives as the line (DialogEntry), its chat copy with the voice-over
 /// (ChatTokenTalkNoBubble) and the answers (DialogReplies); together they become one Dialog message. The player's
-/// pick goes back as DialogReply with the server's reply index; Esc as an escape. The server's DialogClose closes
-/// the window.</item>
+/// pick goes back as DialogReply with the server's reply index; Esc as an escape. Picks after the first are ignored
+/// until the next answers arrive. The server's DialogClose closes the window.</item>
 /// <item>Text comes as written or as talk table references, with the object its tokens describe: the server leaves
 /// the tokens to the client, and they are filled in here, with the custom tokens the server sent.</item>
 /// <item>Journal changes become "journal" notifies; the server's journal-updated message prints the journal line.
-/// The client asking for the journal opens the quest screen, which makes the server send the whole journal.</item>
+/// The client's journal window opening and closing open and close the quest screen; on opening, the server sends
+/// the whole journal.</item>
 /// </list>
 /// </summary>
 public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<byte[]> emit)
@@ -38,9 +38,9 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
     }
 
     readonly Dictionary<string, Quest> _quests = new(StringComparer.Ordinal);
-    uint _owner, _speaker, _target, _entryIndex;
+    uint _owner, _speaker, _entryIndex;
     string _line = "", _sound = "";
-    bool _open, _pending, _lastLine;
+    bool _open, _pending, _lastLine, _answered, _journalOpen;
     readonly List<uint> _offered = [];
     int _dawn = 6, _dusk = 18;
 
@@ -59,8 +59,7 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
                 // The line's chat copy and its answers follow.
                 _owner = m.Owner;
                 _speaker = m.Speaker;
-                _target = m.TokenTarget;
-                _line = Tokens.Resolve(Text(m.Entry), m.TokenTarget);
+                _line = Tokens.Resolve(Text(m.Entry), m.TokenTarget, gender: m.Entry.Gender);
                 _sound = "";
                 _pending = true;
                 return true;
@@ -76,11 +75,11 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
             case ChatTokenTalkNoBubble m:
                 // A conversation line in the chat window; its sound is the line's voice-over.
                 if (_pending && m.SpeakerId == _speaker) _sound = m.Sound;
-                Chat(ChatChannel.Dialog, m.SpeakerId, Tokens.Resolve(Text(m.Message), m.TargetId, markup: false));
+                Chat(ChatChannel.Dialog, m.SpeakerId, Tokens.Resolve(Text(m.Message), m.TargetId, markup: false, m.Message.Gender));
                 return true;
             case ChatTokenTalk m:
                 // A one-liner: spoken over the talker's head.
-                Chat(ChatChannel.Talk, m.SpeakerId, Tokens.Resolve(Text(m.Message), m.TargetId, markup: false));
+                Chat(ChatChannel.Talk, m.SpeakerId, Tokens.Resolve(Text(m.Message), m.TargetId, markup: false, m.Message.Gender));
                 return true;
             case CustomTokenMessages.CustomTokenSingle m:
                 Tokens.SetCustom(m.TokenNumber, m.TokenValue);
@@ -95,7 +94,7 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
                 Store(new Quest
                 {
                     Tag = m.PlotId, Name = Text(m.Name), Text = Text(m.Text), State = m.State, Priority = m.Priority,
-                    Day = m.CalendarDay, Time = m.TimeOfDay, Picture = m.PictureIndex, Completed = m.QuestCompleted,
+                    Day = m.CalendarDay, Time = m.TimeOfDay, Picture = Picture(m.PictureIndex), Completed = m.QuestCompleted,
                 });
                 return true;
             case JournalRemoveQuest m:
@@ -108,10 +107,10 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
                 Notify("cutscene", new JsonObject { ["enabled"] = m.Active, ["leftClick"] = m.LeftMouseButtonEnabled });
                 return true;
             case CutsceneMessages.CutsceneFadeToBlack m:
-                Notify("fade", new JsonObject { ["op"] = "to-black", ["speed"] = m.Speed });
+                Notify("fade", new JsonObject { ["op"] = "to-black", ["speed"] = Finite(m.Speed) });
                 return true;
             case CutsceneMessages.CutsceneFadeFromBlack m:
-                Notify("fade", new JsonObject { ["op"] = "from-black", ["speed"] = m.Speed });
+                Notify("fade", new JsonObject { ["op"] = "from-black", ["speed"] = Finite(m.Speed) });
                 return true;
             case CutsceneMessages.CutsceneStopFade:
                 Notify("fade", new JsonObject { ["op"] = "stop", ["speed"] = 0 });
@@ -142,40 +141,58 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
 
     /// <summary>
     /// The NWN message for the player's pick: an index into the answers shown, or -1 for Esc and the end choice.
-    /// At the last line (the server marks it and offers a single answer, usually its own end choice) -1 picks that
-    /// answer; anywhere else it is an escape. Null when no conversation is open or the index isn't one of them.
+    /// -1 picks the server's end choice when it offers one; at the last line (the server marks it) with a single
+    /// answer it picks that answer; a line with no answers at all is ended; anywhere else -1 is an escape. Null when
+    /// no conversation is open, the index isn't one of the answers, or an answer was already sent for this line.
     /// </summary>
     public NwnMessage? Reply(int choice)
     {
-        if (!_open) return null;
-        if (choice < 0 && _lastLine && _offered.Count == 1) choice = 0;
-        if (choice < 0) return new DialogReply { Owner = _owner, ReplyIndex = NoReply, EscapeDialog = 1, CurrentEntryIndex = _entryIndex };
-        if (choice >= _offered.Count) return null;
-        return new DialogReply { Owner = _owner, ReplyIndex = _offered[choice], CurrentEntryIndex = _entryIndex };
+        if (!_open || _answered) return null;
+        if (choice < 0 && _offered.IndexOf(NoReply) is >= 0 and var end) choice = end;
+        else if (choice < 0 && _lastLine && _offered.Count == 1) choice = 0;
+        NwnMessage? reply = choice < 0
+            ? new DialogReply { Owner = _owner, ReplyIndex = NoReply, EscapeDialog = _offered.Count == 0 ? (byte)0 : (byte)1, CurrentEntryIndex = _entryIndex }
+            : choice < _offered.Count ? new DialogReply { Owner = _owner, ReplyIndex = _offered[choice], CurrentEntryIndex = _entryIndex }
+            : null;
+        _answered = reply != null;
+        return reply;
     }
 
     /// <summary>The reply index of the end choice the server offers at a line with no answers.</summary>
     public const uint NoReply = uint.MaxValue;
 
     /// <summary>The NWN message for a client request that belongs here, or null.</summary>
-    public NwnMessage? FromClient(string kind, string json) => kind switch
+    public NwnMessage? FromClient(string kind, string json)
     {
-        // The journal window opening: the server answers with the whole journal.
-        "journal" => new JournalQuestScreenOpen(),
-        "cutscene-abort" => new CutsceneMessages.CutsceneCancel(),
-        _ => null,
-    };
+        switch (kind)
+        {
+            case "journal":
+                // The journal window opening (asked again while open, the journal is already current): the server
+                // answers with the whole journal.
+                if (_journalOpen) return null;
+                _journalOpen = true;
+                return new JournalQuestScreenOpen();
+            case "journal-closed":
+                if (!_journalOpen) return null;
+                _journalOpen = false;
+                return new JournalQuestScreenClosed();
+            case "cutscene-abort":
+                return new CutsceneMessages.CutsceneCancel();
+        }
+        return null;
+    }
 
     void Replies(DialogReplies m)
     {
         _entryIndex = m.CurrentEntryIndex;
         _lastLine = m.EndOfDialog;
+        _answered = false;
         _offered.Clear();
         var shown = new List<(int, string)>();
-        // Answers past the active ones are those whose conditions failed (shown to DMs); players don't see them.
-        foreach (var r in m.Replies.Take((int)m.RepliesCount))
+        // The inactive answers that follow the active ones aren't offered.
+        foreach (var r in m.Replies.Take((int)Math.Min(m.RepliesCount, int.MaxValue)))
         {
-            var text = Tokens.Resolve(Text(r.Text), m.TokenTarget);
+            var text = Tokens.Resolve(Text(r.Text), m.TokenTarget, gender: r.Text.Gender);
             // The end choice is shown as the client's own, which sends -1.
             if (r.ReplyIndex == NoReply && text.Length == 0)
             {
@@ -203,7 +220,7 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
     void Close()
     {
         var owner = _owner;
-        _open = _pending = false;
+        _open = _pending = _answered = false;
         _offered.Clear();
         emit(new DialogMessage { Owner = owner, Speaker = owner, Ended = true }.Write());
     }
@@ -238,7 +255,7 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
             if (Has(JournalUpdateFlag.Ntimeofday)) q.Time = e.TimeOfDay;
             if (Has(JournalUpdateFlag.Nstate)) q.State = e.State;
             if (Has(JournalUpdateFlag.Npriority)) q.Priority = e.Priority;
-            if (Has(JournalUpdateFlag.Npictureindex)) q.Picture = e.PictureIndex == ushort.MaxValue ? -1 : e.PictureIndex;
+            if (Has(JournalUpdateFlag.Npictureindex)) q.Picture = Picture(e.PictureIndex);
             if (Has(JournalUpdateFlag.Bquestcompleted)) q.Completed = e.QuestCompleted;
             Store(q);
         }
@@ -273,8 +290,8 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
         return new JsonObject
         {
             ["tag"] = q.Tag, ["state"] = q.State, ["name"] = T(q.Name), ["text"] = T(q.Text), ["end"] = q.Completed,
-            ["update"] = update, ["priority"] = q.Priority, ["picture"] = q.Picture, ["xp"] = 0, ["day"] = q.Day,
-            ["time"] = q.Time, ["history"] = new JsonArray(), ["removed"] = false,
+            ["update"] = update, ["priority"] = Int(q.Priority), ["picture"] = q.Picture, ["xp"] = 0, ["day"] = Int(q.Day),
+            ["time"] = Int(q.Time), ["history"] = new JsonArray(), ["removed"] = false,
         };
     }
 
@@ -299,6 +316,7 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
                     w.GoodEvil = p.AlignmentGoodEvil;
                     w.LawChaos = p.AlignmentLawChaos;
                     w.Classes = p.Classes.Select(c => ((int)c.ClassId, (int)c.Level)).ToList();
+                    w.Known = true;
                     break;
                 case GameObjUpdateDeleteMessages.ObjListDeleteCreature d:
                     Tokens.Forget(d.ObjectId);
@@ -325,6 +343,15 @@ public sealed class NwnDialog(NwnWorldMirror world, INwnBridgeData data, Action<
 
     void Notify(string kind, JsonObject json) =>
         emit(new NotifyMessage { Kind = kind, Subject = world.Controlled, Json = json.ToJsonString() }.Write());
+
+    /// <summary>A journal picture index; 0xFFFF is none.</summary>
+    static int Picture(ushort index) => index == ushort.MaxValue ? -1 : index;
+
+    /// <summary>The client reads journal numbers as 32-bit signed.</summary>
+    static int Int(uint value) => (int)Math.Min(value, int.MaxValue);
+
+    /// <summary>A fade speed fit for JSON: the server's float could be anything.</summary>
+    static float Finite(float speed) => float.IsFinite(speed) ? speed : 0;
 
     string Text(NwnLocString s) => s.IsStrRef ? data.Text(s.StrRef, s.Gender) : s.Text;
 }
