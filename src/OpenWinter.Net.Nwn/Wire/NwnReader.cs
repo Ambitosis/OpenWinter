@@ -153,10 +153,11 @@ public sealed class NwnWsReader(ReadOnlyMemory<byte> data, INwnContext context) 
         return Take((int)U32()).ToArray();
     }
 
+    // JSON is its type byte, a length and the text, with no string type byte of its own.
     public override string ReadJson()
     {
         Expect(NwnWireType.Json);
-        return ReadString();
+        return Text.GetString(Take((int)U32()));
     }
 
     public override NwnLocString ReadLocString()
@@ -266,8 +267,10 @@ public sealed class NwnWsWriter(INwnContext context) : NwnWriter(context)
 
     public override void WriteJson(string value)
     {
+        var bytes = Text.GetBytes(value ?? "");
         Type(NwnWireType.Json);
-        WriteString(value);
+        U32((uint)bytes.Length);
+        _buf.Write(bytes);
     }
 
     // Literal text is written as a string field after the flag but read back without the string's type byte; this

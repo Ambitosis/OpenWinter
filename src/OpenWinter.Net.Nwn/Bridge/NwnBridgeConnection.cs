@@ -218,6 +218,11 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void Request(ClientRequestMessage request)
     {
+        if (NwnNui.FromClient(request.Kind, request.Json) is { } nui)
+        {
+            ToServer(nui);
+            return;
+        }
         switch (request.Kind)
         {
             case "area-ready":
@@ -285,7 +290,8 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 Tell("The server refused the character.");
                 break;
             default:
-                NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
+                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)))
+                    NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
                 break;
         }
     }

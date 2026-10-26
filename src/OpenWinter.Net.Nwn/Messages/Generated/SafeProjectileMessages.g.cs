@@ -94,82 +94,82 @@ public static partial class SafeProjectileMessages
         {
             Originator = r.ReadObjectId();
             Target = r.ReadObjectId();
+            float e1665;
+            e1665 = r.ReadFloat();
+            float e1666;
+            e1666 = r.ReadFloat();
+            float e1667;
+            e1667 = r.ReadFloat();
+            OriginLocation = (e1665, e1666, e1667);
+            float e1668;
+            e1668 = r.ReadFloat();
             float e1669;
             e1669 = r.ReadFloat();
             float e1670;
             e1670 = r.ReadFloat();
-            float e1671;
-            e1671 = r.ReadFloat();
-            OriginLocation = (e1669, e1670, e1671);
-            float e1672;
-            e1672 = r.ReadFloat();
-            float e1673;
-            e1673 = r.ReadFloat();
-            float e1674;
-            e1674 = r.ReadFloat();
-            TargetLocation = (e1672, e1673, e1674);
+            TargetLocation = (e1668, e1669, e1670);
             DeltaTime = r.ReadDword();
-            var tag1675 = r.ReadInteger(NwnWireType.Byte);
-            switch (tag1675)
+            var tag1671 = r.ReadInteger(NwnWireType.Byte);
+            switch (tag1671)
             {
                 case 0L:
                 {
-                    SafeProjectileMessages.ProjectileNonSpell v1676;
-                    v1676 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
-                    Projectile = new NwnTagged(tag1675, v1676!);
+                    SafeProjectileMessages.ProjectileNonSpell v1672;
+                    v1672 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
+                    Projectile = new NwnTagged(tag1671, v1672!);
                     break;
                 }
                 case 1L:
                 {
-                    SafeProjectileMessages.ProjectileNonSpell v1677;
-                    v1677 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
-                    Projectile = new NwnTagged(tag1675, v1677!);
+                    SafeProjectileMessages.ProjectileNonSpell v1673;
+                    v1673 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
+                    Projectile = new NwnTagged(tag1671, v1673!);
                     break;
                 }
                 case 2L:
                 {
-                    SafeProjectileMessages.ProjectileNonSpell v1678;
-                    v1678 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
-                    Projectile = new NwnTagged(tag1675, v1678!);
+                    SafeProjectileMessages.ProjectileNonSpell v1674;
+                    v1674 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
+                    Projectile = new NwnTagged(tag1671, v1674!);
                     break;
                 }
                 case 3L:
                 {
-                    SafeProjectileMessages.ProjectileNonSpell v1679;
-                    v1679 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
-                    Projectile = new NwnTagged(tag1675, v1679!);
+                    SafeProjectileMessages.ProjectileNonSpell v1675;
+                    v1675 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
+                    Projectile = new NwnTagged(tag1671, v1675!);
                     break;
                 }
                 case 4L:
                 {
-                    SafeProjectileMessages.ProjectileNonSpell v1680;
-                    v1680 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
-                    Projectile = new NwnTagged(tag1675, v1680!);
+                    SafeProjectileMessages.ProjectileNonSpell v1676;
+                    v1676 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
+                    Projectile = new NwnTagged(tag1671, v1676!);
                     break;
                 }
                 case 5L:
                 {
-                    SafeProjectileMessages.ProjectileNonSpell v1681;
-                    v1681 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
-                    Projectile = new NwnTagged(tag1675, v1681!);
+                    SafeProjectileMessages.ProjectileNonSpell v1677;
+                    v1677 = r.ReadStruct<SafeProjectileMessages.ProjectileNonSpell>();
+                    Projectile = new NwnTagged(tag1671, v1677!);
                     break;
                 }
                 case 6L:
                 {
-                    SafeProjectileMessages.ProjectileSpell v1682;
-                    v1682 = r.ReadStruct<SafeProjectileMessages.ProjectileSpell>();
-                    Projectile = new NwnTagged(tag1675, v1682!);
+                    SafeProjectileMessages.ProjectileSpell v1678;
+                    v1678 = r.ReadStruct<SafeProjectileMessages.ProjectileSpell>();
+                    Projectile = new NwnTagged(tag1671, v1678!);
                     break;
                 }
                 case 7L:
                 {
-                    SafeProjectileMessages.ProjectileSpellCustomPath v1683;
-                    v1683 = r.ReadStruct<SafeProjectileMessages.ProjectileSpellCustomPath>();
-                    Projectile = new NwnTagged(tag1675, v1683!);
+                    SafeProjectileMessages.ProjectileSpellCustomPath v1679;
+                    v1679 = r.ReadStruct<SafeProjectileMessages.ProjectileSpellCustomPath>();
+                    Projectile = new NwnTagged(tag1671, v1679!);
                     break;
                 }
                 default:
-                    throw new NwnWireException($"projectile: unknown variant {tag1675}");
+                    throw new NwnWireException($"projectile: unknown variant {tag1671}");
             }
         }
 
@@ -177,69 +177,69 @@ public static partial class SafeProjectileMessages
         {
             w.WriteObjectId(Originator);
             w.WriteObjectId(Target);
-            var tuple1684 = OriginLocation;
-            w.WriteFloat(tuple1684.Item1);
-            w.WriteFloat(tuple1684.Item2);
-            w.WriteFloat(tuple1684.Item3);
-            var tuple1685 = TargetLocation;
-            w.WriteFloat(tuple1685.Item1);
-            w.WriteFloat(tuple1685.Item2);
-            w.WriteFloat(tuple1685.Item3);
+            var tuple1680 = OriginLocation;
+            w.WriteFloat(tuple1680.Item1);
+            w.WriteFloat(tuple1680.Item2);
+            w.WriteFloat(tuple1680.Item3);
+            var tuple1681 = TargetLocation;
+            w.WriteFloat(tuple1681.Item1);
+            w.WriteFloat(tuple1681.Item2);
+            w.WriteFloat(tuple1681.Item3);
             w.WriteDword(DeltaTime);
-            var tag1686 = Projectile.Tag;
-            w.WriteInteger(NwnWireType.Byte, tag1686);
-            switch (tag1686)
+            var tag1682 = Projectile.Tag;
+            w.WriteInteger(NwnWireType.Byte, tag1682);
+            switch (tag1682)
             {
                 case 0L:
+                {
+                    var v1683 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
+                    w.WriteStruct(v1683);
+                    break;
+                }
+                case 1L:
+                {
+                    var v1684 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
+                    w.WriteStruct(v1684);
+                    break;
+                }
+                case 2L:
+                {
+                    var v1685 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
+                    w.WriteStruct(v1685);
+                    break;
+                }
+                case 3L:
+                {
+                    var v1686 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
+                    w.WriteStruct(v1686);
+                    break;
+                }
+                case 4L:
                 {
                     var v1687 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
                     w.WriteStruct(v1687);
                     break;
                 }
-                case 1L:
+                case 5L:
                 {
                     var v1688 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
                     w.WriteStruct(v1688);
                     break;
                 }
-                case 2L:
-                {
-                    var v1689 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
-                    w.WriteStruct(v1689);
-                    break;
-                }
-                case 3L:
-                {
-                    var v1690 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
-                    w.WriteStruct(v1690);
-                    break;
-                }
-                case 4L:
-                {
-                    var v1691 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
-                    w.WriteStruct(v1691);
-                    break;
-                }
-                case 5L:
-                {
-                    var v1692 = (SafeProjectileMessages.ProjectileNonSpell)Projectile.Value;
-                    w.WriteStruct(v1692);
-                    break;
-                }
                 case 6L:
                 {
-                    var v1693 = (SafeProjectileMessages.ProjectileSpell)Projectile.Value;
-                    w.WriteStruct(v1693);
+                    var v1689 = (SafeProjectileMessages.ProjectileSpell)Projectile.Value;
+                    w.WriteStruct(v1689);
                     break;
                 }
                 case 7L:
                 {
-                    var v1694 = (SafeProjectileMessages.ProjectileSpellCustomPath)Projectile.Value;
-                    w.WriteStruct(v1694);
+                    var v1690 = (SafeProjectileMessages.ProjectileSpellCustomPath)Projectile.Value;
+                    w.WriteStruct(v1690);
                     break;
                 }
                 default:
-                    throw new NwnWireException($"projectile: unknown variant {tag1686}");
+                    throw new NwnWireException($"projectile: unknown variant {tag1682}");
             }
         }
     }
@@ -334,16 +334,16 @@ public static partial class SafeProjectileMessages
         {
             Attacker = r.ReadObjectId();
             ImprovedWhirlwind = r.ReadBool();
-            var n1695 = (int)r.ReadInteger(NwnWireType.Byte);
-            var count1699 = n1695;
-            var list1696 = new List<SafeProjectileMessages.WhirlwindAttackEntry>(Math.Max(0, count1699));
-            for (int i1697 = 0; i1697 < count1699; i1697++)
+            var n1691 = (int)r.ReadInteger(NwnWireType.Byte);
+            var count1695 = n1691;
+            var list1692 = new List<SafeProjectileMessages.WhirlwindAttackEntry>(Math.Max(0, count1695));
+            for (int i1693 = 0; i1693 < count1695; i1693++)
             {
-                SafeProjectileMessages.WhirlwindAttackEntry e1698;
-                e1698 = r.ReadStruct<SafeProjectileMessages.WhirlwindAttackEntry>();
-                list1696.Add(e1698);
+                SafeProjectileMessages.WhirlwindAttackEntry e1694;
+                e1694 = r.ReadStruct<SafeProjectileMessages.WhirlwindAttackEntry>();
+                list1692.Add(e1694);
             }
-            Attacks = list1696;
+            Attacks = list1692;
         }
 
         public override void Write(NwnWriter w)
@@ -351,9 +351,9 @@ public static partial class SafeProjectileMessages
             w.WriteObjectId(Attacker);
             w.WriteBool(ImprovedWhirlwind);
             w.WriteInteger(NwnWireType.Byte, Attacks.Count);
-            foreach (var e1700 in Attacks)
+            foreach (var e1696 in Attacks)
             {
-                w.WriteStruct(e1700);
+                w.WriteStruct(e1696);
             }
         }
     }
@@ -417,16 +417,16 @@ public static partial class SafeProjectileMessages
         {
             Attacker = r.ReadObjectId();
             ImprovedWhirlwind = r.ReadBool();
-            var n1701 = (int)r.ReadInteger(NwnWireType.Byte);
-            var count1705 = n1701;
-            var list1702 = new List<SafeProjectileMessages.WhirlwindDamageEntry>(Math.Max(0, count1705));
-            for (int i1703 = 0; i1703 < count1705; i1703++)
+            var n1697 = (int)r.ReadInteger(NwnWireType.Byte);
+            var count1701 = n1697;
+            var list1698 = new List<SafeProjectileMessages.WhirlwindDamageEntry>(Math.Max(0, count1701));
+            for (int i1699 = 0; i1699 < count1701; i1699++)
             {
-                SafeProjectileMessages.WhirlwindDamageEntry e1704;
-                e1704 = r.ReadStruct<SafeProjectileMessages.WhirlwindDamageEntry>();
-                list1702.Add(e1704);
+                SafeProjectileMessages.WhirlwindDamageEntry e1700;
+                e1700 = r.ReadStruct<SafeProjectileMessages.WhirlwindDamageEntry>();
+                list1698.Add(e1700);
             }
-            Attacks = list1702;
+            Attacks = list1698;
         }
 
         public override void Write(NwnWriter w)
@@ -434,9 +434,9 @@ public static partial class SafeProjectileMessages
             w.WriteObjectId(Attacker);
             w.WriteBool(ImprovedWhirlwind);
             w.WriteInteger(NwnWireType.Byte, Attacks.Count);
-            foreach (var e1706 in Attacks)
+            foreach (var e1702 in Attacks)
             {
-                w.WriteStruct(e1706);
+                w.WriteStruct(e1702);
             }
         }
     }

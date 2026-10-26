@@ -92,20 +92,20 @@ public static partial class PlayModuleCharacterListMessages
             else PortraitResref = null;
             if (NwnCond.L(Add) == 1L)
             {
-                var n1632 = (int)r.ReadInteger(NwnWireType.Byte);
-                var count1636 = n1632;
-                var list1633 = new List<(byte, byte)>(Math.Max(0, count1636));
-                for (int i1634 = 0; i1634 < count1636; i1634++)
+                var n1628 = (int)r.ReadInteger(NwnWireType.Byte);
+                var count1632 = n1628;
+                var list1629 = new List<(byte, byte)>(Math.Max(0, count1632));
+                for (int i1630 = 0; i1630 < count1632; i1630++)
                 {
-                    (byte, byte) e1635;
-                    byte e1637;
-                    e1637 = r.ReadByte();
-                    byte e1638;
-                    e1638 = r.ReadByte();
-                    e1635 = (e1637, e1638);
-                    list1633.Add(e1635);
+                    (byte, byte) e1631;
+                    byte e1633;
+                    e1633 = r.ReadByte();
+                    byte e1634;
+                    e1634 = r.ReadByte();
+                    e1631 = (e1633, e1634);
+                    list1629.Add(e1631);
                 }
-                Classes = list1633;
+                Classes = list1629;
             }
             else Classes = null;
         }
@@ -133,11 +133,11 @@ public static partial class PlayModuleCharacterListMessages
             if (NwnCond.L(Add) == 1L)
             {
                 w.WriteInteger(NwnWireType.Byte, Classes!.Count);
-                foreach (var e1639 in Classes!)
+                foreach (var e1635 in Classes!)
                 {
-                    var tuple1640 = e1639;
-                    w.WriteByte(tuple1640.Item1);
-                    w.WriteByte(tuple1640.Item2);
+                    var tuple1636 = e1635;
+                    w.WriteByte(tuple1636.Item1);
+                    w.WriteByte(tuple1636.Item2);
                 }
             }
         }

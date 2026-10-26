@@ -153,16 +153,16 @@ public static partial class StoreMessages
             StoreGold = r.ReadInt();
             BlackMarket = r.ReadBool();
             WillNotBuy = r.ReadBool();
-            var n1740 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1744 = n1740;
-            var list1741 = new List<int>(Math.Max(0, count1744));
-            for (int i1742 = 0; i1742 < count1744; i1742++)
+            var n1736 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1740 = n1736;
+            var list1737 = new List<int>(Math.Max(0, count1740));
+            for (int i1738 = 0; i1738 < count1740; i1738++)
             {
-                int e1743;
-                e1743 = r.ReadInt();
-                list1741.Add(e1743);
+                int e1739;
+                e1739 = r.ReadInt();
+                list1737.Add(e1739);
             }
-            BuyList = list1741;
+            BuyList = list1737;
         }
 
         public override void Write(NwnWriter w)
@@ -177,9 +177,9 @@ public static partial class StoreMessages
             w.WriteBool(BlackMarket);
             w.WriteBool(WillNotBuy);
             w.WriteInteger(NwnWireType.Int, BuyList.Count);
-            foreach (var e1745 in BuyList)
+            foreach (var e1741 in BuyList)
             {
-                w.WriteInt(e1745);
+                w.WriteInt(e1741);
             }
         }
     }

@@ -75,23 +75,23 @@ public static partial class SoundMessages
             RandomPosition = r.ReadBool();
             RandomXRange = r.ReadFloat();
             RandomYRange = r.ReadFloat();
-            float e1726;
-            e1726 = r.ReadFloat();
-            float e1727;
-            e1727 = r.ReadFloat();
-            float e1728;
-            e1728 = r.ReadFloat();
-            Position = (e1726, e1727, e1728);
-            var n1729 = (int)r.ReadInteger(NwnWireType.Word);
-            var count1733 = n1729;
-            var list1730 = new List<string>(Math.Max(0, count1733));
-            for (int i1731 = 0; i1731 < count1733; i1731++)
+            float e1722;
+            e1722 = r.ReadFloat();
+            float e1723;
+            e1723 = r.ReadFloat();
+            float e1724;
+            e1724 = r.ReadFloat();
+            Position = (e1722, e1723, e1724);
+            var n1725 = (int)r.ReadInteger(NwnWireType.Word);
+            var count1729 = n1725;
+            var list1726 = new List<string>(Math.Max(0, count1729));
+            for (int i1727 = 0; i1727 < count1729; i1727++)
             {
-                string e1732;
-                e1732 = r.ReadResRef();
-                list1730.Add(e1732);
+                string e1728;
+                e1728 = r.ReadResRef();
+                list1726.Add(e1728);
             }
-            Sounds = list1730;
+            Sounds = list1726;
         }
 
         public void Write(NwnWriter w)
@@ -115,14 +115,14 @@ public static partial class SoundMessages
             w.WriteBool(RandomPosition);
             w.WriteFloat(RandomXRange);
             w.WriteFloat(RandomYRange);
-            var tuple1734 = Position;
-            w.WriteFloat(tuple1734.Item1);
-            w.WriteFloat(tuple1734.Item2);
-            w.WriteFloat(tuple1734.Item3);
+            var tuple1730 = Position;
+            w.WriteFloat(tuple1730.Item1);
+            w.WriteFloat(tuple1730.Item2);
+            w.WriteFloat(tuple1730.Item3);
             w.WriteInteger(NwnWireType.Word, Sounds.Count);
-            foreach (var e1735 in Sounds)
+            foreach (var e1731 in Sounds)
             {
-                w.WriteResRef(e1735);
+                w.WriteResRef(e1731);
             }
         }
     }
@@ -230,22 +230,22 @@ public static partial class SoundMessages
         public override void Read(NwnReader r)
         {
             SoundObject = r.ReadObjectId();
-            float e1736;
-            e1736 = r.ReadFloat();
-            float e1737;
-            e1737 = r.ReadFloat();
-            float e1738;
-            e1738 = r.ReadFloat();
-            Position = (e1736, e1737, e1738);
+            float e1732;
+            e1732 = r.ReadFloat();
+            float e1733;
+            e1733 = r.ReadFloat();
+            float e1734;
+            e1734 = r.ReadFloat();
+            Position = (e1732, e1733, e1734);
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteObjectId(SoundObject);
-            var tuple1739 = Position;
-            w.WriteFloat(tuple1739.Item1);
-            w.WriteFloat(tuple1739.Item2);
-            w.WriteFloat(tuple1739.Item3);
+            var tuple1735 = Position;
+            w.WriteFloat(tuple1735.Item1);
+            w.WriteFloat(tuple1735.Item2);
+            w.WriteFloat(tuple1735.Item3);
         }
     }
 
