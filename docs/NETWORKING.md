@@ -149,6 +149,18 @@ Supported so far:
   then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
   and flashes the button.
 - cutscene mode and fades
+- animations: a creature's animation code becomes the animation OpenWinter's server plays for the same
+  ANIMATION_* constant (script animations, emotes, sitting, talking, conjuring and casting); a looping one plays
+  until the server sends the next code, as it does when the script's time is up. A knockdown lays the creature
+  down; placeables switch on and off, open and close, and doors and placeables show their destroyed state. The
+  client's emotes go to the server as the animation input, which plays them for everyone.
+- spells: conjuring and casting carry the spell, so its hand, head and ground visuals, sounds and chant play
+  (spells.2da), and its projectile flies when the server sends it, for the flight time the server gives
+- visual effects at a place, beams (lasting or instant), projectile-style effects, lasting effects on placeables
+  and doors (with removal), areas of effect (vfx_persistent.2da), visual transforms and highlight colours
+- sounds: PlaySound (a message the definitions lack, 0x09 0x07: the object and the sound's resref), voice chat and
+  death cries from the creature's voice set, sound objects (placed with the area, played, stopped, moved and
+  turned up or down), and the area's music, its delay, battle track and ambience
 
 Inventory, combat feedback, NWSync and character creation are still to come.
 
@@ -160,8 +172,12 @@ Testing:
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
-  click NUI elements and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`,
-  `--record`). `nwn-dump` reads 2DAs with the haks the recorded server named, since some fields' presence depends
+  click NUI elements, play emotes and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`,
+  `--nui-click`, `--emote`, `--record`); it prints the animations it passes on. `nwn-dump` reads 2DAs with the haks the recorded server named, since some fields' presence depends
   on them.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
+- The visual scene `bridgefx` (parity/visual/scenes) runs animations, conditions, placeable and door states, visual
+  effects, spells, sounds and music by script, announcing each step in chat; `openwinter-tools visual-build
+  bridgefx` makes its module for `nwnws.py start --module`. The client's `--capture-nwn-fx` takes shots along its
+  timeline, and `NwnBridgePresentationTests` replays frames recorded from it.
