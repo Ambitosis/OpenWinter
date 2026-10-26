@@ -10,6 +10,7 @@ namespace OpenWinter.Game.Nwnx.Plugins;
 public sealed class NwnxTweaks
 {
     static readonly ConditionalWeakTable<World, NwnxTweaks> Cache = new();
+    readonly NwnxRegistry _registry;
     readonly Func<string, string?> _source;
 
     /// <summary>StringToInt reads "0x1A" as hex, "010" as octal and "0b11" as binary; a value outside an int is 0.</summary>
@@ -39,6 +40,7 @@ public sealed class NwnxTweaks
 
     NwnxTweaks(NwnxRegistry reg)
     {
+        _registry = reg;
         _source = reg.EnvironmentVariable;
         StringToIntBaseToAuto = reg.EnvBool("NWNX_TWEAKS_STRINGTOINT_BASE_TO_AUTO");
         ItemChargesCostMode = Math.Clamp(reg.EnvInt("NWNX_TWEAKS_ITEM_CHARGES_COST_MODE"), 0, 3);
@@ -56,7 +58,7 @@ public sealed class NwnxTweaks
     /// <summary>The world's tweaks, read from its NWNX settings once (again if the settings source is replaced).</summary>
     public static NwnxTweaks Of(World w)
     {
-        if (Cache.TryGetValue(w, out var t) && t._source == w.System<NwnxRegistry>().EnvironmentVariable) return t;
+        if (Cache.TryGetValue(w, out var t) && t._source == t._registry.EnvironmentVariable) return t;
         t = new NwnxTweaks(w.System<NwnxRegistry>());
         Cache.AddOrUpdate(w, t);
         return t;

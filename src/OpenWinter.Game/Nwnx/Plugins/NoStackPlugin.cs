@@ -36,6 +36,7 @@ public static class NoStackPlugin
     /// <summary>The rules of a world, read from its settings once (again if the settings source is replaced).</summary>
     sealed class Settings
     {
+        public required NwnxRegistry Registry;
         public required Func<string, string?> Source;
         public readonly Rules?[] Bonus = new Rules?[4], Penalty = new Rules?[4];
     }
@@ -46,10 +47,10 @@ public static class NoStackPlugin
     /// <summary>The rule for a kind of bonus (or penalty), or null when it stacks as usual.</summary>
     public static Rules? For(World w, Category category, bool penalty)
     {
-        var reg = w.System<NwnxRegistry>();
-        if (!Cache.TryGetValue(w, out var s) || s.Source != reg.EnvironmentVariable)
+        if (!Cache.TryGetValue(w, out var s) || s.Source != s.Registry.EnvironmentVariable)
         {
-            s = new Settings { Source = reg.EnvironmentVariable };
+            var reg = w.System<NwnxRegistry>();
+            s = new Settings { Registry = reg, Source = reg.EnvironmentVariable };
             var types = States.GetValue(reg, _ => new State()).SpellTypes;
             int spellDefault = Math.Clamp(reg.EnvInt("NWNX_NOSTACK_SPELL_DEFAULT_TYPE", Circumstance), 0, 20);
             int itemDefault = Math.Clamp(reg.EnvInt("NWNX_NOSTACK_ITEM_DEFAULT_TYPE", 0), 0, 20);
