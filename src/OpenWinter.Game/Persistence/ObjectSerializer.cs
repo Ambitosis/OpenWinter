@@ -357,6 +357,7 @@ public static partial class ObjectSerializer
         else Sync(s, "OverrideBAB", GffType.Byte, 0, 0);
         Sync(s, "StealthMode", GffType.Byte, c.StealthMode ? 1 : 0, 0);
         Sync(s, "DetectMode", GffType.Byte, c.DetectMode ? 1 : 0, 0);
+        Rules.CreatureOverridesPersistence.Save(c, s);
     }
 
     public static GffStruct PlaceableGff(World world, Placeable p, bool newestFirst = false)

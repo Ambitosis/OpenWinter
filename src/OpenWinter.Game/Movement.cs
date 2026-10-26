@@ -34,7 +34,10 @@ public static class Movement
         bool walk = c.WalkRequested || c.AlwaysWalk || Rules.CreatureRules.IsSlowed(c) || c.Effects.Any(e => e.Type is EffectForceWalk or Combat.CombatK.EffectDazed);
         int stage = Math.Max(walk ? 1 : 0, Skills.SkillSystem.ModeStages(world, c) + (c.IsPC ? c.LoadStage : 0));
         walking = stage > 0;
-        return (stage == 0 ? c.RunRate : c.WalkRate * MathF.Pow(0.5f, stage - 1)) * factor;
+        float speed = (stage == 0 ? c.RunRate : c.WalkRate * MathF.Pow(0.5f, stage - 1)) * factor;
+        // A walking speed cap (NWNX_Creature_SetWalkRateCap) holds walking creatures to it whatever their speed effects.
+        if (walking && c.Overrides?.WalkRateCap is float cap) speed = MathF.Min(speed, cap);
+        return speed;
     }
 
     public static void Step(World world, Creature c, float dt)
@@ -121,6 +124,10 @@ public static class Movement
                 }
             }
         }
+        // An orientation lock (NWNX_Creature_SetLockOrientationToObject) keeps a moving creature facing its object.
+        if (moved && c.Overrides?.LockOrientationTo is uint lockId && lockId != GameObject.InvalidId
+            && world.Get(lockId) is { } locked && locked.Area == c.Area)
+            c.Facing = MathF.Atan2(locked.Position.Y - c.Position.Y, locked.Position.X - c.Position.X);
         // Coming to a standing stop sets the standing stance: idle out of combat, combat-ready in it (Creature.IdleStance).
         if (!moved && c.Mode != MovementMode.Stand) c.IdleStance = !c.InCombat;
         var mode = !moved ? MovementMode.Stand : c.MoveBackward ? MovementMode.Backward : walking ? MovementMode.Walk : MovementMode.Run;

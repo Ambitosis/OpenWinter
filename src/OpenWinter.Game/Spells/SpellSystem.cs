@@ -35,11 +35,12 @@ public sealed class SpellSystem : IWorldSystem
     /// Runs the spell's impact script now as <paramref name="caster"/>. The spell becomes the caster's
     /// current spell (<see cref="GameObject.LastSpell"/>); hostile spells end the caster's invisibility and sanctuary.
     /// </summary>
-    public void RunImpact(GameObject caster, SpellCastInfo info, Item? item = null)
+    /// <param name="impactScript">A script to run instead of the spell's own ("****": none).</param>
+    public void RunImpact(GameObject caster, SpellCastInfo info, Item? item = null, string? impactScript = null)
     {
         caster.LastSpell = info;
         if (item != null) info.CastItem = item.Id;
-        var script = SpellTable.ImpactScript(_world, info.SpellId);
+        var script = impactScript is { Length: > 0 } own ? (own == "****" ? "" : own) : SpellTable.ImpactScript(_world, info.SpellId);
         if (SpellTable.Hostile(_world, info.SpellId) && info.Target != caster.Id) BreakConcealment(caster);
         if (script.Length == 0 || _world.Scripts == null) return;
         var ctx = new EventContext().Set("SpellId", info.SpellId).Set("CasterLevel", info.CasterLevel);
@@ -70,6 +71,7 @@ public sealed class SpellSystem : IWorldSystem
             Target = target?.Id ?? GameObject.InvalidId,
             TargetLocation = target != null ? TargetLocationOf(target) : location,
         };
+        if (user is Creature c) c.LastItemCasterLevel = info.CasterLevel;
         RunImpact(user, info, item);
     }
 

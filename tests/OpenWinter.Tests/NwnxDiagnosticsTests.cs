@@ -49,14 +49,13 @@ public class NwnxDiagnosticsTests
         var calls = new (string Plugin, string Function)[]
         {
             ("Item", "SetWeight"), ("Damage", "SetEventScript"), ("Player", "GetTURD"), ("Player", "RemoveEffectFromTURD"),
-            ("Creature", "GetAttackBonus"), ("Creature", "JumpToLimbo"),
         };
         foreach (var (plugin, function) in calls)
         {
             for (int i = 0; i < 2; i++)
             {
                 Assert.True(registry.Call(plugin, function));
-                registry.Stack.Clear(); // GetTURD and GetAttackBonus retain their existing results.
+                registry.Stack.Clear(); // GetTURD retains its existing result.
             }
             Assert.Equal(2, registry.MissingCalls[$"NWNX_{plugin}_{function}"]);
         }
