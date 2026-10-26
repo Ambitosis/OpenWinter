@@ -19,6 +19,7 @@ networks) and the server is not listed. Clients on Windows reach it at ws://loca
 """
 import argparse
 import json
+import shlex
 import shutil
 import subprocess
 import sys
@@ -184,7 +185,8 @@ def run_parity(cfg, args):
     """Runs a parity module with NWNX until it logs PARITY|__done__|1 (or the time runs out) and copies the server
     log back. Each suite has its own sandbox and port, and only its own server is stopped."""
     game = wsl_path(cfg["gameRoot"])
-    binaries = cfg.get("nwnxBinaries") or f"{BUILD}/unified/Binaries"
+    # nwnxBinaries names the Risenholm fork's build; every other suite runs on upstream NWNX:EE.
+    binaries = (cfg.get("nwnxBinaries") if args.risenholm else None) or f"{BUILD}/unified/Binaries"
     name = args.name
     sandbox = f"{HOME}/parity/{name}"
     module = Path(args.module)
@@ -193,6 +195,8 @@ def run_parity(cfg, args):
     overrides = [Path(p) for p in args.override]
     plugins = PARITY_PLUGINS + (["RISENHOLM"] if args.risenholm else [])
     enabled = "\n".join(f"export NWNX_{p}_SKIP=n" for p in plugins)
+    # A suite's own environment ("nwnxEnv" in suite.json), set after the defaults so it can override them.
+    extra = "\n".join(f"export {k}={shlex.quote(v)}" for k, v in (e.split("=", 1) for e in args.env))
     script = f"""
 uid=$(id -u nwnws)
 iptables -C OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \\
@@ -215,6 +219,7 @@ export NWNX_CORE_SKIP_ALL=y
 {enabled}
 export NWNX_SQL_TYPE=SQLITE
 export NWNX_SQL_DATABASE=nwnx_sql
+{extra}
 exec ./nwserver-linux -userdirectory {sandbox} -module "{module.stem}" -port {args.port} -publicserver 0 \\
   -servername openwinter-parity -maxclients 1 -difficulty {args.difficulty}
 EOF
@@ -274,6 +279,7 @@ def main():
     r.add_argument("--difficulty", type=int, default=3)
     r.add_argument("--override", action="append", default=[])
     r.add_argument("--risenholm", action="store_true")
+    r.add_argument("--env", action="append", default=[], help="KEY=VALUE exported for the server")
     c = sub.add_parser("scripts")
     c.add_argument("--dest", required=True)
     args = ap.parse_args()

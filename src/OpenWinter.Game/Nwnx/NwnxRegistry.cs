@@ -165,6 +165,23 @@ public sealed class NwnxRegistry : IWorldSystem
     /// <summary>NWNXGetIsAvailable. On by default: the bridge emulates the common plugins.</summary>
     public bool Available = true;
     public Action<string> Log = Console.WriteLine;
+    /// <summary>
+    /// Where plugins read their NWNX_* settings (NWNX:EE is configured through environment variables): the process
+    /// environment unless a host substitutes its own.
+    /// </summary>
+    public Func<string, string?> EnvironmentVariable = Environment.GetEnvironmentVariable;
+    /// <summary>A setting's value, or null when unset or empty.</summary>
+    public string? Env(string name) => EnvironmentVariable(name) is { Length: > 0 } v ? v : null;
+    /// <summary>A true/false setting: "1", "y", "yes", "t" and "true" (any case) are true.</summary>
+    public bool EnvBool(string name, bool fallback = false) => Env(name)?.Trim().ToLowerInvariant() switch
+    {
+        null => fallback,
+        "1" or "y" or "yes" or "t" or "true" or "on" => true,
+        _ => false,
+    };
+    /// <summary>An integer setting, or <paramref name="fallback"/> when unset or not a number.</summary>
+    public int EnvInt(string name, int fallback = 0) =>
+        int.TryParse(Env(name)?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var v) ? v : fallback;
     // Plugin state that isn't per object.
     public readonly Dictionary<string, string> ConsoleCommands = new(StringComparer.OrdinalIgnoreCase);
     public readonly Dictionary<(int Type, string Name), string> ResourceOverrides = new();

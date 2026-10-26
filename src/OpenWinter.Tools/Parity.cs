@@ -29,6 +29,15 @@ static partial class Parity
         /// against NWNX:EE's NWScript headers; "nwnx": "risenholm" also loads that fork's NWNX_Risenholm plugin.</summary>
         public bool Nwnx => Get("nwnx") is { } v && v.ValueKind is JsonValueKind.True or JsonValueKind.String;
         public bool NwnxRisenholm => Get("nwnx") is { ValueKind: JsonValueKind.String } v && v.GetString() == "risenholm";
+        /// <summary>"nwnxEnv": { "NWNX_TWEAKS_...": "true" } sets environment variables for NWNX on both engines, after the
+        /// lab's defaults (NWNX_SQL_TYPE=SQLITE, NWNX_SQL_DATABASE=nwnx_sql).</summary>
+        public Dictionary<string, string> NwnxEnv()
+        {
+            var env = new Dictionary<string, string>(StringComparer.Ordinal) { ["NWNX_SQL_TYPE"] = "SQLITE", ["NWNX_SQL_DATABASE"] = "nwnx_sql" };
+            if (Get("nwnxEnv") is { ValueKind: JsonValueKind.Object } e)
+                foreach (var p in e.EnumerateObject()) env[p.Name] = p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString()! : p.Value.GetRawText();
+            return env;
+        }
         public JsonElement? Get(string key) => Json.ValueKind == JsonValueKind.Object && Json.TryGetProperty(key, out var v) ? v : null;
     }
 
@@ -429,6 +438,12 @@ static partial class Parity
             args.Add(table);
         }
         if (s.NwnxRisenholm) args.Add("--risenholm");
+        if (s.Get("nwnxEnv") is { ValueKind: JsonValueKind.Object } env)
+            foreach (var p in env.EnumerateObject())
+            {
+                args.Add("--env");
+                args.Add(p.Name + "=" + (p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString() : p.Value.GetRawText()));
+            }
         if (File.Exists(output)) File.Delete(output);
         Nwnws(cfg, [.. args]);
         var lines = File.Exists(output) ? File.ReadAllLines(output, OpenWinter.Aurora.Text.Windows1252).ToList() : [];
@@ -536,6 +551,13 @@ static partial class Parity
         var world = new OpenWinter.Game.World(rm);
         if (s.Difficulty > 0) world.GameDifficulty = s.Difficulty;
         world.EnableScripts();
+        if (s.Nwnx)
+        {
+            // NWNX reads its settings from the environment; give OpenWinter's plugins the suite's, as the NWNX side has.
+            var env = s.NwnxEnv();
+            world.System<OpenWinter.Game.Nwnx.NwnxRegistry>().EnvironmentVariable = name =>
+                env.TryGetValue(name, out var v) ? v : name.StartsWith("NWNX_", StringComparison.Ordinal) ? null : Environment.GetEnvironmentVariable(name);
+        }
         var lines = new List<string>();
         world.Scripts!.Log = line =>
         {
