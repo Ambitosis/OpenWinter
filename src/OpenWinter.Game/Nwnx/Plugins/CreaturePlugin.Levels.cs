@@ -257,11 +257,13 @@ static partial class CreaturePlugin
         {
             if (CreatureRules.LevelHistory(w, c).Count == c.TotalLevel)
             {
-                if (!CreatureRules.RemoveLastLevel(w, c)) break;
+                // CreatureRules.LevelDown raises NWNX_ON_LEVEL_DOWN around it.
+                if (!CreatureRules.LevelDown(w, c)) break;
                 CreatureRules.SyncHitPoints(w, c);
             }
             else
             {
+                using var levelDown = new Nwnx.NwnxEvent.AfterScope(CreatureRules.LevelDownBefore(w, c));
                 int current = c.CurrentHitPoints;
                 var last = c.Classes[^1];
                 if (--last.Level <= 0) c.Classes.RemoveAt(c.Classes.Count - 1);

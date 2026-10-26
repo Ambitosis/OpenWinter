@@ -123,11 +123,18 @@ public static partial class CreatureRules
     /// <summary>Loses the most recent level between NWNX_ON_LEVEL_DOWN_BEFORE and _AFTER.</summary>
     public static bool LevelDown(World w, Creature c)
     {
-        var ev = Nwnx.NwnxEvent.Begin(w, "NWNX_ON_LEVEL_DOWN", c);
-        ev?.Before();
+        var ev = LevelDownBefore(w, c);
         bool ok = RemoveLastLevel(w, c);
         ev?.After();
         return ok;
+    }
+
+    /// <summary>NWNX_ON_LEVEL_DOWN's _BEFORE half, for level losses made some other way (the caller runs After).</summary>
+    public static Nwnx.NwnxEvent? LevelDownBefore(World w, Creature c)
+    {
+        var ev = Nwnx.NwnxEvent.Begin(w, "NWNX_ON_LEVEL_DOWN", c);
+        ev?.Before();
+        return ev;
     }
 
     /// <summary>Undoes the most recent level from the level history (LvlStatList). False if there is no history to undo.</summary>
