@@ -9,8 +9,10 @@ reported once per world through the `NwnxRegistry.Log` sink.
 - **Registered placeholders** (handlers marked with `NwnxFunc.UnsupportedReason`) warn the same way. They keep
   their argument, result and storage behaviour; the warning says the engine effect is missing. They are:
   Damage.SetEventScript, Item.SetWeight,
-  Player.GetTURD and Player.RemoveEffectFromTURD (OpenWinter keeps no TURDs for players who leave),
-  Creature.GetAttackBonus (base attack and ability only) and Creature.JumpToLimbo.
+  Player.GetTURD and Player.RemoveEffectFromTURD (OpenWinter keeps no TURDs for players who leave). NWNX_Creature
+  has none: every function has its engine behaviour (measured by the `nwnx_creature_*` parity suites); only
+  SetMulticlassLimit with bPersist warns, as that limit isn't kept in the character file (the other bPersist
+  settings are, in NWNX_POS as NWNX:EE keeps them).
 - **Unknown Set/Get calls** use the generic compatibility store and warn that storing a value does not implement
   the engine behaviour.
 - **Events.SubscribeEvent** (and SubscribeEventScriptChunk) warns, once per event name, when a script subscribes to

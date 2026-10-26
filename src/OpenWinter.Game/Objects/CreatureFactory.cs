@@ -75,6 +75,7 @@ public sealed class CreatureFactory
         foreach (var f in CreatureScripts) c.Scripts[f] = s.GetString(f);
         c.Locals.LoadFrom(s);
         c.LoadStats(s, _world.Resources.TwoDA("classes"));
+        Rules.CreatureOverridesPersistence.Load(c);
         if (validateStartingEquipment)
             _world.System<Inventory.InventorySystem>().ValidateStartingEquipment(c);
 

@@ -45,4 +45,10 @@ public sealed partial class Creature
     public int HiliteColor = -1;
     /// <summary>The polymorph the creature is under (or changing back from), with the equipment it put away; null if none.</summary>
     public Rules.PolymorphState? PolymorphForm;
+    /// <summary>Caster level of the last spell cast from an item (-1: none yet).</summary>
+    public int LastItemCasterLevel = -1;
+    /// <summary>Who killed the creature last (GetLastKiller outside its death event), or a killer a script set.</summary>
+    public uint LastKiller = InvalidId;
+    /// <summary>Rules adjustments scripts have set on this creature (NWNX_Creature), or null for none.</summary>
+    public Rules.CreatureOverrides? Overrides;
 }

@@ -54,6 +54,9 @@ public sealed partial class CombatSystem
             return CoupDeGrace(o, aState, tState);
         o.Roll = Dice.Roll(20);
         bool hit = o.Roll == 20 || (o.Roll != 1 && o.Roll + o.AttackBonus >= o.ArmorClass);
+        // A script's modifier for this natural roll (NWNX_Creature_SetAttackRollOverride) also takes away its
+        // automatic hit or miss.
+        if (AttackRollOverride(att, o.Roll) is int rollMod) hit = o.Roll + o.AttackBonus + rollMod >= o.ArmorClass;
 
         if (hit && tc != null && !a.TargetDeniedDex && !tState.EpicDodgeUsed && HasFeat(tc, CombatK.FeatEpicDodge))
         {
@@ -339,7 +342,8 @@ public sealed partial class CombatSystem
         riposte = false;
         var a = o.Context;
         if (a.Target is not Creature tc || !tc.ActionModes.Contains(CombatK.ModeParry) || a.TargetDeniedDex || !CanAttack(tc)) return false;
-        if (tState.Parries >= Math.Max(1, CreatureRules.AttacksPerRound(_world, tc))) return false;
+        bool parryAll = tc.Overrides?.ParryAllAttacks == true || OverrideSystem.ParryAllAttacks;
+        if (!parryAll && tState.Parries >= Math.Max(1, CreatureRules.AttacksPerRound(_world, tc))) return false;
         tState.Parries++;
         int parry = Dice.Roll(20) + CreatureRules.SkillRank(_world, tc, CombatK.SkillParry);
         if (HasFeat(tc, CombatK.FeatImprovedParry)) parry += RI("IMPROVED_PARRY_MODIFIER", 4);
@@ -347,6 +351,17 @@ public sealed partial class CombatSystem
         if (parry < total) return false;
         riposte = parry - total >= RI("PARRY_RIPOSTE_DIFFERENCE", 10);
         return true;
+    }
+
+    CreatureOverrideSystem? _overrideSystem;
+    CreatureOverrideSystem OverrideSystem => _overrideSystem ??= _world.System<CreatureOverrideSystem>();
+
+    /// <summary>The attacker's (else every creature's) modifier for a natural attack roll, or null for none.</summary>
+    int? AttackRollOverride(Creature attacker, int roll)
+    {
+        if (attacker.Overrides is { } o && o.AttackRollOverride.TryGetValue(roll, out int m)) return m;
+        var all = OverrideSystem.AttackRollOverride;
+        return all.Count > 0 && all.TryGetValue(roll, out m) ? m : null;
     }
 
     void Riposte(Creature defender, Creature attacker)
