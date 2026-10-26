@@ -89,12 +89,14 @@ public static class Erf
         var b = file.AsSpan();
         fileType = Encoding.ASCII.GetString(b[..4]);
         string version = Encoding.ASCII.GetString(b[4..8]);
-        if (version != "V1.0" && version != "V1.1") throw new InvalidDataException($"ERF: unsupported version '{version}'");
+        if (version != "V1.0" && version != "V1.1" && version != "E1.0") throw new InvalidDataException($"ERF: unsupported version '{version}'");
         int resrefLen = version == "V1.1" ? 32 : 16;
+        bool e1 = version == "E1.0";
         long count = Rd32(b, 16);
         long keyOffset = Rd32(b, 24), resOffset = Rd32(b, 28);
-        int keySize = resrefLen + 8;
-        if (keyOffset + (long)count * keySize > file.Length || resOffset + (long)count * 8 > file.Length)
+        // As Resources.ErfSource: E1.0 keys end in a SHA-1, its resource entries add the compression and full size.
+        int keySize = resrefLen + 8 + (e1 ? 20 : 0), entrySize = e1 ? 16 : 8;
+        if (keyOffset + (long)count * keySize > file.Length || resOffset + (long)count * entrySize > file.Length)
             throw new InvalidDataException("ERF: key or resource list out of range");
         var list = new List<ErfEntry>((int)count);
         for (int i = 0; i < count; i++)
@@ -104,10 +106,12 @@ public static class Erf
             uint resId = Rd32(b, k + resrefLen);
             ushort type = BinaryPrimitives.ReadUInt16LittleEndian(b[(k + resrefLen + 4)..]);
             if (resId >= count) throw new InvalidDataException($"ERF: resource id {resId} out of range");
-            int r = (int)(resOffset + resId * 8L);
+            int r = (int)(resOffset + resId * (long)entrySize);
             long offset = Rd32(b, r), size = Rd32(b, r + 4);
             if (offset + size > file.Length) throw new InvalidDataException($"ERF: {resref} data out of range");
-            list.Add(new ErfEntry(resref, type, b.Slice((int)offset, (int)size).ToArray()));
+            var data = b.Slice((int)offset, (int)size).ToArray();
+            if (e1 && Rd32(b, r + 8) != 0) data = CompressedBuffer.Unwrap("XRES", data);
+            list.Add(new ErfEntry(resref, type, data));
         }
         return list;
     }

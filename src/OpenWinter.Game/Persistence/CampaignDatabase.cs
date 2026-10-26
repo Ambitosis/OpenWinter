@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Text.Json.Nodes;
 using OpenWinter.Game.Areas;
 using OpenWinter.Game.Objects;
+using OpenWinter.Aurora.Formats;
 
 namespace OpenWinter.Game.Persistence;
 

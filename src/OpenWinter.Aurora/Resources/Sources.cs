@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
+using OpenWinter.Aurora.Formats;
 
 namespace OpenWinter.Aurora.Resources;
 
@@ -33,11 +34,15 @@ public sealed class DirectorySource : IResourceSource
     public IEnumerable<ResKey> Keys => _files.Keys;
 }
 
-/// <summary>ERF-family archive: .erf, .hak, .mod, .nwm (V1.0 16-char resrefs, V1.1 32-char).</summary>
+/// <summary>
+/// ERF-family archive: .erf, .hak, .mod, .nwm (V1.0 16-char resrefs, V1.1 32-char). E1.0, which nwn_erf writes
+/// with --data-version E1, adds each resource's SHA-1 to its key and may store resources as compressed buffers
+/// ("XRES"), with the stored and the full size in the resource list.
+/// </summary>
 public sealed class ErfSource : IResourceSource, IDisposable
 {
     readonly SafeFileHandle _handle;
-    readonly Dictionary<ResKey, (long Offset, int Size)> _entries = new();
+    readonly Dictionary<ResKey, (long Offset, int Size, bool Compressed)> _entries = new();
     public string Description { get; }
     public string FileType { get; }
     public uint DescriptionStrRef { get; }
@@ -52,20 +57,22 @@ public sealed class ErfSource : IResourceSource, IDisposable
             if (RandomAccess.Read(_handle, header, 0) != header.Length) throw new InvalidDataException("Truncated ERF header.");
             FileType = Encoding.ASCII.GetString(header[..4]).Trim();
             string version = Encoding.ASCII.GetString(header[4..8]);
-            int resrefLen = version switch { "V1.0" => 16, "V1.1" => 32, _ => throw new InvalidDataException("Unsupported ERF version.") };
+            int resrefLen = version switch { "V1.0" or "E1.0" => 16, "V1.1" => 32, _ => throw new InvalidDataException("Unsupported ERF version.") };
+            bool e1 = version == "E1.0";
+            // E1.0 keys end in the resource's SHA-1; its resource entries add the compression and the full size.
+            int keySize = resrefLen + 8 + (e1 ? 20 : 0), entrySize = e1 ? 16 : 8;
             int count = (int)Le32(header, 16);
             long keyOffset = Le32(header, 24);
             long resOffset = Le32(header, 28);
             DescriptionStrRef = Le32(header, 40);
 
-            int keySize = resrefLen + 8;
             long length = RandomAccess.GetLength(_handle);
             if (count < 0 || count > int.MaxValue / keySize || keyOffset < 160 || resOffset < 160
-                || keyOffset + (long)count * keySize > length || resOffset + (long)count * 8 > length)
+                || keyOffset + (long)count * keySize > length || resOffset + (long)count * entrySize > length)
                 throw new InvalidDataException("Invalid ERF resource tables.");
             var keys = new byte[count * keySize];
             RandomAccess.Read(_handle, keys, keyOffset);
-            var res = new byte[count * 8];
+            var res = new byte[count * entrySize];
             RandomAccess.Read(_handle, res, resOffset);
             for (int i = 0; i < count; i++)
             {
@@ -74,10 +81,12 @@ public sealed class ErfSource : IResourceSource, IDisposable
                 int resId = (int)Le32(keys, k + resrefLen);
                 ushort type = BinaryPrimitives.ReadUInt16LittleEndian(keys.AsSpan(k + resrefLen + 4));
                 if (resId < 0 || resId >= count || resref.Length == 0) continue;
-                long offset = Le32(res, resId * 8), size = Le32(res, resId * 8 + 4);
+                int r = resId * entrySize;
+                long offset = Le32(res, r), size = Le32(res, r + 4);
+                bool compressed = e1 && Le32(res, r + 8) != 0;
                 // Entries whose data lies outside the file are skipped.
                 if (size > int.MaxValue || offset + size > length) continue;
-                _entries[ResKey.Of(resref, type)] = (offset, (int)size);
+                _entries[ResKey.Of(resref, type)] = (offset, (int)size, compressed);
             }
         }
         catch
@@ -94,7 +103,10 @@ public sealed class ErfSource : IResourceSource, IDisposable
         if (!_entries.TryGetValue(key, out var e)) return null;
         var data = new byte[e.Size];
         RandomAccess.Read(_handle, data, e.Offset);
-        return data;
+        if (!e.Compressed) return data;
+        // A damaged resource reads as missing, like one whose data lies outside the file.
+        try { return CompressedBuffer.Unwrap("XRES", data); }
+        catch (InvalidDataException) { return null; }
     }
 
     public IEnumerable<ResKey> Keys => _entries.Keys;
