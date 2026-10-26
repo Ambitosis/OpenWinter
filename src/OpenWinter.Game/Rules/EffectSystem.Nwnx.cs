@@ -65,4 +65,8 @@ public sealed partial class EffectSystem
             ev.After();
         }, persist: false);
     }
+
+    /// <summary>NWNX_ON_HEAL for an EffectHeal landing (nwnx_events_items: a potion's heal, its creator healing).</summary>
+    NwnxEvent? NwnxHeal(Effect e, GameObject target) =>
+        NwnxEvent.Begin(_world, "NWNX_ON_HEAL", e.Creator)?.Add("TARGET_OBJECT_ID", target).Add("HEAL_AMOUNT", e.Ints[0]);
 }

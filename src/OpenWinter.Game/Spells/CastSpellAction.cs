@@ -16,7 +16,7 @@ namespace OpenWinter.Game.Spells;
 /// The slot is spent when conjuring ends, or when the spell is lost (failed, countered, entangled, defensive casting).
 /// Recovery and eligibility for the next cast/attack are separate. Script instant casts bypass both.
 /// </summary>
-public sealed class CastSpellAction : GameAction
+public sealed partial class CastSpellAction : GameAction
 {
     public int Spell = -1;
     public uint Target = GameObject.InvalidId;
@@ -141,13 +141,13 @@ public sealed class CastSpellAction : GameAction
                     continue;
                 }
                 case Phase.Conjure:
-                    if (!Concentrating(world, owner)) return Interrupt(world, owner, "concentration");
+                    if (!Concentrating(world, owner) && InterruptedEvent(world, owner)) return Interrupt(world, owner, "concentration");
                     if (_timer > 0) return ActionStatus.InProgress;
                     if (!StartCast(world, owner)) return End(world, owner, ActionStatus.Failed);
                     _phase = Phase.Cast;
                     continue;
                 case Phase.Cast:
-                    if (!Concentrating(world, owner)) return Interrupt(world, owner, "concentration");
+                    if (!Concentrating(world, owner) && InterruptedEvent(world, owner)) return Interrupt(world, owner, "concentration");
                     if (_timer > 0) return ActionStatus.InProgress;
                     Release(world, owner);
                     _phase = Phase.Recover;
@@ -188,6 +188,7 @@ public sealed class CastSpellAction : GameAction
         }
         else if (_phase == Phase.Conjure && !_released)
             world.System<SpellSystem>().Notify("spell-interrupted", owner, new { spell = Spell, reason = "cancelled" });
+        if (_phase != Phase.Cast) FailedEvent(world, owner, 0);
         End(world, owner, ActionStatus.Failed);
     }
 
@@ -379,6 +380,7 @@ public sealed class CastSpellAction : GameAction
         if (!CanAct(world, owner)) return false;
         if (FeatId == NwRules.FeatTurnUndead && owner is Creature featUser
             && !CreatureRules.HasFeat(world, featUser, FeatId)) return false;
+        BroadcastEvent(world, owner);
         // Casting a spell ends stealth as the casting starts, and GetDetectMode reads 2 from then on
         // (nwserver, stealth_modes; an item's spell ends it when used, in StartCast).
         if (!IsItem && owner is Creature stealthy)
@@ -600,6 +602,7 @@ public sealed class CastSpellAction : GameAction
         if (_presentationId != 0)
             world.System<SpellSystem>().Notify("spell-release", owner, new { spell = Spell, presentation = _presentationId });
         if (Fake || _info == null) return;
+        if (!CastEvent(world, owner)) return;
         // "X casts <spell>" at the release, before the impact's own lines (castlines).
         if (_castingLines != null) CastingLines.Release(world, owner, Spell, _castingLines);
         // A creature ability or a feat (and a form ability) says spells.2da AltMessage as it goes off instead ("X is
@@ -635,7 +638,7 @@ public sealed class CastSpellAction : GameAction
         // The cast reached its commit point: its class is what a later failed Concentration check costs.
         if (!Fake && !IsItem && owner is Creature committed)
             committed.LastCommittedCastClass = _slot?.Kind == SlotKind.Ability ? NwRules.ClassInvalid : _slot?.Class ?? -1;
-        if (owner is Creature c && _slot != null && !_polymorphFree) SpellSlots.Spend(world, c, _slot);
+        if (owner is Creature c && _slot != null && !_polymorphFree) DecrementEvent(world, c);
         if (!Fake && FeatId == NwRules.FeatTurnUndead && owner is Creature featUser)
             CreatureRules.AdjustFeatUses(world, featUser, FeatId, -1);
     }
@@ -646,6 +649,7 @@ public sealed class CastSpellAction : GameAction
     {
         if (spend) Spend(world, owner);
         else Refund(world, owner);
+        if (reason != "concentration") FailedEvent(world, owner, FailReason(reason));
         world.System<SpellSystem>().Notify("spell-interrupted", owner, new { spell = Spell, reason });
         if (owner is Creature { IsPC: true } pc)
             world.Output?.SendMessage(pc, reason switch

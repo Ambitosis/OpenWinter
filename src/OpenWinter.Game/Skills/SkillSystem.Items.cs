@@ -136,8 +136,21 @@ public sealed partial class SkillSystem
     /// skillvsitemcost.2da requirement (a static comparison, as in the original, not a roll). For the spells
     /// and items packages; <paramref name="required"/> is the highest rank that was needed (0 when no emulation).
     /// </summary>
-    public bool CanUseItem(Creature c, Item item, out int required)
-        => CheckItemLimitations(c, item, out required);
+    public bool CanUseItem(Creature c, Item item, out int required) => CheckItemLimitations(c, item, out required);
+
+    /// <summary>
+    /// NWNX_ON_VALIDATE_USE_ITEM around the use limitation check when an item is activated, not when it is
+    /// equipped (nwnx_events_items): a skip with a result decides alone ("0" unusable).
+    /// </summary>
+    bool ValidateUse(Creature c, Item item, Func<bool> check)
+    {
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_VALIDATE_USE_ITEM", c);
+        if (ev == null) return check();
+        ev.Add("ITEM_OBJECT_ID", item);
+        bool ok = ev.Before() ? int.TryParse(ev.Result, out var r) && r != 0 : check();
+        ev.Add("BEFORE_RESULT", ok).After();
+        return ok;
+    }
 
     /// <summary>
     /// Spell-item activation requires wearing equippable items and satisfying their
@@ -147,7 +160,7 @@ public sealed partial class SkillSystem
     public bool CanActivateSpellItem(Creature c, Item item)
     {
         if (_world.Inventory.Rules.EquipableSlots(item.BaseItem) != 0 && Inventory.InventorySystem.SlotOf(c, item) < 0) return false;
-        return CheckItemLimitations(c, item, out _);
+        return ValidateUse(c, item, () => CheckItemLimitations(c, item, out _));
     }
 
     bool CheckItemLimitations(Creature c, Item item, out int required)

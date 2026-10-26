@@ -1,0 +1,8 @@
+{
+  "seconds": 36, "nwnx": true, "tile": 4,
+  "templates": {
+    "pev_gob": { "from": "nw_goblina", "type": "utc", "set": { "Tag": "PEV_GOB", "ScriptSpawn": "", "ScriptDamaged": "", "ScriptOnBlocked": "",
+      "ScriptDialogue": "", "ScriptSpellAt": "", "ScriptHeartbeat": "", "ScriptAttacked": "", "ScriptRested": "", "ScriptOnNotice": "",
+      "ScriptUserDefine": "", "ScriptEndRound": "", "ScriptDisturbed": "", "ScriptDeath": "" } }
+  }
+}

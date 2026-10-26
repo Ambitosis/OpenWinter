@@ -20,7 +20,7 @@ public sealed partial class InventorySystem
     /// </summary>
     public void SetCharges(Item item, int charges)
     {
-        if (charges <= 0) { _world.After(0, () => { if (!item.IsDestroyed) _world.Destroy(item); }); return; }
+        if (charges <= 0) { _world.After(0, () => { if (!item.IsDestroyed) DestroyItem(item); }); return; }
         item.Charges = Math.Min(charges, 250);
         Changed(item);
     }
@@ -98,14 +98,14 @@ public sealed partial class InventorySystem
                 _world.After(0.5f, () =>
                 {
                     if (item.IsDestroyed) return;
-                    _world.Destroy(item);
+                    DestroyItem(item);
                 });
             }
         }
         else if (spentCharges)
         {
             // A wand's last charge does say "Lost Item" (castlines4).
-            if (item.Charges == 0) _world.After(0.5f, () => { if (!item.IsDestroyed) _world.Destroy(item); });
+            if (item.Charges == 0) _world.After(0.5f, () => { if (!item.IsDestroyed) DestroyItem(item); });
         }
         else if (maxPerDay > 0) prop.UsesPerDay--;
         if (!item.IsDestroyed && (singleUse || maxPerDay > 0)) Changed(item);

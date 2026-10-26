@@ -48,7 +48,7 @@ public static partial class CreatureRules
         // Polymorphed, only the form's items are equipped (the creature's own are put away).
         foreach (var (slot, item) in c.Equipment.ToArray())
             foreach (var p in item.Properties.ToArray())
-                if (p.Valid) yield return (item, slot, p);
+                if (p.Valid && Inventory.ItemPropertyEffects.Active(p)) yield return (item, slot, p);
     }
 
     /// <summary>The numeric value an item property's cost table row stands for (its "Value" column, else the row number).</summary>

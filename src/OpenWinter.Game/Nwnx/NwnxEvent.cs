@@ -84,7 +84,13 @@ public sealed class NwnxEvent
     /// <summary>Automatic events OpenWinter raises, by base name. Subscribing to any other NWNX_ON_* event warns.</summary>
     static readonly HashSet<string> Emitted = new(StringComparer.Ordinal)
     {
-        "NWNX_ON_EFFECT_APPLIED", "NWNX_ON_EFFECT_REMOVED",
+        "NWNX_ON_EFFECT_APPLIED", "NWNX_ON_EFFECT_REMOVED", "NWNX_ON_HEAL",
+        "NWNX_ON_ITEM_ACQUIRE", "NWNX_ON_INVENTORY_ADD_ITEM", "NWNX_ON_INVENTORY_REMOVE_ITEM", "NWNX_ON_VALIDATE_ITEM_EQUIP",
+        "NWNX_ON_ITEM_EQUIP", "NWNX_ON_ITEM_UNEQUIP", "NWNX_ON_INVENTORY_ADD_GOLD", "NWNX_ON_INVENTORY_REMOVE_GOLD",
+        "NWNX_ON_ITEM_DESTROY_OBJECT", "NWNX_ON_VALIDATE_USE_ITEM", "NWNX_ON_USE_ITEM",
+        "NWNX_ON_ITEMPROPERTY_EFFECT_APPLIED", "NWNX_ON_ITEMPROPERTY_EFFECT_REMOVED",
+        "NWNX_ON_INPUT_CAST_SPELL", "NWNX_ON_BROADCAST_CAST_SPELL", "NWNX_ON_DECREMENT_SPELL_COUNT", "NWNX_ON_CAST_SPELL",
+        "NWNX_ON_SPELL_INTERRUPTED", "NWNX_ON_SPELL_FAILED",
     };
 
     /// <summary>Why an automatic event is never raised, or null when it is (or is a script-defined event).</summary>

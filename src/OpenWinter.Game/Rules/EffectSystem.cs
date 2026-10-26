@@ -308,8 +308,13 @@ public sealed partial class EffectSystem : IWorldSystem
     /// </summary>
     void ApplyHeal(Effect e, GameObject target)
     {
-        if (HitPoints.IsDead(target) || target is not Creature healed) { HitPoints.Heal(_world, target, e.Ints[0]); return; }
-        int amount = HitPoints.Heal(_world, target, e.Ints[0]);
+        // NWNX_ON_HEAL: the creator heals; a skip heals nothing and a result is the amount to heal instead.
+        var ev = NwnxHeal(e, target);
+        if (ev?.Before() == true) { ev.After(); return; }
+        int heal = ev is { HasResult: true } && int.TryParse(ev.Result, out var r) ? r : e.Ints[0];
+        if (HitPoints.IsDead(target) || target is not Creature healed) { HitPoints.Heal(_world, target, heal); ev?.After(); return; }
+        int amount = HitPoints.Heal(_world, target, heal);
+        ev?.After();
         var audience = Society.AssociateService.FeedbackPlayers(_world, target, healed, _world.Get(e.Creator) as Creature);
         if (audience.Count == 0) return;
         string name = target.DisplayName(_world.Resources.Talk) is { Length: > 0 } n ? n : target.Tag;

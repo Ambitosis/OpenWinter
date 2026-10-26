@@ -169,7 +169,7 @@ static class ItemFunctions
     {
         if (c.Obj<Creature>(0) is { } cr && c.I(1) > 0)
         {
-            Inv(c).AddGold(cr, c.I(1));
+            Inv(c).ChangeGold(cr, c.I(1));
             // "Acquired 925GP" (dialog.tlk 62489; dying scene chat log).
             if (cr.IsPC) c.World.Output?.SendMessage(cr, c.World.TlkStringOverridden(62489).Replace("<CUSTOM0>", c.I(1).ToString()));
         }
@@ -183,10 +183,13 @@ static class ItemFunctions
         if (c.Obj<Creature>(1) is not { } from || amount <= 0) return null;
         int taken = Math.Min(amount, from.Gold);
         var inv = Inv(c);
-        inv.AddGold(from, -taken);
+        // Taken by a creature, the gold raises NWNX_ON_INVENTORY_REMOVE_GOLD (and ADD_GOLD on the taker); taken by
+        // anything else, neither (nwnx_events_items). A skip keeps the gold where it was.
+        if (c.Self is not Creature) inv.AddGold(from, -taken);
+        else if (!inv.ChangeGold(from, -taken)) return null;
         // "Lost 100GP" (dialog.tlk 62490): the stock respawn's 10% penalty (dyingfx chat log).
         if (taken > 0 && from.IsPC) c.World.Output?.SendMessage(from, c.World.TlkStringOverridden(62490).Replace("<CUSTOM0>", taken.ToString()));
-        if (c.I(2) == 0 && c.Self is Creature taker && taker != from) inv.AddGold(taker, taken);
+        if (c.I(2) == 0 && c.Self is Creature taker && taker != from) inv.ChangeGold(taker, taken);
         return null;
     }
 
