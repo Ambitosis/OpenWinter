@@ -782,46 +782,40 @@ public static partial class CreatureRules
         return skills.GetInt(skill, "Untrained") != 0 || SkillRankBase(c, skill) > 0;
     }
 
-    /// <summary>Racial and background feats that add to skills: (skill, ruleset.2da constant, default) per feat.</summary>
-    static readonly Dictionary<int, (int Skill, string Rule, int Bonus)[]> SkillFeats = new()
-    {
-        [NwRules.FeatAlertness] = new[] { (6, "ALERTNESS_SKILL_BONUS", 2), (17, "ALERTNESS_SKILL_BONUS", 2) },
-        [NwRules.FeatSkillAffinityLore] = new[] { (7, "SKILL_AFFINITY_SKILL_BONUS", 2) },
-        [NwRules.FeatSkillAffinityListen] = new[] { (6, "SKILL_AFFINITY_SKILL_BONUS", 2) },
-        [NwRules.FeatSkillAffinitySearch] = new[] { (14, "SKILL_AFFINITY_SKILL_BONUS", 2) },
-        [NwRules.FeatSkillAffinitySpot] = new[] { (17, "SKILL_AFFINITY_SKILL_BONUS", 2) },
-        [NwRules.FeatSkillAffinityConcentration] = new[] { (1, "SKILL_AFFINITY_SKILL_BONUS", 2) },
-        [NwRules.FeatSkillAffinityMoveSilently] = new[] { (8, "SKILL_AFFINITY_SKILL_BONUS", 2) },
-        [NwRules.FeatPartialAffinityListen] = new[] { (6, "PARTIAL_SKILL_FOCUS_SKILL_BONUS", 1) },
-        [NwRules.FeatPartialAffinitySearch] = new[] { (14, "PARTIAL_SKILL_FOCUS_SKILL_BONUS", 1) },
-        [NwRules.FeatPartialAffinitySpot] = new[] { (17, "PARTIAL_SKILL_FOCUS_SKILL_BONUS", 1) },
-        [NwRules.FeatArtist] = new[] { (11, "ARTIST_PERFORM_BONUS", 2), (17, "ARTIST_SPOT_BONUS", 2) },
-        [NwRules.FeatBlooded] = new[] { (17, "BLOODED_SPOT_BONUS", 2) },
-        [NwRules.FeatCourtlyMagocracy] = new[] { (7, "COURTEOUS_MAGOCRACY_LORE_BONUS", 2), (16, "COURTEOUS_MAGOCRACY_LORE_BONUS", 2) },
-        [NwRules.FeatSilverPalm] = new[] { (20, "SILVER_PALM_APPRAISE_BONUS", 2), (12, "SILVER_PALM_PERSUADE_BONUS", 2) },
-        [NwRules.FeatStealthy] = new[] { (5, "STEALTHY_HIDE_BONUS", 2), (8, "STEALTHY_MOVE_SILENTLY_BONUS", 2) },
-        [NwRules.FeatThug] = new[] { (12, "THUG_PERSUADE_BONUS", 2) },
-        [NwRules.FeatStonecunning] = new[] { (14, "STONECUNNING_SEARCH_SKILL_BONUS", 2) },
-    };
-
-    /// <summary>Skill bonus from feats: Skill Focus and Epic Skill Focus (feat.2da MASTERFEAT + REQSKILL) plus racial and background feats.</summary>
+    /// <summary>
+    /// Skill bonus from feats (<see cref="SkillFeatTable"/>): Skill Focus and Epic Skill Focus, racial, background and
+    /// class feats whose area and time conditions hold, with their class level parts.
+    /// </summary>
     public static int FeatSkillBonus(World w, Creature c, int skill)
     {
-        var feats = w.Resources.TwoDA("feat");
-        var masters = w.Resources.TwoDA("masterfeats");
-        int focus = masters.Find("LABEL", "SkillFocus"), epicFocus = masters.Find("LABEL", "EpicSkillFocus");
         int b = 0;
-        foreach (int f in AllFeats(w, c))
-        {
-            if (SkillFeats.TryGetValue(f, out var list))
-                foreach (var (s, rule, v) in list) if (s == skill) b += Ruleset.Int(w, rule, v);
-            var master = feats.Get(f, "MASTERFEAT");
-            if (master.Length == 0 || feats.GetInt(f, "REQSKILL", -1) != skill) continue;
-            int m = int.TryParse(master, out int mm) ? mm : -1;
-            if (m >= 0 && m == focus) b += Ruleset.Int(w, "SKILL_FOCUS_SKILL_BONUS", 3);
-            else if (m >= 0 && m == epicFocus) b += Ruleset.Int(w, "EPIC_SKILL_FOCUS_SKILL_BONUS", 10);
-        }
+        var owned = AllFeats(w, c).ToHashSet();
+        foreach (var f in SkillFeatTable.Of(w).ForSkill(skill))
+            if (owned.Contains(f.Feat) && SkillFeatTable.Applies(w, c, f)) b += f.Modifier + SkillFeatTable.ClassLevelBonus(c, f);
         return b;
+    }
+
+    /// <summary>
+    /// The ability modifier a skill uses: its skills.2da KeyAbility, unless a skill feat the creature has names
+    /// abilities and how to combine them (the first such feat counts): the least, the greatest, the average or the sum
+    /// of their modifiers.
+    /// </summary>
+    static int SkillAbilityModifier(World w, Creature c, int skill, int ability, HashSet<int> owned)
+    {
+        foreach (var f in SkillFeatTable.Of(w).ForSkill(skill))
+        {
+            if (f.KeyAbilityMask == 0 || !owned.Contains(f.Feat)) continue;
+            var mods = new List<int>();
+            for (int a = 0; a < 6; a++) if ((f.KeyAbilityMask & (1 << a)) != 0) mods.Add(AbilityModifier(w, c, a));
+            if (mods.Count == 0) break;
+            int calc = f.KeyAbilityMask & (64 | 128 | 256 | 512);
+            if ((calc & 64) != 0) return mods.Min();
+            if ((calc & 128) != 0) return mods.Max();
+            if ((calc & 256) != 0) return (int)Math.Floor(mods.Average());
+            if ((calc & 512) != 0) return mods.Sum();
+            return mods[0];
+        }
+        return ability >= 0 ? AbilityModifier(w, c, ability) : 0;
     }
 
     /// <summary>Armour check penalty (positive number) from worn armour and shield.</summary>
@@ -846,11 +840,15 @@ public static partial class CreatureRules
         if (baseOnly) return HasSkill(w, c, skill) || SkillRankBase(c, skill) > 0 ? SkillRankBase(c, skill) : 0;
         if (!HasSkill(w, c, skill)) return -1;
         var skills = w.Resources.TwoDA("skills");
+        var table = SkillFeatTable.Of(w);
+        var owned = AllFeats(w, c).ToHashSet();
         int total = SkillRankBase(c, skill);
         int ability = NwRules.AbilityFromLabel(skills.Get(skill, "KeyAbility"));
-        if (ability >= 0) total += AbilityModifier(w, c, ability);
+        total += SkillAbilityModifier(w, c, skill, ability, owned);
         total += FeatSkillBonus(w, c, skill);
-        if (skills.GetInt(skill, "ArmorCheckPenalty") != 0) total -= ArmourCheckPenalty(w, c);
+        if (skills.GetInt(skill, "ArmorCheckPenalty") != 0 && !table.ForSkill(skill).Any(f => f.BypassArmorCheckPenalty && owned.Contains(f.Feat)))
+            total -= ArmourCheckPenalty(w, c);
+        if (c.Area != null) total += table.AreaModifier(c.Area.Id, skill);
 
         int dec = 0;
         var bonuses = new SpellBonuses();
@@ -868,8 +866,8 @@ public static partial class CreatureRules
         }
         int inc = bonuses.Total;
         dec += penalties.Total;
-        // Blind: -4 on Strength and Dexterity skills.
-        if (blind && ability is NwRules.AbilityStr or NwRules.AbilityDex) dec += 4;
+        // Blind: a penalty (4 unless a module changed it) on Dexterity skills; Discipline keeps its rank (nwnx_skillranks).
+        if (blind && ability == NwRules.AbilityDex) dec += table.BlindnessPenalty;
         foreach (var (_, _, p) in EquippedProperties(c))
         {
             if (p.SubType != skill && p.SubType != NwRules.SkillAll) continue;

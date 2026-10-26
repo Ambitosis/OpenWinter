@@ -334,7 +334,8 @@ public sealed partial class CombatSystem
 
     /// <summary>
     /// Parry mode: up to one parry per attack the defender would have this round; Parry check against the attack
-    /// total. Beating it by PARRY_RIPOSTE_DIFFERENCE earns an immediate riposte.
+    /// total; Improved Parry's bonus is part of the Parry rank (nwnx_skillranks). Beating it by PARRY_RIPOSTE_DIFFERENCE
+    /// earns an immediate riposte.
     /// </summary>
     bool TryParry(AttackOutcome o, CombatState tState, out bool riposte)
     {
@@ -344,7 +345,6 @@ public sealed partial class CombatSystem
         if (tState.Parries >= Math.Max(1, CreatureRules.AttacksPerRound(_world, tc))) return false;
         tState.Parries++;
         int parry = Dice.Roll(20) + CreatureRules.SkillRank(_world, tc, CombatK.SkillParry);
-        if (HasFeat(tc, CombatK.FeatImprovedParry)) parry += RI("IMPROVED_PARRY_MODIFIER", 4);
         int total = o.Roll + o.AttackBonus;
         if (parry < total) return false;
         riposte = parry - total >= RI("PARRY_RIPOSTE_DIFFERENCE", 10);

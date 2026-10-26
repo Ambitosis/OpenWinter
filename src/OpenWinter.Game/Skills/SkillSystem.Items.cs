@@ -224,8 +224,8 @@ public sealed partial class SkillSystem
     readonly Dictionary<uint, (double RoundStart, int Count)> _parries = new();
 
     /// <summary>
-    /// For the combat package: a creature in parry mode tries to parry an incoming attack. d20 + Parry
-    /// (+IMPROVED_PARRY_MODIFIER with Improved Parry) against the attack roll; at most as many parries per round
+    /// For the combat package: a creature in parry mode tries to parry an incoming attack. d20 + Parry (whose rank
+    /// counts Improved Parry's IMPROVED_PARRY_MODIFIER) against the attack roll; at most as many parries per round
     /// as the parrier has attacks. A parry that beats the roll by PARRY_RIPOSTE_DIFFERENCE or more earns a
     /// counterattack (the combat package makes it).
     /// </summary>
@@ -236,8 +236,7 @@ public sealed partial class SkillSystem
         if (!_parries.TryGetValue(defender.Id, out var p) || now - p.RoundStart >= RoundSeconds) p = (now, 0);
         if (p.Count >= Math.Max(1, CreatureRules.AttacksPerRound(_world, defender))) return (false, false);
         _parries[defender.Id] = (p.RoundStart, p.Count + 1);
-        int bonus = HasFeat(defender, SkillIds.FeatImprovedParry) ? Rule("IMPROVED_PARRY_MODIFIER", 4) : 0;
-        var r = Check(defender, SkillIds.Parry, attackRoll, bonus, versus: attacker);
+        var r = Check(defender, SkillIds.Parry, attackRoll, 0, versus: attacker);
         return (r.Success, r.Success && r.Margin >= Rule("PARRY_RIPOSTE_DIFFERENCE", 10));
     }
 }
