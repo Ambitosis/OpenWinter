@@ -44,8 +44,8 @@ public sealed class EncumbranceSystem : IWorldSystem
         c.LoadStage = state == 0 || c.Plot ? 0 : Stage(_world, state);
         if (old < 0 || state == 0) return;
         // Straight from normal to overloaded (a filled box picked up) the original gives both lines (docs/VOICES.md).
-        if (state == 1 || old == 0) _world.Output?.SendMessage(c, _world.Resources.TlkString(EncumberedLine));
-        if (state == 2) _world.Output?.SendMessage(c, _world.Resources.TlkString(OverloadedLine));
+        if (state == 1 || old == 0) _world.Output?.SendFeedback(c, _world.Resources.TlkString(EncumberedLine), FeedbackKind.Message, 8);
+        if (state == 2) _world.Output?.SendFeedback(c, _world.Resources.TlkString(OverloadedLine), FeedbackKind.Message, 9);
     }
 
     /// <summary>The movement stages a load state costs (ruleset.2da; 1 and 2 in the installed game).</summary>

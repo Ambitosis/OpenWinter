@@ -36,7 +36,7 @@ public sealed partial class CombatSystem
         {
             var line = $"{Name(attacker)} attempts {(ranged ? "Touch Attack (Ranged)" : "Touch Attack (Melee)")} on {Name(target)} : {result} : ({roll} + {ab} = {roll + ab})";
             foreach (var who in new[] { attacker, target as Creature }.Distinct())
-                if (who is { IsPC: true }) _world.Output?.SendMessage(who, line);
+                if (who is { IsPC: true }) _world.Output?.SendFeedback(who, line, FeedbackKind.TouchAttack);
         }
         return outcome;
     }

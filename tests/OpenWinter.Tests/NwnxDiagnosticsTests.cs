@@ -48,19 +48,15 @@ public class NwnxDiagnosticsTests
         world.Register(item);
         var calls = new (string Plugin, string Function)[]
         {
-            ("Visibility", "SetVisibilityOverride"), ("Item", "SetWeight"),
-            ("Dialog", "End"),
-            ("Player", "SetCustomToken"), ("Player", "PossessCreature"),
-            ("Util", "SetResourceOverride"), ("Feedback", "SetMessageHidden"),
-            ("Administration", "DeletePlayerCharacter"), ("Creature", "GetAttackBonus"),
-            ("Creature", "JumpToLimbo"),
+            ("Item", "SetWeight"), ("Player", "GetTURD"), ("Player", "RemoveEffectFromTURD"),
+            ("Creature", "GetAttackBonus"), ("Creature", "JumpToLimbo"),
         };
         foreach (var (plugin, function) in calls)
         {
             for (int i = 0; i < 2; i++)
             {
                 Assert.True(registry.Call(plugin, function));
-                registry.Stack.Clear(); // PossessCreature and GetAttackBonus retain their existing results.
+                registry.Stack.Clear(); // GetTURD and GetAttackBonus retain their existing results.
             }
             Assert.Equal(2, registry.MissingCalls[$"NWNX_{plugin}_{function}"]);
         }

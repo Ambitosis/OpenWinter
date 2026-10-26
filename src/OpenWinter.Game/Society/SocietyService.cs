@@ -207,23 +207,25 @@ public sealed class SocietyService : IWorldSystem
     public static void OnSpeech(World world, GameObject speaker, string text, int volume)
     {
         if (speaker.Area == null && volume != VolumePartyChat) return;
-        foreach (var listener in Listeners(world, speaker, volume))
+        foreach (var listener in Listeners(world, speaker, volume)) Hear(world, speaker, listener, text);
+    }
+
+    /// <summary>One listening creature hears a line meant for it (its first matching listen pattern runs OnConversation).</summary>
+    public static void Hear(World world, GameObject speaker, Creature listener, string text)
+    {
+        var s = listener.Society;
+        if (!s.Listening || SocietyService.IsDead(listener) || PerceptionSystem.Has(listener, PerceptionSystem.EffectDeaf)) return;
+        foreach (var pattern in s.ListenPatterns)
         {
-            var s = listener.Society;
-            if (!s.Listening || SocietyService.IsDead(listener) || PerceptionSystem.Has(listener, PerceptionSystem.EffectDeaf)) continue;
-            foreach (var pattern in s.ListenPatterns)
-            {
-                var matched = ListenPatterns.Match(pattern.Pattern, text);
-                if (matched == null) continue;
-                var ctx = new EventContext()
-                    .Set("Speaker", speaker.Id)
-                    .Set("ListenPatternNumber", pattern.Number)
-                    .Set("MatchedSubstrings", matched)
-                    .Set("EventScriptType", EventScriptCreatureOnDialogue);
-                var l = listener;
-                world.After(0, () => world.RunEvent(l, "ScriptDialogue", ctx));
-                break;
-            }
+            var matched = ListenPatterns.Match(pattern.Pattern, text);
+            if (matched == null) continue;
+            var ctx = new EventContext()
+                .Set("Speaker", speaker.Id)
+                .Set("ListenPatternNumber", pattern.Number)
+                .Set("MatchedSubstrings", matched)
+                .Set("EventScriptType", EventScriptCreatureOnDialogue);
+            world.After(0, () => world.RunEvent(listener, "ScriptDialogue", ctx));
+            break;
         }
     }
 

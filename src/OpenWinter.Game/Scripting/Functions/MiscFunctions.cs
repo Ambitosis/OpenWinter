@@ -191,6 +191,8 @@ public static class MiscFunctions
         if (path.EndsWith(".hak", StringComparison.OrdinalIgnoreCase)) return ("HAK:", false);
         if (path.Equals(user + "/development", StringComparison.OrdinalIgnoreCase)) return ("DEVELOPMENT:", false);
         if (path.Equals(user + "/override", StringComparison.OrdinalIgnoreCase)) return ("OVERRIDE:", false);
+        // NWNX_Util's resource folder (the user folder's nwnx, or the sandbox copy development runs write to).
+        if (s is DirectorySource && Path.GetFileName(path.TrimEnd('/')).Equals("nwnx", StringComparison.OrdinalIgnoreCase)) return ("NWNX:", false);
         if (s is KeyBifSource || path.StartsWith(game + "/", StringComparison.OrdinalIgnoreCase)) return ("NWNDATA:", true);
         return ("CURRENTGAME:", false);
     }

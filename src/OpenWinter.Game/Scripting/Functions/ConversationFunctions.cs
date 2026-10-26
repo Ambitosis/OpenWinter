@@ -94,7 +94,7 @@ static class ConversationFunctions
     }
 
     // void SetCustomToken(int nCustomTokenNumber, string sTokenValue)
-    [NwFunc("SetCustomToken")] static object? CustomToken(Call c) { Convo(c).CustomTokens[c.I(0)] = c.S(1); return null; }
+    [NwFunc("SetCustomToken")] static object? CustomToken(Call c) { Convo(c).SetCustomToken(c.I(0), c.S(1)); return null; }
 
     // int IsInConversation(object oObject)
     [NwFunc("IsInConversation")] static object? InConversation(Call c) => c.Obj(0) is { } o && Convo(c).IsInConversation(o) ? 1 : 0;
