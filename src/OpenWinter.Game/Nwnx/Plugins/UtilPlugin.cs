@@ -96,7 +96,8 @@ static class UtilPlugin
     [NwnxFunc(P, "EncodeStringForURL")] static void EncodeUrl(NwnxCall n) => n.Push(Uri.EscapeDataString(n.PopString()));
     [NwnxFunc(P, "Get2DARowCount")] static void RowCount(NwnxCall n) => n.Push(n.World.Resources.TwoDA(n.PopString()).RowCount);
     [NwnxFunc(P, "GetServerTicksPerSecond")] static void Ticks(NwnxCall n) => n.Push((int)GameServer.TickRate);
-    [NwnxFunc(P, "GetUserDirectory")] static void UserDirectory(NwnxCall n) => n.Push(n.World.Resources.Paths.UserRoot);
+    /// <summary>The user folder the server writes to (its databases, vault and NWNX folder; a sandbox in development).</summary>
+    [NwnxFunc(P, "GetUserDirectory")] static void UserDirectory(NwnxCall n) => n.Push(n.World.System<Persistence.PersistenceSystem>().UserRoot);
     [NwnxFunc(P, "GetTTY")] static void Tty(NwnxCall n) => n.Push("");
     [NwnxFunc(P, "PluginExists")] static void PluginExists(NwnxCall n) => n.Push(NwnxRegistry.HasPlugin(n.PopString()));
 
@@ -346,7 +347,9 @@ static class UtilPlugin
         return source;
     }
 
-    /// <summary>The folder an alias names: NWNX, or another loose resource folder the server has (TEMP, OVERRIDE...).</summary>
+    /// <summary>
+    /// The folder an alias names for a reindex: NWNX, or another loose resource folder the server has (TEMP...).
+    /// </summary>
     static DirectorySource? AliasDirectory(World w, string alias)
     {
         alias = alias.TrimEnd(':');
@@ -355,17 +358,41 @@ static class UtilPlugin
             .FirstOrDefault(s => MiscFunctions.Classify(s, w.Resources.Paths).Alias.TrimEnd(':').Equals(alias, StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// The folder scripts may write to and delete from: only NWNX's own. The header's other aliases come from a
+    /// custom resource directory file, which OpenWinter servers don't have; the game's folders (OVERRIDE, the module,
+    /// the install) are never touched.
+    /// </summary>
+    static DirectorySource? WritableDirectory(World w, string alias) =>
+        alias.Length == 0 || alias.TrimEnd(':').Equals("NWNX", StringComparison.OrdinalIgnoreCase) ? NwnxSource(w) : null;
+
+    /// <summary>
+    /// The file a resource name and type are kept in, inside <paramref name="dir"/>, or null when the name is not a
+    /// plain resource name (1 - 16 characters, no path).
+    /// </summary>
+    static string? FileIn(string dir, string name, ushort type)
+    {
+        if (name.Length is 0 or > 16 || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || name.IndexOfAny(['/', '\\', ':']) >= 0 || name.Trim('.').Length == 0) return null;
+        var full = Path.GetFullPath(Path.Combine(dir, name.ToLowerInvariant() + "." + ResType.Extension(type)));
+        return string.Equals(Path.GetDirectoryName(full), Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) ? full : null;
+    }
+
     static bool Write(World w, string name, ushort type, byte[] data)
     {
-        if (name.Length is 0 or > 16 || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return false;
         var source = NwnxSource(w);
-        try { File.WriteAllBytes(Path.Combine(source.Description, name.ToLowerInvariant() + "." + ResType.Extension(type)), data); }
+        if (FileIn(source.Description, name, type) is not { } path) return false;
+        try { File.WriteAllBytes(path, data); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }
         source.Refresh();
         return true;
     }
 
-    /// <summary>Compiles a script into the NWNX folder, where it overrides the module's; returns "" or the compile error.</summary>
+    /// <summary>
+    /// Compiles a script into the NWNX folder, where it overrides the module's; returns "" or the compile error.
+    /// sAlias is ignored: every script goes to the NWNX folder.
+    /// </summary>
     [NwnxFunc(P, "AddScript")]
     static void AddScript(NwnxCall n)
     {
@@ -378,7 +405,7 @@ static class UtilPlugin
         n.Push("");
     }
 
-    /// <summary>Writes a script's source into the NWNX folder (any alias writes there).</summary>
+    /// <summary>Writes a script's source into the NWNX folder; sAlias is ignored (nwserver also answered TRUE for an unknown one).</summary>
     [NwnxFunc(P, "AddNSSFile")]
     static void AddNssFile(NwnxCall n)
     {
@@ -386,12 +413,16 @@ static class UtilPlugin
         n.Push(Write(n.World, name, ResType.Nss, OpenWinter.Aurora.Text.Windows1252.GetBytes(contents)));
     }
 
+    /// <summary>Deletes one file from the NWNX folder; FALSE for any other alias, a name that isn't a resource name, or no file.</summary>
     [NwnxFunc(P, "RemoveNWNXResourceFile")]
     static void RemoveFile(NwnxCall n)
     {
         var name = n.PopString(); int type = n.PopInt(); var alias = n.PopString();
-        var source = AliasDirectory(n.World, alias.Length == 0 ? "NWNX" : alias) ?? NwnxSource(n.World);
-        var path = Path.Combine(source.Description, name.ToLowerInvariant() + "." + ResType.Extension((ushort)type));
+        if (WritableDirectory(n.World, alias) is not { } source || FileIn(source.Description, name, (ushort)type) is not { } path)
+        {
+            n.Push(0);
+            return;
+        }
         bool removed = false;
         try { if (File.Exists(path)) { File.Delete(path); removed = true; } }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
@@ -400,15 +431,16 @@ static class UtilPlugin
         n.Push(removed);
     }
 
-    /// <summary>Deletes every file of a type (0xFFFF: all) from a resource folder; FALSE for an unknown alias.</summary>
+    /// <summary>Deletes every file of a type (0xFFFF: all) from the NWNX folder; FALSE for any other alias.</summary>
     [NwnxFunc(P, "CleanResourceDirectory")]
     static void CleanDirectory(NwnxCall n)
     {
         var alias = n.PopString(); int type = n.PopInt();
-        if (AliasDirectory(n.World, alias) is not { } source) { n.Push(0); return; }
-        foreach (var key in source.Keys.Where(k => type == 0xFFFF || k.Type == type).ToList())
+        if (alias.Length == 0 || WritableDirectory(n.World, alias) is not { } source) { n.Push(0); return; }
+        foreach (var file in Directory.EnumerateFiles(source.Description))
         {
-            try { File.Delete(Path.Combine(source.Description, key.ToString())); }
+            if (!ResKey.TryParse(Path.GetFileName(file), out var key) || type != 0xFFFF && key.Type != type) continue;
+            try { File.Delete(file); }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
             if (key.Type == ResType.Ncs) n.World.Scripts?.Forget(key.ResRef);
         }
