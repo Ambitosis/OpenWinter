@@ -42,7 +42,9 @@ dotnet run --project src/OpenWinter.Tools -c Release -- parity-run basics --only
   loads except those that need outside services or change engine behaviour (Optimizations, Experimental, HTTPClient,
   Redis, WebHook ...); NWNX_SQL uses SQLite. `"nwnx": "risenholm"` also loads the `NWNX_Risenholm` plugin, from the
   build that `nwnxBinaries` in config/local.json names. `nwnx_pilot` is the smallest example.
-  It never touches the real user folder.
+  It never touches the real user folder. `"exports": ["name.are", ...]` compares files the scripts wrote to the user
+  directory's nwnx folder (NWNX_Area_ExportARE/ExportGIT): their fields, values, tiles, variables and object lists
+  become readings `file.<name>.*` (`nwnx_area_objects`).
 - A suite can ship conversations as `<resref>.dlg.json`, in the format visual scenes use (`convo_busy`).
 - Results are written to `out/parity/results/<suite>/{nwn,openwinter}.txt`.
 

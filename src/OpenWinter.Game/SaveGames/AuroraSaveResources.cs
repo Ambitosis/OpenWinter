@@ -80,7 +80,7 @@ static class AuroraSaveResources
     /// An area's GIT with its objects as they are now, each with its state (variables, effects, actions,
     /// transition), and with <paramref name="objectIds"/> their object ids (save games; not the combined area format).
     /// </summary>
-    internal static GffStruct Git(World world, Area area, Action<string> warn, bool objectIds = true)
+    internal static GffStruct Git(World world, Area area, Action<string> warn, bool objectIds = true, Func<GameObject, bool>? include = null)
     {
         var git = new GffStruct();
         git.SetStruct("AreaProperties", area.Properties.DeepClone());
@@ -92,6 +92,7 @@ static class AuroraSaveResources
         foreach (var o in area.Objects)
         {
             if (o.IsDestroyed || o is Creature c && (c.FamiliarController != null || c.IsPC && c.Player?.FamiliarMaster == null)) continue;
+            if (include != null && !include(o)) continue;
             try
             {
                 var (list, s) = ObjectStruct(world, o);
