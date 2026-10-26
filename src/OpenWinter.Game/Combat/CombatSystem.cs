@@ -174,6 +174,7 @@ public sealed partial class CombatSystem : IWorldSystem
         if (attacker == target || attacker.IsDead || target.IsDestroyed || HitPoints.IsDead(target) || target.Area != attacker.Area) return;
         if (!_world.PvpAllows(attacker, target)) return; // the server's PvP setting forbids it
         var s = State(attacker);
+        if (s.Target != target.Id && TargetChange(attacker, s.Target, target, automatic: false) is { } chosen) target = chosen;
         s.Target = target.Id;
         s.DefenceStart = -1;
         // The first round starts when the attacker is in reach (Step), not at the order: on nwserver the round clock
@@ -244,6 +245,15 @@ public sealed partial class CombatSystem : IWorldSystem
     }
 
     void StartRound(Creature c, CombatState s)
+    {
+        // NWNX_ON_START_COMBAT_ROUND around planning the round (nwnx_events_combat).
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_START_COMBAT_ROUND", c)?.AddObject("TARGET_OBJECT_ID", s.Target);
+        ev?.Before();
+        StartRoundNow(c, s);
+        ev?.After();
+    }
+
+    void StartRoundNow(Creature c, CombatState s)
     {
         s.RoundStart = _world.Time;
         s.Plan = Rules.PlanRound(c).ToList();
@@ -596,8 +606,13 @@ public sealed partial class CombatSystem : IWorldSystem
             s.PendingFeat = -1;
         }
         ProvokeUnarmed(a);
-        // A shot provokes those threatening the shooter, judged before the shot itself puts its target in combat.
-        if (a.Ranged && a.Kind == AttackKind.Normal) ProvokeShot(c);
+        // Every attack broadcasts an attack of opportunity to its target (NWNX_ON_BROADCAST_ATTACK_OF_OPPORTUNITY,
+        // nwnx_events_combat); a skip draws none. A shot provokes those threatening the shooter, judged before the
+        // shot itself puts its target in combat.
+        var broadcast = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_BROADCAST_ATTACK_OF_OPPORTUNITY", c)?.Add("TARGET_OBJECT_ID", target).Add("MOVEMENT", false);
+        bool provoke = broadcast?.Before() != true;
+        if (provoke && a.Ranged && a.Kind == AttackKind.Normal) ProvokeShot(c);
+        broadcast?.After();
         if (c.IsDead) return;
         s.SwingTarget = target.Id;
         s.LastSwingAt = _world.Time;

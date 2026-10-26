@@ -1,0 +1,7 @@
+{
+  "template": "nw_bandit001",
+  "tag": "PEV_FTR",
+  "classLevels": [ { "class": 0, "level": 6 } ],
+  "feats": [9, 23, 28, 293, 16],
+  "abilities": { "strength": 18 }
+}
