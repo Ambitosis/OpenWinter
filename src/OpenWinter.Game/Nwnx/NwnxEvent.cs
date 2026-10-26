@@ -66,8 +66,15 @@ public sealed class NwnxEvent
     /// <summary>Runs the _AFTER half.</summary>
     public void After() => EventsPlugin.Run(_world, _name + "_AFTER", _self, _data);
 
-    /// <summary>Runs an event that has no _BEFORE / _AFTER halves (NWNX_ON_COMBAT_MODE_ON, NWNX_ON_CALENDAR_HOUR ...).</summary>
-    public void Fire() => EventsPlugin.Run(_world, _name, _self, _data);
+    /// <summary>Runs an event that has no _BEFORE / _AFTER halves (NWNX_ON_COMBAT_MODE_ON, NWNX_ON_CALENDAR_HOUR ...). True when skipped.</summary>
+    public bool Fire()
+    {
+        var o = EventsPlugin.Run(_world, _name, _self, _data);
+        Skipped = o.Skipped;
+        Result = o.Result;
+        HasResult = o.ResultSet;
+        return Skipped;
+    }
 
     /// <summary>Before, then <paramref name="work"/> unless skipped, then After.</summary>
     public static void Wrap(World world, string name, GameObject? self, Action<NwnxEvent>? data, Action work)
@@ -91,6 +98,13 @@ public sealed class NwnxEvent
         "NWNX_ON_ITEMPROPERTY_EFFECT_APPLIED", "NWNX_ON_ITEMPROPERTY_EFFECT_REMOVED",
         "NWNX_ON_INPUT_CAST_SPELL", "NWNX_ON_BROADCAST_CAST_SPELL", "NWNX_ON_DECREMENT_SPELL_COUNT", "NWNX_ON_CAST_SPELL",
         "NWNX_ON_SPELL_INTERRUPTED", "NWNX_ON_SPELL_FAILED",
+        "NWNX_ON_STEALTH_ENTER", "NWNX_ON_STEALTH_EXIT", "NWNX_ON_DETECT_ENTER", "NWNX_ON_DETECT_EXIT", "NWNX_ON_COMBAT_MODE_ON",
+        "NWNX_ON_COMBAT_MODE_OFF", "NWNX_ON_HAS_FEAT", "NWNX_ON_DECREMENT_REMAINING_FEAT_USES", "NWNX_ON_USE_FEAT", "NWNX_ON_USE_SKILL",
+        "NWNX_ON_ADD_ASSOCIATE", "NWNX_ON_REMOVE_ASSOCIATE", "NWNX_ON_SET_NPC_FACTION_REPUTATION", "NWNX_ON_SET_EXPERIENCE",
+        "NWNX_ON_LEVEL_DOWN", "NWNX_ON_LEVEL_UP_AUTOMATIC", "NWNX_ON_OBJECT_LOCK", "NWNX_ON_OBJECT_UNLOCK", "NWNX_ON_POLYMORPH",
+        "NWNX_ON_UNPOLYMORPH", "NWNX_ON_RUN_EVENT_SCRIPT", "NWNX_ON_CALENDAR_HOUR", "NWNX_ON_CALENDAR_DAY", "NWNX_ON_CALENDAR_MONTH",
+        "NWNX_ON_CALENDAR_YEAR", "NWNX_ON_CALENDAR_DAWN", "NWNX_ON_CALENDAR_DUSK", "NWNX_ON_CREATURE_JUMP_TO_POINT",
+        "NWNX_ON_CREATURE_JUMP_TO_OBJECT", "NWNX_ON_CREATURE_TILE_CHANGE", "NWNX_ON_MATERIALCHANGE",
     };
 
     /// <summary>Why an automatic event is never raised, or null when it is (or is a script-defined event).</summary>

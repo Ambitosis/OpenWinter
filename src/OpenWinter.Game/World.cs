@@ -167,10 +167,14 @@ public sealed partial class World
         // A caller may reuse its context for several objects/events, including nested callbacks.
         // Stamp a copy so the event identity cannot leak back into its caller.
         int type = EventScripts.Type(o, field);
-        if (script.Length == 0) return 0;
+        // NWNX_ON_RUN_EVENT_SCRIPT (whitelisted by EVENT_SCRIPT_*, on by default): a skip runs neither the script nor
+        // the _AFTER half (nwnx_events_creature).
+        var nwnx = type > 0 ? Nwnx.NwnxEvent.Begin(this, "NWNX_ON_RUN_EVENT_SCRIPT", o, "NWNX_ON_RUN_EVENT_SCRIPT", type) : null;
+        if (nwnx != null && nwnx.Add("EVENT_TYPE", type).Add("EVENT_SCRIPT", script).Before()) return 0;
+        if (script.Length == 0) { nwnx?.After(); return 0; }
         var scoped = ctx.Clone().Set("EventScriptType", type).Set("DirectEventScriptType", type);
         try { return Scripts.Run(script, o.Id, scoped); }
-        finally { ctx.CopyPayloadFrom(scoped); }
+        finally { ctx.CopyPayloadFrom(scoped); nwnx?.After(); }
     }
 
     /// <summary>

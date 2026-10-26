@@ -271,9 +271,19 @@ public static class AbilityRequests
         if (def.Name == null) return false;
         if (on && !Qualifies(w, c, def)) return false;
         if (on == c.ActionModes.Contains(mode)) return true;
+        // NWNX_ON_COMBAT_MODE_ON / _OFF for a player's own toggle; scripted modes raise neither (nwnx_events_creature).
+        if (c.IsPC && Nwnx.NwnxEvent.Begin(w, on ? "NWNX_ON_COMBAT_MODE_ON" : "NWNX_ON_COMBAT_MODE_OFF", c) is { } ev
+            && ev.Add("COMBAT_MODE_ID", NwnxCombatMode(mode)).Fire()) return false;
         ApplyCombatMode(w, c, mode, on);
         return true;
     }
+
+    /// <summary>The NWNX_Events combat mode number of an ACTION_MODE_* combat mode.</summary>
+    static int NwnxCombatMode(int mode) => mode switch
+    {
+        >= ModeParry and <= ModeDirtyFighting => mode - 1,
+        _ => 11, // defensive stance
+    };
 
     /// <summary>Shared mutation/feedback after request validation, or for the script setter.</summary>
     internal static void ApplyCombatMode(World w, Creature c, int mode, bool on)

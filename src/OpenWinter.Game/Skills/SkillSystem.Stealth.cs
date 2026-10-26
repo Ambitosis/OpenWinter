@@ -70,16 +70,29 @@ public sealed partial class SkillSystem
                     Tell(c, Tlk(SkillIds.StrNoStealthInCombat, "You cannot enter stealth mode while in combat."));
                     return false;
                 }
-                c.StealthMode = on;
-                if (on && HasFeat(c, SkillIds.FeatHideInPlainSight)) HideInPlainSight(c);
-                ModeChanged(c, mode, on);
+                {
+                    // NWNX_ON_STEALTH_ENTER / _EXIT (nwnx_events_creature): a skip keeps the mode; a result of "1" or
+                    // "0" decides Hide in Plain Sight instead of the feat.
+                    var ev = Nwnx.NwnxEvent.Begin(_world, on ? "NWNX_ON_STEALTH_ENTER" : "NWNX_ON_STEALTH_EXIT", c);
+                    if (ev?.Before() == true) { ev.After(); return false; }
+                    c.StealthMode = on;
+                    bool hips = ev is { HasResult: true } ? ev.Result == "1" : HasFeat(c, SkillIds.FeatHideInPlainSight);
+                    if (on && hips) HideInPlainSight(c);
+                    ModeChanged(c, mode, on);
+                    ev?.After();
+                }
                 break;
             case SkillIds.ModeDetect:
                 // Keen Sense supplies active searching continuously, without the walking restriction.
                 if (HasFeat(c, SkillIds.FeatKeenSense)) return false;
                 if (on == c.DetectMode) break;
-                c.DetectMode = on;
-                ModeChanged(c, mode, on);
+                {
+                    var ev = Nwnx.NwnxEvent.Begin(_world, on ? "NWNX_ON_DETECT_ENTER" : "NWNX_ON_DETECT_EXIT", c);
+                    if (ev?.Before() == true) { ev.After(); return false; }
+                    c.DetectMode = on;
+                    ModeChanged(c, mode, on);
+                    ev?.After();
+                }
                 break;
             default:
                 return false;

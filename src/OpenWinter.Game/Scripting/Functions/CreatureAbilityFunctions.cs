@@ -271,7 +271,7 @@ public sealed class UseFeatAction : GameAction
         if (world.Get(target) != null && IsMeleeFeat(world, feat) && CreatureRules.HasFeat(world, self, feat)
             && Combat.AttackAction.Retarget(world, self, target))
         {
-            if (Combat.CombatSystem.IsAttackFeat(feat))
+            if (Combat.CombatSystem.IsAttackFeat(feat) && UseFeatEvent(world, self, feat, subFeat, target, location))
             {
                 CreatureRules.AdjustFeatUses(world, self, feat, -1);
                 Combat.CombatSystem.TryUseCombatFeat(world, self, feat, subFeat, target);
@@ -281,11 +281,28 @@ public sealed class UseFeatAction : GameAction
         self.Actions.Add(new UseFeatAction { Feat = feat, Target = target, SubFeat = subFeat, TargetLocation = location });
     }
 
+    /// <summary>
+    /// NWNX_ON_USE_FEAT as a feat is used, before its use is spent (nwnx_events_creature); ACTION_RESULT is only in
+    /// the _AFTER half. False when a subscriber skipped it.
+    /// </summary>
+    static bool UseFeatEvent(World world, Creature c, int feat, int subFeat, uint target, Location location)
+    {
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_USE_FEAT", c);
+        if (ev == null) return true;
+        var at = world.Get(target) is { } t ? t.Position : location.Area != Location.Invalid.Area ? location.Position : System.Numerics.Vector3.Zero;
+        ev.Add("FEAT_ID", feat).Add("SUBFEAT_ID", subFeat).AddObject("TARGET_OBJECT_ID", target).AddObject("AREA_OBJECT_ID", c.Area?.Id ?? GameObject.InvalidId)
+            .Position("TARGET_POSITION_", at);
+        bool skipped = ev.Before();
+        ev.Add("ACTION_RESULT", !skipped).After();
+        return !skipped;
+    }
+
     public override ActionStatus Step(World world, GameObject owner, float dt)
     {
         if (_cast != null) return _cast.Step(world, owner, dt);
         if (_attack != null) return _attack.Step(world, owner, dt);
         if (owner is not Creature c || !Spells.CastSpellAction.CanAct(world, c) || !CreatureRules.HasFeat(world, c, Feat)) return ActionStatus.Failed;
+        if (!UseFeatEvent(world, c, Feat, SubFeat, Target, TargetLocation)) return ActionStatus.Failed;
         var feats = world.Resources.TwoDA("feat");
         int spell = SubFeat > 0 ? SubFeat : feats.GetInt(Feat, "SPELLID", -1);
         // Native turn_queue: Turn Undead spends its use at the end of preparation,

@@ -180,7 +180,7 @@ public sealed class NwnxRegistry : IWorldSystem
         world.ObjectRemoved += o => _objectState.Remove(o.Id);
     }
 
-    public void Step(float dt) { }
+    public void Step(float dt) => NwnxCalendar.Check(_world);
 
     /// <summary>"NWNX_Creature" and "Creature" both name the Creature plugin.</summary>
     public static string PluginKey(string plugin) =>

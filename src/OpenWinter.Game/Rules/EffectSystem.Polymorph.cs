@@ -80,6 +80,15 @@ public sealed partial class EffectSystem
         var table = _world.Resources.TwoDA("polymorph");
         int row = e.Ints[0];
         if (row < 0 || row >= table.RowCount) return;
+        // NWNX_ON_POLYMORPH as the form takes over (nwnx_events_creature); a skip keeps the creature as it is.
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_POLYMORPH", c)?.Add("POLYMORPH_TYPE", row);
+        if (ev?.Before() == true) { ev.After(); return; }
+        StartPolymorphNow(k, e, c, table, row);
+        ev?.After();
+    }
+
+    void StartPolymorphNow(EffectConstants k, Effect e, Creature c, OpenWinter.Aurora.Formats.TwoDA table, int row)
+    {
         CreatureRules.EnsureInit(_world, c);
         var prior = c.PolymorphForm;
         var p = new PolymorphState
@@ -217,6 +226,9 @@ public sealed partial class EffectSystem
     void EndPolymorph(Creature c, Effect e)
     {
         if (c.PolymorphForm is not { } p || p.EffectId != e.UniqueId) return;
+        // The original raises NWNX_ON_UNPOLYMORPH once the script that ended the effect is over, and again as the
+        // creature changes back (nwnx_events_creature).
+        _world.After(0, () => { if (!c.IsDestroyed) UnpolymorphEvent(c); }, persist: false);
         if (e.Ints[5] != 0 || c.IsDead || c.IsDestroyed) { ShowChangeBack(c, p); Unpolymorph(c); return; }
         if (p.Ending) return;
         p.Ending = true;
@@ -316,9 +328,17 @@ public sealed partial class EffectSystem
     /// Gives the creature its own form back: the form's items are destroyed and its own go back to their slots
     /// (only those it still has).
     /// </summary>
+    void UnpolymorphEvent(Creature c)
+    {
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_UNPOLYMORPH", c);
+        ev?.Before();
+        ev?.After();
+    }
+
     void Unpolymorph(Creature c)
     {
         if (c.PolymorphForm is not { } p) return;
+        UnpolymorphEvent(c);
         c.PolymorphForm = null;
         if (p.Bonus is { } bonus && c.Effects.Contains(bonus)) RemoveOnly(c, bonus);
         DestroyForm(c, p);

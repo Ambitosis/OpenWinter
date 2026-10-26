@@ -156,11 +156,16 @@ public sealed class UseSkillAction : ApproachAction
                 return ActionStatus.InProgress;
             }
             if (world.GameTime < _resolveAt - 1e-4) return ActionStatus.InProgress;
+            var tev = SkillEvent(world, c, target, item);
+            if (tev?.Before() == true) { tev.Add("ACTION_RESULT", false).After(); return ActionStatus.Failed; }
             bool done = Skill == SkillIds.DisableTrap
                 ? skills.DisableTrap(c, target, SubSkill)
                 : item != null && skills.SetTrap(c, item, on, Spot ?? target.Location);
+            tev?.Add("ACTION_RESULT", done).After();
             return done ? ActionStatus.Done : ActionStatus.Failed;
         }
+        var ev = SkillEvent(world, c, target, item);
+        if (ev?.Before() == true) { ev.Add("ACTION_RESULT", false).After(); return ActionStatus.Failed; }
         Animate(world, c);
         bool ok = Skill switch
         {
@@ -174,8 +179,14 @@ public sealed class UseSkillAction : ApproachAction
             SkillIds.Lore => target is Item i && skills.TryIdentify(c, i),
             _ => false,
         };
+        ev?.Add("ACTION_RESULT", ok).After();
         return ok ? ActionStatus.Done : ActionStatus.Failed;
     }
+
+    /// <summary>NWNX_ON_USE_SKILL as the skill is applied (nwnx_events_creature); ACTION_RESULT is added for the _AFTER half.</summary>
+    Nwnx.NwnxEvent? SkillEvent(World world, Creature c, GameObject target, Item? item) =>
+        Nwnx.NwnxEvent.Begin(world, "NWNX_ON_USE_SKILL", c)?.Add("USED_ITEM_OBJECT_ID", item).Add("TARGET_OBJECT_ID", target == c && Spot != null ? null : target)
+            .Add("SKILL_ID", Skill).Add("SUB_SKILL_ID", SubSkill).Position("TARGET_POSITION_", Spot?.Position ?? target.Position);
 
     static void Face(World world, Creature c, System.Numerics.Vector3 at)
     {
