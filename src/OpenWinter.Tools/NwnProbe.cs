@@ -200,8 +200,8 @@ static class NwnRecordingDump
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
-///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--do STEP;...] [--player NAME]
-///              [--record FILE]
+///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS]
+///              [--do STEP;...] [--player NAME] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
@@ -226,6 +226,9 @@ static class NwnBridgeProbe
         var driveState = 0;
         var uses = new Queue<(string Name, bool Talk)>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => (n, false))
             .Concat(Opt("--talk", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => (n, true))));
+        var attacks = new Queue<string>(Opt("--attack", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var attackAt = double.Parse(Opt("--attack-at", "10"));
+        var respawnAt = double.Parse(Opt("--respawn-at", "0"));
         var nextUse = 6.0;
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
@@ -336,6 +339,23 @@ static class NwnBridgeProbe
                         ? new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Talk, Target = target, Argument = OpenWinter.Net.ActionRequestMessage.TalkCommand }
                         : new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }).Write());
             }
+            if (walked && attacks.Count > 0 && clock.Elapsed.TotalSeconds > attackAt)
+            {
+                // Attack the nearest living creature whose name contains each NAME, the next one five seconds later.
+                attackAt = clock.Elapsed.TotalSeconds + 5;
+                var name = attacks.Dequeue();
+                var here = at;
+                var target = objects.Where(kv => kv.Value.Kind == OpenWinter.Net.ObjectKind.Creature && kv.Key != controlled && kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} attacking \"{name}\": {target:X}");
+                if (target != 0) bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "attack", Json = $"{{\"target\":{target}}}" }.Write());
+            }
+            if (respawnAt > 0 && clock.Elapsed.TotalSeconds > respawnAt)
+            {
+                respawnAt = 0;
+                bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "respawn", Json = "{}" }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} respawn pressed");
+            }
             if (clicks.Count > 0 && nextClick > 0 && clock.Elapsed.TotalSeconds > nextClick && clicks.Peek().Split(':') is [var window, var element] && windows.TryGetValue(window, out var token))
             {
                 clicks.Dequeue();
@@ -380,6 +400,7 @@ static class NwnBridgeProbe
         Console.WriteLine(bridge.FailureReason is { } why ? $"failed: {why}" : "done");
         foreach (var (name, n) in counts) Console.WriteLine($"  {n,6}  {name}");
         Console.WriteLine($"{bridge.Session?.DecodeErrors.Count ?? 0} frames didn't decode");
+        foreach (var e in bridge.Session?.DecodeErrors.Take(10) ?? []) Console.WriteLine($"  {e.Error}");
         bridge.Disconnect();
         return 0;
     }

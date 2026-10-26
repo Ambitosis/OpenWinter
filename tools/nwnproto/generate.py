@@ -109,10 +109,12 @@ def module_class(module_name: str) -> str:
 def apply_corrections():
     """Fields the server encodes differently from their declaration, measured from recorded WSNetLayer traffic. NUI
     window definitions, bind values, event payloads and group layouts are JSON fields (type byte, length, text), not
-    size-prefixed blobs, and a bind entry ends after its value. A body bag's creature is an object id, not a dword.
-    The reference reader and writer are corrected to match and keep JSON as its text, as the C# codec does."""
+    size-prefixed blobs, and a bind entry ends after its value. The reference reader and writer are corrected to
+    match and keep JSON as its text, as the C# codec does. A body bag's creature is an object id (type byte 0x11),
+    not a dword."""
     from nwn_message.message import _io
-    from nwn_message.messages import nui
+    from nwn_message.message import _message
+    from nwn_message.messages import game_obj_update_add, nui
 
     def read_json(self, **_):
         self._read_canary(MessageType.JSON)
@@ -133,12 +135,8 @@ def apply_corrections():
     nui.NuiBindEntry.__dataclass_fields__["value"].type = json_field
     nui.NuiSetLayout.__dataclass_fields__["data"].type = json_field
     del nui.NuiBindEntry.__dataclass_fields__["array_index"]
-    # A body bag names the creature it came from by object id.
-    from nwn_message import message as m
-    from nwn_message.messages import game_obj_update_add
-    body_bag = game_obj_update_add.GameObjUpdateObjListAddPlaceable.__dataclass_fields__["body_bag_creature_id"]
-    conditions = tuple(a for a in typing.get_args(body_bag.type)[1:] if not isinstance(a, MessageType))
-    body_bag.type = typing.Annotated[(m.ObjectId, *conditions)]
+    bag = game_obj_update_add.GameObjUpdateObjListAddPlaceable.__dataclass_fields__["body_bag_creature_id"]
+    bag.type = typing.Annotated[_message.ObjectId, *(a for a in typing.get_args(bag.type)[1:] if not isinstance(a, MessageType))]
 
 
 def git_commit() -> str:
