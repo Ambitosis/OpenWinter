@@ -203,6 +203,7 @@ public sealed partial class CombatSystem : IWorldSystem
         if (HasFeat(c, FeatEpicSuperiorInitiative)) bonus += RI("EPIC_SUPERIOR_INITIATIVE_BONUS", 8);
         if (HasFeat(c, FeatBlooded)) bonus += RI("BLOODED_INITIATIVE_BONUS", 2);
         if (HasFeat(c, FeatThug)) bonus += RI("THUG_INITIATIVE_BONUS", 2);
+        bonus += c.Overrides?.InitiativeModifier ?? 0;
         int roll = Dice.Roll(20);
         _world.Output?.SendFeedback(c, $"{Name(c)} : Initiative Roll : {roll + bonus} : ({roll} + {bonus} = {roll + bonus})", FeedbackKind.Initiative);
     }
@@ -516,14 +517,29 @@ public sealed partial class CombatSystem : IWorldSystem
     /// </summary>
     public float MeleeDistance(Creature c, GameObject target)
     {
-        var app = _world.Resources.TwoDA("appearance");
-        float pref = app.GetFloat(c.AppearanceType, "PREFATCKDIST", 1.0f);
+        float pref = PreferredAttackDistance(c);
         if (Creature is { } r && r.Weapons(c).Main is { } w && !r.Stats(w).Ranged)
             pref = r.Stats(w).PreferredDistance * (c.Size <= 2 ? 0.8f : 1f);
         // Placeables have no creature HITDIST: native combat_placeables stops at the weapon's preferred distance.
-        float hit = target is Creature t ? app.GetFloat(t.AppearanceType, "HITDIST", 0.3f) : target is Placeable ? 0f : 0.5f;
+        float hit = target is Creature t ? HitDistance(t) : target is Placeable ? 0f : 0.5f;
         return pref + hit;
     }
+
+    /// <summary>appearance.2da HITDIST, or the creature's own (NWNX_Creature_SetHitDistance).</summary>
+    public float HitDistance(Creature c) =>
+        c.Overrides?.HitDistance ?? _world.Resources.TwoDA("appearance").GetFloat(c.AppearanceType, "HITDIST", 0.3f);
+
+    /// <summary>appearance.2da PREFATCKDIST, or the creature's own (NWNX_Creature_SetPreferredAttackDistance).</summary>
+    public float PreferredAttackDistance(Creature c) =>
+        c.Overrides?.PreferredAttackDistance ?? _world.Resources.TwoDA("appearance").GetFloat(c.AppearanceType, "PREFATCKDIST", 1.0f);
+
+    /// <summary>
+    /// How far away a creature can attack a target (NWNX_Creature_GetMaxAttackRange): the ranged reach with a ranged
+    /// weapon, else where it stands to fight plus 1.5 m (nwserver nwnx_creature_misc: a bandit with a longsword
+    /// 3.3 m from a goblin, 4.1 m from a red dragon).
+    /// </summary>
+    public float MaxAttackRange(Creature c, GameObject target) =>
+        Creature is { } r && r.Weapons(c).Main is { } w && r.Stats(w).Ranged ? RangedReach : MeleeDistance(c, target) + 1.5f;
 
     /// <summary>Measured ranged closing distance: authored PrefAttackDist plus target HITDIST, kept inside the ranged reach.</summary>
     public float RangedDistance(Creature c, GameObject target)
@@ -532,7 +548,7 @@ public sealed partial class CombatSystem : IWorldSystem
         float pref = main != null && WeaponOverrides.RangedDistance.TryGetValue(main.BaseItem, out var over) ? over.Preferred
             : Creature?.Stats(main).PreferredDistance ?? 30f;
         if (!float.IsFinite(pref) || pref < 0) pref = 30f;
-        float hit = target is Creature t ? _world.Resources.TwoDA("appearance").GetFloat(t.AppearanceType, "HITDIST", 0.3f) : 0f;
+        float hit = target is Creature t ? HitDistance(t) : 0f;
         // Stand inside the ranged reach, or an authored PrefAttackDist beyond it would stall the attacker.
         return Math.Min(pref + hit, RangedReachOf(main) - 0.5f);
     }

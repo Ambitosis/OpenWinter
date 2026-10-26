@@ -213,7 +213,12 @@ public sealed partial class CreatureCombatRules : ICombatRules
         int extra = 0;
         if (hasted) extra += RI("HASTED_BONUS_ATTACKS", 1);
         if (slowed) count = Math.Max(1, RI("SLOWED_ATTACKS", 1));
-        foreach (var e in c.Effects) if (e.Type == CombatK.EffectModifyAttacks) extra += e.Ints[0];
+        int modify = 0;
+        foreach (var e in c.Effects) if (e.Type == CombatK.EffectModifyAttacks) modify += e.Ints[0];
+        // EffectModifyAttacks gives at most five, or the creature's own limit (NWNX_Creature_SetMaximumBonusAttacks).
+        int maxBonus = c.Overrides?.MaxBonusAttacks ?? 5;
+        // A negative one takes extra attacks away (nwserver nwnx_creature_combat: -1 beside haste leaves one attack).
+        extra += Math.Min(modify, maxBonus);
         if (RapidShotActive(c, main)) extra++;
         if (FlurryActive(c, main)) extra++;
         bool dirty = DirtyFightingActive(c);
@@ -223,7 +228,7 @@ public sealed partial class CreatureCombatRules : ICombatRules
         for (int i = 0; i < count; i++) list.Add(new PlannedAttack { Weapon = Pick(i), Penalty = i * step });
         // Extra attacks (haste, EffectModifyAttacks, flurry, rapid shot) have their own iterative penalties and come after
         // the normal ones, as in the original (nwnx_damage: a hasted fighter's third swing is its extra attack).
-        list.AddRange(Enumerable.Range(0, Math.Clamp(extra, 0, 5))
+        list.AddRange(Enumerable.Range(0, Math.Clamp(extra, 0, Math.Max(5, maxBonus)))
             .Select(i => new PlannedAttack { Weapon = Pick(i), Extra = true, Penalty = i * step }));
         if (off != null && !dirty)
         {

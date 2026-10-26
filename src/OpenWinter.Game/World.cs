@@ -253,6 +253,14 @@ public sealed partial class World
         if (o is Creature && exitEvent) After(0, () => RunEvent(area, "OnExit", new EventContext().Set("Exiting", o.Id)));
     }
 
+    /// <summary>Takes an object out of its area without destroying it (limbo): it stays valid with no area.</summary>
+    public void ToLimbo(GameObject o)
+    {
+        if (o.Area == null) return;
+        RemoveFromArea(o);
+        ObjectChanged?.Invoke(o);
+    }
+
     /// <summary>Moves an object to a location, possibly in another area (JumpToLocation).</summary>
     public void Jump(GameObject o, Location loc)
     {

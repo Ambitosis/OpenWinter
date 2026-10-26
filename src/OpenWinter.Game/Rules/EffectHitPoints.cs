@@ -369,6 +369,7 @@ public static class HitPoints
         if (target is Creature c)
         {
             c.IsDead = true;
+            c.LastKiller = killer;
             world.System<Players.FamiliarPossession>().ReleaseControl(c);
             // A creature that dies has at most -11 hit points (a player bled to exactly -10 reads -11 too: dyingfx).
             c.CurrentHitPoints = Math.Min(c.CurrentHitPoints, PlayerDeathThreshold - 1);

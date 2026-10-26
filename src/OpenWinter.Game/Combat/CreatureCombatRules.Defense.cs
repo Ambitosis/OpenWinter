@@ -101,8 +101,27 @@ public sealed partial class CreatureCombatRules
             if (Has(c, CombatK.FeatKiCritical)) range += RI("KI_CRITICAL_BONUS", 2);
             if (Has(c, CombatK.FeatIncreaseMultiplier)) mult += 1;
         }
-        return (Math.Clamp(21 - range, 2, 20), mult);
+        int threat = Math.Clamp(21 - range, 2, 20);
+        if (c.Overrides is { } o)
+        {
+            // Script adjustments (NWNX_Creature critical settings) for all attacks, this hand, this base item
+            // (gloves for an unarmed strike) or both: modifiers add up, the most specific override wins.
+            int hand = a.OffHand ? 2 : 1, item = a.Weapon?.BaseItem ?? CombatK.BaseGloves;
+            threat += CritSum(o.CritRangeModifier, hand, item);
+            if (CritPick(o.CritRangeOverride, hand, item) is int minRoll) threat = minRoll;
+            mult += CritSum(o.CritMultiplierModifier, hand, item);
+            if (CritPick(o.CritMultiplierOverride, hand, item) is int m) mult = m;
+            threat = Math.Clamp(threat, 1, 21);
+            mult = Math.Max(1, mult);
+        }
+        return (threat, mult);
     }
+
+    static int CritSum(Dictionary<(int, int), int> d, int hand, int item) =>
+        d.GetValueOrDefault((0, -1)) + d.GetValueOrDefault((hand, -1)) + d.GetValueOrDefault((0, item)) + d.GetValueOrDefault((hand, item));
+
+    static int? CritPick(Dictionary<(int, int), int> d, int hand, int item) =>
+        d.TryGetValue((hand, item), out int v) || d.TryGetValue((0, item), out v) || d.TryGetValue((hand, -1), out v) || d.TryGetValue((0, -1), out v) ? v : null;
 
     /// <summary>Undead, constructs and objects ignore critical hits, as does anything with the critical hit immunity.</summary>
     public bool IsCriticalImmune(AttackContext a) => a.Target is not Creature t
