@@ -24,6 +24,8 @@ public sealed partial class CombatSystem : IWorldSystem
     // The ranges.2da weapon rows and baseitems MaxRange do not control this boundary.
     const float RangedReach = 40f;
     readonly World _world;
+    /// <summary>Weapon rules changed at run time (NWNX_Weapon); they outlive a change of <see cref="Rules"/>.</summary>
+    public readonly WeaponRuleOverrides WeaponOverrides = new();
     readonly Dictionary<uint, CombatState> _states = new();
     public ICombatRules Rules;
     /// <summary>Dice for every combat roll; tests inject <see cref="ScriptedDice"/>.</summary>
@@ -62,6 +64,8 @@ public sealed partial class CombatSystem : IWorldSystem
         public double DefenceStart = -1;
         public List<PlannedAttack> Plan = new();
         public int NextAttack;
+        /// <summary>Attacks of opportunity swung outside the plan this round (they take the first attack numbers).</summary>
+        public int OpportunitySwings;
         public uint LastAttacker = GameObject.InvalidId;
         public AttackOutcome? LastAttack;
         public uint LastWeapon = GameObject.InvalidId;
@@ -253,6 +257,7 @@ public sealed partial class CombatSystem : IWorldSystem
             s.Plan.Insert(0, new PlannedAttack { Weapon = Creature?.Weapons(c).Main, OpportunityTarget = owed.Id });
         s.OpportunityNextRound = GameObject.InvalidId;
         s.NextAttack = 0;
+        s.OpportunitySwings = 0;
         s.StepsPlanned = false;
         s.StepTimes.Clear();
         s.StepsTaken = 0;
@@ -432,7 +437,7 @@ public sealed partial class CombatSystem : IWorldSystem
 
             var main = Creature?.Weapons(c).Main;
             bool ranged = main != null && (Creature?.Stats(main).Ranged ?? false);
-            float reach = ranged ? RangedReach : MeleeReach(c, target);
+            float reach = ranged ? RangedReachOf(main) : MeleeReach(c, target);
             float stand = ranged ? RangedDistance(c, target) : MeleeDistance(c, target);
             float dist = Distance2(c, target);
             // Rounds then follow one another while the fight lasts, wherever the target goes.
@@ -539,12 +544,18 @@ public sealed partial class CombatSystem : IWorldSystem
     /// <summary>Measured ranged closing distance: authored PrefAttackDist plus target HITDIST, kept inside the ranged reach.</summary>
     public float RangedDistance(Creature c, GameObject target)
     {
-        float pref = Creature?.Stats(Creature.Weapons(c).Main).PreferredDistance ?? 30f;
+        var main = Creature?.Weapons(c).Main;
+        float pref = main != null && WeaponOverrides.RangedDistance.TryGetValue(main.BaseItem, out var over) ? over.Preferred
+            : Creature?.Stats(main).PreferredDistance ?? 30f;
         if (!float.IsFinite(pref) || pref < 0) pref = 30f;
         float hit = target is Creature t ? HitDistance(t) : 0f;
         // Stand inside the ranged reach, or an authored PrefAttackDist beyond it would stall the attacker.
-        return Math.Min(pref + hit, RangedReach - 0.5f);
+        return Math.Min(pref + hit, RangedReachOf(main) - 0.5f);
     }
+
+    /// <summary>How far a ranged weapon reaches: 40 m, or what a module set for its base item (NWNX_Weapon, parity suite nwnx_weapon).</summary>
+    float RangedReachOf(Item? weapon) =>
+        weapon != null && WeaponOverrides.RangedDistance.TryGetValue(weapon.BaseItem, out var over) ? over.Max : RangedReach;
 
     /// <summary>How far a creature can be and still hit in melee: a little beyond where it stands to fight.</summary>
     public float MeleeReach(Creature c, GameObject target) => MeleeDistance(c, target) + 0.5f;
@@ -560,7 +571,7 @@ public sealed partial class CombatSystem : IWorldSystem
         if (CreatureRules.MovementSpeedFactor(_world, c) > 0) return s.Target;
         var main = Creature?.Weapons(c).Main;
         bool ranged = main != null && (Creature?.Stats(main).Ranged ?? false);
-        return Distance2(c, t) <= (ranged ? RangedReach : MeleeReach(c, t)) ? s.Target : GameObject.InvalidId;
+        return Distance2(c, t) <= (ranged ? RangedReachOf(main) : MeleeReach(c, t)) ? s.Target : GameObject.InvalidId;
     }
 
     void EndRound(Creature c) => _world.RunEvent(c, "ScriptEndRound", new EventContext());
@@ -605,6 +616,7 @@ public sealed partial class CombatSystem : IWorldSystem
         }
         var a = Rules.Context(c, target, weapon, planned.OffHand, Dice);
         a.Penalty = planned.Penalty;
+        if (Nwnx.Plugins.DamagePlugin.HasAttackEvent(_world, c.Id)) (a.AttackNumber, a.ExtraAttack) = AttackNumber(s.Plan, planned, s.OpportunitySwings);
         if (planned.OpportunityTarget != GameObject.InvalidId) a.Kind = AttackKind.Opportunity;
         if (s.PendingFeat >= 0 && !planned.OffHand)
         {

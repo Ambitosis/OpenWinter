@@ -41,7 +41,7 @@ public sealed partial class CreatureCombatRules
         {
             foreach (var p in Props(WeaponItem(a)))
                 if (p.Type == CombatK.IpMassiveCriticals) d.Add(baseType, RollDamageCost(a.Dice, p.CostTableValue));
-            if (Has(c, s.Overwhelming)) d.Add(baseType, a.Dice.Roll(Math.Max(1, mult - 1), 6));
+            if (HasWeaponFeat(c, s, WeaponFeat.OverwhelmingCritical)) d.Add(baseType, a.Dice.Roll(Math.Max(1, mult - 1), 6));
         }
         if (Has(c, CombatK.FeatEpicBaneOfEnemies) && FavoredEnemy(c, a.Target))
             d.Add(baseType, a.Dice.Roll(RI("EPIC_BANE_OF_ENEMIES_DAMAGE_DICE", 2), RI("EPIC_BANE_OF_ENEMIES_DAMAGE_DIE", 6)));
@@ -177,9 +177,27 @@ public sealed partial class CreatureCombatRules
 
     /// <summary>
     /// Strength to damage: full, 1.5x two-handed, half off-hand; thrown weapons full; launchers only up to their Mighty
-    /// rating, though bows and slings take a Strength penalty in full (crossbows don't).
+    /// rating, though bows and slings take a Strength penalty in full (crossbows don't). A melee weapon given
+    /// one-and-a-half Strength adds half the bonus again, two-handed too (parity suite nwnx_weapon).
     /// </summary>
     public int StrengthDamage(AttackContext a, WeaponStats s)
+    {
+        int str = BaseStrengthDamage(a, s);
+        if (!a.Ranged && !a.OffHand && a.Weapon != null && OneHalfStrength(a.Weapon))
+        {
+            int mod = Mod(a.Attacker, NwRules.AbilityStr);
+            if (mod > 0) str += mod / 2;
+        }
+        return str;
+    }
+
+    /// <summary>The item has the one-and-a-half Strength flag (kept with the object, or saved with the item).</summary>
+    public bool OneHalfStrength(Item item) => Overrides.OneHalfStrength.Contains(item.Id) || item.Template.GetInt(OneHalfStrengthField) != 0;
+
+    /// <summary>The item field that carries a saved one-and-a-half Strength flag.</summary>
+    public const string OneHalfStrengthField = "NWNX_WEAPON_ONEHALFSTR";
+
+    int BaseStrengthDamage(AttackContext a, WeaponStats s)
     {
         var c = a.Attacker;
         int str = Mod(c, NwRules.AbilityStr);
@@ -200,8 +218,9 @@ public sealed partial class CreatureCombatRules
     int SpecializationDamage(Creature c, WeaponStats s)
     {
         int b = 0;
-        if (Has(c, s.Spec)) b += RI("WEAPON_SPECIALIZATION_BONUS", 2);
-        if (Has(c, s.EpicSpec)) b += RI("EPIC_WEAPON_SPECIALIZATION_BONUS", 4);
+        if (HasWeaponFeat(c, s, WeaponFeat.Specialization)) b += RI("WEAPON_SPECIALIZATION_BONUS", 2);
+        if (HasWeaponFeat(c, s, WeaponFeat.EpicSpecialization)) b += RI("EPIC_WEAPON_SPECIALIZATION_BONUS", 4);
+        if (HasWeaponFeat(c, s, WeaponFeat.GreaterSpecialization)) b += Overrides.GreaterSpecializationDamageBonus;
         return b;
     }
 

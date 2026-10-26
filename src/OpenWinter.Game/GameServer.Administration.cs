@@ -26,7 +26,7 @@ public sealed class ServerAdministration : IWorldSystem
     public string? ModuleName;
     public readonly List<string> BannedKeys = new(), BannedAddresses = new(), BannedNames = new();
     /// <summary>Character levels allowed to log in (1 - 255 each).</summary>
-    public int MinLevel = 1, MaxLevel = 40;
+    public int MinLevel = 1, MaxLevel = Rules.CreatureRules.MaxLevel;
     /// <summary>Combat, saving throw, movement speed and hit die debug output switches.</summary>
     public readonly bool[] Debug = new bool[4];
     /// <summary>Set by NWNX_Administration_ShutdownServer; the host stops at the end of the tick.</summary>

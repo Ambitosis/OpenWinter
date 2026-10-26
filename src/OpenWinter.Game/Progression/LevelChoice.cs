@@ -163,8 +163,11 @@ public sealed class NewCharacter
     };
 }
 
-/// <summary>One broken rule: a short code clients can key on and a message for the player.</summary>
-public readonly record struct RuleError(string Code, string Message)
+/// <summary>
+/// One broken rule: a short code clients can key on and a message for the player, and where known the character
+/// level, feat, skill or spell it concerns.
+/// </summary>
+public readonly record struct RuleError(string Code, string Message, int Level = -1, int Feat = -1, int Skill = -1, int Spell = -1)
 {
     public override string ToString() => $"{Code}: {Message}";
 }

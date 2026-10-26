@@ -63,7 +63,7 @@ public static class LegalCharacterCheck
             // A level lists the class's feats again when the character had them already; those weren't chosen.
             ch.Feats = gainedFeats.Where(f => !probe.AllGrantedFeats.Contains(f)).ToList();
             foreach (var g in probe.GrantedFeats.Where(f => !gainedFeats.Contains(f)))
-                errors.Add(new("history", $"Level {i + 1}: the granted feat {ProgressionRules.FeatName(w, g)} is missing."));
+                errors.Add(new("history", $"Level {i + 1}: the granted feat {ProgressionRules.FeatName(w, g)} is missing.", i + 1, g));
             var granted = probe.Spells.SelectMany(p => p.Granted.SelectMany(k => k.Value.Select(sp => (k.Key, sp)))).ToHashSet();
             for (int lvl = 0; lvl < 10; lvl++)
             {
@@ -72,8 +72,8 @@ public static class LegalCharacterCheck
             }
             var plan = ProgressionRules.Plan(w, s, ch, player: true, carried, checkVariables: false);
             // Alignment may have shifted in play since the level was taken.
-            foreach (var err in plan.Errors.Where(x => x.Code != "alignment")) errors.Add(err with { Message = $"Level {i + 1} ({ProgressionRules.ClassName(w, cls)}): {err.Message}" });
-            if (e.GetInt("LvlStatHitDie") > ProgressionRules.HitDie(w, cls)) errors.Add(new("hitpoints", $"Level {i + 1}: {e.GetInt("LvlStatHitDie")} hit points from a d{ProgressionRules.HitDie(w, cls)}."));
+            foreach (var err in plan.Errors.Where(x => x.Code != "alignment")) errors.Add(err with { Message = $"Level {i + 1} ({ProgressionRules.ClassName(w, cls)}): {err.Message}", Level = i + 1 });
+            if (e.GetInt("LvlStatHitDie") > ProgressionRules.HitDie(w, cls)) errors.Add(new("hitpoints", $"Level {i + 1}: {e.GetInt("LvlStatHitDie")} hit points from a d{ProgressionRules.HitDie(w, cls)}.", i + 1));
             carried = Math.Max(0, plan.SkillPointsLeft);
             s = plan.After;
             s.RulesInitialised = true;
@@ -86,9 +86,9 @@ public static class LegalCharacterCheck
             if (CreatureRules.ClassLevel(s, cc.Class) != cc.Level) errors.Add(new("class", $"{ProgressionRules.ClassName(w, cc.Class)} level {cc.Level} doesn't match the level history."));
         for (int sk = 0; sk < c.Skills.Length; sk++)
             if (c.Skills[sk] != (sk < s.Skills.Length ? s.Skills[sk] : 0))
-                errors.Add(new("skills", $"{ProgressionRules.SkillName(w, sk)} has {c.Skills[sk]} ranks; the level history gives {(sk < s.Skills.Length ? s.Skills[sk] : 0)}."));
+                errors.Add(new("skills", $"{ProgressionRules.SkillName(w, sk)} has {c.Skills[sk]} ranks; the level history gives {(sk < s.Skills.Length ? s.Skills[sk] : 0)}.", Skill: sk));
         foreach (var f in c.Feats.Distinct())
-            if (!s.Feats.Contains(f)) errors.Add(new("feats", $"The feat {ProgressionRules.FeatName(w, f)} wasn't gained by levelling."));
+            if (!s.Feats.Contains(f)) errors.Add(new("feats", $"The feat {ProgressionRules.FeatName(w, f)} wasn't gained by levelling.", Feat: f));
         foreach (var cc in c.Classes)
         {
             var replayed = s.Classes.FirstOrDefault(x => x.Class == cc.Class);
@@ -97,7 +97,7 @@ public static class LegalCharacterCheck
             for (int lvl = 0; lvl < 10; lvl++)
                 foreach (var sp in cc.KnownSpells[lvl])
                     if (replayed?.KnownSpells[lvl].Contains(sp) != true && !(spellbook && CreatureRules.SpellLevelForClass(w, cc.Class, sp) == lvl))
-                        errors.Add(new("spells", $"{ProgressionRules.SpellName(w, sp)} wasn't learnt by levelling."));
+                        errors.Add(new("spells", $"{ProgressionRules.SpellName(w, sp)} wasn't learnt by levelling.", Spell: sp));
         }
         long hp = template.GetInt("HitPoints"), maxDice = history.Sum(e => ProgressionRules.HitDie(w, (int)e.GetInt("LvlStatClass")));
         if (hp > maxDice) errors.Add(new("hitpoints", $"{hp} base hit points; the class hit dice allow {maxDice}."));

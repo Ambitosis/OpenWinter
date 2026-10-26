@@ -110,7 +110,7 @@ public static class ChargenRequests
     public static object AssociateSheet(World w, JsonElement data)
     {
         string table = Str(data, "table") == "hen_companion" ? "hen_companion" : "hen_familiar";
-        int id = Int(data, "id"), level = Math.Clamp(Int(data, "level"), 1, 40);
+        int id = Int(data, "id"), level = Math.Clamp(Int(data, "level"), 1, Rules.CreatureRules.MaxLevel);
         var t = w.Resources.TwoDA(table);
         string baseRef = id >= 0 && id < t.RowCount ? t.Get(id, "BASERESREF").ToLowerInvariant() : "";
         object? sheet = null;
