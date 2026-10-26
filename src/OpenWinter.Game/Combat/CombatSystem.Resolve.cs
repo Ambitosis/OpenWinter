@@ -576,6 +576,13 @@ public sealed partial class CombatSystem
     /// lines. An attack whose blow lands later sends <c>attack</c> at the swing (marked pending, without damage or
     /// log lines) and <c>attack-impact</c>, with the same fields and the log, when it lands.
     /// </summary>
+    /// <summary>The combat log kind of an attack's line: the attack roll, the damage, or a note on either.</summary>
+    static int LineKind(string line) =>
+        line == CannotDamage ? FeedbackKind.Message
+        : line.Contains(" damages ", StringComparison.Ordinal) ? FeedbackKind.ComplexDamage
+        : line.Contains(" attacks ", StringComparison.Ordinal) ? FeedbackKind.Attack
+        : FeedbackKind.Adjective;
+
     void Report(AttackOutcome o)
     {
         var a = o.Context;
@@ -604,7 +611,7 @@ public sealed partial class CombatSystem
         var attackerPlayer = Society.AssociateService.PlayerMaster(_world, a.Attacker);
         foreach (var who in Society.AssociateService.AttackFeedbackPlayers(_world, a.Attacker, a.Target))
             foreach (var line in log)
-                if (line != CannotDamage || who == attackerPlayer) _world.Output?.SendMessage(who, line);
+                if (line != CannotDamage || who == attackerPlayer) _world.Output?.SendFeedback(who, line, LineKind(line));
     }
 
     /// <summary>

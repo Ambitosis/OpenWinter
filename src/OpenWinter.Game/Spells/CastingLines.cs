@@ -48,7 +48,7 @@ public static class CastingLines
         {
             bool named = Identifies(w, pc, caster, spell, random);
             known[pc.Id] = named;
-            w.Output.SendMessage(pc, Line(w, caster, spell, CastingStrref, named));
+            w.Output.SendFeedback(pc, Line(w, caster, spell, CastingStrref, named), FeedbackKind.CastSpell);
         }
         return known;
     }
@@ -60,7 +60,7 @@ public static class CastingLines
         foreach (var pc in Players(w, caster, CastsRange))
         {
             if (!known.TryGetValue(pc.Id, out bool named)) known[pc.Id] = named = Identifies(w, pc, caster, spell, random);
-            w.Output.SendMessage(pc, Line(w, caster, spell, CastsStrref, named));
+            w.Output.SendFeedback(pc, Line(w, caster, spell, CastsStrref, named), FeedbackKind.CastSpell);
         }
     }
 
