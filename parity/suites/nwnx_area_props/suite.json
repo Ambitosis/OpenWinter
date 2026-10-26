@@ -1,0 +1,16 @@
+{
+ "seconds": 12,
+ "nwnx": true,
+ "tile": 4,
+ "areas": [
+  {
+   "resref": "parity", "tag": "PARITY_AREA", "size": 4,
+   "are": { "WindPower": 1, "ChanceRain": 30, "ChanceSnow": 20, "ChanceLightning": 10, "FogClipDist": 60.5,
+            "ShadowOpacity": 40, "ModSpotCheck": -3, "ModListenCheck": 2, "Flags": 4, "PlayerVsPlayer": 2,
+            "NoRest": 1, "DayNightCycle": 1, "MoonAmbientColor": 1193046, "MoonDiffuseColor": 65280 },
+   "areaProperties": { "AmbientSndDay": 5, "AmbientSndNight": 7, "AmbientSndDayVol": 90, "AmbientSndNitVol": 33, "MusicDay": 3 },
+   "areaEvents": { "OnEnter": "na_enter", "OnExit": "na_exit" }
+  },
+  { "resref": "parity2", "tag": "PARITY2", "size": 3, "tileset": "ttr01", "tile": 120 }
+ ]
+}

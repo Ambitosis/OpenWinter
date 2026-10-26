@@ -340,9 +340,10 @@ static class PlayerFunctions
         }
         return null;
     }
+    // Measured (nwnx_area_objects): an object left at the default mask (or set back to -1) reads 15, waypoints too.
     [NwFunc("GetObjectUiDiscoveryMask")]
     static object? GetUiDiscovery(Call c) =>
-        c.Obj(0) is Creature or Door or Item or Placeable ? c.Obj(0)!.UiDiscoveryMask : -1;
+        c.Obj(0) is { } o and not (Areas.Area or Module) ? (o.UiDiscoveryMask == -1 ? 15 : o.UiDiscoveryMask) : -1;
     [NwFunc("SetObjectUiDiscoveryMask")]
     static object? SetUiDiscovery(Call c)
     {

@@ -939,6 +939,8 @@ public sealed partial class GameServer : IWorldOutput
 
     bool HiddenFrom(PlayerSession s, GameObject o)
     {
+        // Script overrides (NWNX_Visibility) come first; a player always sees their own character.
+        if (Visibility.Any && s.Creature != o && Visibility.Hidden(s.Creature?.Id ?? GameObject.InvalidId, s.IsDM, o.Id) is { } forced) return forced;
         if (o is not Creature c) return false;
         if (c.IsDMUndetectable) return !s.IsDM && c.DMOwner != s;
         return ConcealedFrom(s, c);
@@ -1009,6 +1011,17 @@ public sealed partial class GameServer : IWorldOutput
 
     /// <summary>The facing players see: a conversation partner's turn toward the other shows before scripts see it.</summary>
     float ShownFacing(GameObject o) => Convo.ShownFacing(o) ?? o.Facing;
+
+    Players.VisibilityOverrides Visibility
+    {
+        get
+        {
+            if (_visibilityWorld != World) { _visibility = World.System<Players.VisibilityOverrides>(); _visibilityWorld = World; }
+            return _visibility!;
+        }
+    }
+    Players.VisibilityOverrides? _visibility;
+    World? _visibilityWorld;
 
     Conversations.ConversationService Convo
     {

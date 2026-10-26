@@ -71,6 +71,7 @@ public sealed partial class SkillSystem
                     return false;
                 }
                 c.StealthMode = on;
+                if (on) EndRevealsOutOfSight(c);
                 if (on && HasFeat(c, SkillIds.FeatHideInPlainSight)) HideInPlainSight(c);
                 ModeChanged(c, mode, on);
                 break;
@@ -281,6 +282,7 @@ public sealed partial class SkillSystem
 
     void ForgetStealth(uint id)
     {
+        ForgetReveals(id);
         _dice.Remove(id);
         foreach (var k in _shown.Keys.Where(k => k.Pc == id || k.Target == id).ToList()) _shown.Remove(k);
     }

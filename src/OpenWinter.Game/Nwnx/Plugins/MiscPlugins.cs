@@ -273,30 +273,6 @@ static class RegexPlugin
     }
 }
 
-/// <summary>NWNX_Visibility: per-player (or global) visibility overrides.</summary>
-static class VisibilityPlugin
-{
-    const string P = "Visibility";
-
-    [NwnxFunc(P, "SetVisibilityOverride", UnsupportedReason = "override is stored but authoritative visibility does not consume it")]
-    static void SetOverride(NwnxCall n)
-    {
-        uint player = n.PopObjectId(); var target = n.PopObject(); int value = n.PopInt();
-        if (target == null) return;
-        // TODO(world): object visibility for clients should honour these overrides.
-        n.State(target)["visibility:" + player] = NwnxValue.Int(value);
-        var data = new { op = "visibility", target = target.Id, value };
-        if (n.World.Get(player) is Creature { IsPC: true } pc) n.World.Output?.Notify("nwnx-player", pc, data, pc);
-        else n.World.NotifyAllPlayers("nwnx-player", data);
-    }
-    [NwnxFunc(P, "GetVisibilityOverride")]
-    static void GetOverride(NwnxCall n)
-    {
-        uint player = n.PopObjectId(); var target = n.PopObject();
-        n.Push(target != null && n.State(target).TryGetValue("visibility:" + player, out var v) && v.Value is int i ? i : -1);
-    }
-}
-
 /// <summary>NWNX_Item: the setters that map onto item fields.</summary>
 static class ItemPlugin
 {
@@ -330,49 +306,6 @@ static class ItemPlugin
         if (item == null) return;
         item.BaseItem = type;
         n.World.MarkChanged(item);
-    }
-}
-
-/// <summary>NWNX_Area setters the module uses; values are kept for the area systems and sent to clients where visible.</summary>
-static class AreaPlugin
-{
-    const string P = "Area";
-
-    static void Store(NwnxCall n, string key, Func<NwnxCall, NwnxValue> value, bool notify = false)
-    {
-        var area = n.PopObject<Areas.Area>();
-        var v = value(n);
-        if (area == null) return;
-        n.State(area)[key] = v;
-        if (notify) n.World.Output?.Notify("area-setting", area, new { setting = key, value = v.Value });
-    }
-
-    [NwnxFunc(P, "SetPVPSetting")] static void Pvp(NwnxCall n) => Store(n, "pvp", c => NwnxValue.Int(c.PopInt()));
-    [NwnxFunc(P, "SetNoRestingAllowed")] static void NoRest(NwnxCall n) => Store(n, "noRest", c => NwnxValue.Int(c.PopInt()));
-    [NwnxFunc(P, "SetDayNightCycle")] static void DayNight(NwnxCall n) => Store(n, "dayNightCycle", c => NwnxValue.Int(c.PopInt()), notify: true);
-    [NwnxFunc(P, "SetSunMoonColors")]
-    static void SunMoon(NwnxCall n)
-    {
-        var area = n.PopObject<Areas.Area>(); int type = n.PopInt(); int color = n.PopInt();
-        if (area == null) return;
-        n.State(area)["sunMoon:" + type] = NwnxValue.Int(color);
-        n.World.Output?.Notify("area-setting", area, new { setting = "sunMoon", type, value = color });
-    }
-    [NwnxFunc(P, "TestDirectLine")]
-    static void TestDirectLine(NwnxCall n)
-    {
-        var area = n.PopObject<Areas.Area>();
-        float sx = n.PopFloat(), sy = n.PopFloat(), ex = n.PopFloat(), ey = n.PopFloat();
-        n.PopFloat(); n.PopFloat(); n.PopInt();
-        if (area == null) { n.Push(0); return; }
-        // Walkable if ground exists at regular samples along the segment (1 = clear, like NWNX's "no collision").
-        int steps = Math.Max(1, (int)(MathF.Sqrt((ex - sx) * (ex - sx) + (ey - sy) * (ey - sy)) / 0.5f));
-        for (int i = 0; i <= steps; i++)
-        {
-            float t = (float)i / steps;
-            if (area.Walkmesh.HighestGround(sx + (ex - sx) * t, sy + (ey - sy) * t) == null) { n.Push(-1); return; }
-        }
-        n.Push(1);
     }
 }
 
