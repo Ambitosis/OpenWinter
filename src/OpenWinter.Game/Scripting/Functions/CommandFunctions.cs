@@ -108,11 +108,11 @@ static class CommandFunctions
         Enqueue(c, c.Self, new SpeakAction { Text = c.World.Resources.TlkString(unchecked((uint)c.I(0))), Volume = c.I(1) });
         return null;
     }
-    [NwFunc("SpeakString")] static object? Speak(Call c) { if (c.Self is { } o) c.World.Output?.Speak(o, c.S(0), c.I(1)); return null; }
+    [NwFunc("SpeakString")] static object? Speak(Call c) { if (c.Self is { } o) c.World.Speak(o, c.S(0), c.I(1)); return null; }
     [NwFunc("SpeakStringByStrRef")]
     static object? SpeakRef(Call c)
     {
-        if (c.Self is { } o) c.World.Output?.Speak(o, c.World.Resources.TlkString(unchecked((uint)c.I(0))), c.I(1));
+        if (c.Self is { } o) c.World.Speak(o, c.World.Resources.TlkString(unchecked((uint)c.I(0))), c.I(1));
         return null;
     }
     [NwFunc("ActionPlayAnimation")]

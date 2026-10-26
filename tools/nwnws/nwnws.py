@@ -193,6 +193,11 @@ def run_parity(cfg, args):
     overrides = [Path(p) for p in args.override]
     plugins = PARITY_PLUGINS + (["RISENHOLM"] if args.risenholm else [])
     enabled = "\n".join(f"export NWNX_{p}_SKIP=n" for p in plugins)
+    # --collect: copy what the server wrote to its nwnx folder (NWNX_Area exports) back for comparison.
+    collect = ""
+    if args.collect:
+        dest = wsl_path(args.collect)
+        collect = f'rm -rf "{dest}"\nmkdir -p "{dest}"\ncp {sandbox}/nwnx/* "{dest}/" 2>/dev/null || true\n'
     script = f"""
 uid=$(id -u nwnws)
 iptables -C OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \\
@@ -233,7 +238,7 @@ kill -9 "$(cat {sandbox}/server.pid)" 2>/dev/null || true
 cat $log {sandbox}/logs.0/nwserverError1.txt 2>/dev/null > "{wsl_path(out)}" || true
 echo "--- stdout" >> "{wsl_path(out)}"
 grep -v "^$" {sandbox}/stdout.log >> "{wsl_path(out)}" || true
-"""
+{collect}"""
     wsl(cfg, script)
 
 
@@ -274,6 +279,7 @@ def main():
     r.add_argument("--difficulty", type=int, default=3)
     r.add_argument("--override", action="append", default=[])
     r.add_argument("--risenholm", action="store_true")
+    r.add_argument("--collect")
     c = sub.add_parser("scripts")
     c.add_argument("--dest", required=True)
     args = ap.parse_args()

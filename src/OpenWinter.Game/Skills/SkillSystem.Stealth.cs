@@ -76,6 +76,7 @@ public sealed partial class SkillSystem
                     var ev = Nwnx.NwnxEvent.Begin(_world, on ? "NWNX_ON_STEALTH_ENTER" : "NWNX_ON_STEALTH_EXIT", c);
                     if (ev?.Before() == true) { ev.After(); return false; }
                     c.StealthMode = on;
+                    if (on) EndRevealsOutOfSight(c);
                     bool hips = ev is { HasResult: true } ? ev.Result == "1" : HasFeat(c, SkillIds.FeatHideInPlainSight);
                     if (on && hips) HideInPlainSight(c);
                     ModeChanged(c, mode, on);
@@ -294,6 +295,7 @@ public sealed partial class SkillSystem
 
     void ForgetStealth(uint id)
     {
+        ForgetReveals(id);
         _dice.Remove(id);
         foreach (var k in _shown.Keys.Where(k => k.Pc == id || k.Target == id).ToList()) _shown.Remove(k);
     }

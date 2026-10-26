@@ -959,7 +959,4 @@ public sealed partial class InventorySystem : IWorldSystem
 
     /// <summary>SetUseableFlag on doors and creatures (placeables and items have their own fields).</summary>
     public readonly Dictionary<uint, bool> UseableOverrides = new();
-
-    /// <summary>NWNXPushItemProperty / NWNXPopItemProperty stack.</summary>
-    public readonly Stack<ItemProperty> NwnxItemProperties = new();
 }

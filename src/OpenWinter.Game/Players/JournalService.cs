@@ -37,7 +37,12 @@ public sealed class JournalService : IWorldSystem
     /// <summary>Party membership for bAllPartyMembers (tests can replace it); defaults to the player's party.</summary>
     public static Func<World, Creature, IEnumerable<Creature>>? PartyMembers;
 
-    public JournalService(World world) { _world = world; }
+    public JournalService(World world)
+    {
+        _world = world;
+        // Custom entries belong to one login's character: they go when it leaves.
+        world.ObjectRemoved += o => _custom.Remove(o.Id);
+    }
 
     public void Step(float dt) { }
 
@@ -121,7 +126,7 @@ public sealed class JournalService : IWorldSystem
             }
             else if (current != null) next.Earlier.AddRange(current.Earlier);
             target.Journal[cat.Tag] = next;
-            _world.Output?.Notify("journal", target, Describe(target, cat, entry, next, update: true), target);
+            _world.Output?.Notify("journal", target, Describe(target, cat, entry, next, update: !UpdateLineHidden(target)), target);
         }
     }
 
@@ -134,9 +139,40 @@ public sealed class JournalService : IWorldSystem
             if (!target.IsPC || !target.Journal.Remove(tag)) continue;
             // The original prints the journal line for a removal too, with the quest's name.
             string name = Categories.TryGetValue(tag, out var cat) ? Name(target, cat) : tag;
-            _world.Output?.Notify("journal", target, new { tag, name, removed = true, update = true }, target);
+            _world.Output?.Notify("journal", target, new { tag, name, removed = true, update = !UpdateLineHidden(target) }, target);
         }
     }
+
+    /// <summary>An entry a script gave one player (NWNX_Player_AddCustomJournalEntry), outside module.jrl.</summary>
+    public sealed record CustomEntry(string Tag, string Name, string Text, int State, int Priority, bool Completed, bool Displayed,
+        int Day, int Time);
+
+    readonly Dictionary<uint, Dictionary<string, CustomEntry>> _custom = new();
+
+    /// <summary>A player's custom entries by tag (they last until the player next enters).</summary>
+    public IReadOnlyDictionary<string, CustomEntry> CustomEntries(Creature pc) =>
+        _custom.TryGetValue(pc.Id, out var d) ? d : new Dictionary<string, CustomEntry>();
+
+    /// <summary>
+    /// Adds or replaces (by tag) a custom entry in a player's journal and returns how many quests the journal holds.
+    /// <paramref name="silent"/> skips the journal-updated line.
+    /// </summary>
+    public int AddCustom(Creature pc, CustomEntry entry, bool silent)
+    {
+        if (!_custom.TryGetValue(pc.Id, out var list)) _custom[pc.Id] = list = new Dictionary<string, CustomEntry>(StringComparer.Ordinal);
+        list[entry.Tag] = entry;
+        _world.Output?.Notify("journal", pc, DescribeCustom(entry, update: !silent && !UpdateLineHidden(pc)), pc);
+        return pc.Journal.Keys.Concat(list.Keys).Distinct(StringComparer.Ordinal).Count();
+    }
+
+    static object DescribeCustom(CustomEntry e, bool update) => new
+    {
+        tag = e.Tag, state = e.State, name = e.Name, text = e.Text, end = e.Completed, update, priority = e.Priority,
+        picture = -1, xp = 0, day = e.Day, time = e.Time, history = Array.Empty<object>(), removed = false,
+    };
+
+    /// <summary>NWNX_Feedback can hide the "Your journal has been updated." line (and the journal button's flash).</summary>
+    bool UpdateLineHidden(Creature pc) => Nwnx.Plugins.FeedbackPlugin.Hidden(_world, pc, Nwnx.Plugins.FeedbackPlugin.Journal, 0);
 
     /// <summary>Sends a player every quest in their journal (the client's journal window asks on open).</summary>
     public void SendAll(Creature pc)
@@ -145,6 +181,8 @@ public sealed class JournalService : IWorldSystem
         foreach (var state in pc.Journal.Values)
             if (Categories.TryGetValue(state.Tag, out var cat))
                 _world.Output?.Notify("journal", pc, Describe(pc, cat, cat.Entries.GetValueOrDefault(state.State), state, update: false), pc);
+        foreach (var custom in CustomEntries(pc).Values)
+            _world.Output?.Notify("journal", pc, DescribeCustom(custom, update: false), pc);
     }
 
     string Name(Creature pc, JournalCategory cat) =>

@@ -30,6 +30,7 @@ static class NwnxFunctions
     [NwFunc("NWNXPushVector")] static object? PushVector(Call c) => Push(c, NwnxType.Vector, c.V(0));
     [NwFunc("NWNXPushLocation")] static object? PushLocation(Call c) => Push(c, NwnxType.Location, c.L(0));
     [NwFunc("NWNXPushEffect")] static object? PushEffect(Call c) => Push(c, NwnxType.Effect, c.E(0));
+    [NwFunc("NWNXPushItemProperty")] static object? PushItemProperty(Call c) => Push(c, NwnxType.ItemProperty, c.IP(0));
     [NwFunc("NWNXPushJson")] static object? PushJson(Call c) => Push(c, NwnxType.Json, c.J(0));
     [NwFunc("NWNXPushAction")] static object? PushAction(Call c) => Push(c, NwnxType.Action, c.A(0));
     [NwFunc("NWNXPushEvent")] static object? PushEvent(Call c) => Push(c, NwnxType.Event, c.Ev(0));
@@ -44,6 +45,7 @@ static class NwnxFunctions
     [NwFunc("NWNXPopVector")] static object? PopVector(Call c) => Nwnx(c).PopAs(NwnxType.Vector);
     [NwFunc("NWNXPopLocation")] static object? PopLocation(Call c) => Nwnx(c).PopAs(NwnxType.Location);
     [NwFunc("NWNXPopEffect")] static object? PopEffect(Call c) => Pop(c, NwnxType.Effect, NssType.Effect);
+    [NwFunc("NWNXPopItemProperty")] static object? PopItemProperty(Call c) => Pop(c, NwnxType.ItemProperty, NssType.ItemProperty);
     [NwFunc("NWNXPopJson")] static object? PopJson(Call c) => Pop(c, NwnxType.Json, NssType.Json);
     [NwFunc("NWNXPopEvent")] static object? PopEvent(Call c) => Pop(c, NwnxType.Event, NssType.Event);
     [NwFunc("NWNXPopTalent")] static object? PopTalent(Call c) => Pop(c, NwnxType.Talent, NssType.Talent);

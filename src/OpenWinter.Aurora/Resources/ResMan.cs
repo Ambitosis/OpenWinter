@@ -213,10 +213,33 @@ public sealed class ResMan : IDisposable
 
     public readonly List<string> MissingHaks = new();
 
+    readonly ConcurrentDictionary<ResKey, string> _overrides = new();
+
+    /// <summary>
+    /// Makes lookups of <paramref name="oldName"/> read <paramref name="newName"/> instead (an empty new name clears
+    /// it). Cached tables of that name are dropped.
+    /// </summary>
+    public void SetOverride(ushort type, string oldName, string newName)
+    {
+        var key = ResKey.Of(oldName, type);
+        if (newName.Length == 0) _overrides.TryRemove(key, out _);
+        else _overrides[key] = newName.ToLowerInvariant();
+        if (type == ResType.TwoDA) _twoDAs.TryRemove(oldName, out _);
+    }
+
+    /// <summary>The name a lookup of <paramref name="name"/> is redirected to, or null.</summary>
+    public string? GetOverride(ushort type, string name) => _overrides.TryGetValue(ResKey.Of(name, type), out var to) ? to : null;
+
+    ResKey Redirect(ResKey key) => !_overrides.IsEmpty && _overrides.TryGetValue(key, out var to) ? new ResKey(to, key.Type) : key;
+
+    /// <summary>Forgets cached tables, so they are read again from the sources.</summary>
+    public void ClearCaches() => _twoDAs.Clear();
+
     public bool Contains(string resref, ushort type) => Contains(ResKey.Of(resref, type));
 
     public bool Contains(ResKey key)
     {
+        key = Redirect(key);
         foreach (var s in _sources)
             if (s.Contains(key)) return true;
         return false;
@@ -226,6 +249,7 @@ public sealed class ResMan : IDisposable
 
     public byte[]? Read(ResKey key)
     {
+        key = Redirect(key);
         foreach (var s in _sources)
             if (s.Contains(key)) return s.Read(key);
         return null;

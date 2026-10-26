@@ -52,7 +52,7 @@ public sealed class SpeakAction : GameAction
     public int Volume;
     public override ActionStatus Step(World world, GameObject owner, float dt)
     {
-        world.Output?.Speak(owner, Text, Volume);
+        world.Speak(owner, Text, Volume);
         return ActionStatus.Done;
     }
 }

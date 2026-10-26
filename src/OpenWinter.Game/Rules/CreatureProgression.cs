@@ -63,7 +63,7 @@ public static partial class CreatureRules
         if (c.IsPC)
         {
             if (xp != before)
-                w.Output?.SendMessage(c, xp > before ? $"{Tlk(w, 8263, "Experience Points Gained: ")} {xp - before}" : $"{Tlk(w, 8264, "Experience Points Lost: ")} {before - xp}");
+                w.Output?.SendFeedback(c, xp > before ? $"{Tlk(w, 8263, "Experience Points Gained: ")} {xp - before}" : $"{Tlk(w, 8264, "Experience Points Lost: ")} {before - xp}", FeedbackKind.Message, xp > before ? 182 : 183);
             bool canLevel = CanLevelUp(w, c);
             bool ready = canLevel && !couldLevel;
             w.Output?.Notify("xp-changed", c, new
@@ -78,7 +78,7 @@ public static partial class CreatureRules
                 creature = c.Id,
                 feedback = ready ? Tlk(w, 53242, "Level Up!") : "",
             }, c);
-            if (ready) w.Output?.SendMessage(c, Tlk(w, 8302, "Your character has gained enough experience to advance a level."));
+            if (ready) w.Output?.SendFeedback(c, Tlk(w, 8302, "Your character has gained enough experience to advance a level."), FeedbackKind.Message, 11);
         }
         if (lost) w.MarkChanged(c);
     }
