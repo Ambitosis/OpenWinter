@@ -33,7 +33,7 @@ public sealed class SavePersistenceTests : IDisposable
     public SavePersistenceTests(ITestOutputHelper output)
     {
         _out = output;
-        SaveGameService.Log = output.WriteLine;
+        SaveGameService.Log = TestLog.To(output);
     }
 
     public void Dispose()

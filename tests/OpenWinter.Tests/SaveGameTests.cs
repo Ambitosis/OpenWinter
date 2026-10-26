@@ -27,7 +27,7 @@ public sealed class SaveGameTests : IDisposable
     public SaveGameTests(ITestOutputHelper output)
     {
         _out = output;
-        SaveGameService.Log = output.WriteLine;
+        SaveGameService.Log = TestLog.To(output);
     }
 
     public void Dispose()
