@@ -32,6 +32,6 @@ public static class VoiceService
         if (entry.Sound.Length != 0)
             world.Output?.Notify("voice-chat", creature, new { id = slot, soundset = creature.SoundSet, sound = entry.Sound });
         string text = world.Resources.Talk.Get(entry.StringRef);
-        if (caption && text.Length != 0) world.Speak(creature, text, 0);
+        if (caption && text.Length != 0) world.Output?.Speak(creature, text, 0);
     }
 }

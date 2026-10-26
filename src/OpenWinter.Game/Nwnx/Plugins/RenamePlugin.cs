@@ -22,7 +22,17 @@ public static class RenamePlugin
     }
 
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<NwnxRegistry, RenameState> _state = new();
-    static RenameState State(World w) => _state.GetValue(w.System<NwnxRegistry>(), _ => new RenameState());
+    static RenameState State(World w) => _state.GetValue(w.System<NwnxRegistry>(), _ =>
+    {
+        var st = new RenameState();
+        // Overrides of or for a player who leaves go with her (the header: they don't persist through logout).
+        w.ObjectRemoved += o =>
+        {
+            if (st.Overrides.Count > 0)
+                foreach (var key in st.Overrides.Keys.Where(k => k.Target == o.Id || k.Observer == o.Id).ToList()) st.Overrides.Remove(key);
+        };
+        return st;
+    });
 
     /// <summary>
     /// The character name and community name <paramref name="observer"/> sees for the player <paramref name="target"/>.

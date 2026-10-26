@@ -176,11 +176,106 @@ public sealed class NwnxPlayerGroupTests
         Assert.True(File.Exists(bic + ".deleted0"));
         a.Pump();
         Assert.Contains(a.Notices, n => n.Kind == "boot" && n.Json.Contains("Delete Character"));
+        // The connection stays open a moment, so the reason gets out first.
+        Assert.True(a.Connection.IsConnected);
+        f.Tick((int)(GameServer.DropDelay * 30) + 2);
         Assert.False(a.Connection.IsConnected);
         File.Delete(bic + ".deleted0");
     }
 
+    [DataFact]
+    public void AdministrationSettingsSurviveASavedGameReplacingTheWorld()
+    {
+        using var f = new Fixture();
+        f.Call("Administration", "SetPlayerPassword", "secret");
+        f.Call("Administration", "AddBannedIP", "10.0.0.1");
+        f.Call("Administration", "SetMinLevel", 3);
+        f.Call("Administration", "SetPlayOption", ServerAdministration.DisallowShouting, 1);
+        var resources = new ResMan(TestData.Paths);
+        resources.AddBaseGame(includeUserOverride: false);
+        var next = new World(resources);
+        f.Server.SwapWorld(next, _ => null);
+        Assert.Same(next, f.Server.World);
+        Assert.Equal("secret", f.Server.Admin.PlayerPassword);
+        Assert.Equal(new[] { "10.0.0.1" }, f.Server.Admin.BannedAddresses);
+        Assert.Equal(3, f.Server.Admin.MinLevel);
+        Assert.True(f.Server.Admin.Enabled(ServerAdministration.DisallowShouting));
+        // Setters still reach the server's own options.
+        var nwnx = next.System<NwnxRegistry>();
+        nwnx.Stack.Push(NwnxValue.String("After Load"));
+        nwnx.Call("Administration", "SetServerName");
+        Assert.Equal("After Load", f.Server.Options.ServerName);
+    }
+
+    [DataFact]
+    public void ResourceFolderCallsNeverLeaveTheNwnxFolder()
+    {
+        using var f = new Fixture();
+        var nwnxDir = Path.Combine(f.World.System<OpenWinter.Game.Persistence.PersistenceSystem>().UserRoot, "nwnx");
+        f.Call("Util", "AddNSSFile", "pw_keep", "void main() {}", "NWNX");
+        Assert.Equal(1, f.Nwnx.PopAs(NwnxType.Int));
+        // A file beside the NWNX folder (the user folder) and one in another loose resource folder.
+        var victim = Path.Combine(Path.GetDirectoryName(nwnxDir)!, "pw_victim.nss");
+        File.WriteAllText(victim, "x");
+        var other = Directory.CreateTempSubdirectory("openwinter-nwnx-other");
+        var otherFile = Path.Combine(other.FullName, "pw_other.nss");
+        File.WriteAllText(otherFile, "x");
+        f.World.Resources.Add(new DirectorySource(other.FullName));
+        try
+        {
+            foreach (var name in new[] { "../pw_victim", "..\\pw_victim", "..", victim[..^4] })
+            {
+                f.Call("Util", "RemoveNWNXResourceFile", name, (int)ResType.Nss, "NWNX");
+                Assert.Equal(0, f.Nwnx.PopAs(NwnxType.Int));
+            }
+            Assert.True(File.Exists(victim));
+            // Only the NWNX folder can be cleaned or deleted from; the game's folders are never touched.
+            foreach (var alias in new[] { "CURRENTGAME", "OVERRIDE", "NWNDATA", "" })
+            {
+                f.Call("Util", "CleanResourceDirectory", alias, 0xFFFF);
+                Assert.Equal(0, f.Nwnx.PopAs(NwnxType.Int));
+                f.Call("Util", "RemoveNWNXResourceFile", "pw_other", (int)ResType.Nss, alias == "" ? "CURRENTGAME" : alias);
+                Assert.Equal(0, f.Nwnx.PopAs(NwnxType.Int));
+            }
+            Assert.True(File.Exists(otherFile));
+            f.Call("Util", "RemoveNWNXResourceFile", "pw_keep", (int)ResType.Nss, "NWNX");
+            Assert.Equal(1, f.Nwnx.PopAs(NwnxType.Int));
+            Assert.False(File.Exists(Path.Combine(nwnxDir, "pw_keep.nss")));
+            // Scripts can't write outside the folder either.
+            f.Call("Util", "AddNSSFile", "../pw_out", "void main() {}", "NWNX");
+            Assert.Equal(0, f.Nwnx.PopAs(NwnxType.Int));
+            Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(nwnxDir)!, "pw_out.nss")));
+            f.Call("Util", "GetUserDirectory");
+            Assert.Equal(f.World.System<OpenWinter.Game.Persistence.PersistenceSystem>().UserRoot, f.Nwnx.PopAs(NwnxType.String));
+        }
+        finally
+        {
+            File.Delete(victim);
+            other.Delete(recursive: true);
+        }
+    }
+
     // ---- Feedback ----------------------------------------------------------------------
+
+    [DataFact]
+    public void WhitelistModeHidesFeedbackUnlessShown()
+    {
+        using var f = new Fixture();
+        var a = f.Join("Alice");
+        var pc = f.Pc(a);
+        a.Chat.Clear();
+        f.Call("Feedback", "SetFeedbackMode", FeedbackPlugin.Feedback, 1);
+        f.World.Output!.SendFeedback(pc, "inventory full", FeedbackKind.Message, 12);
+        f.Call("Feedback", "SetMessageHidden", GameObject.InvalidId, FeedbackPlugin.Feedback, 12, 0);
+        f.World.Output!.SendFeedback(pc, "shown", FeedbackKind.Message, 12);
+        f.World.Output!.SendFeedback(pc, "container full", FeedbackKind.Message, 212);
+        f.Call("Feedback", "SetMessageHidden", pc, FeedbackPlugin.Feedback, 212, 0);
+        f.World.Output!.SendFeedback(pc, "her own", FeedbackKind.Message, 212);
+        a.Pump();
+        Assert.Equal(new[] { "shown", "her own" }, a.Chat.Select(c => c.Text));
+    }
+
+
 
     [DataFact]
     public void HiddenFeedbackNeverReachesThePlayerUnlessHerOwnStateShowsIt()
@@ -229,6 +324,44 @@ public sealed class NwnxPlayerGroupTests
         a.Pump();
         Assert.Equal("|1:hello|3:secret", f.World.Module.Locals.Strings["seen"]);
         Assert.Equal(new[] { "hello" }, a.Chat.Where(c => c.Channel != ChatChannel.Server).Select(c => c.Text));
+    }
+
+    [DataFact]
+    public void SentMessagesArriveAsChatFromTheSenderNotAsFeedback()
+    {
+        using var f = new Fixture();
+        var a = f.Join("Alice");
+        var b = f.Join("Bob");
+        var alice = f.Pc(a);
+        var bob = f.Pc(b);
+        // Hiding every feedback line (combat log kind 11) doesn't hide a scripted tell.
+        f.Call("Feedback", "SetMessageHidden", GameObject.InvalidId, FeedbackPlugin.CombatLog, FeedbackKind.Message, 1);
+        b.Chat.Clear();
+        f.Call("Chat", "SendMessage", ChatPlugin.PlayerTell, "psst", alice, bob);
+        Assert.Equal(1, f.Nwnx.PopAs(NwnxType.Int));
+        b.Pump();
+        var tell = Assert.Single(b.Chat);
+        Assert.Equal(ChatChannel.Tell, tell.Channel);
+        Assert.Equal(alice.Id, tell.Speaker);
+        Assert.Equal("psst", tell.Text);
+        Assert.Equal(alice.Name.Resolve(f.World.Resources.Talk), tell.SpeakerName);
+    }
+
+    [DataFact]
+    public void PlayerOverridesGoWhenThePlayerLeaves()
+    {
+        using var f = new Fixture();
+        var a = f.Join("Alice");
+        var alice = f.Pc(a);
+        var bob = f.Pc(f.Join("Bob"));
+        f.Call("Player", "SetCustomToken", alice, 7, "mine");
+        f.Call("Rename", "SetPCNameOverride", alice, "Masked", "", "", 0, bob);
+        f.Call("Chat", "SetChatHearingDistance", 4f, alice, ChatPlugin.PlayerTalk);
+        a.Connection.Disconnect();
+        f.Tick();
+        Assert.DoesNotContain(f.World.System<ConversationService>().PlayerTokens.Keys, k => k.Pc == alice.Id);
+        Assert.Equal(("Real", "Alice"), RenamePlugin.Shown(f.World, alice, bob, "Real", "Alice"));
+        Assert.Equal(20f, ChatPlugin.HearingDistance(f.World, alice, ChatPlugin.PlayerTalk));
     }
 
     [DataFact]

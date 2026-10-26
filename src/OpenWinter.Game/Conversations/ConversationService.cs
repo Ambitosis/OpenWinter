@@ -134,7 +134,16 @@ public sealed class ConversationService : IWorldSystem
     /// <summary>"The object is busy and can not talk to you right now." and "You are too excited to talk right now."</summary>
     public const uint BusyMessage = 6625, TooExcitedMessage = 63229;
 
-    public ConversationService(World world) { _world = world; }
+    public ConversationService(World world)
+    {
+        _world = world;
+        // A player's own tokens go with her character.
+        world.ObjectRemoved += o =>
+        {
+            if (PlayerTokens.Count > 0)
+                foreach (var key in PlayerTokens.Keys.Where(k => k.Pc == o.Id).ToList()) PlayerTokens.Remove(key);
+        };
+    }
 
     public void Step(float dt)
     {

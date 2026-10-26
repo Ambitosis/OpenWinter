@@ -39,6 +39,28 @@ public sealed class ServerAdministration : IWorldSystem
     /// <summary>Notes a script's change to an option of <see cref="Options"/>, so an attaching server keeps it.</summary>
     public void Changed(string option) => _changed.Add(option);
 
+    /// <summary>
+    /// A saved game replaced the world: the running server's settings go on as they were (bans, passwords, limits,
+    /// options and the server's own options).
+    /// </summary>
+    public void TakeOver(ServerAdministration previous)
+    {
+        PlayerPassword = previous.PlayerPassword;
+        ModuleName = previous.ModuleName;
+        foreach (var (to, from) in new[] { (BannedKeys, previous.BannedKeys), (BannedAddresses, previous.BannedAddresses), (BannedNames, previous.BannedNames) })
+        {
+            to.Clear();
+            to.AddRange(from);
+        }
+        MinLevel = previous.MinLevel;
+        MaxLevel = previous.MaxLevel;
+        Array.Copy(previous.Debug, Debug, Debug.Length);
+        ShutdownRequested = previous.ShutdownRequested;
+        _options.Clear();
+        foreach (var kv in previous._options) _options[kv.Key] = kv.Value;
+        Options = previous.Options;
+    }
+
     /// <summary>A server attaches: the options scripts already changed carry over to its own.</summary>
     public void Adopt(ServerOptions server)
     {
@@ -88,7 +110,11 @@ public sealed class ServerAdministration : IWorldSystem
         if (!list.Contains(entry)) list.Add(entry);
     }
 
-    /// <summary>Why a login is refused by the bans, or null.</summary>
+    /// <summary>
+    /// Why a login is refused by the bans, or null. Only the address is the server's own observation: the CD key (the
+    /// client's player key) and the player name are what the client says, so key and name bans and the key allow list
+    /// keep out honest clients only, until keys are verified.
+    /// </summary>
     public string? BanRefusal(string playerName, string key, string address)
     {
         bool keyListed = key.Length > 0 && BannedKeys.Contains(key, StringComparer.OrdinalIgnoreCase);
@@ -108,11 +134,17 @@ public sealed partial class GameServer
     /// <summary>The host should stop: a script asked for a shutdown.</summary>
     public bool ShutdownRequested => Admin.ShutdownRequested;
 
+    /// <summary>How long a refused or booted connection stays open, so the reason reaches the client first.</summary>
+    public const double DropDelay = 0.5;
+
+    /// <summary>Drops a connection shortly: what was just sent gets out, and nothing more is read from it.</summary>
+    void Drop(PlayerSession s) => s.DropAt ??= _running + DropDelay;
+
     /// <summary>Refuses a login: tells the client why and drops the connection.</summary>
-    static void Refuse(PlayerSession s, string reason)
+    void Refuse(PlayerSession s, string reason)
     {
         s.Send(new Net.NotifyMessage { Kind = "login-refused", Json = System.Text.Json.JsonSerializer.Serialize(new { reason }) }.Write());
-        s.Connection.Disconnect();
+        Drop(s);
     }
 
     /// <summary>Login checks from the administration settings: bans and the player password. DMs give the DM password instead.</summary>
@@ -138,13 +170,13 @@ public sealed partial class GameServer
     }
 
     /// <summary>
-    /// Boots a player (NWNX_Administration_DeletePlayerCharacter, BootPC): the client is told why and disconnected at
-    /// the end of the tick. <paramref name="skipVaultSave"/> keeps the leaving character from being saved again.
+    /// Boots a player (NWNX_Administration_DeletePlayerCharacter, BootPC): the client is told why and disconnected
+    /// once it has had time to arrive. <paramref name="skipVaultSave"/> keeps the leaving character from being saved again.
     /// </summary>
     public void Boot(PlayerSession s, string reason, bool skipVaultSave = false)
     {
         if (skipVaultSave) s.SkipVaultSave = true;
         s.Send(new Net.NotifyMessage { Kind = "boot", Json = System.Text.Json.JsonSerializer.Serialize(new { reason }) }.Write());
-        s.Connection.Disconnect();
+        Drop(s);
     }
 }

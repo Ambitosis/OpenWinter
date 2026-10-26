@@ -28,7 +28,17 @@ public static class ChatPlugin
     }
 
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<NwnxRegistry, ChatState> _state = new();
-    static ChatState State(World w) => _state.GetValue(w.System<NwnxRegistry>(), _ => new ChatState());
+    static ChatState State(World w) => _state.GetValue(w.System<NwnxRegistry>(), _ =>
+    {
+        var st = new ChatState();
+        // A player's own distances go with her character.
+        w.ObjectRemoved += o =>
+        {
+            if (st.Personal.Count > 0)
+                foreach (var key in st.Personal.Keys.Where(k => k.Listener == o.Id).ToList()) st.Personal.Remove(key);
+        };
+        return st;
+    });
 
     /// <summary>The NWNX channel of a talk volume (TALKVOLUME_*): talk, whisper, shout, silent talk and shout, party, tell.</summary>
     public static int Channel(int volume, bool dm = false) => volume switch
@@ -73,7 +83,6 @@ public static class ChatPlugin
     static void SendMessage(NwnxCall n)
     {
         int channel = n.PopInt(); var message = n.PopString(); var sender = n.PopObject(); var target = n.PopObject();
-        var output = n.World.Output;
         bool tell = channel is PlayerTell or DMTell;
         bool server = channel == ServerMessage;
         // A tell needs a player to hear it: sent to a creature it fails before the chat script sees it, yet a
@@ -93,10 +102,16 @@ public static class ChatPlugin
         }
         if (server || tell || target is Creature)
         {
+            // A chat line from the sender on its channel, not feedback: NWNX_Feedback's filters don't apply.
             if (!Intercept(n.World, channel, message, sender, target))
             {
-                if (target is Creature pc) output?.SendMessage(pc, message);
-                else foreach (var c in n.World.ConnectedPCs.ToList()) output?.SendMessage(c, message);
+                var line = new Net.ChatMessage
+                {
+                    Speaker = sender.Id, Channel = ClientChannel(channel), SpeakerName = server ? "" : sender.Name.Resolve(n.World.Resources.Talk),
+                    Text = message,
+                }.Write();
+                var targets = target is Creature pc ? new[] { pc } : n.World.ConnectedPCs.ToArray();
+                foreach (var c in targets) Players.FamiliarPossession.SessionOf(c)?.Send(line);
             }
             n.Push(1);
             return;
@@ -113,6 +128,18 @@ public static class ChatPlugin
         n.World.Speak(sender, message, volume);
         n.Push(1);
     }
+
+    /// <summary>The chat window channel a message on an NWNX channel shows in.</summary>
+    static Net.ChatChannel ClientChannel(int channel) => channel switch
+    {
+        PlayerShout or DMShout => Net.ChatChannel.Shout,
+        PlayerWhisper or DMWhisper => Net.ChatChannel.Whisper,
+        PlayerTell or DMTell => Net.ChatChannel.Tell,
+        PlayerParty or DMParty => Net.ChatChannel.Party,
+        PlayerDM or DMDM => Net.ChatChannel.Dm,
+        ServerMessage => Net.ChatChannel.Server,
+        _ => Net.ChatChannel.Talk,
+    };
 
     [NwnxFunc(P, "RegisterChatScript")] static void Register(NwnxCall n) => State(n.World).Script = n.PopString();
     [NwnxFunc(P, "SkipMessage")] static void Skip(NwnxCall n) => n.Host?.CurrentEvent.Set(KeySkip, 1);

@@ -38,11 +38,19 @@ storage, and subscription diagnostics.
   usability, per-player TLK overrides and palette reloads are sent but not yet drawn.
 - NWNX_Administration's settings are the server's own: the player password and the bans are checked at login, the
   level limits when a character enters, the play options are the rules' settings. Changes made before the server is
-  attached (OnModuleLoad) carry over to it.
+  attached (OnModuleLoad) carry over to it, and they survive a saved game replacing the world.
+- Only IP bans rest on what the server observes. The CD key (the client's player key) and the player name are what
+  the client says; until keys are verified, CD key and name bans and the CD key allow list stop honest clients only.
 - The NWNX chat script runs for every line the server sends out (players' chat, SpeakString, ActionSpeakString,
   NWNX_Chat_SendMessage); a skipped line reaches no player or listening creature. Hearing distances apply to players.
 - NWNX_Feedback hides feedback messages, combat log lines (by kind) and the journal-updated line where the server
-  sends them; SendMessageToPC counts as combat log kind 11.
+  sends them; SendMessageToPC counts as combat log kind 11. Which lines nwserver hides needs a player to measure and
+  is not matched; whitelist mode follows the header (hidden unless the global state is set to FALSE).
+- NWNX_Util's AddScript and AddNSSFile write to the NWNX folder whatever sAlias names. CleanResourceDirectory and
+  RemoveNWNXResourceFile only ever delete inside the NWNX folder and refuse names that aren't plain resource names;
+  OpenWinter servers have no custom resource directory file, so other aliases fail. GetUserDirectory is the folder the
+  server writes to (a sandbox in development runs).
+- Voice captions (PlayVoiceChat, battle cries) don't run the chat script; that path is unmeasured on nwserver.
 
 `dotnet test tests/OpenWinter.Tests --filter FullyQualifiedName~NwnxPlayerGroupTests` covers the calls that need a
 connected player; the parity suites `nwnx_administration`, `nwnx_util`, `nwnx_chat`, `nwnx_feedback`, `nwnx_dialog`,

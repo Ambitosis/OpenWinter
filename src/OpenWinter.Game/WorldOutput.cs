@@ -30,7 +30,7 @@ public interface IWorldOutput
 public static class WorldSpeech
 {
     /// <summary>
-    /// An object speaks (SpeakString, ActionSpeakString, conversation one-liners, voice captions): the NWNX chat
+    /// An object speaks (SpeakString, ActionSpeakString, conversation one-liners): the NWNX chat
     /// script sees every line, silent ones too, and may skip it (parity suite nwnx_chat); then the clients and the
     /// listening creatures get it.
     /// </summary>
