@@ -497,7 +497,7 @@ public sealed class AbilityUser
                 Aim(TargetSelf | TargetCreature | TargetDoor | TargetPlaceable | TargetItem, target, "examining", (t, _) => Examine?.Invoke(t ?? Session.ControlledId), allowSelfDefault: false);
                 break;
             case "talk":
-                Aim(TargetCreature, target, "talking", (t, _) => { if (t is { } id) Session.Send(new ActionRequestMessage { Action = ActionKind.Talk, Target = id }.Write()); }, allowSelfDefault: false);
+                Aim(TargetCreature, target, "talking", (t, _) => { if (t is { } id) Session.Send(new ActionRequestMessage { Action = ActionKind.Talk, Target = id, Argument = ActionRequestMessage.TalkCommand }.Write()); }, allowSelfDefault: false);
                 break;
             case "barter":
                 Aim(TargetCreature, target, "bartering", (t, _) => { if (t is { } id && id != Session.ControlledId) Session.Request("barter-request", new { target = id }); }, allowSelfDefault: false);
