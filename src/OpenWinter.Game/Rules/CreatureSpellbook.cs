@@ -81,6 +81,7 @@ public static partial class CreatureRules
         }
         foreach (var (_, _, p) in EquippedProperties(c))
             if (p.Type == NwRules.IpBonusSpellSlot && p.SubType == cls && p.CostTableValue == level) slots++;
+        if (c.Overrides is { } o) slots += o.BonusSpells.GetValueOrDefault((ClassIndex(c, cls), level));
         return slots;
     }
 

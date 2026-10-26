@@ -60,7 +60,8 @@ public static class LegalCharacterCheck
             for (int sk = 0; sk < ranks.Count; sk++) if (ranks[sk].GetInt("Rank") is > 0 and var r) ch.Skills[sk] = (int)r;
             var probe = ProgressionRules.Plan(w, s, ch, player: true, carried, checkVariables: false);
             var gainedFeats = e.GetList("FeatList").Select(f => (int)f.GetInt("Feat")).ToList();
-            ch.Feats = gainedFeats.Where(f => !probe.GrantedFeats.Contains(f)).ToList();
+            // A level lists the class's feats again when the character had them already; those weren't chosen.
+            ch.Feats = gainedFeats.Where(f => !probe.GrantedFeats.Contains(f) && !probe.AllGrantedFeats.Contains(f)).ToList();
             foreach (var g in probe.GrantedFeats.Where(f => !gainedFeats.Contains(f)))
                 errors.Add(new("history", $"Level {i + 1}: the granted feat {ProgressionRules.FeatName(w, g)} is missing."));
             var granted = probe.Spells.SelectMany(p => p.Granted.SelectMany(k => k.Value.Select(sp => (k.Key, sp)))).ToHashSet();

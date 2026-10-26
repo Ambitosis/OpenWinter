@@ -82,10 +82,20 @@ namespace OpenWinter.Game
         }
 
         /// <summary>PERSPACE: the creature's own size against walls, and the step of the free spot search.</summary>
-        public static float Radius(World world, Creature c) { Radii(world, c); return c.SpaceRadius; }
+        public static float Radius(World world, Creature c)
+        {
+            if (c.Overrides?.PersonalSpace is float set) return set;
+            Radii(world, c);
+            return c.SpaceRadius;
+        }
 
         /// <summary>CREPERSPACE: how far other creatures keep from this one (the two values add up).</summary>
-        public static float CreatureSpace(World world, Creature c) { Radii(world, c); return c.SpaceCreature; }
+        public static float CreatureSpace(World world, Creature c)
+        {
+            if (c.Overrides?.CreaturePersonalSpace is float set) return set;
+            Radii(world, c);
+            return c.SpaceCreature;
+        }
 
         public static bool IsGhost(Creature c)
         {

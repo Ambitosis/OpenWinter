@@ -36,6 +36,8 @@ public sealed class LevelPlan
     public readonly List<SkillOption> Skills = new();
     public int GeneralFeatSlots, BonusFeatSlots;
     public readonly List<int> GrantedFeats = new();
+    /// <summary>Every feat the class grants at the level, with those the creature already has.</summary>
+    public readonly List<int> AllGrantedFeats = new();
     public readonly List<int> GeneralFeatChoices = new();
     public readonly List<int> BonusFeatChoices = new();
     public readonly List<SpellPick> Spells = new();
@@ -178,7 +180,10 @@ public static partial class ProgressionRules
         int cls = ch.Class;
         bool firstLevel = s.TotalLevel == 1;
         foreach (var f in GrantedFeats(w, s.Race, cls, cc.Level, firstLevel, plan.PickDomains ? cc.Domain1 : -1, plan.PickDomains ? cc.Domain2 : -1))
+        {
+            plan.AllGrantedFeats.Add(f);
             if (!s.Feats.Contains(f)) { plan.GrantedFeats.Add(f); s.Feats.Add(f); }
+        }
         plan.GeneralFeatSlots = GeneralFeatSlots(w, s.Race, s.TotalLevel);
         plan.BonusFeatSlots = BonusFeatSlots(w, cls, cc.Level);
 

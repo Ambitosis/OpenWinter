@@ -93,9 +93,19 @@ public static class EffectImmunity
 {
     public static bool IsImmune(World world, GameObject target, int immunityType, GameObject? versus = null)
     {
+        bool immune = ImmuneByRules(world, target, immunityType, versus);
+        // A script's chance to bypass immunities (NWNX_Creature_SetBypassEffectImmunity), for the effect's creator
+        // or its target.
+        if (target is Creature c && (c.Overrides != null || (versus as Creature)?.Overrides != null))
+            return CreatureRules.BypassImmunity(c, immunityType, versus as Creature, immune);
+        return immune;
+    }
+
+    static bool ImmuneByRules(World world, GameObject target, int immunityType, GameObject? versus)
+    {
         // Creature queries include racial/class feat immunities as well as effects
         // and equipment. Applying an effect must honor those same immunities.
-        if (target is Creature creature && CreatureRules.IsImmune(world, creature, immunityType, versus)) return true;
+        if (target is Creature creature && CreatureRules.IsImmuneByRules(world, creature, immunityType, versus)) return true;
         var k = EffectConstants.Of(world);
         foreach (var e in target.Effects)
             if (e.Type == k.Immunity && e.Ints[0] == immunityType && EffectQueries.AppliesVersus(e, versus)) return true;
