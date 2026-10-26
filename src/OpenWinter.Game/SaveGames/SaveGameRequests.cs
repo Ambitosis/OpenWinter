@@ -36,6 +36,7 @@ public static class SaveGameRequests
     [ClientRequest("quicksave")]
     static void QuickSave(Request r)
     {
+        if (Nwnx.Plugins.NwnxTweaks.Of(r.World).DisableQuicksave && (r.Player.Player?.IsDM == true || r.Player.IsDMAvatar)) return;
         byte[]? screen = null;
         if (r.Str("screenshot") is { Length: > 0 } b64)
             try { screen = Convert.FromBase64String(b64); } catch (FormatException) { }

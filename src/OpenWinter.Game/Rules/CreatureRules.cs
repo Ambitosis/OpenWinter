@@ -290,7 +290,7 @@ public static partial class CreatureRules
         int b = BaseAbility(w, c, ability);
         if (baseOnly) return b;
         // A helpless creature (held, stunned, asleep, entangled, petrified) has a Dexterity of 3.
-        if (effects && helpless && ability == NwRules.AbilityDex && IsHelpless(c)) return 3;
+        if (effects && helpless && ability == NwRules.AbilityDex && IsHelpless(c) && !Nwnx.Plugins.NwnxTweaks.Of(w).AlwaysReturnFullDexStat) return 3;
         var (inc, dec) = AbilityAdjustments(w, c, ability, effects, items);
         int total = b + Clamp(inc, dec, w.Limits.AbilityBonus, w.Limits.AbilityPenalty);
         return Math.Max(3, total);

@@ -339,7 +339,7 @@ public sealed partial class CombatSystem
         riposte = false;
         var a = o.Context;
         if (a.Target is not Creature tc || !tc.ActionModes.Contains(CombatK.ModeParry) || a.TargetDeniedDex || !CanAttack(tc)) return false;
-        if (tState.Parries >= Math.Max(1, CreatureRules.AttacksPerRound(_world, tc))) return false;
+        if (tState.Parries >= Math.Max(1, CreatureRules.AttacksPerRound(_world, tc)) && !Nwnx.Plugins.NwnxTweaks.Of(_world).ParryAllAttacks) return false;
         tState.Parries++;
         int parry = Dice.Roll(20) + CreatureRules.SkillRank(_world, tc, CombatK.SkillParry);
         if (HasFeat(tc, CombatK.FeatImprovedParry)) parry += RI("IMPROVED_PARRY_MODIFIER", 4);

@@ -283,7 +283,7 @@ public static class HitPoints
         int hp = Current(target);
         if (hp > 0 || IsDead(target)) return;
         if (target is Creature possessed) world.System<Players.FamiliarPossession>().ReleaseControl(possessed);
-        if (target is Creature { IsPC: true } pc && hp > PlayerDeathThreshold)
+        if (target is Creature { IsPC: true } pc && hp > Nwnx.Plugins.NwnxTweaks.Of(world).PlayerDyingHpLimit)
         {
             if (before > 0)
             {
