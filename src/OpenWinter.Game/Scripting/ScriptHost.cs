@@ -145,6 +145,9 @@ public sealed partial class ScriptHost : IScriptEngine
     /// <summary>Makes a compiled program available under a script name (CompileScript).</summary>
     public void Register(string resref, NcsProgram program) => _programs[resref] = program;
 
+    /// <summary>Drops a loaded script, so its next run reads it from the resources again.</summary>
+    public void Forget(string resref) => _programs.Remove(resref);
+
     /// <summary>Source of an include (or any script) as the compiler sees it, through the resource manager.</summary>
     public string? ScriptSource(string resref) =>
         World.Resources.Read(resref, ResType.Nss) is { } b ? OpenWinter.Aurora.Text.Windows1252.GetString(b) : null;

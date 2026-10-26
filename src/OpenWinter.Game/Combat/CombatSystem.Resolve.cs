@@ -528,20 +528,26 @@ public sealed partial class CombatSystem
     };
 
     /// <summary>The combat log lines for an attack, as the original prints them.</summary>
-    public List<string> LogLines(AttackOutcome o)
+    public List<string> LogLines(AttackOutcome o) => TaggedLogLines(o).Select(l => l.Text).ToList();
+
+    /// <summary>
+    /// The combat log lines with their kinds (<see cref="FeedbackKind"/>): the attack roll, the damage dealt, notes on
+    /// either, and the "cannot damage" message.
+    /// </summary>
+    public List<(string Text, int Kind)> TaggedLogLines(AttackOutcome o)
     {
         var a = o.Context;
-        var lines = new List<string>();
+        var lines = new List<(string Text, int Kind)>();
         if (o.OutOfAmmo) return lines;
         if (o.EpicDodged)
         {
-            lines.Add($"{Name(a.Target)} : Epic Dodge : Attack evaded");
+            lines.Add(($"{Name(a.Target)} : Epic Dodge : Attack evaded", FeedbackKind.Adjective));
             return lines;
         }
         if (o.CoupDeGrace)
         {
             // parity/visual scene coupdegrace: "Coup De Grace : Aluvian Darkstar attacks Bandit : *automatic hit* : (20 + 0 = 20)".
-            lines.Add($"{CoupDeGraceLabel} : {Name(a.Attacker)} attacks {Name(a.Target)} : *{AutomaticHit}* : ({o.Roll} + {o.AttackBonus} = {o.Roll + o.AttackBonus})");
+            lines.Add(($"{CoupDeGraceLabel} : {Name(a.Attacker)} attacks {Name(a.Target)} : *{AutomaticHit}* : ({o.Roll} + {o.AttackBonus} = {o.Roll + o.AttackBonus})", FeedbackKind.Attack));
             return lines;
         }
         string prefix = o.Feedback.Count > 0 && (a.Kind != AttackKind.Normal || a.SpecialAttack != 0 || a.SpecialFeat >= 0 || o.SneakSituation) ? o.Feedback[0] + " : " : "";
@@ -556,17 +562,17 @@ public sealed partial class CombatSystem
         string roll = $"({o.Roll} {bonus} = {o.Roll + o.AttackBonus}";
         if (o.Threat) roll += $" : Threat Roll: {o.ConfirmRoll} {bonus} = {o.ConfirmRoll + o.AttackBonus}";
         roll += ")";
-        lines.Add($"{prefix}{Name(a.Attacker)} attacks {Name(a.Target)} : {result} : {roll}");
+        lines.Add(($"{prefix}{Name(a.Attacker)} attacks {Name(a.Target)} : {result} : {roll}", FeedbackKind.Attack));
         if (o.Damage == null || o.Breakdown is not { } b) return lines;
         string who = Name(a.Attacker), whom = Name(a.Target);
         // As the original prints it: the damage that got through (every type the hit carried, 0 where it was all
         // taken), then what the target's defences took; a plot target takes 0 physical.
         if (b.Plot)
         {
-            lines.Add($"{who} damages {whom}: 0 (0 Physical)");
-            if (o.CriticalImmune) lines.Add($"{whom} : {ImmuneCriticals}");
-            if (o.SneakImmune) lines.Add($"{whom} : {ImmuneSneak}");
-            lines.Add(CannotDamage);
+            lines.Add(($"{who} damages {whom}: 0 (0 Physical)", FeedbackKind.ComplexDamage));
+            if (o.CriticalImmune) lines.Add(($"{whom} : {ImmuneCriticals}", FeedbackKind.Adjective));
+            if (o.SneakImmune) lines.Add(($"{whom} : {ImmuneSneak}", FeedbackKind.Adjective));
+            lines.Add((CannotDamage, FeedbackKind.Message));
             return lines;
         }
         int total = b.Dealt.Values.Sum();
@@ -574,15 +580,15 @@ public sealed partial class CombatSystem
         {
             var parts = b.Dealt.OrderBy(kv => (kv.Key & CombatK.PhysicalDamage) != 0 ? 0 : kv.Key)
                 .GroupBy(kv => DamageTypeName(kv.Key)).Select(g => $"{g.Sum(kv => kv.Value)} {g.Key}");
-            lines.Add($"{who} damages {whom}: {total} ({string.Join(" ", parts)})");
+            lines.Add(($"{who} damages {whom}: {total} ({string.Join(" ", parts)})", FeedbackKind.ComplexDamage));
         }
-        if (o.CriticalImmune) lines.Add($"{whom} : {ImmuneCriticals}");
-        if (o.SneakImmune) lines.Add($"{whom} : {ImmuneSneak}");
-        if (b.Reduction > 0) lines.Add($"{whom} : Damage Reduction absorbs {b.Reduction} damage");
-        if (b.Resistance > 0) lines.Add($"{whom} : Damage Resistance absorbs {b.Resistance} damage");
+        if (o.CriticalImmune) lines.Add(($"{whom} : {ImmuneCriticals}", FeedbackKind.Adjective));
+        if (o.SneakImmune) lines.Add(($"{whom} : {ImmuneSneak}", FeedbackKind.Adjective));
+        if (b.Reduction > 0) lines.Add(($"{whom} : Damage Reduction absorbs {b.Reduction} damage", FeedbackKind.Adjective));
+        if (b.Resistance > 0) lines.Add(($"{whom} : Damage Resistance absorbs {b.Resistance} damage", FeedbackKind.Adjective));
         foreach (var g in b.Immunity.GroupBy(kv => DamageTypeName(kv.Key)))
-            lines.Add($"{whom} : Damage Immunity absorbs {g.Sum(kv => kv.Value)} point(s) of {g.Key}");
-        if (total <= 0) lines.Add(CannotDamage);
+            lines.Add(($"{whom} : Damage Immunity absorbs {g.Sum(kv => kv.Value)} point(s) of {g.Key}", FeedbackKind.Adjective));
+        if (total <= 0) lines.Add((CannotDamage, FeedbackKind.Message));
         return lines;
     }
 
@@ -595,7 +601,8 @@ public sealed partial class CombatSystem
     {
         var a = o.Context;
         bool swingOnly = o.Pending && !o.Landed;
-        var log = swingOnly ? new List<string>() : LogLines(o);
+        var tagged = swingOnly ? new List<(string Text, int Kind)>() : TaggedLogLines(o);
+        var log = tagged.Select(l => l.Text).ToList();
         _world.Output?.Notify(o.Pending && o.Landed ? "attack-impact" : "attack", a.Attacker, new
         {
             pending = swingOnly,
@@ -618,8 +625,8 @@ public sealed partial class CombatSystem
         // bystander, the master of an associate that attacks or is attacked).
         var attackerPlayer = Society.AssociateService.PlayerMaster(_world, a.Attacker);
         foreach (var who in Society.AssociateService.AttackFeedbackPlayers(_world, a.Attacker, a.Target))
-            foreach (var line in log)
-                if (line != CannotDamage || who == attackerPlayer) _world.Output?.SendMessage(who, line);
+            foreach (var (line, kind) in tagged)
+                if (line != CannotDamage || who == attackerPlayer) _world.Output?.SendFeedback(who, line, kind);
     }
 
     /// <summary>

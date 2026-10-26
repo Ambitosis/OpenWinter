@@ -126,12 +126,12 @@ public sealed partial class SkillSystem : IWorldSystem
         };
         if (c.IsPC)
         {
-            output.SendMessage(c, text);
+            output.SendFeedback(c, text, FeedbackKind.UseSkill);
             output.Notify("skill-check", c, data, c);
         }
         if (versus is Creature { IsPC: true } other && other != c)
         {
-            output.SendMessage(other, text);
+            output.SendFeedback(other, text, FeedbackKind.UseSkill);
             output.Notify("skill-check", c, data, other);
         }
     }

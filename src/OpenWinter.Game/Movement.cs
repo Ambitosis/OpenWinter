@@ -31,7 +31,7 @@ public static class Movement
     public static float MaxSpeed(World world, Creature c, out bool walking)
     {
         float factor = Rules.CreatureRules.MovementSpeedFactor(world, c);
-        bool walk = c.WalkRequested || Rules.CreatureRules.IsSlowed(c) || c.Effects.Any(e => e.Type is EffectForceWalk or Combat.CombatK.EffectDazed);
+        bool walk = c.WalkRequested || c.AlwaysWalk || Rules.CreatureRules.IsSlowed(c) || c.Effects.Any(e => e.Type is EffectForceWalk or Combat.CombatK.EffectDazed);
         int stage = Math.Max(walk ? 1 : 0, Skills.SkillSystem.ModeStages(world, c) + (c.IsPC ? c.LoadStage : 0));
         walking = stage > 0;
         float speed = (stage == 0 ? c.RunRate : c.WalkRate * MathF.Pow(0.5f, stage - 1)) * factor;

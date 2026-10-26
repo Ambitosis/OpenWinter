@@ -168,7 +168,7 @@ public static class SpellDefense
     public static void Feedback(World w, GameObject target, GameObject? other, string text)
     {
         if (w.Output == null) return;
-        if (target is Creature { IsPC: true } pc) w.Output.SendMessage(pc, text);
-        if (other is Creature { IsPC: true } opc && opc != target) w.Output.SendMessage(opc, text);
+        if (target is Creature { IsPC: true } pc) w.Output.SendFeedback(pc, text, FeedbackKind.SpellResistance);
+        if (other is Creature { IsPC: true } opc && opc != target) w.Output.SendFeedback(opc, text, FeedbackKind.SpellResistance);
     }
 }

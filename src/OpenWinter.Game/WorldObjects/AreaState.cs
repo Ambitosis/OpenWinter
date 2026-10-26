@@ -77,6 +77,8 @@ namespace OpenWinter.Game.WorldObjects
         public bool SunDirectionSet, MoonDirectionSet;
         public Vector3 WindDirection = new(1, 1, 0);
         public float WindMagnitude, WindYaw, WindPitch;
+        /// <summary>A script set the wind (SetAreaWind); until then the area reports no wind direction or strength.</summary>
+        public bool WindScripted;
         public bool TileBorderDisabled, DefaultGrassDisabled;
         public Dictionary<int, object> GrassOverrides = new();
         /// <summary>Explored tiles per player creature.</summary>
