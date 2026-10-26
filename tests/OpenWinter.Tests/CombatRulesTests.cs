@@ -119,6 +119,43 @@ public class CombatRulesTests
         return e;
     }
 
+    [DataFact]
+    public void DamageAnAttackScriptSetsStillDrainsLimitedReduction()
+    {
+        var f = Make(scripts: true);
+        var a = Make(f, Fighter, 5, new Vector3(10, 10, 0));
+        Equip(f, a, Longsword, EquipSlot.RightHand);
+        var t = Target(f, new Vector3(11, 10, 0));
+        var k = EffectConstants.Of(f.W);
+        var dr = new Effect { Type = k.DamageReduction, DurationType = 2 };
+        dr.Ints[0] = 10; // soaks 10 a hit against power below +5, 20 points in all
+        dr.Ints[1] = 5;
+        dr.Ints[2] = 20;
+        t.Effects.Add(dr);
+        // The attack script sets every hit to 3 base damage.
+        var body = "NWNXCall(\"NWNX_Damage\",\"GetAttackEventData\");object o=NWNXPopObject();int i;int v;"
+            + "for(i=0;i<41;i++){v=NWNXPopInt();if(i<32)SetLocalInt(OBJECT_SELF,\"v\"+IntToString(i),v);if(i==33)SetLocalInt(OBJECT_SELF,\"r\",v);if(i==35)SetLocalInt(OBJECT_SELF,\"s\",v);}"
+            + "NWNXPushInt(GetLocalInt(OBJECT_SELF,\"s\"));NWNXPushInt(GetLocalInt(OBJECT_SELF,\"r\"));"
+            + "for(i=31;i>=0;i--){v=GetLocalInt(OBJECT_SELF,\"v\"+IntToString(i));if(i==12)v=3;NWNXPushInt(v);}"
+            + "NWNXCall(\"NWNX_Damage\",\"SetAttackEventData\");";
+        var code = OpenWinter.Game.Scripting.Compiler.NssCompiler.Compile("void main(){" + body + "}", "atk_set", f.W.Scripts!.Definitions, _ => null, out var error);
+        Assert.True(code != null, error);
+        f.W.Scripts.Register("atk_set", new NcsProgram("atk_set", code!));
+        var reg = f.W.System<OpenWinter.Game.Nwnx.NwnxRegistry>();
+        reg.Stack.Push(OpenWinter.Game.Nwnx.NwnxValue.Object(GameObject.InvalidId));
+        reg.Stack.Push(OpenWinter.Game.Nwnx.NwnxValue.String("atk_set"));
+        reg.Stack.Push(OpenWinter.Game.Nwnx.NwnxValue.String("ATTACK"));
+        Assert.True(reg.Call("Damage", "SetEventScript"));
+
+        int hp = t.CurrentHitPoints;
+        f.Dice(15, 6);
+        var o = f.Combat.Resolve(Ctx(f, a, t));
+        Assert.True(o.Hit);
+        Assert.Equal(hp - 3, t.CurrentHitPoints);
+        // The rolled 6 met the reduction, which spent 6 of its 20 points.
+        Assert.Equal(14, dr.Ints[2]);
+    }
+
     static AttackContext Ctx(Fx f, Creature a, GameObject t, bool offHand = false)
     {
         var (main, off, _) = f.Rules.Weapons(a);

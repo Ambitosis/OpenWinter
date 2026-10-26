@@ -172,6 +172,10 @@ public sealed partial class CombatSystem
                 if (tc != null) DefensiveRoll(o, tc);
                 ApplyHardness(t, o.Damage);
                 o.Breakdown = new DamageBreakdown();
+                // Damage a script set got past the defences already; limited resistances and reductions still spend
+                // what they took from the rolled blow.
+                if (o.Damage.Defended && o.Damage.Met is { } met)
+                    HitPoints.Defend(_world, t, att.Id, met.ByType, met.Power, ignoreReductions: false, a.Ranged, met.Unresisted, o.Breakdown, consume: true);
                 o.Dealt = HitPoints.Damage(_world, t, att.Id, o.Damage.ByType, o.Damage.Power, ignoreReductions: false, ranged: a.Ranged, combat: true,
                     unresisted: o.Damage.Unresisted, breakdown: o.Breakdown, defended: o.Damage.Defended);
                 o.Killed = HitPoints.IsDead(t);

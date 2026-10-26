@@ -122,7 +122,7 @@ public sealed partial class CombatSystem
             o.Devastating = data.AttackResult == NwnxAttackEventData.DevastatingCritical;
             if (!data.Damage.SameAs(before) || o.Damage == null)
             {
-                var set = new DamageRoll { Defended = true, Power = o.Damage?.Power ?? 0 };
+                var set = new DamageRoll { Defended = true, Power = o.Damage?.Power ?? 0, Met = o.Damage is { Defended: false } rolled ? rolled : o.Damage?.Met };
                 foreach (var (type, amount) in data.Damage.ToDictionary()) set.ByType[type] = amount;
                 o.Damage = set;
             }

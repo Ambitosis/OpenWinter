@@ -710,7 +710,9 @@ public sealed partial class GameServer : IWorldOutput
             {
                 if (Persistence.ServerVault.Load(World, s.PlayerName, choice.File) is { } bic)
                 {
-                    if (!Legal(s, bic, out c)) return;
+                    // Server-vault characters are trusted unless the ELC options ask for them to be checked too.
+                    if (Nwnx.Plugins.ElcPlugin.OptionsOf(World).ServerVault) { if (!Legal(s, bic, out c)) return; }
+                    else c = World.Creatures.FromTemplate(bic);
                     c.VaultFile = Path.GetFileNameWithoutExtension(choice.File);
                 }
             }
@@ -735,7 +737,8 @@ public sealed partial class GameServer : IWorldOutput
     /// <summary>
     /// Loads a chosen character and, with Enforce Legal Characters on, validates it: the rule check replays its level
     /// history, and NWNX_ELC's script, checks and events (<see cref="Nwnx.Plugins.ElcPlugin.Validate"/>) decide which
-    /// failures stand. A character that fails is told why and never enters.
+    /// failures stand. A character that fails is told why and never enters. Local-vault characters only, unless the
+    /// ELC options include the server vault.
     /// </summary>
     bool Legal(PlayerSession s, GffStruct bic, out Creature c)
     {

@@ -786,10 +786,11 @@ public static partial class CreatureRules
     /// Skill bonus from feats (<see cref="SkillFeatTable"/>): Skill Focus and Epic Skill Focus, racial, background and
     /// class feats whose area and time conditions hold, with their class level parts.
     /// </summary>
-    public static int FeatSkillBonus(World w, Creature c, int skill)
+    public static int FeatSkillBonus(World w, Creature c, int skill) => FeatSkillBonus(w, c, skill, AllFeats(w, c).ToHashSet());
+
+    static int FeatSkillBonus(World w, Creature c, int skill, HashSet<int> owned)
     {
         int b = 0;
-        var owned = AllFeats(w, c).ToHashSet();
         foreach (var f in SkillFeatTable.Of(w).ForSkill(skill))
             if (owned.Contains(f.Feat) && SkillFeatTable.Applies(w, c, f)) b += f.Modifier + SkillFeatTable.ClassLevelBonus(c, f);
         return b;
@@ -845,9 +846,13 @@ public static partial class CreatureRules
         int total = SkillRankBase(c, skill);
         int ability = NwRules.AbilityFromLabel(skills.Get(skill, "KeyAbility"));
         total += SkillAbilityModifier(w, c, skill, ability, owned);
-        total += FeatSkillBonus(w, c, skill);
-        if (skills.GetInt(skill, "ArmorCheckPenalty") != 0 && !table.ForSkill(skill).Any(f => f.BypassArmorCheckPenalty && owned.Contains(f.Feat)))
-            total -= ArmourCheckPenalty(w, c);
+        total += FeatSkillBonus(w, c, skill, owned);
+        if (skills.GetInt(skill, "ArmorCheckPenalty") != 0)
+        {
+            bool bypass = false;
+            foreach (var f in table.ForSkill(skill)) if (f.BypassArmorCheckPenalty && owned.Contains(f.Feat)) { bypass = true; break; }
+            if (!bypass) total -= ArmourCheckPenalty(w, c);
+        }
         if (c.Area != null) total += table.AreaModifier(c.Area.Id, skill);
 
         int dec = 0;

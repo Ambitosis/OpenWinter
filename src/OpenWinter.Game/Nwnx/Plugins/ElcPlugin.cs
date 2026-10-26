@@ -66,6 +66,12 @@ public static class ElcPlugin
         public bool EnforceDefaultEventScripts = Flag("NWNX_ELC_ENFORCE_DEFAULT_EVENT_SCRIPTS");
         public bool EnforceEmptyDialog = Flag("NWNX_ELC_ENFORCE_EMPTY_DIALOG_RESREF");
         public bool EnforceCasterPrimaryStat = Flag("NWNX_ELC_ENFORCE_CASTER_PRIMARY_STAT_IS_11");
+        /// <summary>
+        /// Also validate server-vault characters, and check coloured names and the equipped items' level and
+        /// identification at login. Off by default: how nwserver treats these at login isn't measured yet (a legal
+        /// server-vault character, and one carrying an item above its level unequipped, log in with ELC and ILR on).
+        /// </summary>
+        public bool ServerVault, LoginItemAndNameChecks;
 
         static string Env(string name) => Environment.GetEnvironmentVariable(name) ?? "";
         static bool Flag(string name) => Env(name).Trim().ToLowerInvariant() is "true" or "1" or "yes" or "on";
@@ -144,7 +150,7 @@ public static class ElcPlugin
     static IEnumerable<ElcFailure> CharacterChecks(World world, Creature pc, Options o)
     {
         string name = pc.Name.Resolve(world.Resources.Talk);
-        if (name.Contains("<c", StringComparison.Ordinal) || name.Contains("</c>", StringComparison.Ordinal))
+        if (o.LoginItemAndNameChecks && (name.Contains("<c", StringComparison.Ordinal) || name.Contains("</c>", StringComparison.Ordinal)))
             yield return new ElcFailure { Type = TypeCharacter, SubType = SubColoredName, StrRef = DefaultStrRef, Reason = "coloured name" };
         if (o.EnforceCasterPrimaryStat && pc.Classes.Count > 0)
         {
@@ -179,7 +185,8 @@ public static class ElcPlugin
     {
         var o = OptionsOf(world);
         if (EventsPlugin.Signal(world, "NWNX_ON_ELC_VALIDATE_CHARACTER_BEFORE", pc).Skipped) return null;
-        var failures = errors.Select(FromRuleError).Concat(CharacterChecks(world, pc, o)).Concat(ItemChecks(world, pc)).ToList();
+        var failures = errors.Select(FromRuleError).Concat(CharacterChecks(world, pc, o)).ToList();
+        if (o.LoginItemAndNameChecks) failures.AddRange(ItemChecks(world, pc));
         if (o.CustomCheck && o.Script.Length > 0)
             failures.Add(new ElcFailure { Type = TypeCustom, SubType = SubNone, StrRef = DefaultStrRef, Reason = "custom check" });
         foreach (var f in failures)

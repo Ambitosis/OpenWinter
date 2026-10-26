@@ -600,7 +600,7 @@ public sealed partial class CombatSystem : IWorldSystem
         }
         var a = Rules.Context(c, target, weapon, planned.OffHand, Dice);
         a.Penalty = planned.Penalty;
-        (a.AttackNumber, a.ExtraAttack) = AttackNumber(s.Plan, planned, s.OpportunitySwings);
+        if (Nwnx.Plugins.DamagePlugin.HasAttackEvent(_world, c.Id)) (a.AttackNumber, a.ExtraAttack) = AttackNumber(s.Plan, planned, s.OpportunitySwings);
         if (planned.OpportunityTarget != GameObject.InvalidId) a.Kind = AttackKind.Opportunity;
         if (s.PendingFeat >= 0 && !planned.OffHand)
         {

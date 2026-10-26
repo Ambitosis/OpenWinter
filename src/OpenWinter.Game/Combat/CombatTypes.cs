@@ -121,6 +121,8 @@ public sealed class DamageRoll
     public int Power;
     /// <summary>The amounts are final: they already got past the target's defences (a script set them).</summary>
     public bool Defended;
+    /// <summary>For script-set damage, the rolled damage the target's defences met (their limits drain by it).</summary>
+    public DamageRoll? Met;
     /// <summary>Sneak attack and death attack damage included in <see cref="ByType"/>.</summary>
     public int Sneak;
     public bool DeathAttack;

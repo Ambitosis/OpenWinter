@@ -19,13 +19,13 @@ public static partial class CreatureRules
     public static int MaxLevelFrom(string? value) =>
         int.TryParse(value?.Trim(), out int n) && n > StandardMaxLevel && n <= 60 ? n : StandardMaxLevel;
 
-    /// <summary>XP needed to reach a character level (exptable.2da).</summary>
+    /// <summary>XP needed to reach a character level (exptable.2da); a level the table has no row for can't be reached.</summary>
     public static int XPForLevel(World w, int level)
     {
         if (level <= 1) return 0;
         var t = w.Resources.TwoDA("exptable");
-        int row = Math.Min(level - 1, t.RowCount - 1);
-        return row < 0 ? int.MaxValue : t.GetInt(row, "XP", int.MaxValue);
+        int row = level - 1;
+        return row >= t.RowCount ? int.MaxValue : t.GetInt(row, "XP", int.MaxValue);
     }
 
     /// <summary>The highest level an amount of XP allows.</summary>

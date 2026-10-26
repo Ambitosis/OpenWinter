@@ -28,6 +28,9 @@ The combat plugins (NWNX_Damage, NWNX_Weapon, NWNX_SkillRanks, NWNX_ELC) have no
 settings act on combat, skill ranks and character validation. NWNX_ELC reads its options, and NWNX_MaxLevel its level
 cap, from the same environment variables as NWNX (`NWNX_ELC_*`, `NWNX_MAXLEVEL_MAX`). One call keeps
 its value without an engine effect, as on nwserver: NWNX_Weapon_SetWeaponUnarmed doesn't make a weapon finessable.
+NWNX_ELC validates local-vault characters when Enforce Legal Characters is on. Server-vault characters, coloured
+names and the equipped items' level and identification are not checked at login (`ElcPlugin.Options.ServerVault`,
+`LoginItemAndNameChecks`): nwserver's handling of them at login isn't measured yet.
 
 ## Testing
 
