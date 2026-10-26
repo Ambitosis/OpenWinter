@@ -200,7 +200,7 @@ static class NwnRecordingDump
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
-///              [--nui-click WINDOW:ELEMENT,...] [--record FILE]
+///              [--nui-click WINDOW:ELEMENT,...] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart;
 /// click each NUI element three seconds apart once its window is open)
 /// </summary>
@@ -222,6 +222,9 @@ static class NwnBridgeProbe
         var axes = Opt("--axes", "0,1,0").Split(',').Select(float.Parse).ToArray();
         var driveState = 0;
         var uses = new Queue<string>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var attacks = new Queue<string>(Opt("--attack", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var attackAt = double.Parse(Opt("--attack-at", "10"));
+        var respawnAt = double.Parse(Opt("--respawn-at", "0"));
         var nextUse = 6.0;
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
@@ -306,6 +309,23 @@ static class NwnBridgeProbe
                     .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} using \"{name}\": {target:X}");
                 if (target != 0) bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }.Write());
+            }
+            if (walked && attacks.Count > 0 && clock.Elapsed.TotalSeconds > attackAt)
+            {
+                // Attack the nearest living creature whose name contains each NAME, the next one five seconds later.
+                attackAt = clock.Elapsed.TotalSeconds + 5;
+                var name = attacks.Dequeue();
+                var here = at;
+                var target = objects.Where(kv => kv.Value.Kind == OpenWinter.Net.ObjectKind.Creature && kv.Key != controlled && kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} attacking \"{name}\": {target:X}");
+                if (target != 0) bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "attack", Json = $"{{\"target\":{target}}}" }.Write());
+            }
+            if (respawnAt > 0 && clock.Elapsed.TotalSeconds > respawnAt)
+            {
+                respawnAt = 0;
+                bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "respawn", Json = "{}" }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} respawn pressed");
             }
             if (clicks.Count > 0 && nextClick > 0 && clock.Elapsed.TotalSeconds > nextClick && clicks.Peek().Split(':') is [var window, var element] && windows.TryGetValue(window, out var token))
             {
