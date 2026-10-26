@@ -18,6 +18,15 @@ public static class AssociateService
     {
         if (associate == master) return;
         if (world.Get<Creature>(associate.Master) is { } old && old != master) Remove(world, old, associate);
+        // NWNX_ON_ADD_ASSOCIATE around it, OBJECT_SELF the master (nwnx_events_creature).
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_ADD_ASSOCIATE", master)?.Add("ASSOCIATE_OBJECT_ID", associate);
+        ev?.Before();
+        AddNow(world, master, associate, type);
+        ev?.After();
+    }
+
+    static void AddNow(World world, Creature master, Creature associate, int type)
+    {
         // Henchmen and dominated creatures go back to the faction they came from; familiars, companions and summons
         // were made for their master and go to the standard Commoner faction (parity suites faction_release and
         // associate_death: the same thing with a repute.fac, but without one Commoner isn't FactionID 2).
@@ -35,6 +44,15 @@ public static class AssociateService
     public static bool Remove(World world, Creature master, Creature associate)
     {
         if (associate.Master != master.Id) return false;
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_REMOVE_ASSOCIATE", master)?.Add("ASSOCIATE_OBJECT_ID", associate);
+        ev?.Before();
+        RemoveNow(world, master, associate);
+        ev?.After();
+        return true;
+    }
+
+    static void RemoveNow(World world, Creature master, Creature associate)
+    {
         world.System<Players.FamiliarPossession>().Unpossess(associate);
         master.Society.Associates.Remove(associate.Id);
         associate.Master = GameObject.InvalidId;
@@ -43,7 +61,6 @@ public static class AssociateService
         associate.Society.OriginalFaction = null;
         MoveFaction(world, associate, faction);
         PartyService.Of(world).Refresh(master);
-        return true;
     }
 
     static void MoveFaction(World world, Creature c, int faction)

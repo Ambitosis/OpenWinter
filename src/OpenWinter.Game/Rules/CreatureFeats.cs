@@ -43,10 +43,40 @@ public static partial class CreatureRules
     /// <summary>GetHasFeat: owns the feat and, unless <paramref name="ignoreUses"/>, has a use left.</summary>
     public static bool HasFeat(World w, Creature c, int feat, bool ignoreUses = false)
     {
+        // NWNX_ON_HAS_FEAT (whitelisted by feat, on by default). The original checks once, and when the creature has
+        // it twice more while counting its uses; a skip's result stands for the check (nwnx_events_creature).
+        if (HasFeatEvent(w, c, feat, out bool skipped) is bool has)
+        {
+            if (!has || ignoreUses) return has;
+            bool again = HasFeatEvent(w, c, feat, out bool s2) != false;
+            bool third = HasFeatEvent(w, c, feat, out bool s3) != false;
+            if (skipped || s2 || s3) return again && third;
+            return RemainingFeatUses(w, c, feat) > 0;
+        }
         if (!OwnsFeat(w, c, feat)) return false;
         if (ignoreUses) return true;
         return RemainingFeatUses(w, c, feat) > 0;
     }
+
+    /// <summary>One NWNX_ON_HAS_FEAT check, or null when nobody listens for this feat.</summary>
+    static bool? HasFeatEvent(World w, Creature c, int feat, out bool skipped)
+    {
+        skipped = false;
+        if (_hasFeatDepth >= 4 || Nwnx.NwnxEvent.Begin(w, "NWNX_ON_HAS_FEAT", c, "NWNX_ON_HAS_FEAT", feat) is not { } ev) return null;
+        _hasFeatDepth++;
+        try
+        {
+            bool owns = OwnsFeat(w, c, feat);
+            ev.Add("FEAT_ID", feat).Add("HAS_FEAT", owns);
+            skipped = ev.Before();
+            bool result = skipped ? ev.Result.Length > 0 && ev.Result != "0" : owns;
+            ev.After();
+            return result;
+        }
+        finally { _hasFeatDepth--; }
+    }
+
+    [ThreadStatic] static int _hasFeatDepth;
 
     /// <summary>
     /// Uses per day of a feat, or -1 for unlimited. feat.2da USESPERDAY, following the SUCCESSOR
@@ -108,7 +138,11 @@ public static partial class CreatureRules
         int max = MaxFeatUses(w, c, feat);
         if (max < 0) return;
         int left = c.FeatUses.TryGetValue(rank, out int l) ? Math.Clamp(l, 0, max) : max;
+        // NWNX_ON_DECREMENT_REMAINING_FEAT_USES: REMAINING_USES before, one less after; a skip keeps the use.
+        var ev = delta < 0 ? Nwnx.NwnxEvent.Begin(w, "NWNX_ON_DECREMENT_REMAINING_FEAT_USES", c)?.Add("FEAT_ID", feat).Add("REMAINING_USES", left) : null;
+        if (ev?.Before() == true) { ev.After(); return; }
         c.FeatUses[rank] = Math.Clamp(left + delta, 0, max);
+        ev?.Add("REMAINING_USES", c.FeatUses[rank]).After();
     }
 
     /// <summary>Restores every limited feat to its maximum uses.</summary>

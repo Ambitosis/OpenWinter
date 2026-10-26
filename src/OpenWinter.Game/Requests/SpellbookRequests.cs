@@ -38,7 +38,19 @@ public static class SpellbookRequests
     [ClientRequest("spell-memorize")]
     static void Memorize(Request r)
     {
-        var error = Memorize(r.World, r.Player, r.Int("class", -1), r.Int("level", -1), r.Int("slot", -1), r.Int("spell", -1), r.Int("meta", 0));
+        int cls = r.Int("class", -1), level = r.Int("level", -1), slot = r.Int("slot", -1), spell = r.Int("spell", -1), meta = r.Int("meta", 0);
+        int index = CreatureRules.ClassIndex(r.Player, cls);
+        // The player's spellbook: NWNX_SET_MEMORIZED_SPELL_SLOT, or NWNX_CLEAR_MEMORIZED_SPELL_SLOT for an emptied slot;
+        // a skip leaves the slot as it is.
+        var ev = spell < 0
+            ? Nwnx.NwnxEvent.Begin(r.World, "NWNX_CLEAR_MEMORIZED_SPELL_SLOT", r.Player)?.Add("SPELL_MULTICLASS", index).Add("SPELL_LEVEL", level).Add("SPELL_SLOT", slot)
+            : Nwnx.NwnxEvent.Begin(r.World, "NWNX_SET_MEMORIZED_SPELL_SLOT", r.Player)?.Add("SPELL_MULTICLASS", index).Add("SPELL_SLOT", slot)
+                .Add("SPELL_ID", spell).Add("SPELL_DOMAIN", index >= 0 && r.Player.DomainSlots.Contains((index, level, slot)) ? level : 0)
+                .Add("SPELL_METAMAGIC", meta).Add("SPELL_FROMCLIENT", true);
+        if (ev?.Before() == true) { ev.Add("ACTION_RESULT", false).After(); SendBook(r); return; }
+        var error = Memorize(r.World, r.Player, cls, level, slot, spell, meta);
+        if (spell >= 0) ev?.Add("ACTION_RESULT", error == null);
+        ev?.After();
         if (error != null) r.World.Output?.Notify("spellbook-error", r.Player, new { message = error }, r.Player);
         SendBook(r);
     }

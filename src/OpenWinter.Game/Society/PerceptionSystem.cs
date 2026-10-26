@@ -311,12 +311,12 @@ public sealed class PerceptionSystem : IWorldSystem
             else
             {
                 sees = lookable && los && (wasSeen || !t.StealthMode || trueSeeing || skills.AlwaysPerceives(c, t)
-                    || skills.Rank(t, Skills.SkillIds.Hide) == 0 || skills.RevealedSeen(c, t) || skills.SpotSucceeds(c, t));
+                    || skills.Rank(t, Skills.SkillIds.Hide) == 0 || skills.RevealedSeen(c, t) || Detection(skills, c, t, invisible, spot: true, dist));
                 // An invisible creature, or anything near a blind observer, is heard only at close range.
                 bool closeOnly = blind || invisible;
                 hears = canHear && !silenced && audible && dist <= hearing && (!closeOnly || dist <= CloseRange(c, t))
                     && (wasHeard && los && !closeOnly || !t.StealthMode || skills.AlwaysPerceives(c, t)
-                        || skills.Rank(t, Skills.SkillIds.MoveSilently) == 0 || skills.RevealedHeard(c, t) || skills.ListenSucceeds(c, t, dist));
+                        || skills.Rank(t, Skills.SkillIds.MoveSilently) == 0 || skills.RevealedHeard(c, t) || Detection(skills, c, t, invisible, spot: false, dist));
             }
             // A player's character doesn't hear an invisible creature, whatever its Move Silently (visual scenes
             // stealthview and stealthself).
@@ -435,6 +435,21 @@ public sealed class PerceptionSystem : IWorldSystem
             if (_world.Get(target) == null) continue;
             Notice(c, target, key);
         }
+    }
+
+    /// <summary>
+    /// A player's Spot or Listen check against a hider, between NWNX_ON_DO_SPOT_DETECTION / _DO_LISTEN_DETECTION's
+    /// halves: a skip's result "1" or "0" decides instead. Creatures that aren't players raise neither
+    /// (nwnx_events_traps).
+    /// </summary>
+    bool Detection(Skills.SkillSystem skills, Creature c, Creature t, bool invisible, bool spot, float dist)
+    {
+        var ev = c.IsPC ? Nwnx.NwnxEvent.Begin(_world, spot ? "NWNX_ON_DO_SPOT_DETECTION" : "NWNX_ON_DO_LISTEN_DETECTION", c) : null;
+        if (ev == null) return spot ? skills.SpotSucceeds(c, t) : skills.ListenSucceeds(c, t, dist);
+        ev.Add("TARGET", t).Add("TARGET_INVISIBLE", invisible);
+        bool result = ev.Before() ? ev.Result == "1" : spot ? skills.SpotSucceeds(c, t) : skills.ListenSucceeds(c, t, dist);
+        ev.Add("BEFORE_RESULT", result).After();
+        return result;
     }
 
     bool NpcSees(Creature c, Creature t)

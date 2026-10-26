@@ -350,12 +350,22 @@ public static class DoorService
         if (!p.HasInventory) TrapSystem.TrySpring(world, p, by);
         else if (!by.IsPC && TrapSystem.TrySpringOnNpcUse(world, p, by)) return false;
         if (p.IsDestroyed) return false;
+        // A player using a placeable: NWNX_ON_OBJECT_USE, OBJECT_SELF the player.
+        var use = by.IsPC ? Nwnx.NwnxEvent.Begin(world, "NWNX_ON_OBJECT_USE", by)?.Add("OBJECT", p) : null;
+        use?.Before();
+        using var used = new Nwnx.NwnxEvent.AfterScope(use);
         // A container opens for a player; anyone else just uses it.
         if (p.HasInventory && by.IsPC)
         {
+            // NWNX_ON_PLACEABLE_OPEN, OBJECT_SELF the placeable: a skip keeps it shut (BEFORE_SKIPPED in the _AFTER half).
+            var open = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_PLACEABLE_OPEN", p)?.Add("OBJECT", by);
+            bool skipped = open?.Before() == true;
+            open?.Add("BEFORE_SKIPPED", skipped);
+            if (skipped) { open!.After(); return false; }
             // Opening a container shows its contents; closing the loot window closes it again.
-            if (!Open(world, p, by)) return false;
+            if (!Open(world, p, by)) { open?.After(); return false; }
             world.System<Requests.ContainerService>().Show(by, p);
+            open?.After();
             return true;
         }
         world.RunEvent(p, "OnUsed", new EventContext().Set("UsedBy", by.Id));

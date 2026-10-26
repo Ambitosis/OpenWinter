@@ -50,12 +50,26 @@ public static partial class CreatureRules
     {
         EnsureInit(w, c);
         xp = Math.Max(0, xp);
+        // NWNX_ON_SET_EXPERIENCE: a skip keeps the experience, or sets its result instead (nwnx_events_creature).
+        if (Nwnx.NwnxEvent.Begin(w, "NWNX_ON_SET_EXPERIENCE", c)?.Add("XP", xp) is { } ev)
+        {
+            bool skipped = ev.Before();
+            if (!skipped) SetXPNow(w, c, xp);
+            else if (ev.HasResult && int.TryParse(ev.Result, out var r)) SetXPNow(w, c, Math.Max(0, r));
+            ev.After();
+            return;
+        }
+        SetXPNow(w, c, xp);
+    }
+
+    static void SetXPNow(World w, Creature c, int xp)
+    {
         bool couldLevel = CanLevelUp(w, c);
         int before = c.Experience;
         c.Experience = xp;
         int allowed = LevelForXP(w, xp);
         bool lost = false;
-        while (c.TotalLevel > allowed && c.TotalLevel > 1 && RemoveLastLevel(w, c)) lost = true;
+        while (c.TotalLevel > allowed && c.TotalLevel > 1 && LevelDown(w, c)) lost = true;
         if (lost) SyncHitPoints(w, c);
         if (c.IsPC)
         {
@@ -115,6 +129,23 @@ public static partial class CreatureRules
         int highest = counted[0];
         int behind = counted.Count(l => highest - l > 1);
         return Math.Max(0m, 1m - 0.2m * behind);
+    }
+
+    /// <summary>Loses the most recent level between NWNX_ON_LEVEL_DOWN_BEFORE and _AFTER.</summary>
+    public static bool LevelDown(World w, Creature c)
+    {
+        var ev = LevelDownBefore(w, c);
+        bool ok = RemoveLastLevel(w, c);
+        ev?.After();
+        return ok;
+    }
+
+    /// <summary>NWNX_ON_LEVEL_DOWN's _BEFORE half, for level losses made some other way (the caller runs After).</summary>
+    public static Nwnx.NwnxEvent? LevelDownBefore(World w, Creature c)
+    {
+        var ev = Nwnx.NwnxEvent.Begin(w, "NWNX_ON_LEVEL_DOWN", c);
+        ev?.Before();
+        return ev;
     }
 
     /// <summary>Undoes the most recent level from the level history (LvlStatList). False if there is no history to undo.</summary>

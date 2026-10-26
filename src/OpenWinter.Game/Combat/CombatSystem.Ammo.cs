@@ -30,20 +30,31 @@ public sealed partial class CombatSystem
     /// <summary>Takes one from an equipped stack; the last one is destroyed and a matching stack from the inventory takes its place.</summary>
     void UseOne(Creature c, Item item, int slotIndex)
     {
+        // NWNX_ON_ITEM_DECREMENT_STACKSIZE, OBJECT_SELF the stack; a skip keeps it whole.
+        var dec = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_ITEM_DECREMENT_STACKSIZE", item);
+        if (dec?.Before() == true) { dec.After(); return; }
         if (item.StackSize > 1)
         {
             item.StackSize--;
             _world.MarkChanged(item);
             _world.Inventory.Changed(item);
+            dec?.After();
             return;
         }
         var inv = _world.Inventory;
         inv.Detach(item);
         _world.Destroy(item);
+        dec?.After();
         if (slotIndex < 0) return;
-        var next = c.Inventory.Where(i => !i.IsDestroyed && i.BaseItem == item.BaseItem)
-            .OrderByDescending(i => i.ResRef.Equals(item.ResRef, StringComparison.OrdinalIgnoreCase) && i.Tag == item.Tag)
-            .FirstOrDefault();
+        // NWNX_ON_ITEM_AMMO_RELOAD: the next stack to load; a result names it instead.
+        var reload = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_ITEM_AMMO_RELOAD", c)?.Add("BASE_ITEM_ID", item.BaseItem).Add("BASE_ITEM_NTH", 1);
+        reload?.Before();
+        var next = reload is { HasResult: true } && uint.TryParse(reload.Result, System.Globalization.NumberStyles.HexNumber, null, out var id)
+            && _world.Get<Item>(id) is { IsDestroyed: false } forced && _world.Inventory.Owner(forced) == c ? forced
+            : c.Inventory.Where(i => !i.IsDestroyed && i.BaseItem == item.BaseItem)
+                .OrderByDescending(i => i.ResRef.Equals(item.ResRef, StringComparison.OrdinalIgnoreCase) && i.Tag == item.Tag)
+                .FirstOrDefault();
+        reload?.Add("ACTION_RESULT", next).After();
         if (next != null) inv.Equip(c, next, slotIndex);
     }
 

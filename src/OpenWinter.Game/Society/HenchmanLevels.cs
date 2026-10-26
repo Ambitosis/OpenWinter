@@ -14,6 +14,16 @@ public static class HenchmanLevels
     public static int LevelUp(World world, Creature c, int cls, bool readyAllSpells, int package)
     {
         if (c.IsDestroyed) return 0;
+        // NWNX_ON_LEVEL_UP_AUTOMATIC around the attempt, whether or not a level is gained (nwnx_events_creature).
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_LEVEL_UP_AUTOMATIC", c);
+        ev?.Before();
+        int result = LevelUpNow(world, c, cls, readyAllSpells, package);
+        ev?.After();
+        return result;
+    }
+
+    static int LevelUpNow(World world, Creature c, int cls, bool readyAllSpells, int package)
+    {
         int level = c.TotalLevel;
         if (level >= MaxLevel) return 0;
         var exp = world.Resources.TwoDA("exptable");
