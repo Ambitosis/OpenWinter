@@ -48,7 +48,7 @@ public class NwnxDiagnosticsTests
         world.Register(item);
         var calls = new (string Plugin, string Function)[]
         {
-            ("Visibility", "SetVisibilityOverride"), ("Item", "SetWeight"),
+            ("Visibility", "SetVisibilityOverride"),
             ("Dialog", "End"), ("Damage", "SetEventScript"),
             ("Player", "SetCustomToken"), ("Player", "PossessCreature"),
             ("Util", "SetResourceOverride"), ("Feedback", "SetMessageHidden"),
@@ -68,11 +68,11 @@ public class NwnxDiagnosticsTests
         registry.Stack.Push(NwnxValue.Int(23));
         registry.Stack.Push(NwnxValue.Object(item.Id));
         Assert.True(registry.Call("Item", "SetWeight"));
-        Assert.Equal(23, registry.ObjectState(item.Id)["weight"].Value);
+        Assert.Equal(23, item.WeightOverride);
         Assert.Equal(calls.Length, log.Count);
         registry.Stack.Push(NwnxValue.Object(item.Id));
         Assert.True(registry.Call("Item", "GetBaseGoldPieceValue"));
-        Assert.Equal(item.Cost, registry.PopAs(NwnxType.Int));
+        Assert.Equal((int)world.Inventory.Rules.UnitValue(item, item.Identified), registry.PopAs(NwnxType.Int));
         Assert.Equal(calls.Length, registry.MissingCalls.Count);
     }
 

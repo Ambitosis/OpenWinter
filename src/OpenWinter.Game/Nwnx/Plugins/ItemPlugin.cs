@@ -6,7 +6,7 @@ using OpenWinter.Game.Objects;
 namespace OpenWinter.Game.Nwnx.Plugins;
 
 /// <summary>NWNX_Item (parity suite nwnx_item).</summary>
-static class ItemPlugin
+public static class ItemPlugin
 {
     const string P = "Item";
 
@@ -68,7 +68,7 @@ static class ItemPlugin
     /// and the nineteen armour parts (four digits each), then the per-part colours, channel by channel, part by part
     /// (two digits, FF for none). "" for no item.
     /// </summary>
-    internal static string EntireAppearance(Item item)
+    public static string EntireAppearance(Item item)
     {
         var t = item.Template;
         var sb = new StringBuilder(328);

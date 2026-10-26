@@ -232,8 +232,11 @@ public sealed class ConversationService : IWorldSystem
         var dialog = Load(resref);
         if (dialog == null) return false;
         if (_byPc.ContainsKey(pc.Id)) Stop(pc);
-        var s = new ConversationSession { Pc = pc, Owner = owner, Dialog = dialog, ResRef = resref,
-            Private = isPrivate ?? Nwnx.Plugins.ObjectPlugin.ConversationPrivate(_world, owner) };
+        var s = new ConversationSession
+        {
+            Pc = pc, Owner = owner, Dialog = dialog, ResRef = resref,
+            Private = isPrivate ?? Nwnx.Plugins.ObjectPlugin.ConversationPrivate(_world, owner)
+        };
         _byPc[pc.Id] = s;
         int start = FirstPassing(s, dialog.Starts);
         if (start < 0) { _byPc.Remove(pc.Id); return false; }

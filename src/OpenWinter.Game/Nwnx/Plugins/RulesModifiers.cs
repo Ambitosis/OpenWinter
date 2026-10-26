@@ -11,7 +11,7 @@ namespace OpenWinter.Game.Nwnx.Plugins;
 /// works through an effect becomes a supernatural innate effect made by the module, out of the scripts' effect list
 /// and untouched by rest, dispelling and death, tagged "NWNX_Feat_FeatMod_&lt;feat&gt;" or "NWNX_Race_RacialMod".
 /// </summary>
-static class RulesModifiers
+public static class RulesModifiers
 {
     /// <summary>Unset optional parameter (the headers' default).</summary>
     public const int Unset = unchecked((int)0xDEADBEEF);
