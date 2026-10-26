@@ -652,4 +652,30 @@ public static partial class ChatMessages
             w.WriteString(Message);
         }
     }
+
+    public sealed partial class ChatPlaySound : NwnMessage
+    {
+        public const byte MajorId = 0x09;
+        public const byte MinorId = 0x07;
+        public override byte Major => MajorId;
+        public override byte Minor => MinorId;
+        public override NwnDirection Direction => NwnDirection.ServerToClient;
+
+        [NwnField("speaker_id")]
+        public uint SpeakerId { get; set; }
+        [NwnField("sound")]
+        public string Sound { get; set; } = "";
+
+        public override void Read(NwnReader r)
+        {
+            SpeakerId = r.ReadObjectId();
+            Sound = r.ReadString();
+        }
+
+        public override void Write(NwnWriter w)
+        {
+            w.WriteObjectId(SpeakerId);
+            w.WriteString(Sound);
+        }
+    }
 }

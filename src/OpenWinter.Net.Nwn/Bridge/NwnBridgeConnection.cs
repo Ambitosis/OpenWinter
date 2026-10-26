@@ -30,6 +30,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
     readonly NwnDialog _dialog;
+    readonly NwnPresentation _presentation;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -51,6 +52,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
         _dialog = new NwnDialog(_world, data, m => _toClient.Enqueue(m));
+        _presentation = new NwnPresentation(data, _world, m => _toClient.Enqueue(m));
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -158,6 +160,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
                 ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use)));
+                break;
+            case ActionKind.Emote when _presentation.Emote(a.Argument) is { } emote:
+                ToServer(emote);
                 break;
             case ActionKind.Attack:
                 ToServer(new InputMessages.InputAttack { Target = a.Target });
@@ -299,9 +304,10 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case AreaMessages.AreaClientArea area:
                 _world.Area(area);
+                _presentation.Area(area);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
-                _world.ObjectList(list);
+                _presentation.ObjectList(list, _world.ObjectList);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
@@ -313,7 +319,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 Tell("The server refused the character.");
                 break;
             default:
-                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)))
+                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !_presentation.ToClient(message))
                     NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
                 break;
         }

@@ -200,11 +200,11 @@ static class NwnRecordingDump
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
-///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--record FILE]
+///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--emote KEY,...] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
-/// once the list is used up; open the journal)
+/// once the list is used up; open the journal; play each emote, five seconds apart from six seconds in)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -226,6 +226,8 @@ static class NwnBridgeProbe
         var uses = new Queue<(string Name, bool Talk)>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => (n, false))
             .Concat(Opt("--talk", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => (n, true))));
         var nextUse = 6.0;
+        var emotes = new Queue<string>(Opt("--emote", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var nextEmote = 6.0;
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
@@ -285,6 +287,10 @@ static class NwnBridgeProbe
                         else if (u.Mode != OpenWinter.Net.MovementMode.Stand || counts[type] < 5)
                             Console.WriteLine($"{clock.ElapsedMilliseconds,6} Update {u.ObjectId:X} {u.Mode} at {u.Position} facing {u.Facing:0.00} speed {u.Speed}");
                         break;
+                    case OpenWinter.Net.MessageType.PlayAnimation:
+                        var pa = OpenWinter.Net.PlayAnimationMessage.Read(r);
+                        Console.WriteLine($"{clock.ElapsedMilliseconds,6} PlayAnimation {pa.ObjectId:X} {pa.Animation} speed {pa.Speed} for {pa.Duration}{(pa.Gesture ? " gesture" : "")}");
+                        break;
                     case OpenWinter.Net.MessageType.Despawn:
                         objects.Remove(OpenWinter.Net.DespawnMessage.Read(r).ObjectId);
                         break;
@@ -317,6 +323,13 @@ static class NwnBridgeProbe
                     bridge.Send(new OpenWinter.Net.ChatSendMessage { Channel = OpenWinter.Net.ChatChannel.Talk, Text = say }.Write());
                     Console.WriteLine($"{clock.ElapsedMilliseconds,6} said \"{say}\"");
                 }
+            }
+            if (walked && emotes.Count > 0 && clock.Elapsed.TotalSeconds > nextEmote)
+            {
+                nextEmote = clock.Elapsed.TotalSeconds + 5;
+                var emote = emotes.Dequeue();
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} emote {emote}");
+                bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Emote, Argument = emote }.Write());
             }
             if (walked && uses.Count > 0 && clock.Elapsed.TotalSeconds > nextUse)
             {
