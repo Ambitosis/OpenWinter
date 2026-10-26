@@ -6,8 +6,11 @@
         --character <name>      local-vault character copied into the server vault (default: the first one)
         --player <name>         the player name the vault folder is for (default: probe)
         --port <n>              UDP and websocket port (default 5121)
-    python tools/nwnws/nwnws.py stop
-    python tools/nwnws/nwnws.py status                server process and the end of its log
+        --instance <name>       run several servers side by side: each instance has its own sandbox
+                                (/home/nwnws/instances/<name>) and stop/status act on that one only
+        --elc / --ilr <0|1>     enforce legal characters / item level restrictions (default 0)
+    python tools/nwnws/nwnws.py stop [--instance <name>]
+    python tools/nwnws/nwnws.py status [--instance <name>]   server process and the end of its log
     python tools/nwnws/nwnws.py run-parity ...        a parity suite's module with NWNX (parity-run does this)
     python tools/nwnws/nwnws.py scripts --dest <dir>  NWNX:EE's NWScript headers, for compiling suites
 
@@ -115,11 +118,20 @@ def find_character(cfg, name):
     sys.exit(f"no character {name} in {vault}")
 
 
+def instance_paths(name):
+    """The sandbox, run script and log of a server instance; "sandbox" is the default one."""
+    if name == "sandbox":
+        return f"{HOME}/sandbox", f"{HOME}/run.sh", f"{HOME}/server.log"
+    base = f"{HOME}/instances/{name}"
+    return base, f"{base}/run.sh", f"{base}/server.log"
+
+
 def start(cfg, args):
     game = wsl_path(cfg["gameRoot"])
     module = Path(args.module) if args.module else Path(cfg["gameRoot"]) / "data" / "mod" / "Contest Of Champions 0492.mod"
     character = find_character(cfg, args.character)
     port = args.port
+    box, run, log = instance_paths(args.instance)
     # Stage the module, the character and the settings in a Windows temp folder; the server copies them in.
     stage = Path(tempfile.mkdtemp(prefix="nwnws-"))
     try:
@@ -134,17 +146,17 @@ iptables -C OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,
   iptables -A OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -C OUTPUT -m owner --uid-owner $uid -o lo -j ACCEPT 2>/dev/null || iptables -A OUTPUT -m owner --uid-owner $uid -o lo -j ACCEPT
 iptables -C OUTPUT -m owner --uid-owner $uid -j REJECT 2>/dev/null || iptables -A OUTPUT -m owner --uid-owner $uid -j REJECT
-pkill -u nwnws -f nwserver-linux || true
-# Let a running server finish shutting down before its folder goes.
-for i in $(seq 1 60); do pgrep -u nwnws -f nwserver-linux >/dev/null || break; sleep 0.5; done
-pkill -9 -u nwnws -f nwserver-linux || true
-rm -rf {HOME}/sandbox
-mkdir -p {HOME}/sandbox/modules "{HOME}/sandbox/servervault/{args.player}"
-cp "{wsl_path(stage)}/module.mod" "{HOME}/sandbox/modules/{mod_name}.mod"
-cp "{wsl_path(stage)}/character.bic" "{HOME}/sandbox/servervault/{args.player}/{character.stem.lower()}.bic"
-cp "{wsl_path(stage)}/settings.tml" {HOME}/sandbox/settings.tml
-chown -R nwnws:nwnws {HOME}/sandbox
-cat > {HOME}/run.sh <<'EOF'
+pkill -u nwnws -f -- "-userdirectory {box} " || true
+# Let this instance's server finish shutting down before its folder goes; other instances keep running.
+for i in $(seq 1 60); do pgrep -u nwnws -f -- "-userdirectory {box} " >/dev/null || break; sleep 0.5; done
+pkill -9 -u nwnws -f -- "-userdirectory {box} " || true
+rm -rf {box}
+mkdir -p {box}/modules "{box}/servervault/{args.player}"
+cp "{wsl_path(stage)}/module.mod" "{box}/modules/{mod_name}.mod"
+cp "{wsl_path(stage)}/character.bic" "{box}/servervault/{args.player}/{character.stem.lower()}.bic"
+cp "{wsl_path(stage)}/settings.tml" {box}/settings.tml
+chown -R nwnws:nwnws {box}
+cat > {run} <<'EOF'
 cd "{game}/bin/linux-x86"
 export LD_PRELOAD="{BUILD}/unified/Binaries/NWNX_Core.so"
 export NWNX_CORE_LOAD_PATH="{BUILD}/unified/Binaries"
@@ -153,20 +165,20 @@ export NWNX_CORE_SKIP_ALL=y
 export NWNX_WSNETLAYER_SKIP=n
 export NWNX_SERVERLOGREDIRECTOR_SKIP=n
 export NWNX_WSNETLAYER_PORT={port}
-exec ./nwserver-linux -userdirectory {HOME}/sandbox -module "{mod_name}" -port {port} -publicserver 0 \\
-  -servername openwinter-nwnws -maxclients 8 -servervault 1 -elc 0 -ilr 0
+exec ./nwserver-linux -userdirectory {box} -module "{mod_name}" -port {port} -publicserver 0 \\
+  -servername openwinter-nwnws -maxclients 8 -servervault 1 -elc {args.elc} -ilr {args.ilr}
 EOF
-chmod +x {HOME}/run.sh
-chown nwnws:nwnws {HOME}/run.sh
-rm -f {HOME}/server.log
-su nwnws -c "nohup {HOME}/run.sh > {HOME}/server.log 2>&1 &"
+chmod +x {run}
+chown nwnws:nwnws {run}
+rm -f {log}
+su nwnws -c "nohup {run} > {log} 2>&1 &"
 # Ready when the module has loaded (the websocket listens from then on).
 for i in $(seq 1 120); do
-  grep -q "Module loaded" {HOME}/server.log 2>/dev/null && break
-  pgrep -u nwnws -f nwserver-linux >/dev/null || {{ tail -30 {HOME}/server.log; exit 1; }}
+  grep -q "Module loaded" {log} 2>/dev/null && break
+  pgrep -u nwnws -f -- "-userdirectory {box} " >/dev/null || {{ tail -30 {log}; exit 1; }}
   sleep 0.5
 done
-grep -q "Module loaded" {HOME}/server.log && echo "nwserver ready on port {port}" || {{ tail -30 {HOME}/server.log; exit 1; }}
+grep -q "Module loaded" {log} && echo "nwserver ready on port {port}" || {{ tail -30 {log}; exit 1; }}
 """
         wsl(cfg, script)
     finally:
@@ -268,13 +280,15 @@ def scripts(cfg, args):
         wsl(cfg, f'find "{fork}/Plugins/Risenholm" -name "nwnx_risenholm*.nss" -exec cp {{}} "{wsl_path(dest)}/" \\;')
 
 
-def stop(cfg, _args):
-    wsl(cfg, "pkill -u nwnws -f nwserver-linux && echo stopping || echo 'not running'; "
-             "for i in $(seq 1 60); do pgrep -u nwnws -f nwserver-linux >/dev/null || break; sleep 0.5; done")
+def stop(cfg, args):
+    box, _, _ = instance_paths(args.instance)
+    wsl(cfg, f"pkill -u nwnws -f -- '-userdirectory {box} ' && echo stopping || echo 'not running'; "
+             f"for i in $(seq 1 60); do pgrep -u nwnws -f -- '-userdirectory {box} ' >/dev/null || break; sleep 0.5; done")
 
 
-def status(cfg, _args):
-    wsl(cfg, f"pgrep -a -u nwnws -f nwserver-linux || echo 'not running'; tail -25 {HOME}/server.log 2>/dev/null || true")
+def status(cfg, args):
+    box, _, log = instance_paths(args.instance)
+    wsl(cfg, f"pgrep -a -u nwnws -f -- '-userdirectory {box} ' || echo 'not running'; tail -25 {log} 2>/dev/null || true")
 
 
 def main():
@@ -286,8 +300,11 @@ def main():
     s.add_argument("--character", default="")
     s.add_argument("--player", default="probe")
     s.add_argument("--port", type=int, default=5121)
-    sub.add_parser("stop")
-    sub.add_parser("status")
+    s.add_argument("--instance", default="sandbox", help="a name, so several servers can run side by side")
+    s.add_argument("--elc", type=int, default=0)
+    s.add_argument("--ilr", type=int, default=0)
+    for name in ("stop", "status"):
+        sub.add_parser(name).add_argument("--instance", default="sandbox")
     r = sub.add_parser("run-parity")
     r.add_argument("--module", required=True)
     r.add_argument("--name", required=True)
