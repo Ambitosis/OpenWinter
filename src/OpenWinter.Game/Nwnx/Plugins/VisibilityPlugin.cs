@@ -4,9 +4,10 @@ namespace OpenWinter.Game.Nwnx.Plugins;
 
 /// <summary>
 /// NWNX_Visibility: overrides of which objects players' clients are shown (<see cref="VisibilityOverrides"/>; the
-/// server stops or starts sending the object at once). Measured on nwserver with NWNX:EE (parity suite nwnx_reveal):
-/// an unset override reads -1; values outside -1..4 and an invalid target fail the argument check (nothing changes,
-/// nothing is returned); an override for a non-player "player" is still stored.
+/// server stops or starts sending the object at once). Only the stored values are measured on nwserver with NWNX:EE
+/// (parity suite nwnx_reveal): an unset override reads -1; values outside -1..4 and an invalid target fail the
+/// argument check (nothing changes, nothing is returned); an override for a non-player "player" is still stored.
+/// The effect on what clients receive follows the header's description and is unmeasured (no players there).
 /// </summary>
 static class VisibilityPlugin
 {

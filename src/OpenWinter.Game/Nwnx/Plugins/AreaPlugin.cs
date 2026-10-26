@@ -14,7 +14,7 @@ namespace OpenWinter.Game.Nwnx.Plugins;
 /// them too. Measured on nwserver with NWNX:EE (parity suites nwnx_area_props, nwnx_area_tiles, nwnx_area_objects):
 /// <list type="bullet">
 /// <item>Setters ignore values out of range (PvP 0-3, wind power 0-2, weather 0-100, shadow opacity 0-100, a fog
-/// clip distance below 0, day/night types 0-2, negative colours); getters on anything but an area answer 0 (colours
+/// clip distance below 0, day/night types 0-2, negative colours; larger colours lose their high bits); getters on anything but an area answer 0 (colours
 /// and flags -1).</item>
 /// <item>A failed argument check (a tile loop outside 1-3, negative tile coordinates or index, a depth below 1, a
 /// rotation outside 1-3, a file name over 16 characters) returns nothing, which scripts read as 0 or "".</item>
@@ -169,7 +169,7 @@ static class AreaPlugin
     {
         var a = PopArea(n); int type = n.PopInt(), color = n.PopInt();
         if (a == null || type is < 0 or > 3 || color < 0) return;
-        uint rgb = (uint)Math.Min(color, 0xFFFFFF);
+        uint rgb = (uint)color & 0xFFFFFF; // masked, not clamped: 0x1000001 reads 0x010000 (nwnx_area_props)
         a.Are.SetDWord(ColorFields[type], ((rgb & 0xFF) << 16) | (rgb & 0xFF00) | ((rgb >> 16) & 0xFF));
     }
 
@@ -265,21 +265,48 @@ static class AreaPlugin
         a.Tiles[i].AnimLoops = (byte)(on ? a.Tiles[i].AnimLoops | bit : a.Tiles[i].AnimLoops & ~bit);
     }
 
+    /// <summary>
+    /// Whether a creature of personal space <c>fPerSpace</c> could walk straight between two points: 1 clear, -1 blocked
+    /// by terrain (tile ground missing or too steep a step), -2 by a placeable or a closed door (doors unless
+    /// ignored), -3 by a creature (not one standing at the start); the first obstruction along the line decides. Implemented from the header: the
+    /// call crashed nwserver on the generated parity area, so it is unmeasured. The height is not used.
+    /// </summary>
     [NwnxFunc(P, "TestDirectLine")]
     static void TestDirectLine(NwnxCall n)
     {
         var area = PopArea(n);
-        float sx = n.PopFloat(), sy = n.PopFloat(), ex = n.PopFloat(), ey = n.PopFloat();
-        n.PopFloat(); n.PopFloat(); n.PopInt();
+        float sx = n.PopFloat(), sy = n.PopFloat(), ex = n.PopFloat(), ey = n.PopFloat(), space = n.PopFloat();
+        n.PopFloat();
+        bool ignoreDoors = n.PopInt() != 0;
         if (area == null) { n.Push(0); return; }
-        // Walkable if ground exists at regular samples along the segment (1 = clear, like NWNX's "no collision").
-        int steps = Math.Max(1, (int)(MathF.Sqrt((ex - sx) * (ex - sx) + (ey - sy) * (ey - sy)) / 0.5f));
+        var from = new Vector2(sx, sy);
+        var dir = new Vector2(ex, ey) - from;
+        float length = dir.Length();
+        // The first creature in the way: the distance along the line where its space meets the walker's.
+        float creatureAt = float.MaxValue;
+        foreach (var c in area.Objects.OfType<Creature>())
+        {
+            if (c.IsDestroyed || c.IsDead) continue;
+            var p = new Vector2(c.Position.X, c.Position.Y);
+            float r = PersonalSpace.Radius(n.World, c);
+            if (Vector2.Distance(p, from) < r) continue; // the creature standing at the start: the walker itself
+            float t = length > 0 ? Math.Clamp(Vector2.Dot(p - from, dir) / (length * length), 0, 1) : 0;
+            if (Vector2.Distance(p, from + dir * t) < space + r) creatureAt = MathF.Min(creatureAt, t * length);
+        }
+        var wm = area.Walkmesh;
+        float? z = wm.GroundHeight(sx, sy, 1000f, 2000f, tilesOnly: true);
+        int steps = Math.Max(1, (int)(length / 0.25f));
         for (int i = 0; i <= steps; i++)
         {
             float t = (float)i / steps;
-            if (area.Walkmesh.HighestGround(sx + (ex - sx) * t, sy + (ey - sy) * t) == null) { n.Push(-1); return; }
+            if (t * length > creatureAt) break;
+            float x = sx + dir.X * t, y = sy + dir.Y * t;
+            var ground = z is { } nz ? wm.GroundHeight(x, y, nz, 1f, tilesOnly: true) : null;
+            if (ground == null) { n.Push(-1); return; }
+            z = ground;
+            if (wm.GroundHeight(x, y, ground.Value, 1f, ignoreClosedDoors: ignoreDoors) == null) { n.Push(-2); return; }
         }
-        n.Push(1);
+        n.Push(creatureAt < float.MaxValue ? -3 : 1);
     }
 
     [NwnxFunc(P, "GetPathExists")]
@@ -390,8 +417,9 @@ static class AreaPlugin
 
     /// <summary>
     /// Writes the area's objects as they are now to a GIT (players and excluded objects left out; filtered types'
-    /// lists left out entirely), with the area's variables if asked. Areas made from it get them on their next load:
-    /// the original does not see new files until it restarts either.
+    /// lists left out entirely), with the area's properties, its variables and UUID if asked, the top-level fields
+    /// the original writes (parity suite nwnx_area_objects compares the files). The objects themselves are in
+    /// OpenWinter's save format. Areas made from the file get them on the server's next start, as in the original.
     /// </summary>
     [NwnxFunc(P, "ExportGIT")]
     static void ExportGit(NwnxCall n)
@@ -402,8 +430,9 @@ static class AreaPlugin
         if (file.Length > 16) return;
         if (!ValidFileName(file)) { n.Push(0); return; }
         var excluded = Excluded(n);
+        excluded.RemoveWhere(id => n.World.Get(id) == null);
         var git = AuroraSaveResources.Git(n.World, a, n.Registry.Log, objectIds: false, include: o => !excluded.Contains(o.Id));
-        if (a.Environment is { } env) WriteAreaProperties(git, env);
+        git.SetStruct("AreaProperties", AreaProperties(a, Env(n, a)));
         foreach (var (type, list) in FilterLists)
             if ((filter & type) != 0) git.Remove(list);
         if (vars) ObjectSerializer.WriteLocals(git, a.Locals);
@@ -419,12 +448,7 @@ static class AreaPlugin
         if (a == null) { n.Push(0); return; }
         if (file.Length > 16) return;
         if (!ValidFileName(file)) { n.Push(0); return; }
-        var are = AuroraSaveResources.Are(a);
-        are.Remove("VarTable");
-        if (a.Environment is { } env) WriteEnvironment(are, env);
-        are.SetResRef("ResRef", file.ToLowerInvariant());
-        if (name.Length > 0) are.SetLocString("Name", new LocString(name));
-        if (tag.Length > 0) are.SetString("Tag", tag);
+        var are = Are(a, Env(n, a), file.ToLowerInvariant(), name.Length > 0 ? new LocString(name) : a.Name.Clone(), tag.Length > 0 ? tag : a.Tag);
         n.Push(TryWrite(n, ExportPath(n, file.ToLowerInvariant() + ".are"), Gff.Write(are, "ARE ")));
     }
 
@@ -438,20 +462,54 @@ static class AreaPlugin
         }
     }
 
-    /// <summary>Settings scripts changed through the engine's own functions, which live beside the ARE.</summary>
-    static void WriteEnvironment(GffStruct are, AreaEnvironment env)
+    /// <summary>The exported ARE: the fields (and types) the original writes, from the area as it is now.</summary>
+    static GffStruct Are(Area a, AreaEnvironment env, string resref, LocString name, string tag)
     {
-        are.SetInt("ChanceRain", env.ChanceRain).SetInt("ChanceSnow", env.ChanceSnow).SetInt("ChanceLightning", env.ChanceLightning);
-        are.SetInt("WindPower", env.WindPower).SetByte("NoRest", env.NoRest ? 1 : 0).SetByte("SkyBox", env.SkyBox);
-        are.SetByte("SunFogAmount", env.SunFog).SetByte("MoonFogAmount", env.MoonFog);
+        var src = a.Are;
+        uint U(string f) => (uint)src.GetInt(f);
+        var are = new GffStruct()
+            .SetLocString("Name", name).SetString("Tag", tag).SetString("ResRef", resref)
+            .SetInt("Width", a.Width).SetInt("Height", a.Height).SetResRef("Tileset", a.Tileset)
+            .SetInt("ChanceLightning", env.ChanceLightning).SetInt("ChanceRain", env.ChanceRain).SetInt("ChanceSnow", env.ChanceSnow)
+            .SetByte("DayNightCycle", (int)src.GetInt("DayNightCycle")).SetDWord("Flags", U("Flags")).SetFloat("FogClipDist", src.GetFloat("FogClipDist", 45f))
+            .SetByte("IsNight", (int)src.GetInt("IsNight")).SetByte("LightingScheme", (int)src.GetInt("LightingScheme"))
+            .SetWord("LoadScreenID", (int)src.GetInt("LoadScreenID")).SetInt("ModListenCheck", (int)src.GetInt("ModListenCheck"))
+            .SetInt("ModSpotCheck", (int)src.GetInt("ModSpotCheck")).SetDWord("MoonAmbientColor", U("MoonAmbientColor"))
+            .SetDWord("MoonDiffuseColor", U("MoonDiffuseColor")).SetByte("MoonFogAmount", env.MoonFog).SetDWord("MoonFogColor", U("MoonFogColor"))
+            .SetByte("MoonShadows", (int)src.GetInt("MoonShadows")).SetByte("NoRest", env.NoRest ? 1 : 0)
+            .SetResRef("OnHeartbeat", a.Script("OnHeartbeat")).SetResRef("OnUserDefined", a.Script("OnUserDefined"))
+            .SetResRef("OnEnter", a.Script("OnEnter")).SetResRef("OnExit", a.Script("OnExit"))
+            .SetByte("PlayerVsPlayer", (int)src.GetInt("PlayerVsPlayer", 3)).SetByte("ShadowOpacity", (int)src.GetInt("ShadowOpacity", 60))
+            .SetByte("SkyBox", env.SkyBox).SetDWord("SunAmbientColor", U("SunAmbientColor")).SetDWord("SunDiffuseColor", U("SunDiffuseColor"))
+            .SetByte("SunFogAmount", env.SunFog).SetDWord("SunFogColor", U("SunFogColor")).SetByte("SunShadows", (int)src.GetInt("SunShadows"))
+            .SetInt("WindPower", env.WindPower);
+        are.SetList("Tile_List", AuroraSaveResources.Are(a).GetList("Tile_List"));
+        return are;
     }
 
-    static void WriteAreaProperties(GffStruct git, AreaEnvironment env)
+    /// <summary>The exported GIT's AreaProperties: music and ambient sound, light, fog, sky, grass and wind as they are now.</summary>
+    static GffStruct AreaProperties(Area a, AreaEnvironment env)
     {
-        var props = git.GetStruct("AreaProperties") ?? new GffStruct(100);
-        props.SetInt("MusicDay", env.MusicDay).SetInt("MusicNight", env.MusicNight).SetInt("MusicBattle", env.MusicBattle)
-            .SetInt("MusicDelay", env.MusicDelay).SetInt("AmbientSndDay", env.AmbientDay).SetInt("AmbientSndNight", env.AmbientNight)
-            .SetInt("AmbientSndDayVol", env.AmbientDayVolume).SetInt("AmbientSndNitVol", env.AmbientNightVolume);
-        git.SetStruct("AreaProperties", props);
+        var are = a.Are;
+        var sun = env.SunDirectionSet ? env.SunDirection : DefaultLightDirection;
+        var moon = env.MoonDirectionSet ? env.MoonDirection : DefaultLightDirection;
+        var wind = env.WindScripted ? env.WindDirection : Vector3.Zero;
+        return new GffStruct(100)
+            .SetInt("AmbientSndDay", env.AmbientDay).SetInt("AmbientSndNight", env.AmbientNight)
+            .SetInt("AmbientSndDayVol", env.AmbientDayVolume).SetInt("AmbientSndNitVol", env.AmbientNightVolume)
+            .SetInt("MusicBattle", env.MusicBattle).SetInt("MusicDay", env.MusicDay).SetInt("MusicNight", env.MusicNight).SetInt("MusicDelay", env.MusicDelay)
+            .SetByte("SkyBox", env.SkyBox).SetDWord("SunAmbientColor", (uint)are.GetInt("SunAmbientColor")).SetDWord("SunDiffuseColor", (uint)are.GetInt("SunDiffuseColor"))
+            .SetDWord("SunFogColor", (uint)are.GetInt("SunFogColor")).SetByte("SunFogAmount", env.SunFog)
+            .SetDWord("MoonAmbientColor", (uint)are.GetInt("MoonAmbientColor")).SetDWord("MoonDiffuseColor", (uint)are.GetInt("MoonDiffuseColor"))
+            .SetDWord("MoonFogColor", (uint)are.GetInt("MoonFogColor")).SetByte("MoonFogAmount", env.MoonFog)
+            .SetFloat("SunDirectionX", sun.X).SetFloat("SunDirectionY", sun.Y).SetFloat("SunDirectionZ", sun.Z)
+            .SetFloat("MoonDirectionX", moon.X).SetFloat("MoonDirectionY", moon.Y).SetFloat("MoonDirectionZ", moon.Z)
+            .SetFloat("WindDirectionX", wind.X).SetFloat("WindDirectionY", wind.Y).SetFloat("WindDirectionZ", wind.Z)
+            .SetFloat("WindMagnitude", env.WindScripted ? env.WindMagnitude : 0f).SetFloat("WindYaw", env.WindScripted ? env.WindYaw : 0f)
+            .SetFloat("WindPitch", env.WindScripted ? env.WindPitch : 0f)
+            .SetString("DisplayName", "").SetByte("GrassDefDisabled", env.DefaultGrassDisabled ? 1 : 0);
     }
+
+    /// <summary>The light direction an area reports when no script has set one (as GetAreaLightDirection).</summary>
+    static readonly Vector3 DefaultLightDirection = new(0.433224291f, 0.487377316f, 0.758142531f);
 }

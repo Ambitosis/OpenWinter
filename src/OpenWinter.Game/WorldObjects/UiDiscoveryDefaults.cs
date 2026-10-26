@@ -7,7 +7,9 @@ namespace OpenWinter.Game.WorldObjects;
 /// Default UI discovery masks (NWNX_Area_SetDefaultObjectUiDiscoveryMask) per area and for all areas, by object type.
 /// An object arriving in an area takes the area's mask for its type, else the global one. Measured on nwserver
 /// (parity suite nwnx_area_objects): objects already there keep theirs unless the update is forced, an area mask
-/// wins over the global one in its area, and setting a mask back to -1 removes it.
+/// wins over the global one in its area, and setting a mask back to -1 removes it. A creature moving to another area
+/// takes that area's default even over a mask its script set. Items dropped and players arriving take it the same
+/// way here; those two are unmeasured.
 /// </summary>
 public sealed class UiDiscoveryDefaults : IWorldSystem
 {
@@ -22,7 +24,7 @@ public sealed class UiDiscoveryDefaults : IWorldSystem
     {
         _world = world;
         world.ObjectAdded += o => { if (_masks.Count > 0 && o.Area is { } a && Mask(a, o) is { } m) Apply(o, m); };
-        world.ObjectRemoved += o => { if (o is Area a) foreach (var k in _masks.Keys.Where(k => k.Area == a.Id).ToList()) _masks.Remove(k); };
+        world.ObjectRemoved += o => { if (o is Area { IsDestroyed: true } a) foreach (var k in _masks.Keys.Where(k => k.Area == a.Id).ToList()) _masks.Remove(k); };
     }
 
     public void Step(float dt) { }

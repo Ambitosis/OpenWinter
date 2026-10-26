@@ -159,6 +159,8 @@ void main()
     PLogI("set.sundifneg", NWNX_Area_GetSunMoonColors(a, 3));
     NWNX_Area_SetSunMoonColors(a, 3, 0x1FFFFFF);
     PLogI("set.sundifbig", NWNX_Area_GetSunMoonColors(a, 3));
+    NWNX_Area_SetSunMoonColors(a, 3, 0x1000001);
+    PLogI("set.sundifover", NWNX_Area_GetSunMoonColors(a, 3));
     NWNX_Area_SetSunMoonColors(a, -1, 7);
     PLogI("set.colorneg", NWNX_Area_GetSunMoonColors(a, -1));
     NWNX_Area_SetAreaFlags(a, 3);

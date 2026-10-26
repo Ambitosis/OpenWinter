@@ -5,6 +5,7 @@ namespace OpenWinter.Game.Players;
 /// <summary>
 /// Per-player and global overrides of which objects a player's client is told about (NWNX_Visibility). A player's
 /// own override wins over the global one. The server consults <see cref="Hidden"/> when it decides what to send.
+/// What each value does to a client follows the NWNX header; it is unmeasured (the NWNX server runs without players).
 /// </summary>
 public sealed class VisibilityOverrides : IWorldSystem
 {
@@ -14,10 +15,14 @@ public sealed class VisibilityOverrides : IWorldSystem
 
     public VisibilityOverrides(World world)
     {
+        // Only destruction ends overrides: an item picked up (taken out of the area) keeps its own.
         world.ObjectRemoved += o =>
         {
+            if (!o.IsDestroyed || _byTarget.Count == 0) return;
             _byTarget.Remove(o.Id);
-            if (o is Creature) foreach (var map in _byTarget.Values) map.Remove(o.Id);
+            if (o is not Creature) return;
+            foreach (var (target, map) in _byTarget.ToList())
+                if (map.Remove(o.Id) && map.Count == 0) _byTarget.Remove(target);
         };
     }
 

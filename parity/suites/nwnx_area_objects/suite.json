@@ -1,6 +1,7 @@
 {
  "seconds": 15,
  "nwnx": true,
+ "exports": ["nwexp1.are", "nwexp1.git", "nwexp2.are", "nwexp2.git", "nwexp4.are"],
  "areas": [
   { "resref": "parity", "tag": "PARITY_AREA", "size": 4, "tile": 4 },
   { "resref": "parity2", "tag": "PARITY2", "size": 3, "tileset": "ttr01", "tile": 120 },

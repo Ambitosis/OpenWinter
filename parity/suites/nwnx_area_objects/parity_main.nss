@@ -1,8 +1,11 @@
 // nwnx_area_objects: objects NWNX_Area makes (CreateTransition, CreateGenericTrigger, CreateSoundObject), the default
-// UI discovery masks, ExportARE / ExportGIT with the exclusion list (and an area created from the export), RotateArea.
+// UI discovery masks (and whether they follow a creature to another area), ExportARE / ExportGIT with the exclusion
+// list and a filter (the files themselves are compared through suite.json "exports"; CreateArea of an export fails
+// in the same run on both engines), RotateArea on square and non-square areas.
 #include "parity_inc"
 #include "nwnx_area"
 #include "nwnx_object"
+#include "nwnx_tileset"
 
 // A trigger geometry string with each number to two decimals (the engines print different decimals).
 string Geo(string s)
@@ -44,6 +47,9 @@ string TileInfo(object a, int i)
 
 void AfterExport()
 {
+    PLogI("disc.jumped", GetObjectUiDiscoveryMask(GetObjectByTag("CRM")));
+    NWNX_Area_SetDefaultObjectUiDiscoveryMask(OBJECT_INVALID, OBJECT_TYPE_ALL, OBJECT_UI_DISCOVERY_DEFAULT);
+    NWNX_Area_SetDefaultObjectUiDiscoveryMask(GetObjectByTag("PARITY2"), OBJECT_TYPE_ALL, OBJECT_UI_DISCOVERY_DEFAULT);
     object e = CreateArea("nwexp1", "EXPCOPY");
     PLogI("export.created", GetIsObjectValid(e));
     PLog("export.created.tag", GetTag(e));
@@ -151,8 +157,15 @@ void main()
     PLogI("disc.cr3.set3", GetObjectUiDiscoveryMask(cr3));
     PLogI("disc.wp", GetObjectUiDiscoveryMask(wp));
     NWNX_Area_SetDefaultObjectUiDiscoveryMask(OBJECT_INVALID, OBJECT_TYPE_ALL, OBJECT_UI_DISCOVERY_DEFAULT);
+    // A creature with a script-set mask moving to an area with a default mask of its own (read after the jump).
+    object crm = CreateObject(OBJECT_TYPE_CREATURE, "nw_goblina", PCentre(-8.0, 4.0), FALSE, "CRM");
+    SetObjectUiDiscoveryMask(crm, 5);
+    NWNX_Area_SetDefaultObjectUiDiscoveryMask(b, OBJECT_TYPE_CREATURE, OBJECT_UI_DISCOVERY_HILITE_TAB);
+    AssignCommand(crm, JumpToLocation(Location(b, Vector(15.0, 15.0, 0.0), 0.0)));
 
-    // Export with an excluded object and a filter.
+    // Export with an excluded object and a filter, the area's own UUID and a custom wind.
+    GetObjectUUID(a);
+    SetAreaWind(a, Vector(1.0, 2.0, 0.0), 3.0, 40.0, 5.0);
     object keep = CreateObject(OBJECT_TYPE_PLACEABLE, "plc_barrel", PCentre(5.0), FALSE, "KEEP");
     SetLocalInt(keep, "kept", 3);
     object skip = CreateObject(OBJECT_TYPE_PLACEABLE, "plc_barrel", PCentre(6.0), FALSE, "SKIP");
@@ -216,5 +229,22 @@ void main()
     Obj("rot0.p", rp);
     NWNX_Area_RotateArea(c, 4);
     Obj("rot4.p", rp);
+    // A non-square (3 x 2) area made from a tile override, turned once.
+    NWNX_Tileset_CreateTileOverride("rect", "ttr01", 3, 2);
+    struct NWNX_Tileset_CustomTileData d;
+    d.nTileID = 120; d.bAnimLoop1 = TRUE;
+    for (i = 0; i < 6; i++) NWNX_Tileset_SetOverrideTileData("rect", i, d);
+    d.nTileID = 118; d.nOrientation = 1;
+    NWNX_Tileset_SetOverrideTileData("rect", 2, d);
+    NWNX_Tileset_SetAreaTileOverride("parity4", "rect");
+    object r = CreateArea("parity4", "RECT");
+    NWNX_Tileset_SetAreaTileOverride("parity4", "");
+    object rr = CreateObject(OBJECT_TYPE_WAYPOINT, "nw_waypoint001", Location(r, Vector(25.0, 4.0, 0.0), 30.0), FALSE, "RR");
+    object rq = CreateObject(OBJECT_TYPE_PLACEABLE, "plc_barrel", Location(r, Vector(5.0, 15.0, 0.0), 0.0), FALSE, "RQ");
+    NWNX_Area_RotateArea(r, 1);
+    PLog("rect.size", IntToString(GetAreaSize(AREA_WIDTH, r)) + "x" + IntToString(GetAreaSize(AREA_HEIGHT, r)));
+    for (i = 0; i < 6; i++) PLog("rect.tile" + IntToString(i), TileInfo(r, i));
+    Obj("rect.w", rr);
+    Obj("rect.p", rq);
     DelayCommand(1.0, AfterExport());
 }

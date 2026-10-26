@@ -3,7 +3,11 @@ using OpenWinter.Game.Skills;
 
 namespace OpenWinter.Game.Nwnx.Plugins;
 
-/// <summary>NWNX_Reveal: stealthy creatures revealed to chosen observers or their party (<see cref="SkillSystem.RevealTo"/>).</summary>
+/// <summary>
+/// NWNX_Reveal: stealthy creatures revealed to chosen observers or their party (<see cref="SkillSystem.RevealTo"/>).
+/// Measured only for NPC observers, which nwserver leaves unaffected (parity suite nwnx_reveal). What a reveal does
+/// for a player observer follows the header's description and is unmeasured: the NWNX server runs without players.
+/// </summary>
 static class RevealPlugin
 {
     const string P = "Reveal";

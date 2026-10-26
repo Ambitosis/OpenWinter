@@ -6,7 +6,8 @@ namespace OpenWinter.Game.Skills;
 /// Hiders revealed through their stealth (NWNX_Reveal): to one observer until the hider next enters stealth out of
 /// that observer's perception, or to its party while the flag is set. A reveal is a detection method: seen, or only
 /// heard. It applies to player observers; NPC observers were measured unaffected on nwserver (parity suite
-/// nwnx_reveal: RevealTo and SetRevealToParty left stealthy hiders unperceived by NPCs 3 m away).
+/// nwnx_reveal: RevealTo and SetRevealToParty left stealthy hiders unperceived by NPCs 3 m away). The player-observer
+/// behaviour (what is perceived, when a reveal ends, who counts as party) follows the NWNX header and is unmeasured.
 /// </summary>
 public sealed partial class SkillSystem
 {

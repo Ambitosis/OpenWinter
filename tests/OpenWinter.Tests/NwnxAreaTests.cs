@@ -304,4 +304,56 @@ public class NwnxAreaTests
         Assert.Equal(8, before.UiDiscoveryMask);
         Assert.Equal(8, after.UiDiscoveryMask);
     }
+
+    [DataFact]
+    public void DirectLinesReportTerrainPlaceablesAndCreaturesInTheWay()
+    {
+        var f = FlatArea();
+        int Line(float sx, float sy, float ex, float ey) =>
+            (int)f.Call("Area", "TestDirectLine", O(f.Area), F(sx), F(sy), F(ex), F(ey), F(0.5f), F(1.8f), I(0)).Pop()!.Value.Value!;
+        Assert.Equal(1, Line(5, 5, 35, 5));
+        Assert.Equal(-1, Line(5, 5, 45, 5)); // off the area's ground
+        var walker = f.Spawn(5, 15);
+        Assert.Equal(1, Line(5, 15, 35, 15)); // the creature at the start is the walker
+        f.Spawn(20, 15.5f);
+        Assert.Equal(-3, Line(5, 15, 35, 15));
+        // A placeable's footprint across the line.
+        int owner = 4242;
+        f.Area.Walkmesh.SetPlaceableOwner(owner);
+        f.Area.Walkmesh.Add(new(19, 24, 0), new(21, 24, 0), new(21, 26, 0), 0, false, owner);
+        f.Area.Walkmesh.Add(new(19, 24, 0), new(21, 26, 0), new(19, 26, 0), 0, false, owner);
+        Assert.Equal(-2, Line(5, 25, 35, 25));
+        Assert.Equal(walker.Area, f.Area);
+    }
+
+    [DataFact]
+    public void PathChecksReuseTheAreaGraphUntilTheGroundChanges()
+    {
+        var f = FlatArea();
+        Assert.True(TilePathCheck.Exists(f.Area, new(5, 5, 0), new(35, 35, 0), 7));
+        Assert.False(TilePathCheck.Exists(f.Area, new(5, 5, 0), new(35, 35, 0), 6));
+        Assert.True(TilePathCheck.Exists(f.Area, new(5, 5, 0), new(6, 6, 0), 1));
+        // Taking a middle row of tiles' ground away cuts the area in two.
+        for (int x = 0; x < 4; x++) f.Area.Tiles[4 + x].Id = 9999;
+        WalkmeshBuilder.Rebuild(f.World, f.Area);
+        Assert.False(TilePathCheck.Exists(f.Area, new(5, 5, 0), new(35, 35, 0), 16));
+        Assert.True(TilePathCheck.Exists(f.Area, new(5, 25, 0), new(35, 35, 0), 16));
+    }
+
+    [DataFact]
+    public void VisibilityOverridesEndWithTheirObjectsButSurviveAPickUp()
+    {
+        var f = FlatArea();
+        var overrides = f.World.System<VisibilityOverrides>();
+        var pc = f.Spawn(10, 10, Commoner, pc: true);
+        var item = new Item { BaseItem = 49 };
+        f.World.AddToArea(item, f.Area, new Vector3(12, 10, 0), 0);
+        overrides.Set(pc.Id, item.Id, VisibilityOverrides.HiddenAlways);
+        f.World.LiftFromArea(item);
+        Assert.Equal(VisibilityOverrides.HiddenAlways, overrides.Get(pc.Id, item.Id));
+        var npc = f.Spawn(14, 10);
+        overrides.Set(pc.Id, npc.Id, VisibilityOverrides.HiddenAlways);
+        f.World.Destroy(pc);
+        Assert.False(overrides.Any);
+    }
 }

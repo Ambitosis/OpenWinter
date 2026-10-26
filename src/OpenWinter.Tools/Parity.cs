@@ -429,11 +429,14 @@ static partial class Parity
             args.Add(table);
         }
         if (s.NwnxRisenholm) args.Add("--risenholm");
+        string exports = Path.Combine(Repo(cfg), "out", "parity", "results", s.Name, "nwn.nwnx");
+        if (Exports(s) is not null) { args.Add("--collect"); args.Add(exports); }
         if (File.Exists(output)) File.Delete(output);
         Nwnws(cfg, [.. args]);
         var lines = File.Exists(output) ? File.ReadAllLines(output, OpenWinter.Aurora.Text.Windows1252).ToList() : [];
         if (!lines.Any(l => l.Contains("PARITY|")))
             Console.WriteLine("[nwn] no parity output; server log tail:\n  " + string.Join("\n  ", lines.TakeLast(15)));
+        if (Exports(s) is { } files) lines.AddRange(ParityExports.Readings(exports, files));
         return lines.Concat(lines.Select(ErrorReading).OfType<string>()).ToList();
     }
 
@@ -529,11 +532,22 @@ static partial class Parity
     }
 
     /// <summary>Runs the module headless on OpenWinter (no players) and returns the parity lines.</summary>
+    /// <summary>The files a suite's "exports" names (written to the user directory's nwnx folder), or null.</summary>
+    static List<string>? Exports(Suite s) => s.Get("exports") is { } e ? e.EnumerateArray().Select(f => f.GetString()!).ToList() : null;
+
     static List<string> RunOpenWinter(LocalConfig cfg, Suite s, string mod)
     {
         var paths = new GamePaths(cfg.GameRoot, SandboxUser(cfg, s), cfg.Language);
         var rm = ResMan.ForModule(paths, mod);
         var world = new OpenWinter.Game.World(rm);
+        // A suite comparing exported files gets a fresh user directory of its own, like the original's sandbox.
+        string? exportRoot = null;
+        if (Exports(s) is not null)
+        {
+            exportRoot = Path.Combine(Repo(cfg), "out", "parity", "results", s.Name, "openwinter.user");
+            if (Directory.Exists(exportRoot)) Directory.Delete(exportRoot, true);
+            world.System<OpenWinter.Game.Persistence.PersistenceSystem>().RootOverride = exportRoot;
+        }
         if (s.Difficulty > 0) world.GameDifficulty = s.Difficulty;
         world.EnableScripts();
         var lines = new List<string>();
@@ -577,6 +591,7 @@ static partial class Parity
         }
         if (s.Get("saveReload") is { } expected && expected.GetBoolean() && !reloaded)
             lines.Add("PARITY|error.restore|save marker was not reached");
+        if (exportRoot != null) lines.AddRange(ParityExports.Readings(Path.Combine(exportRoot, "nwnx"), Exports(s)!));
         lines.AddRange(lines.Select(ErrorReading).OfType<string>().ToList());
         return lines;
     }
