@@ -69,7 +69,11 @@ void Disarm()
 void Stop()
 {
     Step("stop");
+    // The first fight is over for good: neither goes back to it while the archer shoots.
+    SetIsTemporaryFriend(G(), F());
+    SetIsTemporaryFriend(F(), G());
     AssignCommand(F(), ClearAllActions(TRUE));
+    AssignCommand(G(), ClearAllActions(TRUE));
     PLog("disarmed", EvObj(GetItemInSlot(INVENTORY_SLOT_RIGHTHAND, G())));
 }
 
