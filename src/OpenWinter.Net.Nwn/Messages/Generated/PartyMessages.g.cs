@@ -22,24 +22,24 @@ public static partial class PartyMessages
 
         public override void Read(NwnReader r)
         {
-            var n1614 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1618 = n1614;
-            var list1615 = new List<uint>(Math.Max(0, count1618));
-            for (int i1616 = 0; i1616 < count1618; i1616++)
+            var n1610 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1614 = n1610;
+            var list1611 = new List<uint>(Math.Max(0, count1614));
+            for (int i1612 = 0; i1612 < count1614; i1612++)
             {
-                uint e1617;
-                e1617 = r.ReadObjectId();
-                list1615.Add(e1617);
+                uint e1613;
+                e1613 = r.ReadObjectId();
+                list1611.Add(e1613);
             }
-            Members = list1615;
+            Members = list1611;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteInteger(NwnWireType.Int, Members.Count);
-            foreach (var e1619 in Members)
+            foreach (var e1615 in Members)
             {
-                w.WriteObjectId(e1619);
+                w.WriteObjectId(e1615);
             }
         }
     }
@@ -57,24 +57,24 @@ public static partial class PartyMessages
 
         public override void Read(NwnReader r)
         {
-            var n1620 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1624 = n1620;
-            var list1621 = new List<uint>(Math.Max(0, count1624));
-            for (int i1622 = 0; i1622 < count1624; i1622++)
+            var n1616 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1620 = n1616;
+            var list1617 = new List<uint>(Math.Max(0, count1620));
+            for (int i1618 = 0; i1618 < count1620; i1618++)
             {
-                uint e1623;
-                e1623 = r.ReadObjectId();
-                list1621.Add(e1623);
+                uint e1619;
+                e1619 = r.ReadObjectId();
+                list1617.Add(e1619);
             }
-            Members = list1621;
+            Members = list1617;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteInteger(NwnWireType.Int, Members.Count);
-            foreach (var e1625 in Members)
+            foreach (var e1621 in Members)
             {
-                w.WriteObjectId(e1625);
+                w.WriteObjectId(e1621);
             }
         }
     }
@@ -92,24 +92,24 @@ public static partial class PartyMessages
 
         public override void Read(NwnReader r)
         {
-            var n1626 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1630 = n1626;
-            var list1627 = new List<uint>(Math.Max(0, count1630));
-            for (int i1628 = 0; i1628 < count1630; i1628++)
+            var n1622 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1626 = n1622;
+            var list1623 = new List<uint>(Math.Max(0, count1626));
+            for (int i1624 = 0; i1624 < count1626; i1624++)
             {
-                uint e1629;
-                e1629 = r.ReadObjectId();
-                list1627.Add(e1629);
+                uint e1625;
+                e1625 = r.ReadObjectId();
+                list1623.Add(e1625);
             }
-            Members = list1627;
+            Members = list1623;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteInteger(NwnWireType.Int, Members.Count);
-            foreach (var e1631 in Members)
+            foreach (var e1627 in Members)
             {
-                w.WriteObjectId(e1631);
+                w.WriteObjectId(e1627);
             }
         }
     }

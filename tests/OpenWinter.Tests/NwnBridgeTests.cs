@@ -2,6 +2,7 @@ using System.Numerics;
 using OpenWinter.Net;
 using OpenWinter.Net.Nwn.Bridge;
 using OpenWinter.Net.Nwn.Messages;
+using OpenWinter.Net.Nwn.Session;
 using OpenWinter.Net.Nwn.Wire;
 using Xunit;
 using static OpenWinter.Net.Nwn.Messages.GameObjUpdateAddMessages;
@@ -337,5 +338,41 @@ public class NwnBridgeTests
         output.Clear();
         mirror.ObjectList(Echo(24.97f, 26.72f));
         Assert.Equal(new Vector3(24.97f, 26.72f, 0), UpdateMessage.Read(Assert.Single(output)).Position);
+    }
+
+    static NwnMessage Decode(string hex, NwnMessage into)
+    {
+        into.Read(new NwnWsReader(Convert.FromHexString(hex), new NwnSessionContext(_ => 0, (_, _, _) => "")));
+        return into;
+    }
+
+    [Fact]
+    public void NuiWindowsAndBindsReachTheClient()
+    {
+        // As recorded: a script-built window, then a bind. JSON travels as its type byte, a length and the text.
+        var open = Decode("0803000000" + "0e0400000077696e64" + "0801000000" + "10110000007b22726f6f74223a7b7d2c2266223a317d",
+            new NuiMessages.NuiCreateWindow());
+        var bind = Decode("0801000000" + "0803000000" + "0e0c00000077696e646f775f7469746c65" + "10020000002222", new NuiMessages.NuiBinds());
+        var notes = new List<NotifyMessage>();
+        foreach (var m in new[] { open, bind, new NuiMessages.NuiDestroyWindow { Token = 3 } })
+            Assert.True(NwnNui.ToClient(m, b => notes.Add(NotifyMessage.Read(new MessageReader(b)))));
+        Assert.Equal(["nui-open", "nui-bind", "nui-close"], notes.Select(n => n.Kind));
+        Assert.Equal("""{"token":3,"id":"wind","resref":"","window":{"root":{},"f":1}}""", notes[0].Json);
+        Assert.Equal("""{"token":3,"bind":"window_title","value":""}""", notes[1].Json);
+        Assert.Equal("""{"token":3}""", notes[2].Json);
+    }
+
+    [Fact]
+    public void NuiClicksGoBackAsTheEventTheServerReads()
+    {
+        // The encoding the server acted on: a click on a window's button, with no payload.
+        var events = NwnNui.FromClient("nui-event", """{"token":3,"type":"click","element":"ok","index":-1,"payload":null}""");
+        var w = new NwnWsWriter(new NwnSessionContext(_ => 0, (_, _, _) => ""));
+        events!.Write(w);
+        Assert.Equal("0801000000" + "0803000000" + "0e05000000636c69636b" + "0e020000006f6b" + "08ffffffff" + "10040000006e756c6c",
+            Convert.ToHexString(w.ToArray()).ToLowerInvariant());
+        var edit = NwnNui.FromClient("nui-bind", """{"token":3,"bind":"name","value":"Ann"}""");
+        Assert.Equal("\"Ann\"", Assert.Single(Assert.IsType<NuiMessages.NuiBinds>(edit).Binds).Value);
+        Assert.Null(NwnNui.FromClient("area-ready", "{}"));
     }
 }

@@ -133,7 +133,9 @@ static class NwnRecordingDump
 {
     public static int Run(GamePaths paths, string[] args)
     {
-        var rm = ResMan.ForClient(paths, [], "");
+        // The server's haks override the base game's 2DAs, which decide some fields' presence.
+        var (haks, tlk) = ModuleContent(args[1]);
+        var rm = ResMan.ForClient(paths, haks, tlk);
         var context = new NwnSessionContext(t => rm.TwoDA(t).RowCount, (t, row, col) => rm.TwoDA(t).Get(row, col));
         var filter = args.Length > 2 ? args[2] : "";
         using var reader = new StreamReader(new GZipStream(File.OpenRead(args[1]), CompressionMode.Decompress));
@@ -178,13 +180,29 @@ static class NwnRecordingDump
         }
         return 0;
     }
+
+    static (List<string> Haks, string Tlk) ModuleContent(string recording)
+    {
+        using var reader = new StreamReader(new GZipStream(File.OpenRead(recording), CompressionMode.Decompress));
+        while (reader.ReadLine() is { } line)
+        {
+            var frame = Convert.FromHexString(JsonDocument.Parse(line).RootElement.GetProperty("hex").GetString()!);
+            if (frame.Length < 3 || frame[0] != (byte)'P' || frame[1] != ServerStatusMessages.ServerStatusModuleRunning.MajorId || frame[2] != ServerStatusMessages.ServerStatusModuleRunning.MinorId) continue;
+            var status = new ServerStatusMessages.ServerStatusModuleRunning();
+            status.Read(new NwnWsReader(frame.AsMemory(3), new NwnSessionContext(_ => 0, (_, _, _) => "")));
+            return ([.. status.Haks], status.AltTlk);
+        }
+        return ([], "");
+    }
 }
 
 /// <summary>
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
-///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]] [--record FILE]
-/// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart)
+///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
+///              [--nui-click WINDOW:ELEMENT,...] [--record FILE]
+/// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart;
+/// click each NUI element three seconds apart once its window is open)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -205,6 +223,9 @@ static class NwnBridgeProbe
         var driveState = 0;
         var uses = new Queue<string>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var nextUse = 6.0;
+        var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var windows = new Dictionary<string, int>();
+        var nextClick = 0.0;
         var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
         var counts = new SortedDictionary<string, int>();
         uint controlled = 0;
@@ -229,7 +250,12 @@ static class NwnBridgeProbe
                         break;
                     case OpenWinter.Net.MessageType.Notify:
                         var n = OpenWinter.Net.NotifyMessage.Read(r);
-                        Console.WriteLine($"{clock.ElapsedMilliseconds,6} Notify {n.Kind} {n.Json}");
+                        Console.WriteLine($"{clock.ElapsedMilliseconds,6} Notify {n.Kind} {(n.Json.Length > 300 ? n.Json[..300] + "..." : n.Json)}");
+                        if (n.Kind == "nui-open" && System.Text.Json.JsonDocument.Parse(n.Json).RootElement is var open)
+                        {
+                            windows[open.GetProperty("id").GetString()!] = open.GetProperty("token").GetInt32();
+                            nextClick = Math.Max(nextClick, clock.Elapsed.TotalSeconds + 3);
+                        }
                         if (n.Kind == "area-snapshot-ready")
                             bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "area-ready", Json = n.Json }.Write());
                         break;
@@ -280,6 +306,17 @@ static class NwnBridgeProbe
                     .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} using \"{name}\": {target:X}");
                 if (target != 0) bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }.Write());
+            }
+            if (clicks.Count > 0 && nextClick > 0 && clock.Elapsed.TotalSeconds > nextClick && clicks.Peek().Split(':') is [var window, var element] && windows.TryGetValue(window, out var token))
+            {
+                clicks.Dequeue();
+                nextClick = clock.Elapsed.TotalSeconds + 3;
+                bridge.Send(new OpenWinter.Net.ClientRequestMessage
+                {
+                    Kind = "nui-event",
+                    Json = new System.Text.Json.Nodes.JsonObject { ["token"] = token, ["type"] = "click", ["element"] = element, ["index"] = -1, ["payload"] = null }.ToJsonString(),
+                }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} clicked {element} in {window} ({token})");
             }
             if (walked && drive > 0 && driveState < 2 && clock.Elapsed.TotalSeconds > (driveState == 0 ? 5 : 5 + drive))
             {

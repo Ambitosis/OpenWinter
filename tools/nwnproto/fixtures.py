@@ -145,6 +145,9 @@ class Gen:
             if mt != MessageType.DOUBLE:
                 v = struct.unpack("<f", struct.pack("<f", v))[0]
             return v
+        if mt == MessageType.JSON:
+            return json.dumps(self.rng.choice([None, True, self.rng.randrange(-99, 100), "text", {"bind": "x"}, [1, 2]]),
+                              separators=(",", ":"))
         if rt is str:
             if mt == MessageType.RESREF:
                 return "".join(self.rng.choice("abcdefghijklmnopqrstuvwxyz_0123456789") for _ in range(self.rng.randrange(0, 17)))
@@ -192,7 +195,7 @@ class Gen:
         constrained = self.constraints(cls)
         hints = typing.get_type_hints(cls, include_extras=True)
         for f in dataclasses.fields(cls):
-            t = hints.get(f.name, f.type)
+            t = hints.get(f.name, f.type) if isinstance(f.type, str) else f.type
             if f.name in constrained:
                 fields[f.name] = self.rng.choice(constrained[f.name])
             elif f.name in self.small_fields(cls):
@@ -291,6 +294,7 @@ def main():
     ap.add_argument("--out", type=Path, default=OUT)
     args = ap.parse_args()
 
+    generate.apply_corrections()
     model = generate.Model()
     for cls in list(model.owner):
         model.ref(cls)

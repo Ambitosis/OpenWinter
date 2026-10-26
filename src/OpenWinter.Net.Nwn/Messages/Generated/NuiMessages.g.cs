@@ -26,7 +26,7 @@ public static partial class NuiMessages
         [NwnField("resref")]
         public string Resref { get; set; } = "";
         [NwnField("data")]
-        public byte[]? Data { get; set; } = null;
+        public string? Data { get; set; } = null;
 
         public override void Read(NwnReader r)
         {
@@ -40,8 +40,7 @@ public static partial class NuiMessages
             else Resref = "";
             if (NwnCond.L(Type) == 1L)
             {
-                var n1598 = (int)r.ReadInteger(NwnWireType.Dword);
-                Data = r.ReadVoid();
+                Data = r.ReadJson();
             }
             else Data = null;
         }
@@ -57,8 +56,7 @@ public static partial class NuiMessages
             }
             if (NwnCond.L(Type) == 1L)
             {
-                w.WriteInteger(NwnWireType.Dword, Data!.Length);
-                w.WriteVoid(Data!);
+                w.WriteJson(Data!);
             }
         }
     }
@@ -96,7 +94,7 @@ public static partial class NuiMessages
         [NwnField("array_index")]
         public int ArrayIndex { get; set; }
         [NwnField("payload")]
-        public byte[] Payload { get; set; } = [];
+        public string Payload { get; set; } = "";
 
         public void Read(NwnReader r)
         {
@@ -104,8 +102,7 @@ public static partial class NuiMessages
             Event = r.ReadString();
             Element = r.ReadString();
             ArrayIndex = r.ReadInt();
-            var n1599 = (int)r.ReadInteger(NwnWireType.Dword);
-            Payload = r.ReadVoid();
+            Payload = r.ReadJson();
         }
 
         public void Write(NwnWriter w)
@@ -114,8 +111,7 @@ public static partial class NuiMessages
             w.WriteString(Event);
             w.WriteString(Element);
             w.WriteInt(ArrayIndex);
-            w.WriteInteger(NwnWireType.Dword, Payload.Length);
-            w.WriteVoid(Payload);
+            w.WriteJson(Payload);
         }
     }
 
@@ -132,24 +128,24 @@ public static partial class NuiMessages
 
         public override void Read(NwnReader r)
         {
-            var n1600 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1604 = n1600;
-            var list1601 = new List<NuiMessages.NuiEventEntry>(Math.Max(0, count1604));
-            for (int i1602 = 0; i1602 < count1604; i1602++)
+            var n1598 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1602 = n1598;
+            var list1599 = new List<NuiMessages.NuiEventEntry>(Math.Max(0, count1602));
+            for (int i1600 = 0; i1600 < count1602; i1600++)
             {
-                NuiMessages.NuiEventEntry e1603;
-                e1603 = r.ReadStruct<NuiMessages.NuiEventEntry>();
-                list1601.Add(e1603);
+                NuiMessages.NuiEventEntry e1601;
+                e1601 = r.ReadStruct<NuiMessages.NuiEventEntry>();
+                list1599.Add(e1601);
             }
-            Events = list1601;
+            Events = list1599;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteInteger(NwnWireType.Int, Events.Count);
-            foreach (var e1605 in Events)
+            foreach (var e1603 in Events)
             {
-                w.WriteStruct(e1605);
+                w.WriteStruct(e1603);
             }
         }
     }
@@ -161,26 +157,20 @@ public static partial class NuiMessages
         [NwnField("bind")]
         public string Bind { get; set; } = "";
         [NwnField("value")]
-        public byte[] Value { get; set; } = [];
-        [NwnField("array_index")]
-        public int ArrayIndex { get; set; } = 0;
+        public string Value { get; set; } = "";
 
         public void Read(NwnReader r)
         {
             Token = r.ReadInt();
             Bind = r.ReadString();
-            var n1606 = (int)r.ReadInteger(NwnWireType.Dword);
-            Value = r.ReadVoid();
-            ArrayIndex = r.ReadInt();
+            Value = r.ReadJson();
         }
 
         public void Write(NwnWriter w)
         {
             w.WriteInt(Token);
             w.WriteString(Bind);
-            w.WriteInteger(NwnWireType.Dword, Value.Length);
-            w.WriteVoid(Value);
-            w.WriteInt(ArrayIndex);
+            w.WriteJson(Value);
         }
     }
 
@@ -197,24 +187,24 @@ public static partial class NuiMessages
 
         public override void Read(NwnReader r)
         {
-            var n1607 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1611 = n1607;
-            var list1608 = new List<NuiMessages.NuiBindEntry>(Math.Max(0, count1611));
-            for (int i1609 = 0; i1609 < count1611; i1609++)
+            var n1604 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1608 = n1604;
+            var list1605 = new List<NuiMessages.NuiBindEntry>(Math.Max(0, count1608));
+            for (int i1606 = 0; i1606 < count1608; i1606++)
             {
-                NuiMessages.NuiBindEntry e1610;
-                e1610 = r.ReadStruct<NuiMessages.NuiBindEntry>();
-                list1608.Add(e1610);
+                NuiMessages.NuiBindEntry e1607;
+                e1607 = r.ReadStruct<NuiMessages.NuiBindEntry>();
+                list1605.Add(e1607);
             }
-            Binds = list1608;
+            Binds = list1605;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteInteger(NwnWireType.Int, Binds.Count);
-            foreach (var e1612 in Binds)
+            foreach (var e1609 in Binds)
             {
-                w.WriteStruct(e1612);
+                w.WriteStruct(e1609);
             }
         }
     }
@@ -232,22 +222,20 @@ public static partial class NuiMessages
         [NwnField("element")]
         public string Element { get; set; } = "";
         [NwnField("data")]
-        public byte[] Data { get; set; } = [];
+        public string Data { get; set; } = "";
 
         public override void Read(NwnReader r)
         {
             Token = r.ReadInt();
             Element = r.ReadString();
-            var n1613 = (int)r.ReadInteger(NwnWireType.Dword);
-            Data = r.ReadVoid();
+            Data = r.ReadJson();
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteInt(Token);
             w.WriteString(Element);
-            w.WriteInteger(NwnWireType.Dword, Data.Length);
-            w.WriteVoid(Data);
+            w.WriteJson(Data);
         }
     }
 }

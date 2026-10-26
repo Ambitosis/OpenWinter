@@ -106,6 +106,35 @@ def module_class(module_name: str) -> str:
     return pascal(module_name.rsplit(".", 1)[-1]) + "Messages"
 
 
+def apply_corrections():
+    """Fields the server encodes differently from their declaration, measured from recorded WSNetLayer traffic. NUI
+    window definitions, bind values, event payloads and group layouts are JSON fields (type byte, length, text), not
+    size-prefixed blobs, and a bind entry ends after its value. The reference reader and writer are corrected to
+    match and keep JSON as its text, as the C# codec does."""
+    from nwn_message.message import _io
+    from nwn_message.messages import nui
+
+    def read_json(self, **_):
+        self._read_canary(MessageType.JSON)
+        return self._bytes(self._u32()).decode(_io.get_codepage())
+
+    def write_json(self, value, **_):
+        self._write_canary(MessageType.JSON)
+        encoded = value.encode(_io.get_codepage())
+        self._u32(len(encoded))
+        self._buf += encoded
+
+    _io.Reader.read_json = read_json
+    _io.Writer.write_json = write_json
+    json_field = typing.Annotated[object, MessageType.JSON]
+    data = nui.NuiCreateWindow.__dataclass_fields__["data"]
+    data.type = typing.Annotated[json_field | None, typing.get_args(data.type)[1]]
+    nui.NuiEventEntry.__dataclass_fields__["payload"].type = json_field
+    nui.NuiBindEntry.__dataclass_fields__["value"].type = json_field
+    nui.NuiSetLayout.__dataclass_fields__["data"].type = json_field
+    del nui.NuiBindEntry.__dataclass_fields__["array_index"]
+
+
 def git_commit() -> str:
     root = Path(nwn_message.__file__).resolve().parents[2]
     try:
@@ -891,6 +920,7 @@ def main():
     ap.add_argument("--out", type=Path, default=OUT)
     args = ap.parse_args()
 
+    apply_corrections()
     model = Model()
     emitter = Emitter(model)
     # Name every type first so references resolve the same way everywhere.

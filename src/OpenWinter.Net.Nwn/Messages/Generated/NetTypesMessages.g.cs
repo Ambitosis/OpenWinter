@@ -146,39 +146,39 @@ public static partial class NetTypesMessages
 
         public void Read(NwnReader r)
         {
-            var n1746 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1750 = n1746;
-            var list1747 = new List<int>(Math.Max(0, count1750));
-            for (int i1748 = 0; i1748 < count1750; i1748++)
+            var n1742 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1746 = n1742;
+            var list1743 = new List<int>(Math.Max(0, count1746));
+            for (int i1744 = 0; i1744 < count1746; i1744++)
             {
-                int e1749;
-                e1749 = r.ReadInt();
-                list1747.Add(e1749);
+                int e1745;
+                e1745 = r.ReadInt();
+                list1743.Add(e1745);
             }
-            KnownIndices = list1747;
-            var n1751 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1755 = n1751;
-            var list1752 = new List<NetTypesMessages.VisualTransformData.Update>(Math.Max(0, count1755));
-            for (int i1753 = 0; i1753 < count1755; i1753++)
+            KnownIndices = list1743;
+            var n1747 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1751 = n1747;
+            var list1748 = new List<NetTypesMessages.VisualTransformData.Update>(Math.Max(0, count1751));
+            for (int i1749 = 0; i1749 < count1751; i1749++)
             {
-                NetTypesMessages.VisualTransformData.Update e1754;
-                e1754 = r.ReadStruct<NetTypesMessages.VisualTransformData.Update>();
-                list1752.Add(e1754);
+                NetTypesMessages.VisualTransformData.Update e1750;
+                e1750 = r.ReadStruct<NetTypesMessages.VisualTransformData.Update>();
+                list1748.Add(e1750);
             }
-            TotalUpdates = list1752;
+            TotalUpdates = list1748;
         }
 
         public void Write(NwnWriter w)
         {
             w.WriteInteger(NwnWireType.Int, KnownIndices.Count);
-            foreach (var e1756 in KnownIndices)
+            foreach (var e1752 in KnownIndices)
             {
-                w.WriteInt(e1756);
+                w.WriteInt(e1752);
             }
             w.WriteInteger(NwnWireType.Int, TotalUpdates.Count);
-            foreach (var e1757 in TotalUpdates)
+            foreach (var e1753 in TotalUpdates)
             {
-                w.WriteStruct(e1757);
+                w.WriteStruct(e1753);
             }
         }
 
