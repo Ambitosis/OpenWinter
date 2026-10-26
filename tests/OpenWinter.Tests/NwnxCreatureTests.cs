@@ -291,7 +291,7 @@ public class NwnxCreatureTests
         CreatureOverridesPersistence.Save(c, s);
         var raw = s.GetString(CreatureOverridesPersistence.Field);
         Assert.Equal("[INTMAP:3]<44>NWNX_Creature!CRITICAL_RANGE_MODIFIER!2!BI22 = -2;<28>NWNX_Creature!INITIATIVE_MOD = 4;"
-            + "<16>NWNX_Other!THING = 9;[STRMAP:0]", raw);
+            + "<16>NWNX_Other!THING = 9;", raw); // empty maps are left out, as the original writes them
 
         var copy = f.W.Creatures.FromTemplate(s);
         Assert.Equal(4, copy.Overrides!.InitiativeModifier);

@@ -75,6 +75,7 @@ public sealed class ItemFactory
                 Useable = p.GetInt("Useable", 1) != 0,
                 Tag = p.GetString("Tag"),
                 DurationType = 2, // permanent
+                OnItem = true,
             });
         // An item without properties has nothing to identify.
         if (item.Properties.Count == 0) item.Identified = true;

@@ -272,39 +272,3 @@ static class RegexPlugin
         n.Push(new JsonValue(result));
     }
 }
-
-/// <summary>NWNX_Item: the setters that map onto item fields.</summary>
-static class ItemPlugin
-{
-    const string P = "Item";
-
-    [NwnxFunc(P, "SetWeight", UnsupportedReason = "override is stored but inventory weight does not consume it")]
-    static void SetWeight(NwnxCall n)
-    {
-        var item = n.PopObject<Item>(); int weight = n.PopInt();
-        // TODO(items): the weight rules should read this override (tenths of pounds).
-        if (item != null) n.State(item)["weight"] = NwnxValue.Int(weight);
-    }
-    [NwnxFunc(P, "SetBaseGoldPieceValue")]
-    static void SetBaseValue(NwnxCall n)
-    {
-        var item = n.PopObject<Item>(); int g = n.PopInt();
-        if (item != null) item.Cost = g;
-    }
-    [NwnxFunc(P, "GetBaseGoldPieceValue")] static void GetBaseValue(NwnxCall n) => n.Push(n.PopObject<Item>()?.Cost ?? 0);
-    [NwnxFunc(P, "SetAddGoldPieceValue")]
-    static void SetAddValue(NwnxCall n)
-    {
-        var item = n.PopObject<Item>(); int g = n.PopInt();
-        if (item != null) item.AddCost = g;
-    }
-    [NwnxFunc(P, "GetAddGoldPieceValue")] static void GetAddValue(NwnxCall n) => n.Push(n.PopObject<Item>()?.AddCost ?? 0);
-    [NwnxFunc(P, "SetBaseItemType")]
-    static void SetBaseItem(NwnxCall n)
-    {
-        var item = n.PopObject<Item>(); int type = n.PopInt();
-        if (item == null) return;
-        item.BaseItem = type;
-        n.World.MarkChanged(item);
-    }
-}

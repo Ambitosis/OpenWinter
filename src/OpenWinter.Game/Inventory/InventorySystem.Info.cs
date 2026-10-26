@@ -128,11 +128,8 @@ public sealed partial class InventorySystem
         int value = Rules.GoldValue(item);
         if (_world.ItemLevelRestrictions && item.Identified)
         {
-            var t = res.TwoDA("itemvalue");
-            int level = 0;
-            for (int row = 0; row < t.RowCount; row++)
-                if (t.GetInt(row, "MAXSINGLEITEMVALUE", int.MaxValue) >= value) { level = row + 1; break; }
-            if (level > 1) requirements.Add(new { text = $"Character level {level}", met = viewer == null || !viewer.IsPC || _world.CanEquipByLevel(viewer, item) });
+            int level = Nwnx.Plugins.ItemPlugin.MinEquipLevel(_world, item);
+            if (level > 1 && level <= res.TwoDA("itemvalue").RowCount) requirements.Add(new { text = $"Character level {level}", met = viewer == null || !viewer.IsPC || _world.CanEquipByLevel(viewer, item) });
         }
 
         int maxCharges = valid ? bi.GetInt(item.BaseItem, "ChargesStarting", 0) : 0;

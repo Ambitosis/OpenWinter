@@ -382,9 +382,12 @@ public sealed partial class CreatureCombatRules : ICombatRules
     public bool FavoredEnemy(Creature attacker, GameObject target)
     {
         if (target is not Creature t) return false;
+        // A race with a parent race (NWNX_Race) counts as either; races can have their own favoured enemy feat.
+        int parent = Nwnx.Plugins.RulesModifiers.ParentRace(_w, t.Race);
         foreach (var (feat, race) in CombatK.FavoredEnemies)
-            if (race == t.Race && Has(attacker, feat)) return true;
-        return false;
+            if ((race == t.Race || race == parent) && Has(attacker, feat)) return true;
+        if (Nwnx.Plugins.RulesModifiers.FavoredEnemyFeat(_w, t.Race) is >= 0 and var own && Has(attacker, own)) return true;
+        return parent != t.Race && Nwnx.Plugins.RulesModifiers.FavoredEnemyFeat(_w, parent) is >= 0 and var inherited && Has(attacker, inherited);
     }
 
     /// <summary>The weapon of choice (weapon master) is this weapon.</summary>

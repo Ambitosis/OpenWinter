@@ -27,7 +27,12 @@ public sealed partial class Item
     public int? PricedCharges;
 
     /// <summary>Marks the value stale: the next read prices charge-based spells with the charges at that moment.</summary>
-    public void Reprice() { PricedCharges = null; HeldValue = null; }
+    public void Reprice() { PricedCharges = null; HeldValue = null; BaseValueOverride = null; }
+
+    /// <summary>NWNX_Item_SetBaseGoldPieceValue: the value of one item before AddCost, until it is worked out again.</summary>
+    public int? BaseValueOverride;
+    /// <summary>NWNX_Item_SetWeight: the weight of one item in tenths of a pound, or -1. Not saved.</summary>
+    public int WeightOverride = -1;
 
     /// <summary>
     /// RemoveItemProperty reprices only after the running script: until <see cref="HeldAt"/> (world time) passes,

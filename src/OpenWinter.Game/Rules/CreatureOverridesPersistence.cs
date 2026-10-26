@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using OpenWinter.Aurora.Formats;
 using OpenWinter.Game.Objects;
 
@@ -7,20 +6,20 @@ namespace OpenWinter.Game.Rules;
 
 /// <summary>
 /// Creature settings scripts asked to persist (NWNX_Creature's bPersist), kept where NWNX:EE keeps them: the
-/// creature's NWNX_POS string field, "[INTMAP:n]" then n entries "&lt;key length&gt;key = value;", newest first, keys
-/// "NWNX_Creature!NAME" (nwserver nwnx_creature_persist). They travel with the creature's GFF (character files,
+/// creature's NWNX_POS, as INTMAP entries "NWNX_Creature!NAME" (nwserver nwnx_creature_persist), in the store every
+/// plugin shares (<see cref="Nwnx.NwnxPersistence"/>). They travel with the creature's GFF (character files,
 /// CopyObject, ObjectToJson), so a character moved between servers keeps them. Other plugins' entries are kept.
 /// </summary>
 public static class CreatureOverridesPersistence
 {
-    public const string Field = "NWNX_POS";
+    public const string Field = Nwnx.NwnxPersistence.Field;
     const string Prefix = "NWNX_Creature!";
 
     /// <summary>Records a setting as persisted (or, with null, as not persisted any more).</summary>
-    public static void Persist(CreatureOverrides o, string name, int? value)
+    public static void Persist(Creature c, string name, int? value)
     {
-        o.Persisted.RemoveAll(p => p.Key == name);
-        if (value is int v) o.Persisted.Insert(0, new(name, v));
+        if (value is int v) Nwnx.NwnxPersistence.Set(c, Prefix + name, Nwnx.NwnxValue.Int(v), persist: true);
+        else Nwnx.NwnxPersistence.Delete(c, Prefix + name);
     }
 
     public static string CritKey(string kind, int hand, int baseItem) =>
@@ -31,16 +30,10 @@ public static class CreatureOverridesPersistence
     /// <summary>Restores the persisted settings from a creature's NWNX_POS, when it has some.</summary>
     public static void Load(Creature c)
     {
-        var raw = c.Template.GetString(Field);
-        if (raw.Length == 0) return;
-        var (ints, _, _) = Parse(raw);
-        foreach (var (key, value) in ints.AsEnumerable().Reverse())
-        {
-            if (!key.StartsWith(Prefix, StringComparison.Ordinal)) continue;
-            string name = key[Prefix.Length..];
-            if (!Apply(CreatureOverrides.Of(c), name, value)) continue;
-            Persist(c.Overrides!, name, value);
-        }
+        if (c.PluginValues == null && c.Template.GetString(Field).Length == 0) return;
+        foreach (var key in Nwnx.NwnxPersistence.Keys(c))
+            if (key.StartsWith(Prefix, StringComparison.Ordinal) && Nwnx.NwnxPersistence.Get(c, key) is { Value: int value })
+                Apply(CreatureOverrides.Of(c), key[Prefix.Length..], value);
     }
 
     static bool Apply(CreatureOverrides o, string name, int value)
@@ -77,53 +70,6 @@ public static class CreatureOverridesPersistence
         name.StartsWith(prefix, StringComparison.Ordinal)
         && int.TryParse(name[prefix.Length..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : null;
 
-    /// <summary>Writes the creature's persisted settings into a serialised copy of it.</summary>
-    public static void Save(Creature c, GffStruct s)
-    {
-        var raw = c.Template.GetString(Field);
-        var persisted = c.Overrides?.Persisted;
-        if (raw.Length == 0 && (persisted == null || persisted.Count == 0)) return;
-        var (ints, rest, whole) = Parse(raw);
-        // Entries this can't read are left alone rather than rewritten.
-        if (!whole) return;
-        ints.RemoveAll(e => e.Key.StartsWith(Prefix, StringComparison.Ordinal));
-        if (persisted != null) ints.InsertRange(0, persisted.Select(p => new KeyValuePair<string, int>(Prefix + p.Key, p.Value)));
-        s.SetString(Field, ints.Count == 0 ? rest : Format(ints) + rest);
-    }
-
-    /// <summary>The INTMAP entries of an NWNX_POS string and whatever follows them.</summary>
-    public static (List<KeyValuePair<string, int>> Ints, string Tail, bool Whole) Parse(string raw)
-    {
-        var ints = new List<KeyValuePair<string, int>>();
-        const string head = "[INTMAP:";
-        if (!raw.StartsWith(head, StringComparison.Ordinal)) return (ints, raw, true);
-        int close = raw.IndexOf(']');
-        if (close < 0 || !int.TryParse(raw.AsSpan(head.Length, close - head.Length), NumberStyles.Integer, CultureInfo.InvariantCulture, out int count)) return (ints, raw, false);
-        int at = close + 1;
-        int read = 0;
-        for (int i = 0; i < count && at < raw.Length && raw[at] == '<'; i++)
-        {
-            int gt = raw.IndexOf('>', at);
-            if (gt < 0 || !int.TryParse(raw.AsSpan(at + 1, gt - at - 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int len)) break;
-            int keyEnd = gt + 1 + len;
-            int semi = keyEnd <= raw.Length ? raw.IndexOf(';', keyEnd) : -1;
-            if (semi < 0) break;
-            string key = raw.Substring(gt + 1, len);
-            var text = raw[keyEnd..semi].Trim();
-            if (text.StartsWith('=')) text = text[1..].Trim();
-            if (!int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)) break;
-            ints.Add(new(key, value));
-            read++;
-            at = semi + 1;
-        }
-        return (ints, raw[at..], read == count);
-    }
-
-    public static string Format(IReadOnlyList<KeyValuePair<string, int>> ints)
-    {
-        var sb = new StringBuilder();
-        sb.Append(CultureInfo.InvariantCulture, $"[INTMAP:{ints.Count}]");
-        foreach (var (key, value) in ints) sb.Append(CultureInfo.InvariantCulture, $"<{key.Length}>{key} = {value};");
-        return sb.ToString();
-    }
+    /// <summary>Writes the creature's persisted settings (with every other plugin's) into a serialised copy of it.</summary>
+    public static void Save(Creature c, GffStruct s) => Nwnx.NwnxPersistence.WriteField(c, s);
 }

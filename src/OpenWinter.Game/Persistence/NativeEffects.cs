@@ -53,28 +53,46 @@ public static class NativeEffects
         ("RUNSCRIPT", 96, -1), ("PACIFY", 97, -1), ("TIMESTOP_IMMUNITY", 98, -1),
     };
 
-    /// <summary>The original's effect number for an effect (0 when not measured) and the state code (-1 for none).</summary>
-    public static (int Native, int State) NativeType(EffectConstants k, Effect e)
+    /// <summary>
+    /// Instant and engine-driven kinds, measured through NWNX_Effect_UnpackEffect (parity suite nwnx_effect). Only the
+    /// NWNX plugins use them: saved effect lists keep skipping these records until they are measured there.
+    /// </summary>
+    static readonly (string Name, int Native, int State)[] Unpacked =
     {
-        foreach (var (name, native, state) in Table)
+        ("RESURRECTION", 4, -1), ("SUMMON_CREATURE", 6, -1), ("DEATH", 19, -1), ("KNOCKDOWN", 20, -1),
+        ("AREA_OF_EFFECT", 31, -1), ("DAMAGE", 38, -1), ("HEAL", 39, -1), ("DISPELMAGICALL", 51, -1),
+        ("DISPELMAGICBEST", 52, -1), ("HITPOINTCHANGEWHENDYING", 57, -1), ("POLYMORPH", 62, -1), ("TIMESTOP", 64, -1),
+        ("DISAPPEARAPPEAR", 79, -1), ("DISAPPEAR", 80, -1), ("APPEAR", 81, -1), ("SWARM", 85, -1),
+        ("ARCANE_SPELL_FAILURE", 25, -1),
+    };
+
+    static IEnumerable<(string Name, int Native, int State)> Rows(bool unpacked) => unpacked ? Table.Concat(Unpacked) : Table;
+
+    /// <summary>
+    /// The original's effect number for an effect (0 when not measured) and the state code (-1 for none);
+    /// <paramref name="unpacked"/> adds the kinds only NWNX_Effect knows.
+    /// </summary>
+    public static (int Native, int State) NativeType(EffectConstants k, Effect e, bool unpacked = false)
+    {
+        foreach (var (name, native, state) in Rows(unpacked))
             if (k["EFFECT_TYPE_" + name] == e.Type) return (native, state);
         return (0, -1);
     }
 
-    static int ScriptType(EffectConstants k, int native, int[] ints)
+    static int ScriptType(EffectConstants k, int native, int[] ints, bool unpacked)
     {
         if (native == 8) return Table.FirstOrDefault(t => t.Native == 8 && t.State == ints[0]) is { Name: { } n } ? k["EFFECT_TYPE_" + n] : 0;
         if (native == 63) return k[ints[5] == 1 ? "EFFECT_TYPE_SANCTUARY" : "EFFECT_TYPE_ETHEREAL"];
-        return Table.FirstOrDefault(t => t.Native == native) is { Name: { } name } ? k["EFFECT_TYPE_" + name] : 0;
+        return Rows(unpacked).FirstOrDefault(t => t.Native == native) is { Name: { } name } ? k["EFFECT_TYPE_" + name] : 0;
     }
 
     // ---------------------------------------------------------------- writing
 
     /// <summary>An EffectList entry for an applied effect.</summary>
-    public static GffStruct Write(World world, Effect e)
+    public static GffStruct Write(World world, Effect e, bool unpacked = false)
     {
         var k = EffectConstants.Of(world);
-        var (native, state) = NativeType(k, e);
+        var (native, state) = NativeType(k, e, unpacked);
         int[] ints = state >= 0 ? new[] { state, 0, 0, 0, 0, 0, 0, 0 } : EffectFunctions.ReportedInts(k, e);
         var floats = (float[])e.Floats.Clone();
         var clock = world.Clock;
@@ -132,7 +150,7 @@ public static class NativeEffects
     /// when it can't be read. Entries the original rebuilds itself when it loads (SkipOnLoad: equipment) are skipped.
     /// </summary>
     /// <param name="map">Translates the object ids of the original's data (creator, object parameters) to this world's.</param>
-    public static Effect? Read(World world, GffStruct s, out float remaining, ICollection<string>? warnings = null, Func<uint, uint>? map = null)
+    public static Effect? Read(World world, GffStruct s, out float remaining, ICollection<string>? warnings = null, Func<uint, uint>? map = null, bool unpacked = false)
     {
         remaining = 0;
         if (s.GetInt("SkipOnLoad") != 0) return null;
@@ -151,7 +169,7 @@ public static class NativeEffects
         var ints = new int[8];
         var intList = s.GetList("IntList");
         for (int i = 0; i < 8 && i < intList.Count; i++) ints[i] = (int)intList[i].GetInt("Value");
-        int type = ScriptType(k, native, ints);
+        int type = ScriptType(k, native, ints, unpacked);
         if (type == 0)
         {
             warnings?.Add($"effect type {native} of the original is not mapped yet; skipped");
@@ -216,6 +234,16 @@ public static class NativeEffects
             case 44 or 45: i[0] = n[0]; i[1] = n[1]; break;
             case 48: i[0] = n[0] is >= 100 and < 200 ? n[0] - 100 : n[0]; break;
             case 3: i[0] = n[0]; e.Floats[0] = n[1] / 1000f; break;
+            case 62: i[0] = n[0]; i[5] = n[1]; i[1] = n[2]; i[2] = n[4]; i[3] = n[6]; i[4] = n[7]; break;
+            case 100: i[0] = n[0]; i[1] = n[1]; i[2] = n[3]; break;
+            case 93:
+            {
+                // Damage: the amount under each damage type bit it deals.
+                int bits = 0, amount = 0;
+                for (int b = 0; b < 8; b++) if (n[b] != -1) { bits |= 1 << b; amount = n[b]; }
+                i[0] = amount; i[1] = bits;
+                break;
+            }
             case 85: e.Floats[0] = n[0] / 1000f; break;
             case 61: i[0] = n[0]; break;
             case 74: i[0] = n[0]; i[1] = n[2]; break;

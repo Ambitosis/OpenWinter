@@ -8,7 +8,6 @@ reported once per world through the `NwnxRegistry.Log` sink.
 - **Unknown functions** get one warning each and return their empty result stack.
 - **Registered placeholders** (handlers marked with `NwnxFunc.UnsupportedReason`) warn the same way. They keep
   their argument, result and storage behaviour; the warning says the engine effect is missing. They are:
-  Item.SetWeight,
   Player.GetTURD and Player.RemoveEffectFromTURD (OpenWinter keeps no TURDs for players who leave),
   Ruby.Evaluate (there is no Ruby interpreter; the result is empty), Risenholm.ForceUpdateMageArmorStats (the
   plugin's MAGE_ARMOR armour rule is not documented, so only the stats are recomputed) and
@@ -24,6 +23,10 @@ reported once per world through the `NwnxRegistry.Log` sink.
 - **Events.SubscribeEvent** warns, once per event name, when a script subscribes to an automatic `NWNX_ON_*` event
   outside the `NWNX_ON_DM_*` family that OpenWinter emits. The subscription is kept, so explicit script signals
   still work. Custom events and DM subscriptions do not warn.
+
+- **Partly carried out** (no warning): NWNX_Appearance overrides of hit points, sound set and footsteps are kept and
+  reported by GetOverride but not yet sent to the player; NWNX_Race's SKILL, FEATUSAGE and INITIATIVE modifiers and
+  NWNX_Feat's BONUSSPELL modifier are kept but change nothing yet.
 
 `MissingCalls` counts every unsupported invocation, placeholders included. Plugin prefix and case aliases share
 one warning, and calls from scripts name the calling script. Arguments and stored values are never logged.

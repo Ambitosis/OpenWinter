@@ -8,23 +8,16 @@ using OpenWinter.Game.Objects;
 namespace OpenWinter.Game.Nwnx.Plugins;
 
 /// <summary>NWNX_Object. Argument order follows the nwnx_object.nss wrappers (popped in reverse push order).</summary>
-static class ObjectPlugin
+static partial class ObjectPlugin
 {
     const string P = "Object";
 
-    /// <summary>Local variables in a stable order: (name, NWNX_OBJECT_LOCALVAR_TYPE_*).</summary>
-    static List<(string Name, int Type)> Locals(GameObject o)
-    {
-        var v = o.Locals;
-        var list = new List<(string, int)>();
-        list.AddRange(v.Ints.Keys.Select(k => (k, 1)));
-        list.AddRange(v.Floats.Keys.Select(k => (k, 2)));
-        list.AddRange(v.Strings.Keys.Select(k => (k, 3)));
-        list.AddRange(v.Objects.Keys.Select(k => (k, 4)));
-        list.AddRange(v.Locations.Keys.Select(k => (k, 5)));
-        list.AddRange(v.Jsons.Keys.Select(k => (k, 6)));
-        return list;
-    }
+    /// <summary>
+    /// Local variables as the original lists them (parity suite nwnx_object_locals): one entry per name, newest
+    /// first, skipping names that hold only default values; a name holding several types reports the lowest.
+    /// The original lists from a hash table, so beyond a few names its order also depends on the names themselves.
+    /// </summary>
+    static List<(string Name, int Type)> Locals(GameObject o) => o.Locals.NewestFirst();
 
     [NwnxFunc(P, "GetLocalVariableCount")] static void LocalCount(NwnxCall n) => n.Push(n.PopObject() is { } o ? Locals(o).Count : -1);
 
@@ -34,19 +27,27 @@ static class ObjectPlugin
         var o = n.PopObject();
         int index = n.PopInt();
         var list = o != null ? Locals(o) : new List<(string, int)>();
-        var (name, type) = index >= 0 && index < list.Count ? list[index] : ("", 0);
+        var (name, type) = index >= 0 && index < list.Count ? list[index] : ("", -1);
         n.Push(type);
         n.Push(name);
+    }
+
+    /// <summary>A vector argument (NWNXPushVector), or three floats from older callers.</summary>
+    static Vector3 PopPosition(NwnxCall n, bool zyx)
+    {
+        if (n.Args.Peek() is { Value: Vector3 v }) { n.Args.Pop(); return v; }
+        float a = n.PopFloat(), b = n.PopFloat(), c = n.PopFloat();
+        return zyx ? new Vector3(c, b, a) : new Vector3(a, b, c);
     }
 
     [NwnxFunc(P, "SetPosition")]
     static void SetPosition(NwnxCall n)
     {
         var o = n.PopObject();
-        float z = n.PopFloat(), y = n.PopFloat(), x = n.PopFloat();
+        var pos = PopPosition(n, zyx: true);
         n.PopInt(); // bUpdateSubareas
         if (o == null) return;
-        o.Position = new Vector3(x, y, z);
+        o.Position = pos;
         n.World.MarkChanged(o);
     }
 
@@ -55,8 +56,18 @@ static class ObjectPlugin
     {
         var o = n.PopObject();
         var area = n.PopObject<Area>();
-        float x = n.PopFloat(), y = n.PopFloat(), z = n.PopFloat();
-        if (o != null && area != null) n.World.AddToArea(o, area, new Vector3(x, y, z), o.Facing, exact: true);
+        var pos = PopPosition(n, zyx: false);
+        if (o == null || area == null) return;
+        var from = o.Area;
+        n.World.AddToArea(o, area, pos, o.Facing, exact: true);
+        // A placeable or door takes its walkmesh with it (one made in no area gets it here).
+        if (o is Placeable or Door)
+            foreach (var changed in new[] { from, area }.OfType<Area>().Distinct())
+            {
+                WorldObjects.WalkmeshBuilder.Rebuild(n.World, changed);
+                changed.ResetPathfinder();
+                WorldObjects.DoorService.SyncWalkmesh(changed);
+            }
     }
 
     [NwnxFunc(P, "GetCurrentHitPoints")]
@@ -161,7 +172,8 @@ static class ObjectPlugin
     }
 
     [NwnxFunc(P, "GetIsDestroyable")] static void GetIsDestroyable(NwnxCall n) => n.Push(n.PopObject() switch { Creature c => c.IsDestroyable, null => false, _ => true });
-    [NwnxFunc(P, "GetAILevel")] static void GetAILevel(NwnxCall n) => n.Push(n.PopObject<Creature>()?.AILevel ?? -1);
+    /// <summary>The level the creature runs at now (AI_LEVEL_VERY_LOW in an area without players, nwnx_object).</summary>
+    [NwnxFunc(P, "GetAILevel")] static void GetAILevel(NwnxCall n) => n.Push(n.PopObject<Creature>() is { } c ? n.World.EffectiveAILevel(c) : -1);
     [NwnxFunc(P, "SetAILevel")]
     static void SetAILevel(NwnxCall n)
     {
@@ -174,8 +186,8 @@ static class ObjectPlugin
     static void InTrigger(NwnxCall n)
     {
         var t = n.PopObject<Trigger>();
-        float x = n.PopFloat(), y = n.PopFloat(), z = n.PopFloat();
-        n.Push(t != null && t.Contains(new Vector3(x, y, z)));
+        var pos = PopPosition(n, zyx: false);
+        n.Push(t != null && t.Contains(pos));
     }
 
     /// <summary>"{x, y, z}{x, y, z}..." as NWNX formats trigger polygons.</summary>
@@ -188,7 +200,7 @@ static class ObjectPlugin
             foreach (var v in t.Geometry)
                 sb.Append('{').Append(F(v.X)).Append(", ").Append(F(v.Y)).Append(", ").Append(F(v.Z)).Append('}');
         n.Push(sb.ToString());
-        static string F(float f) => f.ToString("0.000", CultureInfo.InvariantCulture);
+        static string F(float f) => f.ToString("0.000000", CultureInfo.InvariantCulture);
     }
 
     [NwnxFunc(P, "SetTriggerGeometry")]
@@ -225,66 +237,77 @@ static class ObjectPlugin
         w.HasMapNote = true;
     }
 
-    [NwnxFunc(P, "PeekUUID")] static void PeekUUID(NwnxCall n) { n.PopObject(); n.Push(""); }
+    /// <summary>The object's UUID if it has been given one; asking never assigns one here.</summary>
+    [NwnxFunc(P, "PeekUUID")]
+    static void PeekUUID(NwnxCall n)
+    {
+        var o = n.PopObject();
+        n.Push(o?.Uuid is { } uuid && n.World.System<Persistence.PersistenceSystem>().ByUuid(uuid) == o ? uuid : "");
+    }
 
-    // Persistent object variables (separate from locals; NWNX stores them in the object's GFF).
-    static string VarKey(string kind, string name) => "var:" + kind + ":" + name;
+    // The plugin's own object variables (separate from locals). With bPersist they travel in the object's GFF
+    // (NWNX_POS: saved characters, serialized objects; parity suite nwnx_object_serialize).
+    static string VarKey(string kind, string name) => "NWNX_Object!PER" + kind + "!" + name;
+    const string IntKind = "INT", StringKind = "STR", FloatKind = "FLT";
+
+    static NwnxValue? GetVar(NwnxCall n, GameObject? o, string kind, string name) => o == null ? null : NwnxPersistence.Get(o, VarKey(kind, name));
 
     [NwnxFunc(P, "GetInt")]
     static void GetInt(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        n.Push(o != null && n.State(o).TryGetValue(VarKey("i", name), out var v) && v.Value is int i ? i : 0);
+        n.Push(GetVar(n, o, IntKind, name) is { Value: int i } ? i : 0);
     }
     [NwnxFunc(P, "SetInt")]
     static void SetInt(NwnxCall n)
     {
-        var o = n.PopObject(); var name = n.PopString(); int value = n.PopInt(); n.PopInt();
-        if (o != null) n.State(o)[VarKey("i", name)] = NwnxValue.Int(value);
+        var o = n.PopObject(); var name = n.PopString(); int value = n.PopInt(); bool persist = n.PopInt() != 0;
+        if (o != null) NwnxPersistence.Set(o, VarKey(IntKind, name), NwnxValue.Int(value), persist);
     }
     [NwnxFunc(P, "DeleteInt")]
     static void DeleteInt(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        if (o != null) n.State(o).Remove(VarKey("i", name));
+        if (o != null) NwnxPersistence.Delete(o, VarKey(IntKind, name));
     }
     [NwnxFunc(P, "GetString")]
     static void GetString(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        n.Push(o != null && n.State(o).TryGetValue(VarKey("s", name), out var v) && v.Value is string s ? s : "");
+        n.Push(GetVar(n, o, StringKind, name) is { Value: string s } ? s : "");
     }
     [NwnxFunc(P, "SetString")]
     static void SetString(NwnxCall n)
     {
-        var o = n.PopObject(); var name = n.PopString(); var value = n.PopString(); n.PopInt();
-        if (o != null) n.State(o)[VarKey("s", name)] = NwnxValue.String(value);
+        var o = n.PopObject(); var name = n.PopString(); var value = n.PopString(); bool persist = n.PopInt() != 0;
+        if (o != null) NwnxPersistence.Set(o, VarKey(StringKind, name), NwnxValue.String(value), persist);
     }
     [NwnxFunc(P, "DeleteString")]
     static void DeleteString(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        if (o != null) n.State(o).Remove(VarKey("s", name));
+        if (o != null) NwnxPersistence.Delete(o, VarKey(StringKind, name));
     }
     [NwnxFunc(P, "GetFloat")]
     static void GetFloat(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        n.Push(o != null && n.State(o).TryGetValue(VarKey("f", name), out var v) && v.Value is float f ? f : 0f);
+        n.Push(GetVar(n, o, FloatKind, name) is { Value: float f } ? f : 0f);
     }
     [NwnxFunc(P, "SetFloat")]
     static void SetFloat(NwnxCall n)
     {
-        var o = n.PopObject(); var name = n.PopString(); float value = n.PopFloat(); n.PopInt();
-        if (o != null) n.State(o)[VarKey("f", name)] = NwnxValue.Float(value);
+        var o = n.PopObject(); var name = n.PopString(); float value = n.PopFloat(); bool persist = n.PopInt() != 0;
+        if (o != null) NwnxPersistence.Set(o, VarKey(FloatKind, name), NwnxValue.Float(value), persist);
     }
     [NwnxFunc(P, "DeleteFloat")]
     static void DeleteFloat(NwnxCall n)
     {
         var o = n.PopObject(); var name = n.PopString();
-        if (o != null) n.State(o).Remove(VarKey("f", name));
+        if (o != null) NwnxPersistence.Delete(o, VarKey(FloatKind, name));
     }
 
+    /// <summary>Removes only the plugin's own variables (Set/Get Int, String, Float), never locals (nwnx_object_locals).</summary>
     [NwnxFunc(P, "DeleteVarRegex")]
     static void DeleteVarRegex(NwnxCall n)
     {
@@ -292,15 +315,14 @@ static class ObjectPlugin
         var pattern = n.PopString();
         if (o == null) return;
         Regex re;
-        try { re = new Regex(pattern); }
+        try { re = new Regex("^(?:" + pattern + ")$"); }
         catch (ArgumentException) { return; }
-        var v = o.Locals;
-        foreach (var k in v.Ints.Keys.Where(k => re.IsMatch(k)).ToList()) v.Ints.Remove(k);
-        foreach (var k in v.Floats.Keys.Where(k => re.IsMatch(k)).ToList()) v.Floats.Remove(k);
-        foreach (var k in v.Strings.Keys.Where(k => re.IsMatch(k)).ToList()) v.Strings.Remove(k);
-        foreach (var k in v.Objects.Keys.Where(k => re.IsMatch(k)).ToList()) v.Objects.Remove(k);
-        foreach (var k in v.Locations.Keys.Where(k => re.IsMatch(k)).ToList()) v.Locations.Remove(k);
-        foreach (var k in v.Jsons.Keys.Where(k => re.IsMatch(k)).ToList()) v.Jsons.Remove(k);
+        foreach (var key in NwnxPersistence.Keys(o))
+        {
+            foreach (var kind in new[] { IntKind, StringKind, FloatKind })
+                if (key.StartsWith(VarKey(kind, ""), StringComparison.Ordinal) && re.IsMatch(key[VarKey(kind, "").Length..]))
+                    NwnxPersistence.Delete(o, key);
+        }
     }
 
     /// <summary>NWNX internal object type ids (CGameObject types).</summary>
@@ -319,6 +341,7 @@ static class ObjectPlugin
         Store => 14,
         Sound => 16,
         { Type: ObjectType.AreaOfEffect } => 11,
+        null => -1,
         _ => 0,
     });
 }

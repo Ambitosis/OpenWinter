@@ -1017,6 +1017,13 @@ public sealed partial class GameServer : IWorldOutput
         // Compare later mutations with the appearance actually sent in the spawn.
         // Another observer arriving must not replace an older observer's baseline.
         if (o is Creature) _looks.TryAdd(o.Id, AppearanceKey(spawn.Appearance));
+        // How this player sees the creature (NWNX_Appearance).
+        string portrait = spawn.Portrait;
+        if (Nwnx.Plugins.AppearancePlugin.ForViewer(World, s.Creature, o, spawn.Appearance, ref portrait) is { } seen)
+        {
+            spawn.Appearance = seen;
+            spawn.Portrait = portrait;
+        }
         s.Send(spawn.Write());
         // Effects already running on it (auras, glows, beams) start for this player too.
         // Script-set UI hints (SetObjectMouseCursor, SetObjectHiliteColor) reach players who arrive later too.
@@ -1176,7 +1183,15 @@ public sealed partial class GameServer : IWorldOutput
         var look = AppearanceKey(spawn.Appearance);
         if (_looks.TryGetValue(c.Id, out var before) && before == look) return;
         _looks[c.Id] = look;
-        Broadcast(c.Area, new AppearanceMessage { ObjectId = c.Id, Appearance = spawn.Appearance }.Write());
+        byte[]? shared = null;
+        foreach (var s in _sessions)
+        {
+            if (c.Area != null && s.Area != c.Area) continue;
+            string portrait = spawn.Portrait;
+            var seen = Nwnx.Plugins.AppearancePlugin.ForViewer(World, s.Creature, c, spawn.Appearance, ref portrait);
+            s.Send(seen != null ? new AppearanceMessage { ObjectId = c.Id, Appearance = seen }.Write()
+                : shared ??= new AppearanceMessage { ObjectId = c.Id, Appearance = spawn.Appearance }.Write());
+        }
     }
 
     static string AppearanceKey(Appearance appearance)

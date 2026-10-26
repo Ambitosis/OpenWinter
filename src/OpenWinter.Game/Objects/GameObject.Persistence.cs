@@ -7,6 +7,8 @@ public abstract partial class GameObject
 {
     /// <summary>GetObjectUUID value; assigned lazily (or restored from a serialized object). Managed by <see cref="PersistenceSystem"/>.</summary>
     public string? Uuid { get; internal set; }
+    /// <summary>Plugin values that can travel in the object's GFF (NWNX_POS); read from it on first use (<see cref="Nwnx.NwnxPersistence"/>).</summary>
+    public Nwnx.NwnxPluginValues? PluginValues;
 }
 
 public sealed partial class Creature

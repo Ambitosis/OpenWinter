@@ -35,6 +35,9 @@ public sealed partial class InventorySystem
         foreach (var session in _storeSessions.Values.ToArray()) SessionOf(session.Player);
     }
 
+    /// <summary>Players who have the store open now.</summary>
+    public int CustomerCount(Store s) => _storeSessions.Values.ToArray().Count(x => x.Store == s && SessionOf(x.Player) != null);
+
     (int Up, int Down) Bonus(Store s, Creature? pc) =>
         pc != null && SessionOf(pc) is { } session && session.Store == s ? (session.BonusMarkUp, session.BonusMarkDown) : (0, 0);
 

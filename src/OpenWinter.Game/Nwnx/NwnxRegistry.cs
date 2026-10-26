@@ -194,14 +194,38 @@ public sealed class NwnxRegistry : IWorldSystem
     public NwnxRegistry(World world)
     {
         _world = world;
-        world.ObjectRemoved += o => _objectState.Remove(o.Id);
+        Registries.AddOrUpdate(world, this);
+        // Lifting an item off the ground also reports it removed; only destruction ends its plugin state.
+        world.ObjectRemoved += o => { if (o.IsDestroyed) { _objectState.Remove(o.Id); _limbo.Remove(o.Id); _birthRace.Remove(o.Id); } };
+        Plugins.RulesModifiers.Attach(world, this);
+        world.ObjectAdded += o => { if (o is Creature c) _birthRace.TryAdd(c.Id, c.Race); };
+        Plugins.AppearancePlugin.Attach(world, this);
     }
+
+    readonly Dictionary<uint, int> _birthRace = new();
+
+    /// <summary>A creature's race when it first entered an area (its racial effect record keeps it).</summary>
+    public int BirthRace(Creature c) => _birthRace.TryGetValue(c.Id, out int race) ? race : c.Race;
+
+    /// <summary>After each Creature, Feat or Race plugin call, with the first object it was given (feat and race modifiers follow changes).</summary>
+    public event Action<NwnxCall, GameObject?>? Called;
+
+    // Objects created in no area (NWNX_Object_Deserialize): their actions still run, so a jump places them.
+    readonly HashSet<uint> _limbo = new();
+
+    public void TrackLimbo(GameObject o) => _limbo.Add(o.Id);
 
     readonly System.Collections.Concurrent.ConcurrentQueue<Action> _posted = new();
 
     /// <summary>Runs an action on the game thread at the next step: how plugins finish work done in the background.</summary>
     public void Post(Action action) => _posted.Enqueue(action);
 
+    readonly List<uint> _limboStep = new();
+
+    /// <summary>
+    /// Runs work plugins posted for the game thread, then steps objects in no area, which only carry out jumps and
+    /// assigned commands (what places them).
+    /// </summary>
     public void Step(float dt)
     {
         while (_posted.TryDequeue(out var action))
@@ -211,6 +235,14 @@ public sealed class NwnxRegistry : IWorldSystem
             {
                 Log($"[nwnx] a plugin's background work failed: {e.GetType().Name}: {e.Message}");
             }
+        }
+        if (_limbo.Count == 0) return;
+        _limboStep.Clear();
+        _limboStep.AddRange(_limbo);
+        foreach (uint id in _limboStep)
+        {
+            if (_world.Get(id) is not { Area: null } o || o is Item) { _limbo.Remove(id); continue; }
+            if (o.Actions.FirstOrDefault() is JumpAction or DoCommandAction) ActionQueues.Step(_world, o, dt);
         }
     }
 
@@ -291,7 +323,10 @@ public sealed class NwnxRegistry : IWorldSystem
         if (Handlers.TryGetValue((call.Plugin, function.ToLowerInvariant()), out var handler))
         {
             if (handler.UnsupportedReason is { } reason) call.ReportUnsupported(reason);
+            var subject = Called != null && call.Plugin is "creature" or "feat" or "race"
+                && call.Args.TopDown().FirstOrDefault(v => v.Type == NwnxType.Object) is { Value: uint id } ? _world.Get(id) : null;
             handler.Invoke(call);
+            Called?.Invoke(call, subject);
             return true;
         }
         call.ReportUnsupported("no handler; generic Set/Get storage only, no engine behavior");
