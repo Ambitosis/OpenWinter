@@ -534,16 +534,22 @@ public sealed partial class World
         {
             if (t.IsDestroyed || t.Area != area) continue;
             bool inside = t.Contains(c.Position);
+            if (!inside) Nwnx.NwnxTraps.Left(t, c);
             if (inside && t.TriggerType == Trigger.TypeTrap && !t.Inside.Contains(c.Id))
             {
                 // A trap trigger notices only creatures it goes off for: the trap's script first, then OnEnter,
                 // both while it is still armed; a one-shot trap trigger then goes away (trap_trigger, traprules).
-                if (!WorldObjects.TrapSystem.Notices(this, t, c)) continue;
+                // NWNX_ON_TRAP_ENTER as a creature steps in, whether or not the trap goes off for it (nwnx_events_traps;
+                // TRAP_FORCE_SET only in the _BEFORE half); a skip leaves the trap unsprung.
+                var trapEvent = Nwnx.NwnxTraps.Entering(this, t, c);
+                if (!WorldObjects.TrapSystem.Notices(this, t, c)) { trapEvent?.Remove("TRAP_FORCE_SET").After(); continue; }
                 t.Inside.Add(c.Id);
+                if (trapEvent?.Skipped == true) { trapEvent.Remove("TRAP_FORCE_SET").After(); continue; }
                 WorldObjects.TrapSystem.Fire(this, t, c);
                 if (!t.IsDestroyed) RunEvent(t, "ScriptOnEnter", new EventContext().Set("Entering", c.Id));
                 TriggerEntered?.Invoke(t, c);
                 WorldObjects.TrapSystem.Spent(this, t);
+                trapEvent?.Remove("TRAP_FORCE_SET").After();
             }
             else if (inside && t.Inside.Add(c.Id))
             {
