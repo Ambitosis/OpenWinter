@@ -20,6 +20,7 @@ public sealed class NetConnection : IConnection
 
     public bool TryReceive(out byte[] message) => Inbox.TryDequeue(out message!);
     public void Disconnect() { Closed = true; _peer.Disconnect(); }
+    public string Address => _peer.Address.ToString();
 }
 
 /// <summary>Listens for clients. Call <see cref="Poll"/> once per server tick.</summary>
