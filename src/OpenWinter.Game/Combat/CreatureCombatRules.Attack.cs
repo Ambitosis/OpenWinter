@@ -47,9 +47,23 @@ public sealed partial class CreatureCombatRules
         return str;
     }
 
-    /// <summary>Weapon Finesse works with unarmed strikes, creature weapons, weapons smaller than the wielder and the rapier.</summary>
-    public bool Finessable(Creature c, WeaponStats s) =>
-        s.Unarmed || s.Creature || s.Size < c.Size || (s.BaseItem == CombatK.BaseRapier && c.Size >= 3);
+    /// <summary>
+    /// Weapon Finesse works with unarmed strikes, creature weapons and weapons whose smallest finesse size (baseitems
+    /// WeaponFinesseMinimumCreatureSize, or a module override) the wielder reaches. Tables without the column:
+    /// weapons smaller than the wielder and the rapier. A base item a module made count as unarmed isn't finessable
+    /// for that (parity suite nwnx_weapon: a club or a greatsword so marked uses Strength on nwserver).
+    /// </summary>
+    public bool Finessable(Creature c, WeaponStats s)
+    {
+        if (s.Unarmed || s.Creature) return true;
+        int size = FinesseSize(s.BaseItem);
+        if (size >= 0) return c.Size >= size;
+        return !s.FinesseColumn && (s.Size < c.Size || (s.BaseItem == CombatK.BaseRapier && c.Size >= 3));
+    }
+
+    /// <summary>The smallest creature size that finesses a base item, -1 for none.</summary>
+    public int FinesseSize(int baseItem) =>
+        Overrides.FinesseSize.TryGetValue(baseItem, out int size) ? size : baseItem < 0 ? -1 : Stats(baseItem).FinesseSize;
 
     /// <summary>Size attack modifier (ruleset.2da CREATURE_SIZE_*_ATTACK_*, else creaturesize.2da ACATTACKMOD).</summary>
     public int SizeAttackModifier(int size) => size switch
@@ -85,8 +99,9 @@ public sealed partial class CreatureCombatRules
     {
         var c = a.Attacker;
         int b = 0;
-        if (Has(c, s.Focus)) b += RI("WEAPON_FOCUS_BONUS", 1);
-        if (Has(c, s.EpicFocus)) b += RI("EPIC_WEAPON_FOCUS_BONUS", 2);
+        if (HasWeaponFeat(c, s, WeaponFeat.Focus)) b += RI("WEAPON_FOCUS_BONUS", 1);
+        if (HasWeaponFeat(c, s, WeaponFeat.EpicFocus)) b += RI("EPIC_WEAPON_FOCUS_BONUS", 2);
+        if (HasWeaponFeat(c, s, WeaponFeat.GreaterFocus)) b += Overrides.GreaterFocusAttackBonus;
         if (WeaponOfChoice(c, s))
         {
             if (Has(c, CombatK.FeatSuperiorWeaponFocus)) b += 1;

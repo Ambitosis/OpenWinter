@@ -8,11 +8,11 @@ reported once per world through the `NwnxRegistry.Log` sink.
 - **Unknown functions** get one warning each and return their empty result stack.
 - **Registered placeholders** (handlers marked with `NwnxFunc.UnsupportedReason`) warn the same way. They keep
   their argument, result and storage behaviour; the warning says the engine effect is missing. They are:
-  Damage.SetEventScript, Item.SetWeight,
+  Item.SetWeight,
   Player.GetTURD and Player.RemoveEffectFromTURD (OpenWinter keeps no TURDs for players who leave),
   Ruby.Evaluate (there is no Ruby interpreter; the result is empty), Risenholm.ForceUpdateMageArmorStats (the
   plugin's MAGE_ARMOR armour rule is not documented, so only the stats are recomputed) and
-  Risenholm.RemoveAttackImmunityFeedback (it is meant for the NWNX_Damage attack event, which combat does not run).
+  Risenholm.RemoveAttackImmunityFeedback (not yet tied to the NWNX_Damage attack event).
   NWNX_Creature has none: every function has its engine behaviour (measured by the `nwnx_creature_*` parity
   suites); only SetMulticlassLimit with bPersist warns, as that limit isn't kept in the character file (the other
   bPersist settings are, in NWNX_POS as NWNX:EE keeps them).
@@ -71,6 +71,16 @@ server runs without players, so some of it is implemented from the NWNX headers 
 - GetPathExists samples the tiles' walkmesh (once per area until it changes) rather than the original's tile path
   nodes, so paths through narrow gaps may be judged differently.
 - Default UI discovery masks are kept and applied on the server; the client does not draw discovery masks yet.
+
+## Damage, Weapon, SkillRanks, ELC and MaxLevel
+
+The combat plugins (NWNX_Damage, NWNX_Weapon, NWNX_SkillRanks, NWNX_ELC) have no placeholders: their events and
+settings act on combat, skill ranks and character validation. NWNX_ELC reads its options, and NWNX_MaxLevel its level
+cap, from the same environment variables as NWNX (`NWNX_ELC_*`, `NWNX_MAXLEVEL_MAX`). One call keeps
+its value without an engine effect, as on nwserver: NWNX_Weapon_SetWeaponUnarmed doesn't make a weapon finessable.
+NWNX_ELC validates local-vault characters when Enforce Legal Characters is on. Server-vault characters, coloured
+names and the equipped items' level and identification are not checked at login (`ElcPlugin.Options.ServerVault`,
+`LoginItemAndNameChecks`): nwserver's handling of them at login isn't measured yet.
 
 ## Testing
 

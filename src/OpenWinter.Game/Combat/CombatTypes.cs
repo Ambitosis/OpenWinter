@@ -90,6 +90,10 @@ public sealed class AttackContext
     public string? Animation;
     /// <summary>Send combat log lines to the players involved (DoWhirlwindAttack's bDisplayFeedback).</summary>
     public bool ShowFeedback = true;
+    /// <summary>1-based number of the attack in its round, main-hand attacks first, then extra and off-hand ones.</summary>
+    public int AttackNumber = 1;
+    /// <summary>An attack beyond the creature's normal ones this round (haste and other extra attacks).</summary>
+    public bool ExtraAttack;
 
     // ---- situation (rules fill these in Prepare)
     /// <summary>The target can't use its Dexterity bonus (flat-footed, helpless, can't see the attacker).</summary>
@@ -115,6 +119,10 @@ public sealed class DamageRoll
     /// <summary>The part of <see cref="ByType"/> that immunity and resistance don't touch (damage effects of other than physical types).</summary>
     public readonly Dictionary<int, int> Unresisted = new();
     public int Power;
+    /// <summary>The amounts are final: they already got past the target's defences (a script set them).</summary>
+    public bool Defended;
+    /// <summary>For script-set damage, the rolled damage the target's defences met (their limits drain by it).</summary>
+    public DamageRoll? Met;
     /// <summary>Sneak attack and death attack damage included in <see cref="ByType"/>.</summary>
     public int Sneak;
     public bool DeathAttack;
@@ -132,6 +140,8 @@ public sealed class AttackOutcome
     public required AttackContext Context;
     public int Roll, AttackBonus, ArmorClass;
     public bool Hit, Critical, Threat;
+    /// <summary>A critical hit that brings a devastating critical (its Fortitude save comes when the blow lands).</summary>
+    public bool Devastating;
     /// <summary>A confirmed threat, or a sneak attack, on a target immune to it (the log says so).</summary>
     public bool CriticalImmune, SneakImmune;
     public int ConfirmRoll;

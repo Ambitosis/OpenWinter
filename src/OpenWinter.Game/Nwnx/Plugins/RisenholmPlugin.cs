@@ -441,7 +441,7 @@ public static class RisenholmPlugin
         n.Push(c != null && n.World.System<Combat.CombatSystem>().QueueCleave(c, killed));
     }
 
-    [NwnxFunc(P, "RemoveAttackImmunityFeedback", UnsupportedReason = "it is called from the NWNX_Damage attack event, which OpenWinter's combat does not run; immunity is reported with the hit")]
+    [NwnxFunc(P, "RemoveAttackImmunityFeedback", UnsupportedReason = "not yet tied to the NWNX_Damage attack event; immunity is reported with the hit")]
     static void RemoveAttackImmunityFeedback(NwnxCall n)
     {
         n.PopObject(); n.PopInt(); n.PopInt();

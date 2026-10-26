@@ -289,7 +289,7 @@ public sealed partial class EffectSystem : IWorldSystem
         int amount = e.Ints[0] < 0 ? 1 : e.Ints[0], type = e.Ints[1];
         if (HitPoints.IsDead(target) || target is not (Creature or Placeable or Door)) return;
         var breakdown = new DamageBreakdown();
-        HitPoints.Damage(_world, target, e.Creator, new Dictionary<int, int> { [type] = amount }, e.Ints[2], breakdown: breakdown);
+        HitPoints.Damage(_world, target, e.Creator, new Dictionary<int, int> { [type] = amount }, e.Ints[2], breakdown: breakdown, spellId: e.SpellId);
         var source = _world.Get(e.Creator) as Creature;
         // Players involved, and a nearby master of an associate involved (killxp: "Bandit damages Goblin" from a henchman).
         var audience = Society.AssociateService.FeedbackPlayers(_world, target, target as Creature, source);

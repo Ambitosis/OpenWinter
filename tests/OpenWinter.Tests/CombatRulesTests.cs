@@ -119,6 +119,43 @@ public class CombatRulesTests
         return e;
     }
 
+    [DataFact]
+    public void DamageAnAttackScriptSetsStillDrainsLimitedReduction()
+    {
+        var f = Make(scripts: true);
+        var a = Make(f, Fighter, 5, new Vector3(10, 10, 0));
+        Equip(f, a, Longsword, EquipSlot.RightHand);
+        var t = Target(f, new Vector3(11, 10, 0));
+        var k = EffectConstants.Of(f.W);
+        var dr = new Effect { Type = k.DamageReduction, DurationType = 2 };
+        dr.Ints[0] = 10; // soaks 10 a hit against power below +5, 20 points in all
+        dr.Ints[1] = 5;
+        dr.Ints[2] = 20;
+        t.Effects.Add(dr);
+        // The attack script sets every hit to 3 base damage.
+        var body = "NWNXCall(\"NWNX_Damage\",\"GetAttackEventData\");object o=NWNXPopObject();int i;int v;"
+            + "for(i=0;i<41;i++){v=NWNXPopInt();if(i<32)SetLocalInt(OBJECT_SELF,\"v\"+IntToString(i),v);if(i==33)SetLocalInt(OBJECT_SELF,\"r\",v);if(i==35)SetLocalInt(OBJECT_SELF,\"s\",v);}"
+            + "NWNXPushInt(GetLocalInt(OBJECT_SELF,\"s\"));NWNXPushInt(GetLocalInt(OBJECT_SELF,\"r\"));"
+            + "for(i=31;i>=0;i--){v=GetLocalInt(OBJECT_SELF,\"v\"+IntToString(i));if(i==12)v=3;NWNXPushInt(v);}"
+            + "NWNXCall(\"NWNX_Damage\",\"SetAttackEventData\");";
+        var code = OpenWinter.Game.Scripting.Compiler.NssCompiler.Compile("void main(){" + body + "}", "atk_set", f.W.Scripts!.Definitions, _ => null, out var error);
+        Assert.True(code != null, error);
+        f.W.Scripts.Register("atk_set", new NcsProgram("atk_set", code!));
+        var reg = f.W.System<OpenWinter.Game.Nwnx.NwnxRegistry>();
+        reg.Stack.Push(OpenWinter.Game.Nwnx.NwnxValue.Object(GameObject.InvalidId));
+        reg.Stack.Push(OpenWinter.Game.Nwnx.NwnxValue.String("atk_set"));
+        reg.Stack.Push(OpenWinter.Game.Nwnx.NwnxValue.String("ATTACK"));
+        Assert.True(reg.Call("Damage", "SetEventScript"));
+
+        int hp = t.CurrentHitPoints;
+        f.Dice(15, 6);
+        var o = f.Combat.Resolve(Ctx(f, a, t));
+        Assert.True(o.Hit);
+        Assert.Equal(hp - 3, t.CurrentHitPoints);
+        // The rolled 6 met the reduction, which spent 6 of its 20 points.
+        Assert.Equal(14, dr.Ints[2]);
+    }
+
     static AttackContext Ctx(Fx f, Creature a, GameObject t, bool offHand = false)
     {
         var (main, off, _) = f.Rules.Weapons(a);
@@ -147,7 +184,8 @@ public class CombatRulesTests
         var dummy = Target(f, new Vector3(11, 10, 0));
 
         // damienoneknife6: halfling rogue 15 (small), +3 short sword, Weapon Finesse, Str 10 / Dex 21.
-        // The short sword isn't light for a small creature, so Strength applies; small size adds +1.
+        // A small creature finesses a short sword (baseitems WeaponFinesseMinimumCreatureSize 2; parity suite
+        // nwnx_weapon smallss), so Dexterity applies; small size adds +1.
         var small = LoadBic(f, "damienoneknife6", new Vector3(10, 10, 0));
         CreatureRules.EnsureInit(f.W, small);
         var t = small.Template;
@@ -160,8 +198,8 @@ public class CombatRulesTests
         Assert.Equal(2, small.Size);
         int enhancement = CreatureRules.PropertyValue(f.W, main.Properties.Single(p => p.Type == 6));
         Assert.Equal(3, enhancement);
-        int strMod = CreatureRules.AbilityModifier(f.W, small, NwRules.AbilityStr);
-        Assert.Equal(bab + strMod + 1 + enhancement, Ab(f, small, dummy));
+        int dexModSmall = CreatureRules.AbilityModifier(f.W, small, NwRules.AbilityDex);
+        Assert.Equal(bab + dexModSmall + 1 + enhancement, Ab(f, small, dummy));
         // Iterative attacks at -5 each.
         var plan = f.Rules.PlanRound(small);
         Assert.Equal(new[] { 0, 5, 10 }, plan.Select(p => p.Penalty));
@@ -248,8 +286,9 @@ public class CombatRulesTests
         c.Effects.Add(Effect(CombatK.EffectHaste));
         var plan = f.Rules.PlanRound(c);
         Assert.Equal(5, plan.Count);
-        Assert.True(plan[1].Extra);
-        Assert.Equal(0, plan[1].Penalty);
+        // The extra attack comes after the normal ones (nwnx_damage).
+        Assert.True(plan[4].Extra);
+        Assert.Equal(0, plan[4].Penalty);
         // Extra attacks (haste, then EffectModifyAttacks) have their own iterative penalties.
         var more = Effect(CombatK.EffectModifyAttacks, 2);
         c.Effects.Add(more);

@@ -94,7 +94,7 @@ public sealed partial class CreatureCombatRules
         var c = a.Attacker;
         int range = s.CritThreat;
         bool keen = a.Weapon != null && a.Weapon.Properties.Any(p => p.Valid && p.Type == CombatK.IpKeen);
-        range += (keen ? s.CritThreat : 0) + (Has(c, s.ImprovedCritical) ? s.CritThreat : 0);
+        range += (keen ? s.CritThreat : 0) + (HasWeaponFeat(c, s, WeaponFeat.ImprovedCritical) ? s.CritThreat : 0);
         int mult = s.CritMult;
         if (WeaponOfChoice(c, s))
         {

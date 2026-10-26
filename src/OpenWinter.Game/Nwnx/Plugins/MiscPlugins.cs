@@ -308,25 +308,3 @@ static class ItemPlugin
         n.World.MarkChanged(item);
     }
 }
-
-/// <summary>NWNX_Damage: event script registration (fired by the combat system) and event data.</summary>
-static class DamagePlugin
-{
-    const string P = "Damage";
-
-    [NwnxFunc(P, "SetEventScript", UnsupportedReason = "damage/attack callbacks are stored but are not dispatched by combat")]
-    static void SetEventScript(NwnxCall n)
-    {
-        var evt = n.PopString(); var script = n.PopString(); uint owner = n.PopObjectId();
-        // TODO(combat): run "damage:DAMAGE"/"damage:ATTACK" scripts from the combat round, owner first then the global (InvalidId) one.
-        n.State(owner)["damage:" + evt] = NwnxValue.String(script);
-    }
-
-    /// <summary>The DAMAGE or ATTACK script for an owner, falling back to the global one.</summary>
-    public static string EventScript(World world, string evt, uint owner)
-    {
-        var reg = world.System<NwnxRegistry>();
-        if (reg.ObjectState(owner).TryGetValue("damage:" + evt, out var v) && v.Value is string s && s.Length > 0) return s;
-        return reg.ObjectState(GameObject.InvalidId).TryGetValue("damage:" + evt, out var g) && g.Value is string gs ? gs : "";
-    }
-}

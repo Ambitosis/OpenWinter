@@ -124,14 +124,18 @@ public static class HitPoints
     /// <param name="combat">A weapon hit: the client already shows it from the attack notify, so the hp-change notify says so.</param>
     /// <param name="unresisted">The part of each type's damage that no immunity or resistance touches (a weapon hit's damage effects).</param>
     /// <param name="breakdown">Filled with what got through and what immunity, resistance and reduction took (combat feedback).</param>
+    /// <param name="spellId">The spell the damage comes from, or -1.</param>
+    /// <param name="weaponStyle">Reported like a weapon hit (physical damage as base weapon damage) without being one.</param>
+    /// <param name="defended">The amounts already got past the target's defences (keys as given, zeros kept).</param>
     public static int Damage(World world, GameObject target, uint damager, IReadOnlyDictionary<int, int> byType, int power = 0, bool ignoreReductions = false, bool ranged = false,
-        bool combat = false, IReadOnlyDictionary<int, int>? unresisted = null, DamageBreakdown? breakdown = null)
+        bool combat = false, IReadOnlyDictionary<int, int>? unresisted = null, DamageBreakdown? breakdown = null, int spellId = -1, bool weaponStyle = false,
+        bool defended = false)
     {
         if (IsDead(target) || target is Creature { Player.IsAreaLoading: true } || target is not (Creature or Placeable or Door)) return 0;
         if (target is Creature init) CreatureRules.EnsureInit(world, init);
         var k = EffectConstants.Of(world);
-        var dealt = new Dictionary<int, int>();
         var effects = world.System<EffectSystem>();
+        weaponStyle |= combat;
         if (combat && target.Plot)
         {
             // A plot target takes a weapon hit as 0 physical damage, and OnDamaged still runs, as in the original.
@@ -143,77 +147,40 @@ public static class HitPoints
             return 0;
         }
 
-        foreach (var (type, raw) in byType)
+        // NWNX_Damage: scripted damage meets the damage event before the target's defences, a weapon-style hit after them.
+        if (!weaponStyle && !defended && Nwnx.Plugins.DamagePlugin.RunDamageEvent(world, target, damager, byType, spellId) is { } scripted)
         {
-            int free = Math.Clamp(unresisted?.GetValueOrDefault(type) ?? 0, 0, Math.Max(0, raw));
-            int amount = raw - free;
-            if (free > 0) dealt[type] = free;
-            if (amount <= 0) continue;
-            if (!ignoreReductions)
-            {
-                // Immunity percentage (vulnerability lowers it below zero).
-                int pct = 0;
-                foreach (var e in EffectQueries.Active(target, k.DamageImmunityIncrease, world.Get(damager)))
-                    if ((e.Ints[0] & type) != 0) pct += e.Ints[1];
-                foreach (var e in EffectQueries.Active(target, k.DamageImmunityDecrease, world.Get(damager)))
-                    if ((e.Ints[0] & type) != 0) pct -= e.Ints[1];
-                pct += ItemPropertyRules.ItemDamageImmunity(world, target, type);
-                pct = Math.Clamp(pct, -100, 100);
-                // Immunity takes at least 1 point (rounding down otherwise); vulnerability adds the rounded-down extra.
-                int immune = pct > 0 ? Math.Min(amount, Math.Max(1, amount * pct / 100)) : amount * pct / 100;
-                amount -= immune;
-                if (immune > 0 && breakdown != null) breakdown.Immunity[type] = breakdown.Immunity.GetValueOrDefault(type) + immune;
+            byType = scripted;
+            unresisted = null;
+        }
+        Dictionary<int, int> dealt = defended
+            ? byType.Where(kv => kv.Value >= 0).ToDictionary(kv => kv.Key, kv => kv.Value)
+            : Defend(world, target, damager, byType, power, ignoreReductions, ranged, unresisted, breakdown, consume: true);
 
-                // Resistance: the best single source applies.
-                Effect? bestEffect = null;
-                int best = ItemPropertyRules.ItemDamageResistance(world, target, type);
-                foreach (var e in EffectQueries.Active(target, k.DamageResistance, world.Get(damager)))
-                    if ((e.Ints[0] & type) != 0 && e.Ints[1] > best && (ranged || e.Ints[3] == 0)) { best = e.Ints[1]; bestEffect = e; }
-                int absorbed = Math.Min(amount, best);
-                if (bestEffect != null && bestEffect.Ints[2] > 0)
+        // Weapon hits report their physical damage as base weapon damage, and every type they carried even when
+        // nothing of it got through, as the original does.
+        Dictionary<int, int>? reported = null;
+        if (weaponStyle)
+        {
+            reported = new Dictionary<int, int>();
+            if (defended) foreach (var (type, amount) in dealt) reported[type] = amount;
+            else
+                foreach (var (type, raw) in byType)
                 {
-                    absorbed = Math.Min(absorbed, bestEffect.Ints[2]);
-                    bestEffect.Ints[2] -= absorbed;
-                    if (bestEffect.Ints[2] <= 0) effects.Remove(target, bestEffect);
+                    if (raw <= 0) continue;
+                    int key = (type & PhysicalTypes) != 0 ? BaseWeaponDamage : type;
+                    reported[key] = reported.GetValueOrDefault(key) + dealt.GetValueOrDefault(type);
                 }
-                amount -= absorbed;
-                if (breakdown != null) breakdown.Resistance += absorbed;
-            }
-            if (amount > 0) dealt[type] = dealt.GetValueOrDefault(type) + amount;
+            if (Nwnx.Plugins.DamagePlugin.RunDamageEvent(world, target, damager, reported, spellId) is { } changed)
+                reported = dealt = changed;
+        }
+        if (breakdown != null && (defended || reported == dealt))
+        {
+            breakdown.Dealt.Clear();
+            foreach (var (type, amount) in dealt) breakdown.Dealt[type] = amount;
         }
 
-        // Damage reduction soaks physical damage the hit's power doesn't overcome.
-        if (!ignoreReductions)
-        {
-            int physical = dealt.Where(kv => (kv.Key & PhysicalTypes) != 0).Sum(kv => kv.Value);
-            if (physical > 0)
-            {
-                Effect? bestEffect = null;
-                int soak = ItemPropertyRules.ItemDamageReduction(world, target, power);
-                foreach (var e in EffectQueries.Active(target, k.DamageReduction, world.Get(damager)))
-                    if (power < e.Ints[1] && e.Ints[0] > soak && (ranged || e.Ints[3] == 0)) { soak = e.Ints[0]; bestEffect = e; }
-                int absorbed = Math.Min(physical, soak);
-                if (bestEffect != null && bestEffect.Ints[2] > 0)
-                {
-                    absorbed = Math.Min(absorbed, bestEffect.Ints[2]);
-                    bestEffect.Ints[2] -= absorbed;
-                    if (bestEffect.Ints[2] <= 0) effects.Remove(target, bestEffect);
-                }
-                if (breakdown != null) breakdown.Reduction += absorbed;
-                foreach (var type in dealt.Keys.Where(t => (t & PhysicalTypes) != 0).ToList())
-                {
-                    if (absorbed <= 0) break;
-                    int take = Math.Min(absorbed, dealt[type]);
-                    dealt[type] -= take;
-                    absorbed -= take;
-                }
-            }
-        }
-
-        int total = dealt.Values.Sum();
-        if (breakdown != null)
-            foreach (var (type, raw) in byType)
-                if (raw > 0) breakdown.Dealt[type] = breakdown.Dealt.GetValueOrDefault(type) + dealt.GetValueOrDefault(type);
+        int total = dealt.Values.Where(v => v > 0).Sum();
         if (total <= 0) return 0;
         if (target is Creature { IsPC: true } trader) world.System<Requests.BarterService>().Interrupt(trader);
         // A master hurt while its player controls the familiar takes control back first, so the player
@@ -251,19 +218,7 @@ public static class HitPoints
         if (total > 0 && target is Creature && target.Effects.Any(e => e.Type == NwRules.EffectSleep))
             effects.RemoveWhere(target, e => e.Type == NwRules.EffectSleep);
 
-        // Weapon hits report their physical damage as base weapon damage, and every type they carried even when
-        // nothing of it got through, as the original does.
-        var reported = dealt;
-        if (combat)
-        {
-            reported = new Dictionary<int, int>();
-            foreach (var (type, raw) in byType)
-            {
-                if (raw <= 0) continue;
-                int key = (type & PhysicalTypes) != 0 ? BaseWeaponDamage : type;
-                reported[key] = reported.GetValueOrDefault(key) + dealt.GetValueOrDefault(type);
-            }
-        }
+        reported ??= dealt;
         CreatureRules.RecordDamage(target, world.Get(damager), reported);
         // Direct positive HP loss enters combat before OnDamaged; ordinary weapon hits
         // retain their existing round/LastHostile handling in CombatSystem.Resolve. Scripted damage on a plot
@@ -281,6 +236,98 @@ public static class HitPoints
 
         CheckDeath(world, target, damager, before);
         return before - Current(target);
+    }
+
+    /// <summary>
+    /// What of each damage type gets past the target's defences: immunity (vulnerability adds), the best resistance,
+    /// then damage reduction against physical damage the power doesn't overcome. With <paramref name="consume"/>
+    /// limited resistances and reductions are used up and <paramref name="breakdown"/> is filled; without, nothing
+    /// changes (a preview of a hit).
+    /// </summary>
+    public static Dictionary<int, int> Defend(World world, GameObject target, uint damager, IReadOnlyDictionary<int, int> byType, int power, bool ignoreReductions,
+        bool ranged, IReadOnlyDictionary<int, int>? unresisted, DamageBreakdown? breakdown, bool consume)
+    {
+        var k = EffectConstants.Of(world);
+        var effects = world.System<EffectSystem>();
+        var source = world.Get(damager);
+        if (!consume) breakdown = null;
+        var dealt = new Dictionary<int, int>();
+        foreach (var (type, raw) in byType)
+        {
+            int free = Math.Clamp(unresisted?.GetValueOrDefault(type) ?? 0, 0, Math.Max(0, raw));
+            int amount = raw - free;
+            if (free > 0) dealt[type] = free;
+            if (amount <= 0) continue;
+            if (!ignoreReductions)
+            {
+                // Immunity percentage (vulnerability lowers it below zero).
+                int pct = 0;
+                foreach (var e in EffectQueries.Active(target, k.DamageImmunityIncrease, source))
+                    if ((e.Ints[0] & type) != 0) pct += e.Ints[1];
+                foreach (var e in EffectQueries.Active(target, k.DamageImmunityDecrease, source))
+                    if ((e.Ints[0] & type) != 0) pct -= e.Ints[1];
+                pct += ItemPropertyRules.ItemDamageImmunity(world, target, type);
+                pct = Math.Clamp(pct, -100, 100);
+                // Immunity takes at least 1 point (rounding down otherwise); vulnerability adds the rounded-down extra.
+                int immune = pct > 0 ? Math.Min(amount, Math.Max(1, amount * pct / 100)) : amount * pct / 100;
+                amount -= immune;
+                if (immune > 0 && breakdown != null) breakdown.Immunity[type] = breakdown.Immunity.GetValueOrDefault(type) + immune;
+
+                // Resistance: the best single source applies.
+                Effect? bestEffect = null;
+                int best = ItemPropertyRules.ItemDamageResistance(world, target, type);
+                foreach (var e in EffectQueries.Active(target, k.DamageResistance, source))
+                    if ((e.Ints[0] & type) != 0 && e.Ints[1] > best && (ranged || e.Ints[3] == 0)) { best = e.Ints[1]; bestEffect = e; }
+                int absorbed = Math.Min(amount, best);
+                if (bestEffect != null && bestEffect.Ints[2] > 0)
+                {
+                    absorbed = Math.Min(absorbed, bestEffect.Ints[2]);
+                    if (consume)
+                    {
+                        bestEffect.Ints[2] -= absorbed;
+                        if (bestEffect.Ints[2] <= 0) effects.Remove(target, bestEffect);
+                    }
+                }
+                amount -= absorbed;
+                if (breakdown != null) breakdown.Resistance += absorbed;
+            }
+            if (amount > 0) dealt[type] = dealt.GetValueOrDefault(type) + amount;
+        }
+
+        // Damage reduction soaks physical damage the hit's power doesn't overcome.
+        if (!ignoreReductions)
+        {
+            int physical = dealt.Where(kv => (kv.Key & PhysicalTypes) != 0).Sum(kv => kv.Value);
+            if (physical > 0)
+            {
+                Effect? bestEffect = null;
+                int soak = ItemPropertyRules.ItemDamageReduction(world, target, power);
+                foreach (var e in EffectQueries.Active(target, k.DamageReduction, source))
+                    if (power < e.Ints[1] && e.Ints[0] > soak && (ranged || e.Ints[3] == 0)) { soak = e.Ints[0]; bestEffect = e; }
+                int absorbed = Math.Min(physical, soak);
+                if (bestEffect != null && bestEffect.Ints[2] > 0)
+                {
+                    absorbed = Math.Min(absorbed, bestEffect.Ints[2]);
+                    if (consume)
+                    {
+                        bestEffect.Ints[2] -= absorbed;
+                        if (bestEffect.Ints[2] <= 0) effects.Remove(target, bestEffect);
+                    }
+                }
+                if (breakdown != null) breakdown.Reduction += absorbed;
+                foreach (var type in dealt.Keys.Where(t => (t & PhysicalTypes) != 0).ToList())
+                {
+                    if (absorbed <= 0) break;
+                    int take = Math.Min(absorbed, dealt[type]);
+                    dealt[type] -= take;
+                    absorbed -= take;
+                }
+            }
+        }
+        if (breakdown != null)
+            foreach (var (type, raw) in byType)
+                if (raw > 0) breakdown.Dealt[type] = breakdown.Dealt.GetValueOrDefault(type) + dealt.GetValueOrDefault(type);
+        return dealt;
     }
 
     /// <summary>After hit points dropped from <paramref name="before"/>: dying for PCs, death for everything at its threshold.</summary>
