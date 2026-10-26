@@ -16,8 +16,17 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// and "action-mode" notifies the OpenWinter server sends. The client's requests to use any of it (cast, use a
 /// feat, skill or item, toggle a mode, rest, edit the quickbar, prepare a spell) become the matching NWN input.
 /// </summary>
-public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emit, Action<NwnMessage> send)
+public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emit, Action<NwnMessage> send, Func<double>? clock = null)
 {
+    /// <summary>Seconds, for telling when the character sheet has closed (tests give their own).</summary>
+    readonly Func<double> _clock = clock ?? StopwatchSeconds();
+
+    static Func<double> StopwatchSeconds()
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        return () => watch.Elapsed.TotalSeconds;
+    }
+
     /// <summary>The number of class slots NWN keeps spell lists for.</summary>
     const int ClassSlots = 8;
     const int SpellLevels = 10;
@@ -39,6 +48,8 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     /// <summary>The most uses each counted feat has had since it was first seen (its uses per day, after a rest).</summary>
     readonly Dictionary<int, int> _featMax = [];
     readonly Dictionary<(int Class, int Level, int Slot), Prepared> _prepared = [];
+    /// <summary>Domain slots, kept while they are empty too.</summary>
+    readonly HashSet<(int Class, int Level, int Slot)> _domainSlots = [];
     readonly int[,] _slots = new int[ClassSlots, SpellLevels];
     readonly int[,] _usesLeft = new int[ClassSlots, SpellLevels];
     readonly HashSet<int>[] _known = Enumerable.Range(0, ClassSlots).Select(_ => new HashSet<int>()).ToArray();
@@ -64,9 +75,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     float _walkRate, _runRate;
     NwnTagged?[] _quickbar = [];
     readonly List<GameObjUpdateMessages.GameObjUpdateObjList> _early = [];
-    bool _quickbarWanted, _abilitiesWanted, _sheetOpen, _resting;
-    int _sheetVersion;
-    string _sheetJson = "";
+    bool _quickbarWanted, _quickbarSent, _abilitiesWanted, _resting, _timingIsRest;
 
     /// <summary>The creature the player controls; its updates are the ones kept.</summary>
     public uint Player
@@ -75,6 +84,8 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         set
         {
             if (value == _player) return;
+            // Control of another creature (possessing a familiar, or back): nothing of the last one carries over.
+            if (_player != 0) Reset();
             _player = value;
             // The player's creature is described in the same frame as, and just before, control of it.
             var early = _early.ToArray();
@@ -83,6 +94,45 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
             // A quickbar asked for before control arrived goes out now.
             if (_quickbarWanted && _quickbar.Length > 0) SendQuickbar();
         }
+    }
+
+    /// <summary>Forgets everything about the controlled creature; the server describes the next one afresh.</summary>
+    void Reset()
+    {
+        _classes.Clear();
+        Array.Clear(_abilityBase);
+        Array.Clear(_abilityFinal);
+        _feats.Clear();
+        _bonusFeats.Clear();
+        _featMax.Clear();
+        _prepared.Clear();
+        _domainSlots.Clear();
+        Array.Clear(_slots);
+        Array.Clear(_usesLeft);
+        foreach (var k in _known) k.Clear();
+        _spellAbilities.Clear();
+        _formSpells = [];
+        _skillsUsable = 0;
+        _stateKnown = false;
+        _modesOn.Clear();
+        (_ac, _gold, _weight, _canLevelUp, _hp, _maxHp, _tempHp) = (0, 0, 0, false, 0, 0, 0);
+        (_race, _gender, _goodEvil, _lawChaos, _subrace, _deity, _portrait, _name) = (-1, 0, 50, 50, "", "", "", "");
+        (_walkRate, _runRate) = (0, 0);
+        _skillRanks.Clear();
+        _queue.Clear();
+        _items.Clear();
+        _equipped.Clear();
+        _quickbar = [];
+        _quickbarSent = _resting = _timingIsRest = false;
+        _preparable.Clear();
+        ResetSheet();
+    }
+
+    /// <summary>A new area: the action queue and a rest don't survive the transition.</summary>
+    public void AreaChanged()
+    {
+        _queue.Clear();
+        if (_resting) RestEnded("cancelled");
     }
 
     // -- server to client ---------------------------------------------------
@@ -139,7 +189,8 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         }
         if (spells) SendSpellbook();
         if (abilities || spells) SendAbilities();
-        if (sheet) SendSheet(force: false);
+        // The sheet goes out only when the client asks for it (its polls while the sheet is open).
+        if (sheet) _sheetDirty = true;
     }
 
     void PlayerInfo(GameObjUpdateObjListPlayerInfo p, ref bool spells, ref bool abilities, ref bool sheet)
@@ -178,7 +229,10 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
             {
                 foreach (var d in memorized[ci].SpellsToDelete) _prepared.Remove((ci, d.SpellLevel, d.SpellSlot));
                 foreach (var m in memorized[ci].SpellsToAdd)
+                {
                     _prepared[(ci, m.SpellLevel, m.SpellSlot)] = new Prepared((int)m.SpellId, m.MetaType, m.Readied, m.DomainSpell);
+                    if (m.DomainSpell) _domainSlots.Add((ci, m.SpellLevel, m.SpellSlot));
+                }
                 spells |= memorized[ci].SpellsToDelete.Count + memorized[ci].SpellsToAdd.Count > 0;
             }
         if (Has(UpdatePlayerCreatureFlags.Feat) && p.Feats is { } feats)
@@ -247,8 +301,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         if (u.HpTemp is { } temp) _tempHp = temp;
         if (u.WalkRate is { } walk && walk > 0) (_walkRate, changed) = (walk / 1000f, true);
         if (u.RunRate is { } run && run > 0) _runRate = run / 1000f;
-        if (u.CustomPortrait is { Length: > 0 } custom) (_portrait, changed) = (custom, true);
-        else if (u.PortraitId is { } id && id < 65534) (_portrait, changed) = (data.TwoDA("portraits", id, "BaseResRef") is { Length: > 0 } b ? "po_" + b : "", true);
+        if (u.PortraitId is { } portrait) (_portrait, changed) = (NwnWorldMirror.PortraitResRef(data, portrait, u.CustomPortrait), true);
         if (u.PrimaryAttributes is { } a)
         {
             (_race, _subrace, _deity, _gender, _goodEvil, _lawChaos) = (a.Race, a.Subrace, a.Deity, a.Gender, a.AlignmentGoodEvil, a.AlignmentLawChaos);
@@ -314,15 +367,24 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         }
     }
 
-    /// <summary>A timed action's progress bar: resting (event type 6) is the client's "rest" notify.</summary>
+    /// <summary>
+    /// A timed action's progress bar: resting (event type 6) is the client's "rest" notify. The bar's end names no
+    /// event, so it ends a rest only when the rest's own bar was the one showing.
+    /// </summary>
     public void TimingEvent(GuiTimingEventMessages.GuiTimingEventInfo m)
     {
-        if (m.Starting && m.EventType == TimingRest)
+        if (m.Starting)
         {
+            _timingIsRest = m.EventType == TimingRest;
+            if (!_timingIsRest) return;
             _resting = true;
             Notify("rest", new JsonObject { ["state"] = "started", ["duration"] = (m.Duration ?? 0) / 1000f, ["nwnxAnimation"] = -1 });
         }
-        else if (!m.Starting && _resting) RestEnded("cancelled");
+        else
+        {
+            if (_timingIsRest && _resting) RestEnded("cancelled");
+            _timingIsRest = false;
+        }
     }
 
     const byte TimingRest = 6;
@@ -395,7 +457,16 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     /// <summary>Handles a client request in this area; false when it isn't one.</summary>
     public bool FromClient(string kind, string json)
     {
-        var d = JsonNode.Parse(json.Length == 0 ? "{}" : json) as JsonObject ?? [];
+        JsonObject d;
+        try { d = JsonNode.Parse(json.Length == 0 ? "{}" : json) as JsonObject ?? []; }
+        catch (JsonException) { d = []; }
+        try { return Handle(kind, d); }
+        // A malformed request is dropped; the session goes on.
+        catch (Exception e) when (e is InvalidOperationException or FormatException or JsonException) { return true; }
+    }
+
+    bool Handle(string kind, JsonObject d)
+    {
         switch (kind)
         {
             case "quickbar":
@@ -413,13 +484,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
                 SendAbilities(Id(d, "target"));
                 return true;
             case "character":
-                // The original sends the open sheet's panel to the server, which then keeps it filled: the main
-                // panel brings abilities, saves, base attack and combat figures, the skills panel the skills. The
-                // skills panel is asked for once the main panel's figures have come (CharacterSheet).
-                if (!_sheetOpen && _player != 0) send(new GuiCharacterSheetMessages.GuiCharacterSheetStatus { ActivePanel = 0, Creature = _player });
-                _sheetOpen = true;
-                // A poll that already has the current sheet gets nothing.
-                SendSheet(force: d["version"] is not JsonValue v || v.GetValue<string>() != _sheetVersion.ToString());
+                Sheet(d);
                 return true;
             case "cast-spell":
                 CastSpell(d);
@@ -434,17 +499,18 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
                 UseItem(d, kind == "item-use");
                 return true;
             case "action-mode":
-                if (Int(d, "mode", -1) is var mode and >= 0 && Bool(d, "on") != ModeOn(mode)) ToggleMode(mode);
+                // A mode whose state bit is known is toggled only when it isn't already as asked.
+                if (Int(d, "mode", -1) is var mode and >= 0 && (!ModeBits.ContainsKey(mode) || Bool(d, "on") != ModeOn(mode))) ToggleMode(mode);
                 return true;
             case "counterspell":
-                send(new InputMessages.InputToggleMode { Mode = InputMessages.ToggleMode.Counterspell, Target = Id(d, "target") });
+                if (Id(d, "target") is var counter && counter != GameObjUpdateMessages.InvalidObjectId)
+                    send(new InputMessages.InputToggleMode { Mode = InputMessages.ToggleMode.Counterspell, Target = counter });
                 return true;
             case "rest":
                 send(new InputMessages.InputRest());
                 return true;
             case "clear-actions":
-                // Each queued action is cancelled by its number and group, as the action queue shows them.
-                foreach (var (action, group) in _queue.ToArray()) send(new InputMessages.InputCancelAction { ActionId = action, GroupId = group });
+                ClearActions(d);
                 return true;
             case "cancel-polymorph":
                 send(new InputMessages.InputCancelPolymorph { Creature = _player });
@@ -458,6 +524,20 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         return false;
     }
 
+    /// <summary>
+    /// clear-actions {id} or {index} (-1 or neither: all of them): a queued action is cancelled by its number and
+    /// group, as the action queue named it; its id is both together (action &lt;&lt; 16 | group).
+    /// </summary>
+    void ClearActions(JsonObject d)
+    {
+        IEnumerable<(ushort Action, ushort Group)> which = d["id"] != null
+            ? _queue.Where(q => QueueId(q) == Id(d, "id"))
+            : Int(d, "index", -1) is var index and >= 0 ? _queue.Skip(index).Take(1) : _queue;
+        foreach (var (action, group) in which.ToArray()) send(new InputMessages.InputCancelAction { ActionId = action, GroupId = group });
+    }
+
+    public static uint QueueId((ushort Action, ushort Group) q) => (uint)q.Action << 16 | q.Group;
+
     static int Int(JsonObject d, string key, int fallback = 0) =>
         d[key] is JsonValue v && (v.TryGetValue<int>(out var i) || v.TryGetValue<double>(out var f) && (i = (int)f) == i) ? i : fallback;
 
@@ -466,8 +546,11 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     static uint Id(JsonObject d, string key) =>
         d[key] is JsonValue v && v.TryGetValue<long>(out var l) && l > 0 ? (uint)l : GameObjUpdateMessages.InvalidObjectId;
 
-    static (float, float, float)? Pos(JsonObject d) =>
-        d["pos"] is JsonArray { Count: 3 } p ? ((float)p[0]!.GetValue<double>(), (float)p[1]!.GetValue<double>(), (float)p[2]!.GetValue<double>()) : null;
+    static (float, float, float)? Pos(JsonObject d)
+    {
+        static float? F(JsonNode? n) => n is JsonValue v && v.TryGetValue<double>(out var f) ? (float)f : null;
+        return d["pos"] is JsonArray { Count: 3 } p && F(p[0]) is { } x && F(p[1]) is { } y && F(p[2]) is { } z ? (x, y, z) : null;
+    }
 
     string Tlk(string table, int row, string column, string fallback = "") =>
         uint.TryParse(data.TwoDA(table, row, column), out var strRef) && data.Text(strRef, 0) is { Length: > 0 } s ? s : fallback;

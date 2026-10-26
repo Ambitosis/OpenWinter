@@ -34,9 +34,13 @@ public sealed partial class NwnAbilities
         (9, 390, -1, false, "Improved Expertise"),
         (ModeDefensiveCast, -1, -1, true, "Defensive Casting"),
         (11, 425, -1, false, "Dirty Fighting"),
+        (ModeDefensiveStance, 947, -1, false, "Defensive Stance"),
     ];
 
-    static readonly int[] CombatModes = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    static readonly int[] CombatModes = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ModeDefensiveStance];
+
+    /// <summary>The dwarven defender's stance: a feat the server toggles as mode 12.</summary>
+    const int ModeDefensiveStance = 12;
 
     /// <summary>Feats that are special attacks on a target (knockdown, disarm, called shot, sap, stunning fist, smites, quivering palm).</summary>
     static readonly HashSet<int> AttackFeats = [23, 17, 9, 16, 5, 31, 39, 301, 472, 296];
@@ -61,14 +65,17 @@ public sealed partial class NwnAbilities
     bool ModeOn(int mode) => _modesOn.Contains(mode);
 
     /// <summary>
-    /// The player state's bit for each ACTION_MODE_*: detect 0x1, stealth 0x2, parry 0x4, power attack 0x8, flurry
-    /// of blows 0x20, expertise 0x2000, improved expertise 0x4000 and defensive casting 0x8000 as measured;
-    /// improved power attack and rapid shot are taken to sit between them, dirty fighting after defensive casting.
+    /// The player state's bit for each mode, all measured by toggling the mode alone: detect 0x1, stealth 0x2,
+    /// parry 0x4, power attack 0x8, improved power attack 0x10, flurry of blows 0x20, counterspell 0x200, expertise
+    /// 0x2000, improved expertise 0x4000, defensive casting 0x8000, dirty fighting 0x10000 and defensive stance
+    /// 0x40000 (detect and stealth also set 0x80). Rapid shot isn't here: the server refused it without a bow, so its
+    /// bit is unknown; it is toggled whenever asked and never shown as on.
     /// </summary>
     static readonly Dictionary<int, uint> ModeBits = new()
     {
-        [ModeDetect] = 0x1, [ModeStealth] = 0x2, [ModeParry] = 0x4, [3] = 0x8, [4] = 0x10, [6] = 0x20, [7] = 0x40,
-        [8] = 0x2000, [9] = 0x4000, [ModeDefensiveCast] = 0x8000, [11] = 0x10000,
+        [ModeDetect] = 0x1, [ModeStealth] = 0x2, [ModeParry] = 0x4, [3] = 0x8, [4] = 0x10, [6] = 0x20,
+        [ModeCounterspell] = 0x200, [8] = 0x2000, [9] = 0x4000, [ModeDefensiveCast] = 0x8000, [11] = 0x10000,
+        [ModeDefensiveStance] = 0x40000,
     };
 
     /// <summary>The modes on in the player state; each change is announced as an "action-mode" notify.</summary>
@@ -88,7 +95,8 @@ public sealed partial class NwnAbilities
 
     void ToggleMode(int mode)
     {
-        if (mode > (int)InputMessages.ToggleMode.DefensiveStance) return;
+        // Counterspell needs a target (the "counterspell" request).
+        if (mode is ModeCounterspell or > (int)InputMessages.ToggleMode.DefensiveStance) return;
         send(new InputMessages.InputToggleMode { Mode = (InputMessages.ToggleMode)mode });
     }
 

@@ -13,7 +13,53 @@ public sealed partial class NwnAbilities
 {
     static readonly string[] AbilityNames = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
-    bool _skillsAsked;
+    /// <summary>The client polls an open sheet twice a second; a sheet not asked for this long has closed.</summary>
+    const double SheetClosedAfter = 2;
+    /// <summary>How long one panel stays the server's active one before the bridge switches to the other.</summary>
+    const double PanelSwitchEvery = 3;
+
+    bool _sheetOpen, _sheetDirty = true, _sheetFilled;
+    double _sheetPolled, _panelSince;
+    sbyte _panel = -1;
+    int _sheetVersion;
+    string _sheetJson = "";
+
+    void ResetSheet()
+    {
+        _sheet = null;
+        (_sheetOpen, _sheetDirty, _sheetFilled, _panel, _sheetJson) = (false, true, false, -1, "");
+    }
+
+    /// <summary>
+    /// character {version}: the client's sheet, opening or polled while open. The server fills the sheet panel the
+    /// client has active and only that one (measured: a saving throw bonus taken while the skills panel was active
+    /// came only on switching back to the main panel, which then resent all its figures), so the bridge opens on the
+    /// main panel (0) and, once its figures are in, switches between it and the skills panel (1) every few seconds
+    /// while the client keeps polling. What the original sends when its sheet closes isn't known; the bridge sends
+    /// nothing and starts again on the main panel when the sheet is next opened.
+    /// </summary>
+    void Sheet(JsonObject d)
+    {
+        if (_player == 0) return;
+        double now = _clock();
+        if (!_sheetOpen || now - _sheetPolled > SheetClosedAfter)
+        {
+            _sheetOpen = true;
+            Panel(0, now);
+        }
+        else if (_sheetFilled && now - _panelSince >= PanelSwitchEvery) Panel((sbyte)(1 - _panel), now);
+        _sheetPolled = now;
+        // A poll quoting the current version gets nothing unless the sheet changed since.
+        var version = d["version"] is JsonValue v && v.TryGetValue<string>(out var text) ? text : null;
+        SendSheet(force: version != _sheetVersion.ToString());
+    }
+
+    void Panel(sbyte panel, double now)
+    {
+        if (panel == _panel) return;
+        (_panel, _panelSince) = (panel, now);
+        send(new GuiCharacterSheetMessages.GuiCharacterSheetStatus { ActivePanel = panel, Creature = _player });
+    }
 
     /// <summary>Takes in a sheet panel update: only the parts its flags name are sent.</summary>
     void CharacterSheet(GuiCharacterSheet s)
@@ -35,20 +81,30 @@ public sealed partial class NwnAbilities
         if (Has(CharacterSheetFlags.Ac)) _sheet.Ac = s.Ac;
         if (Has(CharacterSheetFlags.Hitpoints)) _sheet.HitPoints = s.HitPoints;
         if (Has(CharacterSheetFlags.Feats)) _sheet.Feats = s.Feats;
-        if (Has(CharacterSheetFlags.Abilities) && !_skillsAsked)
+        // The main panel's figures are in: the skills panel next, at once, so a newly opened sheet fills quickly.
+        if (Has(CharacterSheetFlags.Abilities) && !_sheetFilled && _sheetOpen)
         {
-            _skillsAsked = true;
-            send(new GuiCharacterSheetMessages.GuiCharacterSheetStatus { ActivePanel = 1, Creature = _player });
+            _sheetFilled = true;
+            Panel(1, _clock());
         }
         if (Has(CharacterSheetFlags.Skills) && s.Skills is { } skills)
             for (int i = 0; i < skills.Ranks.Count; i++)
                 if (skills.Ranks[i] is { } r) _skillRanks[i] = (r.Item1, r.Item2);
     }
 
-    /// <summary>Sends the sheet when it changed (or always, when <paramref name="force"/>), with a version polls can quote.</summary>
+    /// <summary>
+    /// Sends the sheet when it changed (or always, when <paramref name="force"/>), with a version polls can quote;
+    /// it is built again only when something on it changed.
+    /// </summary>
     void SendSheet(bool force)
     {
-        if (_player == 0 || !_sheetOpen) return;
+        if (_player == 0) return;
+        if (!_sheetDirty)
+        {
+            if (force && _sheetJson.Length > 0) Notify("character-sheet", Versioned(_sheetJson));
+            return;
+        }
+        _sheetDirty = false;
         var s = _sheet;
         var sa = s?.Abilities;
         int[] scores = sa != null ? [sa.StrStat, sa.DexStat, sa.ConStat, sa.IntStat, sa.WisStat, sa.ChaStat] : _abilityFinal;
@@ -145,10 +201,15 @@ public sealed partial class NwnAbilities
             ["feats"] = new JsonArray(feats.OrderBy(k => (string?)k!["name"]).Select(k => k!.DeepClone()).ToArray()),
         };
         var json = sheet.ToJsonString();
-        if (json != _sheetJson) (_sheetJson, force) = (json, true);
-        if (!force) return;
-        sheet["version"] = (++_sheetVersion).ToString();
-        Notify("character-sheet", sheet);
+        if (json != _sheetJson) (_sheetJson, force, _sheetVersion) = (json, true, _sheetVersion + 1);
+        if (force) Notify("character-sheet", Versioned(json));
+    }
+
+    JsonNode Versioned(string json)
+    {
+        var sheet = JsonNode.Parse(json)!;
+        sheet["version"] = _sheetVersion.ToString();
+        return sheet;
     }
 
     /// <summary>

@@ -58,8 +58,13 @@ public sealed partial class NwnAbilities
         if (_player == 0) return;
         var slots = new JsonArray();
         foreach (var b in _quickbar) slots.Add(b == null || Slot(b) is not { } slot ? null : JsonSerializer.SerializeToNode(slot));
-        // The server's bar is the character's: it replaces any copy the client keeps.
-        Notify("quickbar", new JsonObject { ["present"] = true, ["slots"] = slots, ["authoritative"] = true, ["localCache"] = false });
+        // The server's bar is the character's: it replaces any copy the client keeps. Once the client has it, a
+        // later change of the server's (an item used up) is an update to take as it is.
+        Notify("quickbar", new JsonObject
+        {
+            ["present"] = true, ["slots"] = slots, ["authoritative"] = true, ["localCache"] = false, ["update"] = _quickbarSent,
+        });
+        _quickbarSent = true;
     }
 
     /// <summary>A quickbar button as an OpenWinter quickbar slot; null for empty and unsupported buttons.</summary>
@@ -67,7 +72,11 @@ public sealed partial class NwnAbilities
     {
         ButtonItem { Primary: { } p, Secondary: { } s } => new QuickbarSlot { Kind = "item", Paired = true, Item = p.ObjectId, SecondaryItem = s.ObjectId, Name = ItemName(p.Item) },
         ButtonItem { Primary: { } p } => new QuickbarSlot { Kind = "item", Item = p.ObjectId, Prop = ItemProperty(p), Name = ItemName(p.Item) },
-        ButtonSpell s => new QuickbarSlot { Kind = "spell", Id = (int)s.SpellId, Class = s.MultiClass < _classes.Count ? _classes[s.MultiClass].Class : -1, Meta = s.MetaType },
+        // A domain spell's level travels in Sub, so the button goes back as it came.
+        ButtonSpell s => new QuickbarSlot
+        {
+            Kind = "spell", Id = (int)s.SpellId, Class = s.MultiClass < _classes.Count ? _classes[s.MultiClass].Class : -1, Meta = s.MetaType, Sub = s.DomainLevel,
+        },
         ButtonSpellLikeAbility s => new QuickbarSlot { Kind = "spell", Id = (int)s.SpellId, Class = 255, Meta = 0 },
         ButtonSkill s when s.SkillId is SkillHide or SkillMoveSilently => new QuickbarSlot { Kind = "mode", Id = ModeStealth },
         ButtonSkill s when s.SkillId is SkillSearch or SkillSpot or SkillListen => new QuickbarSlot { Kind = "mode", Id = ModeDetect },
@@ -118,20 +127,24 @@ public sealed partial class NwnAbilities
         if (s == null) return Tag(ButtonObjectType.Empty, new ButtonEmpty());
         switch (s.Kind)
         {
+            // How the client names a main/off-hand pair to the server isn't known (a second item id after the first was
+            // not stored as one): the server's button is emptied and the pair lives on the client's bar until it reloads.
+            case "item" when s.Paired:
+                return Tag(ButtonObjectType.Empty, new ButtonEmpty());
             case "item" when _items.TryGetValue(s.Item, out var item):
             {
                 int active = s.Prop < 0 ? 0 : item.Properties.Take(s.Prop).Count(Activatable);
-                var button = new ButtonItem { Primary = new ButtonItem.PrimaryItem { ObjectId = s.Item, PropertyId = FirstProperty | active, Item = item } };
-                if (s.Paired && _items.TryGetValue(s.SecondaryItem, out var second))
-                    button.Secondary = new ButtonItem.SecondaryItem { ObjectId = s.SecondaryItem, Item = second };
-                return Tag(ButtonObjectType.Item, button);
+                return Tag(ButtonObjectType.Item, new ButtonItem { Primary = new ButtonItem.PrimaryItem { ObjectId = s.Item, PropertyId = FirstProperty | active, Item = item } });
             }
             case "spell" when s.Class == 255:
                 return Tag(ButtonObjectType.Spelllikeability, new ButtonSpellLikeAbility { SpellId = (uint)s.Id, CasterLevel = (byte)(_spellAbilities.FirstOrDefault(a => a.Spell == s.Id).CasterLevel) });
             case "spell":
             {
                 int ci = s.Class < 0 ? CasterClasses().Select(c => c.Index).DefaultIfEmpty(0).First() : _classes.FindIndex(c => c.Class == s.Class);
-                return ci < 0 ? null : Tag(ButtonObjectType.Spell, new ButtonSpell { MultiClass = (byte)ci, SpellId = (uint)s.Id, MetaType = (byte)(s.Meta == 255 ? 0 : s.Meta) });
+                return ci < 0 ? null : Tag(ButtonObjectType.Spell, new ButtonSpell
+                {
+                    MultiClass = (byte)ci, SpellId = (uint)s.Id, MetaType = (byte)(s.Meta == 255 ? 0 : s.Meta), DomainLevel = (byte)Math.Clamp(s.Sub, 0, 9),
+                });
             }
             case "skill":
                 return Tag(ButtonObjectType.Skill, new ButtonSkill { SkillId = s.Id });

@@ -27,7 +27,9 @@ public class NwnBridgeActionsTests
         static readonly Dictionary<(string, int, string), string> Cells = new()
         {
             [("classes", 2, "Name")] = "1", [("classes", 2, "SpellCaster")] = "1", [("classes", 2, "MemorizesSpells")] = "1",
-            [("classes", 2, "SpellTableColumn")] = "Cleric", [("classes", 2, "Icon")] = "IR_CLERIC", [("classes", 2, "SpellcastingAbil")] = "WIS",
+            [("classes", 2, "SpellTableColumn")] = "Cleric", [("classes", 2, "CanCastSpontaneously")] = "1",
+            [("spells", 32, "SpontaneouslyCast")] = "1", [("spells", 107, "Label")] = "Magic_Missile", [("spells", 107, "TargetType")] = "0x02",
+            [("spells", 693, "Label")] = "Mind_Blast", [("spells", 693, "TargetType")] = "0x3E", [("classes", 2, "Icon")] = "IR_CLERIC", [("classes", 2, "SpellcastingAbil")] = "WIS",
             [("spells", 6, "Label")] = "Bless", [("spells", 6, "Name")] = "2", [("spells", 6, "Cleric")] = "1", [("spells", 6, "TargetType")] = "0x2F",
             [("spells", 6, "IconResRef")] = "IS_BLESS",
             [("spells", 32, "Label")] = "Cure_Light_Wounds", [("spells", 32, "Cleric")] = "1", [("spells", 32, "TargetType")] = "0x2B",
@@ -57,10 +59,11 @@ public class NwnBridgeActionsTests
         public readonly List<NotifyMessage> Notes = [];
         public readonly List<NwnMessage> Sent = [];
         public readonly NwnAbilities Abilities;
+        public double Now;
 
         public Bridge()
         {
-            Abilities = new NwnAbilities(new Data(), b => Notes.Add(NotifyMessage.Read(new MessageReader(b))), Sent.Add);
+            Abilities = new NwnAbilities(new Data(), b => Notes.Add(NotifyMessage.Read(new MessageReader(b))), Sent.Add, () => Now);
             Abilities.Player = Player;
         }
 
@@ -218,34 +221,145 @@ public class NwnBridgeActionsTests
         Assert.Equal((10, 0), (mode.Button, Assert.IsType<ButtonModeToggle>(mode.Slot.Value).Mode));
         b.Abilities.FromClient("quickbar-set", """{"index":10,"slot":null}""");
         Assert.IsType<ButtonEmpty>(Assert.IsType<GuiQuickbarSetButton>(b.Sent[^1]).Slot.Value);
+        // A domain spell's level goes back as it came; a main/off-hand pair can't be stored, so the button empties.
+        b.Abilities.FromClient("quickbar-set", """{"index":12,"slot":{"Kind":"spell","Id":6,"Class":2,"Meta":0,"Sub":1}}""");
+        Assert.Equal(1, Assert.IsType<ButtonSpell>(Assert.IsType<GuiQuickbarSetButton>(b.Sent[^1]).Slot.Value).DomainLevel);
+        b.Abilities.FromClient("quickbar-set", """{"index":13,"slot":{"Kind":"item","Paired":true,"Item":5316,"SecondaryItem":5317,"Prop":-1}}""");
+        Assert.IsType<ButtonEmpty>(Assert.IsType<GuiQuickbarSetButton>(b.Sent[^1]).Slot.Value);
+        // The server empties the used-up item's button: the client takes it as an update.
+        Assert.False(bar.GetProperty("update").GetBoolean());
+        b.Abilities.QuickbarButton(new GuiQuickbarSetButton { Button = 1, Slot = new NwnTagged(0, new ButtonEmpty()) });
+        var update = b.Last("quickbar");
+        Assert.True(update.GetProperty("update").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, update.GetProperty("slots")[1].ValueKind);
 
         // The quickbar's item is the player's to use: its property's place among the usable ones, on herself.
         b.Abilities.FromClient("use-item", """{"item":5316,"prop":0}""");
         Assert.Equal("11C4140000" + "0300" + "0200" + "020111FFFFFF7F" + "0200", Hex(b.Sent[^1]));
     }
 
+    static GameObjUpdateMessages.GameObjUpdateObjList MainPanel(sbyte fortitude) => List(new GameObjUpdateMessages.ObjListGuiEntry('S', '\0', new GuiCharacterSheet
+    {
+        ObjectId = Player,
+        Flags = CharacterSheetFlags.Abilities | CharacterSheetFlags.Fortsave | CharacterSheetFlags.Currentxp | CharacterSheetFlags.Baseattack,
+        Abilities = new CharSheetAbilities { StrStat = 9, DexStat = 8, ConStat = 16, IntStat = 14, WisStat = 17, ChaStat = 8 },
+        FortSave = fortitude, Experience = 1161, BaseAttack = new CharSheetBaseAttack { BaseAttack = 1 },
+    }));
+
+    static sbyte Panel(NwnMessage m) => Assert.IsType<GuiCharacterSheetMessages.GuiCharacterSheetStatus>(m).ActivePanel;
+
     [Fact]
-    public void TheSheetAsksForTheMainPanelThenSkills()
+    public void TheSheetIsSentOnlyToThePollsOfAnOpenSheetAndSwitchesPanels()
     {
         var b = new Bridge();
         b.Abilities.ObjectList(Cleric());
         b.Abilities.FromClient("character", "{}");
-        Assert.Equal(0, Assert.IsType<GuiCharacterSheetMessages.GuiCharacterSheetStatus>(b.Sent.Single()).ActivePanel);
-        b.Abilities.ObjectList(List(new GameObjUpdateMessages.ObjListGuiEntry('S', '\0', new GuiCharacterSheet
-        {
-            ObjectId = Player,
-            Flags = CharacterSheetFlags.Abilities | CharacterSheetFlags.Fortsave | CharacterSheetFlags.Currentxp | CharacterSheetFlags.Baseattack,
-            Abilities = new CharSheetAbilities { StrStat = 9, DexStat = 8, ConStat = 16, IntStat = 14, WisStat = 17, ChaStat = 8 },
-            FortSave = 6, Experience = 1161, BaseAttack = new CharSheetBaseAttack { BaseAttack = 1 },
-        })));
-        Assert.Equal(1, Assert.IsType<GuiCharacterSheetMessages.GuiCharacterSheetStatus>(b.Sent[^1]).ActivePanel);
+        Assert.Equal(0, Panel(b.Sent.Single()));
+        // The main panel's figures in: the skills panel next. The sheet itself waits for the client's next poll.
+        int notes = b.Notes.Count;
+        b.Abilities.ObjectList(MainPanel(6));
+        Assert.Equal(1, Panel(b.Sent[^1]));
+        Assert.Equal(notes, b.Notes.Count);
+        b.Now = 0.5;
+        b.Abilities.FromClient("character", """{"version":"1"}""");
         var sheet = b.Last("character-sheet");
         Assert.Equal((1161, 1, 6), (sheet.GetProperty("xp").GetInt32(), sheet.GetProperty("bab").GetInt32(), sheet.GetProperty("saves").GetProperty("fortitude").GetInt32()));
         Assert.Equal(3, sheet.GetProperty("abilities")[4].GetProperty("mod").GetInt32());
-        // A poll with the current version gets nothing new.
-        int count = b.Notes.Count;
-        b.Abilities.FromClient("character", $$"""{"version":"{{sheet.GetProperty("version").GetString()}}"}""");
-        Assert.Equal(count, b.Notes.Count);
+        string version = sheet.GetProperty("version").GetString()!;
+        // Hit points change in a fight: nothing is sent until a poll, and a poll with the current version gets
+        // only what changed.
+        notes = b.Notes.Count;
+        b.Abilities.ObjectList(List(new GameObjUpdateObjListUpdateCreature { ObjectId = Player, HpCurrent = 5, HpMax = 22 }));
+        Assert.Equal(notes, b.Notes.Count);
+        b.Now = 1;
+        b.Abilities.FromClient("character", $$"""{"version":"{{version}}"}""");
+        Assert.Equal(5, b.Last("character-sheet").GetProperty("hp").GetInt32());
+        version = b.Last("character-sheet").GetProperty("version").GetString()!;
+        notes = b.Notes.Count;
+        b.Now = 1.5;
+        b.Abilities.FromClient("character", $$"""{"version":"{{version}}"}""");
+        Assert.Equal(notes, b.Notes.Count);
+        // A few seconds on the skills panel, then back to the main one (the server fills only the active panel).
+        b.Now = 3.6;
+        b.Abilities.FromClient("character", $$"""{"version":"{{version}}"}""");
+        Assert.Equal(0, Panel(b.Sent[^1]));
+        // Not polled for a while: the sheet was closed, and opening it again starts on the main panel.
+        int sent = b.Sent.Count;
+        b.Now = 4.1;
+        b.Abilities.FromClient("character", "{}");
+        Assert.Equal(sent, b.Sent.Count);
+        b.Now = 10;
+        b.Abilities.FromClient("character", "{}");
+        Assert.Equal(sent, b.Sent.Count); // already on the main panel
+        Assert.Equal("character-sheet", b.Notes[^1].Kind);
+    }
+
+    [Fact]
+    public void ControllingAnotherCreatureForgetsTheLastOne()
+    {
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        b.Abilities.FromClient("abilities", "{}");
+        Assert.NotEmpty(b.Last("abilities").GetProperty("feats").EnumerateArray());
+        b.Abilities.Player = 0x7FFFFFFE;
+        b.Abilities.FromClient("abilities", "{}");
+        Assert.Empty(b.Last("abilities").GetProperty("feats").EnumerateArray());
+        Assert.Equal(0x7FFFFFFEu, b.Notes[^1].Subject);
+        b.Abilities.FromClient("spellbook", "{}");
+        Assert.Empty(b.Last("spellbook").GetProperty("classes").EnumerateArray());
+    }
+
+    [Fact]
+    public void SpecialAbilitiesAndFormAbilitiesAreCastAsTheServerTookThem()
+    {
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        b.Abilities.ObjectList(List(new GameObjUpdateObjListPlayerInfo
+        {
+            ObjectId = Player, Flags = UpdatePlayerCreatureFlags.Spelllikeability | UpdatePlayerCreatureFlags.Polymorphspell,
+            SpellLikeAbilities =
+            [
+                new NwnTagged('S', new SpellLikeAbilityResize { NewSize = 1 }),
+                new NwnTagged('U', new SpellLikeAbilityEntryUpdate { Index = 0, Readied = true, CasterLevel = 5, SpellId = 107 }),
+            ],
+            PolymorphSpells = new PolymorphSpells { SpellId1 = 693, SpellId2 = -1, SpellId3 = -1 },
+        }));
+        // As measured: a special ability at its caster level; a form's ability as a cast with class 255.
+        b.Abilities.FromClient("cast-spell", """{"spell":107,"class":255,"meta":255,"target":19}""");
+        var ability = Assert.IsType<InputMessages.InputCastSpellLikeAbility>(b.Sent[^1]);
+        Assert.Equal((107u, 5, 19u), (ability.SpellId, ability.CasterLevel, ability.Target!.Value));
+        b.Abilities.FromClient("cast-spell", """{"spell":693,"class":255,"meta":255,"form":true,"target":31}""");
+        var form = Assert.IsType<InputMessages.InputCastSpell>(b.Sent[^1]);
+        Assert.Equal((693u, 255, 0x3E, 31u), (form.SpellId, form.MultiClass, form.SpellTargetType, form.Target!.Value));
+    }
+
+    [Fact]
+    public void ACureWithNoReadyCopyIsConvertedSpontaneously()
+    {
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        b.Abilities.FromClient("cast-spell", """{"spell":32,"class":-1,"meta":255}""");
+        var cure = Assert.IsType<InputMessages.InputCastSpell>(b.Sent[^1]);
+        Assert.Equal((0, InputMessages.CastSpellFlags.Spontaneous | InputMessages.CastSpellFlags.HasTarget), (cure.MultiClass, cure.Flags));
+    }
+
+    [Fact]
+    public void UnmeasuredModesAreToggledWheneverAskedAndCounterspellNeedsATarget()
+    {
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        // Rapid shot's state bit is unknown: never shown as on, so every request goes to the server.
+        b.Abilities.FromClient("action-mode", """{"mode":7,"on":false}""");
+        Assert.Equal(InputMessages.ToggleMode.RapidShot, Assert.IsType<InputMessages.InputToggleMode>(b.Sent.Single()).Mode);
+        b.Abilities.FromClient("action-mode", """{"mode":5,"on":true}""");
+        b.Abilities.FromClient("counterspell", "{}");
+        Assert.Single(b.Sent);
+        // Defensive stance and counterspell bits (measured) are announced like the others.
+        b.Abilities.ObjectList(List(new GameObjUpdateObjListPlayerInfo { ObjectId = Player, Flags = UpdatePlayerCreatureFlags.State, PlayerState = 0x40800 }));
+        Assert.Equal(12, b.Last("action-mode").GetProperty("mode").GetInt32());
+        // Bad input is dropped without breaking the session.
+        Assert.True(b.Abilities.FromClient("cast-spell", "{not json"));
+        Assert.True(b.Abilities.FromClient("cast-spell", """{"spell":6,"pos":["a",1,2]}"""));
     }
 
     [Fact]
@@ -267,6 +381,13 @@ public class NwnBridgeActionsTests
         b.Abilities.FromClient("clear-actions", """{"index":-1}""");
         var cancel = Assert.IsType<InputMessages.InputCancelAction>(b.Sent[^1]);
         Assert.Equal((4, 2), (cancel.ActionId, cancel.GroupId));
+        // One action by its id (number and group), and none after a new area.
+        int sent = b.Sent.Count;
+        b.Abilities.FromClient("clear-actions", $$"""{"id":{{NwnAbilities.QueueId((4, 2))}}}""");
+        Assert.Equal(sent + 1, b.Sent.Count);
+        b.Abilities.AreaChanged();
+        b.Abilities.FromClient("clear-actions", "{}");
+        Assert.Equal(sent + 1, b.Sent.Count);
         b.Abilities.FromClient("rest", "{}");
         Assert.IsType<InputMessages.InputRest>(b.Sent[^1]);
         Assert.False(b.Abilities.FromClient("area-ready", "{}"));
@@ -287,6 +408,36 @@ public class NwnBridgeActionsTests
         var rests = b.Notes.Where(n => n.Kind == "rest").Select(n => JsonDocument.Parse(n.Json).RootElement).ToArray();
         Assert.Equal(["started", "finished"], rests.Select(r => r.GetProperty("state").GetString()));
         Assert.Equal(11f, rests[0].GetProperty("duration").GetSingle());
+    }
+
+    [Fact]
+    public void ADomainSlotStaysOneWhenEmptied()
+    {
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        var memorized = new MemorizedSpellClassUpdate
+        {
+            SpellsToAdd = [new MemorizedSpellAdd { SpellId = 6, SpellSlot = 3, SpellLevel = 1, Readied = true, DomainSpell = true }],
+        };
+        b.Abilities.ObjectList(List(new GameObjUpdateObjListPlayerInfo { ObjectId = Player, Flags = UpdatePlayerCreatureFlags.Guimemorizedspell, MemorizedSpells = [memorized] }));
+        var emptied = new MemorizedSpellClassUpdate { SpellsToDelete = [new MemorizedSpellDelete { SpellLevel = 1, SpellSlot = 3 }] };
+        b.Abilities.ObjectList(List(new GameObjUpdateObjListPlayerInfo { ObjectId = Player, Flags = UpdatePlayerCreatureFlags.Guimemorizedspell, MemorizedSpells = [emptied] }));
+        var slot = b.Last("spellbook").GetProperty("classes")[0].GetProperty("levels").EnumerateArray()
+            .Single(l => l.GetProperty("level").GetInt32() == 1).GetProperty("slots")[3];
+        Assert.Equal((-1, true), (slot.GetProperty("spell").GetInt32(), slot.GetProperty("domain").GetBoolean()));
+        b.Abilities.FromClient("spell-memorize", """{"class":2,"level":1,"slot":3,"spell":6,"meta":0}""");
+        Assert.Equal(1, Assert.IsType<InputMessages.InputMemorizeSpell>(b.Sent[^1]).DomainLevel);
+    }
+
+    [Fact]
+    public void OnlyTheRestsOwnBarEndsARest()
+    {
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        b.Abilities.TimingEvent(new GuiTimingEventMessages.GuiTimingEventInfo { Starting = true, Duration = 11000, EventType = 6 });
+        b.Abilities.TimingEvent(new GuiTimingEventMessages.GuiTimingEventInfo { Starting = true, Duration = 3000, EventType = 2 });
+        b.Abilities.TimingEvent(new GuiTimingEventMessages.GuiTimingEventInfo { Starting = false });
+        Assert.Equal(["started"], b.Notes.Where(n => n.Kind == "rest").Select(n => JsonDocument.Parse(n.Json).RootElement.GetProperty("state").GetString()));
     }
 
     [Fact]

@@ -161,20 +161,27 @@ Inventory, combat feedback, NWSync and character creation are still to come.
 What the server accepts, as measured against it:
 
 - A cast names the class by its place in the character's class list and the spell's spells.2da TargetType as its
-  target type; the server refuses a cast with any other target type.
-- The player state's mode bits are detect 0x1, stealth 0x2, parry 0x4, power attack 0x8, flurry of blows 0x20,
-  expertise 0x2000, improved expertise 0x4000 and defensive casting 0x8000 (detect and stealth also set 0x80).
-- The character sheet is filled while it is open: the main panel (0) brings abilities, saves, base attack, combat
-  figures and experience, the skills panel (1) each skill's total.
+  target type; the server refuses a cast with any other target type. A special ability is cast with its own
+  message at the caster level it was given; a polymorph form's ability as an ordinary cast with class 255.
+- The player state's mode bits are detect 0x1, stealth 0x2, parry 0x4, power attack 0x8, improved power attack
+  0x10, flurry of blows 0x20, counterspell 0x200, expertise 0x2000, improved expertise 0x4000, defensive casting
+  0x8000, dirty fighting 0x10000 and defensive stance 0x40000 (detect and stealth also set 0x80). Rapid shot's isn't
+  known (the server refuses it without a bow), so it is toggled whenever the client asks.
+- The character sheet is filled for the panel the client has active and only that one: the main panel (0) brings
+  abilities, saves, base attack, combat figures and experience, the skills panel (1) each skill's total, and
+  switching back to a panel brings all its figures again. While the client polls an open sheet the bridge switches
+  between the two every few seconds, and sends the sheet only in answer to those polls.
 - The client sets an item quickbar button with only the item's id and property field, not the full item
-  description the server's own item buttons carry (`Messages/Custom/GuiQuickbarItemButton.cs`).
+  description the server's own item buttons carry (`Messages/Custom/GuiQuickbarItemButton.cs`). How it names a
+  main/off-hand pair isn't known: the bridge empties the server's button and the pair stays on the client's bar.
 
 Testing:
 
 - `NwnCodecConformanceTests` decodes frames encoded by nwn-message.py and re-encodes them to the same bytes.
 - `NwnSessionTests` covers the login against a scripted server; `NwnBridgeTests` covers the translation.
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
-  connections, so it never contacts the master server.
+  connections, so it never contacts the master server. `--nwnx CREATURE,...` loads more plugins, for a test module
+  (built with `parity-build`) whose scripts call them.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
   click NUI elements, send any client request and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`,

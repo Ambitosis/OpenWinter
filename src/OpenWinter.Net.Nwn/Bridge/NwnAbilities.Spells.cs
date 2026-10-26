@@ -59,7 +59,10 @@ public sealed partial class NwnAbilities
                     {
                         var p = _prepared.TryGetValue((ci, level, i), out var at) && SpellExists(at.Spell) ? at : new Prepared(-1, 0, false, false);
                         if (p.Ready) left++;
-                        slots.Add(new JsonObject { ["index"] = i, ["spell"] = p.Spell, ["meta"] = p.Meta, ["ready"] = p.Ready, ["domain"] = p.Domain });
+                        slots.Add(new JsonObject
+                        {
+                            ["index"] = i, ["spell"] = p.Spell, ["meta"] = p.Meta, ["ready"] = p.Ready, ["domain"] = _domainSlots.Contains((ci, level, i)),
+                        });
                     }
                     if (max > 0)
                         foreach (var s in Preparable(ci, cl, level).Concat(DomainSpells(cl, level)).Distinct())
@@ -146,12 +149,16 @@ public sealed partial class NwnAbilities
     IEnumerable<int> Preparable(int ci, ClassEntry cl, int level)
     {
         if (HasSpellbook(cl.Class)) return _known[ci].Where(s => SpellExists(s) && SpellLevel(cl.Class, s) == level).Order();
+        if (_preparable.TryGetValue((cl.Class, level), out var cached)) return cached;
         var column = SpellColumn(cl.Class);
         var list = new List<int>();
         for (int s = 0, n = data.TwoDARowCount("spells"); s < n; s++)
             if (int.TryParse(data.TwoDA("spells", s, column), out var l) && l == level) list.Add(s);
-        return list;
+        return _preparable[(cl.Class, level)] = list;
     }
+
+    /// <summary>A class's whole spell list at a level, read once from spells.2da.</summary>
+    readonly Dictionary<(int Class, int Level), List<int>> _preparable = [];
 
     IEnumerable<int> DomainSpells(ClassEntry cl, int level)
     {
@@ -175,33 +182,38 @@ public sealed partial class NwnAbilities
     }
 
     /// <summary>
-    /// cast-spell {spell, class (-1 any), meta (255 any), target or pos, spontaneous}: casts with the class (by its
-    /// place in the class list) and the prepared copy the original's quickbar would, a domain copy only when no other
-    /// is ready.
+    /// cast-spell {spell, class (-1 any, 255 a special ability), meta (255 any), target or pos, spontaneous, form}:
+    /// casts with the class (by its place in the class list) and the prepared copy the original's quickbar would, a
+    /// domain copy only when no other is ready. A cure or inflict spell with no ready copy is converted
+    /// spontaneously by a class that can (classes.2da CanCastSpontaneously). Special abilities and a polymorph
+    /// form's abilities are cast as special abilities.
     /// </summary>
     void CastSpell(JsonObject d)
     {
         int spell = Int(d, "spell", -1);
         if (!SpellExists(spell)) return;
         int cls = Int(d, "class", -1), meta = Int(d, "meta", 255);
+        if (Bool(d, "form"))
+        {
+            CastFormAbility(d, spell);
+            return;
+        }
+        if (cls == 255)
+        {
+            CastAbility(d, spell);
+            return;
+        }
         bool spontaneous = Bool(d, "spontaneous");
         var casters = CasterClasses().Where(c => cls < 0 || c.Class.Class == cls).ToList();
         if (casters.Count == 0) return;
-        // A ready copy in a preparing class, or a known spell of a spontaneous one.
-        (int Index, int Meta, int Domain)? pick = null;
-        foreach (var (ci, cl) in casters)
-        {
-            if (spontaneous) { pick = (ci, meta == 255 ? 0 : meta, 0); break; }
-            if (Memorizes(cl.Class))
-            {
-                var copy = _prepared.Where(p => p.Key.Class == ci && p.Value.Spell == spell && p.Value.Ready && (meta == 255 || p.Value.Meta == meta))
-                    .OrderBy(p => p.Value.Domain).ThenBy(p => p.Key.Level).Select(p => (KeyValuePair<(int, int, int), Prepared>?)p).FirstOrDefault();
-                if (copy is { } c) { pick = (ci, c.Value.Meta, c.Value.Domain ? c.Key.Item2 : 0); break; }
-            }
-            else if (_known[ci].Contains(spell)) { pick = (ci, meta == 255 ? 0 : meta, 0); break; }
-        }
-        // Nothing ready: the server answers with its own feedback, as it would to the original.
-        pick ??= (casters[0].Index, meta == 255 ? 0 : meta, 0);
+        var pick = spontaneous ? null : ReadyCopy(casters, spell, meta);
+        bool Converts((int Index, ClassEntry Class) c) => Cell("classes", c.Class.Class, "CanCastSpontaneously", 0) == 1;
+        if (pick == null && !spontaneous && Cell("spells", spell, "SpontaneouslyCast", 0) == 1 && casters.Any(Converts))
+            (pick, spontaneous) = ((casters.First(Converts).Index, 0, 0), true);
+        // A spontaneous cast goes to a class that can convert; with nothing ready, to a class whose list has the
+        // spell, and the server answers with its own feedback as it would to the original.
+        var fallback = casters.Where(c => spontaneous ? Converts(c) : SpellLevel(c.Class.Class, spell) >= 0).Select(c => (int?)c.Index).FirstOrDefault();
+        pick ??= (fallback ?? casters[0].Index, meta == 255 ? 0 : meta, 0);
         var m = new InputMessages.InputCastSpell
         {
             SpellId = (uint)spell, MultiClass = (byte)pick.Value.Index, DomainLevel = (byte)pick.Value.Domain, MetaType = (byte)pick.Value.Meta,
@@ -209,29 +221,64 @@ public sealed partial class NwnAbilities
             // The spell's spells.2da TargetType: the server refuses a cast that names any other.
             SpellTargetType = (ushort)SpellTargetType(spell),
         };
-        Aim(d, m);
+        var (flags, target, pos) = Aim(d);
+        (m.Flags, m.Target, m.Position) = (m.Flags | flags, target, pos);
         send(m);
     }
 
+    /// <summary>A ready copy of a spell: a prepared one (not a domain copy while another is ready) or a known spell with uses left.</summary>
+    (int Index, int Meta, int Domain)? ReadyCopy(List<(int Index, ClassEntry Class)> casters, int spell, int meta)
+    {
+        foreach (var (ci, cl) in casters)
+        {
+            if (Memorizes(cl.Class))
+            {
+                var copy = _prepared.Where(p => p.Key.Class == ci && p.Value.Spell == spell && p.Value.Ready && (meta == 255 || p.Value.Meta == meta))
+                    .OrderBy(p => p.Value.Domain).ThenBy(p => p.Key.Level).Select(p => (KeyValuePair<(int Class, int Level, int Slot), Prepared>?)p).FirstOrDefault();
+                if (copy is { } c) return (ci, c.Value.Meta, c.Value.Domain ? c.Key.Level : 0);
+            }
+            else if (_known[ci].Contains(spell) && SpellLevel(cl.Class, spell) is var level and >= 0 && _usesLeft[ci, level] > 0)
+                return (ci, meta == 255 ? 0 : meta, 0);
+        }
+        return null;
+    }
+
+    /// <summary>A special ability, at the caster level it was given (measured: the server casts it as asked).</summary>
+    void CastAbility(JsonObject d, int spell)
+    {
+        var ability = _spellAbilities.Where(a => a.Spell == spell).OrderByDescending(a => a.Ready).FirstOrDefault();
+        var (flags, target, pos) = Aim(d);
+        send(new InputMessages.InputCastSpellLikeAbility
+        {
+            SpellId = (uint)spell, CasterLevel = (byte)ability.CasterLevel, Flags = flags, Target = target, Position = pos,
+        });
+    }
+
+    /// <summary>
+    /// A polymorph form's ability (polymorph.2da SPELL1-3): an ordinary cast with class 255 (measured: the server
+    /// cast a mind flayer's ability given so, and not as a special ability).
+    /// </summary>
+    void CastFormAbility(JsonObject d, int spell)
+    {
+        if (!_formSpells.Contains(spell)) return;
+        var (flags, target, pos) = Aim(d);
+        send(new InputMessages.InputCastSpell
+        {
+            SpellId = (uint)spell, MultiClass = FormClass, Flags = flags, Target = target, Position = pos,
+            SpellTargetType = (ushort)SpellTargetType(spell),
+        });
+    }
+
+    /// <summary>The class a polymorph form's abilities are cast with.</summary>
+    const byte FormClass = 255;
+
     /// <summary>A cast's target: an object, a point in the area, or the caster.</summary>
-    void Aim(JsonObject d, InputMessages.InputCastSpell m)
+    (InputMessages.CastSpellFlags Flags, uint? Target, (float, float, float)? Position) Aim(JsonObject d)
     {
         var target = Id(d, "target");
-        if (target != GameObjUpdateMessages.InvalidObjectId)
-        {
-            m.Flags |= InputMessages.CastSpellFlags.HasTarget;
-            m.Target = target;
-        }
-        else if (Pos(d) is { } pos)
-        {
-            m.Flags |= InputMessages.CastSpellFlags.HasPosition;
-            m.Position = pos;
-        }
-        else
-        {
-            m.Flags |= InputMessages.CastSpellFlags.HasTarget;
-            m.Target = _player;
-        }
+        if (target != GameObjUpdateMessages.InvalidObjectId) return (InputMessages.CastSpellFlags.HasTarget, target, null);
+        if (Pos(d) is { } pos) return (InputMessages.CastSpellFlags.HasPosition, null, pos);
+        return (InputMessages.CastSpellFlags.HasTarget, _player, null);
     }
 
     /// <summary>spell-memorize {class, level, slot, spell (-1 empties it), meta}.</summary>
@@ -245,7 +292,7 @@ public sealed partial class NwnAbilities
             send(new InputMessages.InputUnMemorizeSpell { MultiClass = (byte)ci, SpellLevel = (byte)level, SpellSlot = (byte)slot });
             return;
         }
-        bool domain = _prepared.TryGetValue((ci, level, slot), out var at) && at.Domain;
+        bool domain = _domainSlots.Contains((ci, level, slot));
         send(new InputMessages.InputMemorizeSpell
         {
             MultiClass = (byte)ci, SpellId = (uint)spell, SpellSlot = (byte)slot, DomainLevel = (byte)(domain ? level : 0), MetaType = (byte)Int(d, "meta"),

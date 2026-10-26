@@ -84,7 +84,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 Action(ActionRequestMessage.Read(r));
                 break;
             case MessageType.ClientRequest:
-                Request(ClientRequestMessage.Read(r));
+                // A request the bridge can't read is dropped; the session goes on.
+                try { Request(ClientRequestMessage.Read(r)); }
+                catch (Exception e) when (e is JsonException or InvalidOperationException or FormatException or KeyNotFoundException) { }
                 break;
             case MessageType.DriveInput:
                 _drive = DriveInputMessage.Read(r);
@@ -302,6 +304,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case AreaMessages.AreaClientArea area:
                 _world.Area(area);
+                _abilities.AreaChanged();
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
                 _world.ObjectList(list);
