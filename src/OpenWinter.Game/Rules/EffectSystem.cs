@@ -1087,6 +1087,8 @@ public sealed partial class EffectSystem : IWorldSystem
     /// The effecticons.2da row shown for an effect: EffectIcon's own id, otherwise the row whose
     /// label is the effect's EFFECT_TYPE_* name (ability effects add _STR, _DEX, ...).
     /// </summary>
+    public int IconFor(Effect e) => IconOf(K, e);
+
     int IconOf(EffectConstants k, Effect e)
     {
         if (e.Type == k.Icon) return e.Ints.Length > 0 ? e.Ints[0] : 0;

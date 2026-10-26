@@ -51,6 +51,11 @@ public static class NativeEffects
         ("CONCEALMENT", 76, -1), ("TURN_RESISTANCE_INCREASE", 77, -1), ("POISON", 35, -1), ("NEGATIVELEVEL", 82, -1), ("BONUS_FEAT", 83, -1),
         ("TURN_RESISTANCE_DECREASE", 88, -1), ("SPELL_FAILURE", 92, -1), ("CUTSCENEGHOST", 93, -1), ("CUTSCENEIMMOBILIZE", 94, -1),
         ("RUNSCRIPT", 96, -1), ("PACIFY", 97, -1), ("TIMESTOP_IMMUNITY", 98, -1),
+        // Instant and engine-driven kinds, measured through NWNX_Effect_UnpackEffect (parity suite nwnx_effect).
+        ("RESURRECTION", 4, -1), ("SUMMON_CREATURE", 6, -1), ("DEATH", 19, -1), ("KNOCKDOWN", 20, -1),
+        ("AREA_OF_EFFECT", 31, -1), ("DAMAGE", 38, -1), ("HEAL", 39, -1), ("DISPELMAGICALL", 51, -1),
+        ("DISPELMAGICBEST", 52, -1), ("HITPOINTCHANGEWHENDYING", 57, -1), ("POLYMORPH", 62, -1), ("TIMESTOP", 64, -1),
+        ("DISAPPEARAPPEAR", 79, -1), ("DISAPPEAR", 80, -1), ("APPEAR", 81, -1), ("SWARM", 85, -1),
     };
 
     /// <summary>The original's effect number for an effect (0 when not measured) and the state code (-1 for none).</summary>
@@ -216,6 +221,16 @@ public static class NativeEffects
             case 44 or 45: i[0] = n[0]; i[1] = n[1]; break;
             case 48: i[0] = n[0] is >= 100 and < 200 ? n[0] - 100 : n[0]; break;
             case 3: i[0] = n[0]; e.Floats[0] = n[1] / 1000f; break;
+            case 62: i[0] = n[0]; i[5] = n[1]; i[1] = n[2]; i[2] = n[4]; i[3] = n[6]; i[4] = n[7]; break;
+            case 100: i[0] = n[0]; i[1] = n[1]; i[2] = n[3]; break;
+            case 93:
+            {
+                // Damage: the amount under each damage type bit it deals.
+                int bits = 0, amount = 0;
+                for (int b = 0; b < 8; b++) if (n[b] != -1) { bits |= 1 << b; amount = n[b]; }
+                i[0] = amount; i[1] = bits;
+                break;
+            }
             case 85: e.Floats[0] = n[0] / 1000f; break;
             case 61: i[0] = n[0]; break;
             case 74: i[0] = n[0]; i[1] = n[2]; break;

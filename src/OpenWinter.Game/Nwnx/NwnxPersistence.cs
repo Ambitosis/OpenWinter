@@ -16,6 +16,8 @@ public static class NwnxPersistence
 {
     public const string Field = "NWNX_POS";
     const string Prefix = "pos:", Persisted = "posp:";
+    // Set once the object's persisted values are known here (set by a plugin or read from its NWNX_POS).
+    const string Owned = "pos!owned";
 
     public static NwnxValue? Get(NwnxRegistry r, uint id, string key) =>
         r.HasState(id) && r.ObjectState(id).TryGetValue(Prefix + key, out var v) ? v : null;
@@ -25,7 +27,11 @@ public static class NwnxPersistence
         var state = r.ObjectState(id);
         state.Remove(Prefix + key); // a new value is the newest entry
         state[Prefix + key] = value;
-        if (persist) state[Persisted + key] = NwnxValue.Int(1);
+        if (persist)
+        {
+            state[Persisted + key] = NwnxValue.Int(1);
+            state[Owned] = NwnxValue.Int(1);
+        }
         else state.Remove(Persisted + key);
     }
 
@@ -102,6 +108,7 @@ public static class NwnxPersistence
         foreach (var key in Keys(r, id).Where(k => r.ObjectState(id).ContainsKey(Persisted + k)).ToList()) Delete(r, id, key);
         // Entries are written newest first.
         for (int i = parsed.Count - 1; i >= 0; i--) Set(r, id, parsed[i].Key, parsed[i].Value, persist: true);
+        r.ObjectState(id)[Owned] = NwnxValue.Int(1);
         return true;
     }
 
@@ -109,9 +116,13 @@ public static class NwnxPersistence
     public static void WriteField(World world, GameObject o, GffStruct s, bool always = false)
     {
         if (world.Systems.OfType<NwnxRegistry>().FirstOrDefault() is not { } r) return;
-        var text = Write(r, o.Id);
-        if (text.Length > 0 || always) s.SetString(Field, text);
-        else s.Remove(Field);
+        // A field this engine never read or wrote (one it could not parse, say) is kept as it was.
+        if (!r.HasState(o.Id) || !r.ObjectState(o.Id).ContainsKey(Owned))
+        {
+            if (always && !s.Has(Field)) s.SetString(Field, "");
+            return;
+        }
+        s.SetString(Field, Write(r, o.Id));
     }
 
     /// <summary>Restores the field of a deserialized object.</summary>
