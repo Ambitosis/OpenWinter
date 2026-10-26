@@ -42,6 +42,9 @@ definitions of [nwn-message.py](https://github.com/niv/nwn-message.py) (GPL-3.0)
 layer as exposed by the [NWNX_WSNetLayer](https://github.com/niv/NWNX_WSNetLayer) plugin. The hand-written types in
 `src/OpenWinter.Net.Nwn/Messages/Custom` follow its hand-written readers and writers.
 
+NWNX_SQL's MySQL and PostgreSQL targets use the [MySqlConnector](https://mysqlconnector.net/) (MIT) and
+[Npgsql](https://www.npgsql.org/) (PostgreSQL License) packages from NuGet.
+
 ## Trademarks and game content
 
 Neverwinter Nights, Dungeons & Dragons, Forgotten Realms and their respective logos are trademarks of Wizards of

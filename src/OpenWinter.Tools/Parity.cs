@@ -29,6 +29,15 @@ static partial class Parity
         /// against NWNX:EE's NWScript headers; "nwnx": "risenholm" also loads that fork's NWNX_Risenholm plugin.</summary>
         public bool Nwnx => Get("nwnx") is { } v && v.ValueKind is JsonValueKind.True or JsonValueKind.String;
         public bool NwnxRisenholm => Get("nwnx") is { ValueKind: JsonValueKind.String } v && v.GetString() == "risenholm";
+        /// <summary>"nwnxEnv": { "NWNX_TWEAKS_...": "true" } sets environment variables for NWNX on both engines, after the
+        /// lab's defaults (NWNX_SQL_TYPE=SQLITE, NWNX_SQL_DATABASE=nwnx_sql).</summary>
+        public Dictionary<string, string> NwnxEnv()
+        {
+            var env = new Dictionary<string, string>(StringComparer.Ordinal) { ["NWNX_SQL_TYPE"] = "SQLITE", ["NWNX_SQL_DATABASE"] = "nwnx_sql" };
+            if (Get("nwnxEnv") is { ValueKind: JsonValueKind.Object } e)
+                foreach (var p in e.EnumerateObject()) env[p.Name] = p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString()! : p.Value.GetRawText();
+            return env;
+        }
         public JsonElement? Get(string key) => Json.ValueKind == JsonValueKind.Object && Json.TryGetProperty(key, out var v) ? v : null;
     }
 
@@ -70,7 +79,7 @@ static partial class Parity
         if (Directory.Exists(buildDir)) Directory.Delete(buildDir, true);
         Directory.CreateDirectory(buildDir);
         var include = Path.Combine(Repo(cfg), "parity", "include");
-        if (s.Nwnx) include += "," + NwnxScripts(cfg);
+        if (s.Nwnx) include += "," + NwnxScripts(cfg, s.NwnxRisenholm);
         var sources = Directory.GetFiles(s.Dir, "*.nss").ToList();
 
         // Compile with the official compiler, so both engines run the same bytecode.
@@ -398,10 +407,11 @@ static partial class Parity
     }
 
     /// <summary>NWNX:EE's NWScript headers, copied from the WSL build once (tools/nwnws/nwnws.py scripts).</summary>
-    static string NwnxScripts(LocalConfig cfg)
+    static string NwnxScripts(LocalConfig cfg, bool risenholm = false)
     {
         var dir = Path.Combine(Repo(cfg), "out", "nwnx", "scripts");
         if (!File.Exists(Path.Combine(dir, "nwnx_core.nss"))) Nwnws(cfg, "scripts", "--dest", dir);
+        if (risenholm && !File.Exists(Path.Combine(dir, "nwnx_risenholm.nss"))) Nwnws(cfg, "scripts", "--dest", dir, "--risenholm");
         if (!File.Exists(Path.Combine(dir, "nwnx_core.nss"))) throw new FileNotFoundException("NWNX:EE scripts not found; run tools/nwnws/nwnws.py setup");
         return dir;
     }
@@ -429,6 +439,12 @@ static partial class Parity
             args.Add(table);
         }
         if (s.NwnxRisenholm) args.Add("--risenholm");
+        if (s.Get("nwnxEnv") is { ValueKind: JsonValueKind.Object } env)
+            foreach (var p in env.EnumerateObject())
+            {
+                args.Add("--env");
+                args.Add(p.Name + "=" + (p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString() : p.Value.GetRawText()));
+            }
         string exports = Path.Combine(Repo(cfg), "out", "parity", "results", s.Name, "nwn.nwnx");
         if (Exports(s) is not null) { args.Add("--collect"); args.Add(exports); }
         if (File.Exists(output)) File.Delete(output);
@@ -550,6 +566,13 @@ static partial class Parity
         }
         if (s.Difficulty > 0) world.GameDifficulty = s.Difficulty;
         world.EnableScripts();
+        if (s.Nwnx)
+        {
+            // NWNX reads its settings from the environment; give OpenWinter's plugins the suite's, as the NWNX side has.
+            var env = s.NwnxEnv();
+            world.System<OpenWinter.Game.Nwnx.NwnxRegistry>().EnvironmentVariable = name =>
+                env.TryGetValue(name, out var v) ? v : name.StartsWith("NWNX_", StringComparison.Ordinal) ? null : Environment.GetEnvironmentVariable(name);
+        }
         var lines = new List<string>();
         world.Scripts!.Log = line =>
         {

@@ -47,9 +47,23 @@ public sealed partial class CreatureCombatRules
         return str;
     }
 
-    /// <summary>Weapon Finesse works with unarmed strikes, creature weapons, weapons smaller than the wielder and the rapier.</summary>
-    public bool Finessable(Creature c, WeaponStats s) =>
-        s.Unarmed || s.Creature || s.Size < c.Size || (s.BaseItem == CombatK.BaseRapier && c.Size >= 3);
+    /// <summary>
+    /// Weapon Finesse works with unarmed strikes, creature weapons and weapons whose smallest finesse size (baseitems
+    /// WeaponFinesseMinimumCreatureSize, or a module override) the wielder reaches. Tables without the column:
+    /// weapons smaller than the wielder and the rapier. A base item a module made count as unarmed isn't finessable
+    /// for that (parity suite nwnx_weapon: a club or a greatsword so marked uses Strength on nwserver).
+    /// </summary>
+    public bool Finessable(Creature c, WeaponStats s)
+    {
+        if (s.Unarmed || s.Creature) return true;
+        int size = FinesseSize(s.BaseItem);
+        if (size >= 0) return c.Size >= size;
+        return !s.FinesseColumn && (s.Size < c.Size || (s.BaseItem == CombatK.BaseRapier && c.Size >= 3));
+    }
+
+    /// <summary>The smallest creature size that finesses a base item, -1 for none.</summary>
+    public int FinesseSize(int baseItem) =>
+        Overrides.FinesseSize.TryGetValue(baseItem, out int size) ? size : baseItem < 0 ? -1 : Stats(baseItem).FinesseSize;
 
     /// <summary>Size attack modifier (ruleset.2da CREATURE_SIZE_*_ATTACK_*, else creaturesize.2da ACATTACKMOD).</summary>
     public int SizeAttackModifier(int size) => size switch
@@ -85,8 +99,9 @@ public sealed partial class CreatureCombatRules
     {
         var c = a.Attacker;
         int b = 0;
-        if (Has(c, s.Focus)) b += RI("WEAPON_FOCUS_BONUS", 1);
-        if (Has(c, s.EpicFocus)) b += RI("EPIC_WEAPON_FOCUS_BONUS", 2);
+        if (HasWeaponFeat(c, s, WeaponFeat.Focus)) b += RI("WEAPON_FOCUS_BONUS", 1);
+        if (HasWeaponFeat(c, s, WeaponFeat.EpicFocus)) b += RI("EPIC_WEAPON_FOCUS_BONUS", 2);
+        if (HasWeaponFeat(c, s, WeaponFeat.GreaterFocus)) b += Overrides.GreaterFocusAttackBonus;
         if (WeaponOfChoice(c, s))
         {
             if (Has(c, CombatK.FeatSuperiorWeaponFocus)) b += 1;
@@ -155,6 +170,11 @@ public sealed partial class CreatureCombatRules
     {
         int inc = 0, dec = 0, levels = 0;
         int hand = a.OffHand ? CombatK.AttackBonusOffHand : CombatK.AttackBonusOnHand;
+        // NWNX_NoStack's rule for attack bonuses, when one is set.
+        var bonusRule = Nwnx.Plugins.NoStackPlugin.For(_w, Nwnx.Plugins.NoStackPlugin.Category.AttackBonus, penalty: false);
+        var penaltyRule = Nwnx.Plugins.NoStackPlugin.For(_w, Nwnx.Plugins.NoStackPlugin.Category.AttackBonus, penalty: true);
+        var bonuses = bonusRule != null ? new List<(int, uint, int)>() : null;
+        var penalties = penaltyRule != null ? new List<(int, uint, int)>() : null;
         // Touch attacks don't count bonuses versus the target's race or alignment (parity suite fx_versus).
         var versus = a.Touch ? null : a.Target;
         foreach (var e in a.Attacker.Effects)
@@ -162,12 +182,16 @@ public sealed partial class CreatureCombatRules
             switch (e.Type)
             {
                 case CombatK.EffectAttackIncrease when (e.Ints[1] == CombatK.AttackBonusMisc || e.Ints[1] == hand) && EffectQueries.AppliesVersus(e, versus):
-                    inc += e.Ints[0]; break;
+                    if (bonuses != null) bonuses.Add((e.SpellId, e.Creator, e.Ints[0])); else inc += e.Ints[0];
+                    break;
                 case CombatK.EffectAttackDecrease when (e.Ints[1] == CombatK.AttackBonusMisc || e.Ints[1] == hand) && EffectQueries.AppliesVersus(e, versus):
-                    dec += e.Ints[0]; break;
+                    if (penalties != null) penalties.Add((e.SpellId, e.Creator, e.Ints[0])); else dec += e.Ints[0];
+                    break;
                 case CombatK.EffectNegativeLevel: levels += Math.Max(0, e.Ints[0]); break;
             }
         }
+        if (bonuses != null) inc = bonusRule!.Total(bonuses);
+        if (penalties != null) dec = penaltyRule!.Total(penalties);
         // Slowed: -2 (measured on the original).
         if (CreatureRules.IsSlowed(a.Attacker)) dec += 2;
         int limit = _w.Limits.AttackBonus;

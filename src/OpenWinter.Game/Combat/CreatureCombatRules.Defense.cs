@@ -94,7 +94,7 @@ public sealed partial class CreatureCombatRules
         var c = a.Attacker;
         int range = s.CritThreat;
         bool keen = a.Weapon != null && a.Weapon.Properties.Any(p => p.Valid && p.Type == CombatK.IpKeen);
-        range += (keen ? s.CritThreat : 0) + (Has(c, s.ImprovedCritical) ? s.CritThreat : 0);
+        range += (keen ? s.CritThreat : 0) + (HasWeaponFeat(c, s, WeaponFeat.ImprovedCritical) ? s.CritThreat : 0);
         int mult = s.CritMult;
         if (WeaponOfChoice(c, s))
         {
@@ -132,6 +132,6 @@ public sealed partial class CreatureCombatRules
     /// Undead, constructs and objects ignore sneak attacks, as does anything immune to sneak attacks or, as in the
     /// original, to critical hits, and a plot creature (stealthself: "Bandit : Immune to Sneak Attacks." on a plot dummy).
     /// </summary>
-    public bool IsSneakImmune(AttackContext a) => IsCriticalImmune(a) || a.Target.Plot
+    public bool IsSneakImmune(AttackContext a) => IsCriticalImmune(a) && !Nwnx.Plugins.NwnxTweaks.Of(_w).SneakAttackIgnoreCritImmunity || a.Target.Plot
         || CreatureRules.IsImmune(_w, (Creature)a.Target, NwRules.ImmunitySneakAttack, a.Attacker);
 }

@@ -28,6 +28,11 @@ public sealed record WeaponStats
     public int Focus = -1, EpicFocus = -1, Spec = -1, EpicSpec = -1, ImprovedCritical = -1, Overwhelming = -1, Devastating = -1, OfChoice = -1;
     public float PreferredDistance = 1.0f;
     public int[] ProficiencyFeats = Array.Empty<int>();
+    /// <summary>baseitems WeaponFinesseMinimumCreatureSize (-1 when blank); <see cref="FinesseColumn"/> says whether the table has it.</summary>
+    public int FinesseSize = -1;
+    public bool FinesseColumn;
+    /// <summary>baseitems IsMonkWeapon.</summary>
+    public bool Monk;
     public bool IsCrossbow => Wield == CombatK.WieldCrossbow;
     public bool IsBow => Wield == CombatK.WieldBow;
     public bool IsDouble => Wield == CombatK.WieldDouble;
@@ -45,6 +50,36 @@ public sealed partial class CreatureCombatRules : ICombatRules
     readonly Dictionary<string, Item?> _virtualAmmo = new(StringComparer.OrdinalIgnoreCase);
 
     public CreatureCombatRules(World world) { _w = world; }
+
+    WeaponRuleOverrides? _overrides;
+    /// <summary>Weapon rules changed at run time (NWNX_Weapon).</summary>
+    public WeaponRuleOverrides Overrides => _overrides ??= _w.System<CombatSystem>().WeaponOverrides;
+
+    /// <summary>The feat baseitems.2da names for a weapon, or -1.</summary>
+    static int TableFeat(WeaponStats s, WeaponFeat kind) => kind switch
+    {
+        WeaponFeat.Focus => s.Focus,
+        WeaponFeat.EpicFocus => s.EpicFocus,
+        WeaponFeat.Specialization => s.Spec,
+        WeaponFeat.EpicSpecialization => s.EpicSpec,
+        WeaponFeat.ImprovedCritical => s.ImprovedCritical,
+        WeaponFeat.OverwhelmingCritical => s.Overwhelming,
+        WeaponFeat.DevastatingCritical => s.Devastating,
+        WeaponFeat.WeaponOfChoice => s.OfChoice,
+        _ => -1,
+    };
+
+    /// <summary>
+    /// The creature has a weapon feat for this weapon: the baseitems.2da one or any other the module gave the base
+    /// item. Several count once (parity suite nwnx_weapon: Weapon Focus twice is +1).
+    /// </summary>
+    public bool HasWeaponFeat(Creature c, WeaponStats s, WeaponFeat kind)
+    {
+        if (Has(c, TableFeat(s, kind))) return true;
+        if (s.Unarmed) return false;
+        foreach (int f in Overrides.Feats(s.BaseItem, kind)) if (Has(c, f)) return true;
+        return false;
+    }
 
     TwoDA BaseItems => _w.Resources.TwoDA("baseitems");
     int RI(string label, int fallback) => Ruleset.Int(_w, label, fallback);
@@ -101,6 +136,10 @@ public sealed partial class CreatureCombatRules : ICombatRules
                 Devastating = Feat("EpicWeaponDevastatingCriticalFeat"), OfChoice = Feat("WeaponOfChoiceFeat"),
                 PreferredDistance = bi.GetFloat(baseItem, "PrefAttackDist", 1.0f),
                 ProficiencyFeats = prof.ToArray(),
+                FinesseColumn = bi.ColumnIndex("WeaponFinesseMinimumCreatureSize") >= 0,
+                FinesseSize = bi.ColumnIndex("WeaponFinesseMinimumCreatureSize") >= 0 && !bi.IsEmpty(baseItem, "WeaponFinesseMinimumCreatureSize")
+                    ? bi.GetInt(baseItem, "WeaponFinesseMinimumCreatureSize", -1) : -1,
+                Monk = bi.ColumnIndex("IsMonkWeapon") >= 0 ? bi.GetInt(baseItem, "IsMonkWeapon", 0) != 0 : baseItem == CombatK.BaseKama,
             };
             cache[baseItem] = s;
             return s;
@@ -130,11 +169,14 @@ public sealed partial class CreatureCombatRules : ICombatRules
         return (main, off, creature);
     }
 
-    /// <summary>Monks fighting unarmed (or with a kama) without armour or shield use the monk attack progression.</summary>
+    /// <summary>
+    /// Monks fighting unarmed (or with a monk weapon: baseitems IsMonkWeapon, or a base item a module named) without
+    /// armour or shield use the monk attack progression.
+    /// </summary>
     public bool MonkProgression(Creature c, Item? main)
     {
         if (CreatureRules.ClassLevel(c, NwRules.ClassMonk) <= 0) return false;
-        if (main != null && main.BaseItem != CombatK.BaseKama) return false;
+        if (main != null && !Stats(main).Monk && !Overrides.MonkWeapons.Contains(main.BaseItem)) return false;
         return CreatureRules.ArmourBaseAC(_w, c) == 0 && CreatureRules.ShieldBaseAC(_w, c) == 0;
     }
 
@@ -184,8 +226,9 @@ public sealed partial class CreatureCombatRules : ICombatRules
 
         Item? Pick(int i) => cw.Count > 0 ? cw[i % cw.Count] : main;
         for (int i = 0; i < count; i++) list.Add(new PlannedAttack { Weapon = Pick(i), Penalty = i * step });
-        // Extra attacks (haste, EffectModifyAttacks, flurry, rapid shot) have their own iterative penalties, as in the original.
-        list.InsertRange(Math.Min(1, list.Count), Enumerable.Range(0, Math.Clamp(extra, 0, Math.Max(5, maxBonus)))
+        // Extra attacks (haste, EffectModifyAttacks, flurry, rapid shot) have their own iterative penalties and come after
+        // the normal ones, as in the original (nwnx_damage: a hasted fighter's third swing is its extra attack).
+        list.AddRange(Enumerable.Range(0, Math.Clamp(extra, 0, Math.Max(5, maxBonus)))
             .Select(i => new PlannedAttack { Weapon = Pick(i), Extra = true, Penalty = i * step }));
         if (off != null && !dirty)
         {
@@ -348,7 +391,7 @@ public sealed partial class CreatureCombatRules : ICombatRules
     }
 
     /// <summary>The weapon of choice (weapon master) is this weapon.</summary>
-    bool WeaponOfChoice(Creature c, WeaponStats s) => s.OfChoice >= 0 && Has(c, s.OfChoice);
+    bool WeaponOfChoice(Creature c, WeaponStats s) => HasWeaponFeat(c, s, WeaponFeat.WeaponOfChoice);
 
     /// <summary>A feat id by its feat.2da LABEL (for feats some content adds), or -1.</summary>
     public int FeatByLabel(string label)

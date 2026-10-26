@@ -241,7 +241,7 @@ static partial class ObjectPlugin
 
     /// <summary>Whether conversations an object starts are private by default (SetConversationPrivate).</summary>
     public static bool ConversationPrivate(World world, GameObject owner) =>
-        NwnxRegistry.Of(world) is { } r && r.HasState(owner.Id) && r.ObjectState(owner.Id).ContainsKey(ConversationPrivateKey);
+        NwnxRegistry.Of(world).TryGetObjectState(owner.Id, out var state) && state.ContainsKey(ConversationPrivateKey);
 
     // ---------------------------------------------------------------- UUIDs and export
 

@@ -40,7 +40,7 @@ static class StorePlugin
 
     [NwnxFunc(P, "GetBlackMarket")]
     static void GetBlackMarket(NwnxCall n) =>
-        Get(n, s => s.BlackMarket && n.Registry.HasState(s.Id) && n.State(s).TryGetValue(BlackMarketKey, out var v) && v.Value is int raw && raw != 0 ? raw : s.BlackMarket ? 1 : 0);
+        Get(n, s => s.BlackMarket && n.Registry.TryGetObjectState(s.Id, out var state) && state.TryGetValue(BlackMarketKey, out var v) && v.Value is int raw && raw != 0 ? raw : s.BlackMarket ? 1 : 0);
 
     [NwnxFunc(P, "SetBlackMarket")]
     static void SetBlackMarket(NwnxCall n) => Set(n, (s, v) =>

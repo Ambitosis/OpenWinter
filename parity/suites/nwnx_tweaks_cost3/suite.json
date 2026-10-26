@@ -1,0 +1,5 @@
+{ "seconds": 24, "tile": 4, "size": 6, "minPerHour": 60, "nwnx": true,
+  "events": { "OnPlrEqItm": "pt_equip" },
+  "nwnxEnv": { "NWNX_TWEAKS_STRINGTOINT_BASE_TO_AUTO": "true", "NWNX_TWEAKS_ITEM_CHARGES_COST_MODE": "3",
+    "NWNX_TWEAKS_COMPARE_VARIABLES_WHEN_MERGING": "true", "NWNX_TWEAKS_FIRE_EQUIP_EVENTS_FOR_ALL_CREATURES": "true",
+    "NWNX_TWEAKS_PRESERVE_DEPLETED_ITEMS": "true" } }

@@ -272,37 +272,3 @@ static class RegexPlugin
         n.Push(new JsonValue(result));
     }
 }
-
-/// <summary>NWNX_Damage: event script registration (fired by the combat system) and event data.</summary>
-static class DamagePlugin
-{
-    const string P = "Damage";
-
-    [NwnxFunc(P, "SetEventScript", UnsupportedReason = "damage/attack callbacks are stored but are not dispatched by combat")]
-    static void SetEventScript(NwnxCall n)
-    {
-        var evt = n.PopString(); var script = n.PopString(); uint owner = n.PopObjectId();
-        // TODO(combat): run "damage:DAMAGE"/"damage:ATTACK" scripts from the combat round, owner first then the global (InvalidId) one.
-        n.State(owner)["damage:" + evt] = NwnxValue.String(script);
-    }
-
-    /// <summary>The DAMAGE or ATTACK script for an owner, falling back to the global one.</summary>
-    public static string EventScript(World world, string evt, uint owner)
-    {
-        var reg = world.System<NwnxRegistry>();
-        if (reg.ObjectState(owner).TryGetValue("damage:" + evt, out var v) && v.Value is string s && s.Length > 0) return s;
-        return reg.ObjectState(GameObject.InvalidId).TryGetValue("damage:" + evt, out var g) && g.Value is string gs ? gs : "";
-    }
-}
-
-/// <summary>NWNX_WebHook: outbound HTTP is not performed; messages are logged.</summary>
-static class WebHookPlugin
-{
-    [NwnxFunc("WebHook", "SendWebHookHTTPS")]
-    static void Send(NwnxCall n)
-    {
-        var host = n.PopString(); var path = n.PopString(); var message = n.PopString();
-        n.PopString(); n.PopInt();
-        n.Registry.Log($"[nwnx] webhook {host}{path}: {message}");
-    }
-}

@@ -48,7 +48,7 @@ public class NwnxDiagnosticsTests
         world.Register(item);
         var calls = new (string Plugin, string Function)[]
         {
-            ("Damage", "SetEventScript"), ("Player", "GetTURD"), ("Player", "RemoveEffectFromTURD"),
+            ("Player", "GetTURD"), ("Player", "RemoveEffectFromTURD"),
         };
         foreach (var (plugin, function) in calls)
         {

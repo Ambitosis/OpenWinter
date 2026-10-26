@@ -71,7 +71,7 @@ static class UtilPlugin
         var resref = n.PopString(); int type = n.PopInt();
         n.Push(resref.Length > 0 && n.World.Resources.Contains(resref, (ushort)type));
     }
-    [NwnxFunc(P, "GetEnvironmentVariable")] static void EnvVar(NwnxCall n) => n.Push(Environment.GetEnvironmentVariable(n.PopString()) ?? "");
+    [NwnxFunc(P, "GetEnvironmentVariable")] static void EnvVar(NwnxCall n) => n.Push(n.Registry.EnvironmentVariable(n.PopString()) ?? "");
     [NwnxFunc(P, "GetMinutesPerHour")] static void GetMinutesPerHour(NwnxCall n) => n.Push(n.World.Clock.MinutesPerHour);
     [NwnxFunc(P, "SetMinutesPerHour")]
     static void SetMinutesPerHour(NwnxCall n)
