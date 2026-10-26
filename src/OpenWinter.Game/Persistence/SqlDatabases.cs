@@ -16,6 +16,8 @@ public sealed class SqlDb : IDisposable
     public string? FilePath { get; }
     /// <summary>Tables scripts may read but not write (the campaign database's builtin tables).</summary>
     public string[]? ProtectedTables { get; set; }
+    /// <summary>Tables scripts may change but not drop or alter (NWNX_NWSQLiteExtensions' 2DA tables).</summary>
+    public readonly HashSet<string> UndroppableTables = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Set while engine code (not a script) prepares statements, so protected tables stay writable for it.</summary>
     internal bool Internal;
     // A weak wrapper can disappear before its native handle's finalizer releases a read lock.
@@ -61,7 +63,10 @@ public sealed class SqlDb : IDisposable
 
     int Authorize(object userData, int action, string p0, string p1, string dbName, string trigger)
     {
-        if (Internal || ProtectedTables == null) return raw.SQLITE_OK;
+        if (Internal) return raw.SQLITE_OK;
+        if (UndroppableTables.Count > 0 && (action is raw.SQLITE_DROP_TABLE && UndroppableTables.Contains(p0)
+            || action is raw.SQLITE_ALTER_TABLE or raw.SQLITE_DROP_TRIGGER && UndroppableTables.Contains(p1))) return raw.SQLITE_DENY;
+        if (ProtectedTables == null) return raw.SQLITE_OK;
         string? table = action switch
         {
             raw.SQLITE_INSERT or raw.SQLITE_UPDATE or raw.SQLITE_DELETE or raw.SQLITE_DROP_TABLE => p0,
