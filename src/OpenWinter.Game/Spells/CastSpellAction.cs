@@ -411,6 +411,7 @@ public sealed class CastSpellAction : GameAction
             SpellLevel = level,
             Spontaneous = _slot?.Spontaneous ?? false,
             DomainLevel = _slot is { Domain: true } ? _slot.SpellLevel : 0,
+            Instant = Instant,
             CastItem = IsItem ? ItemId : GameObject.InvalidId,
             Target = target?.Id ?? GameObject.InvalidId,
             TargetLocation = target != null ? world.System<SpellSystem>().TargetLocationOf(target) : TargetLocation,
@@ -572,7 +573,8 @@ public sealed class CastSpellAction : GameAction
             groundVfx = row.Get(Spell, "CastGrndVisual"), sound = row.Get(Spell, "CastSound"), item = ItemId, fake = Fake,
         });
         _flight = 0;
-        string path = SpellTable.ProjectilePath(row.Get(Spell, "ProjType"), ProjectilePathType);
+        int pathOverride = Nwnx.Plugins.ObjectPlugin.ProjectilePathOverride(world, owner, Spell);
+        string path = SpellTable.ProjectilePath(row.Get(Spell, "ProjType"), pathOverride >= 0 ? pathOverride : ProjectilePathType);
         if (SpellTable.HasProjectile(world, Spell) && (Target != owner.Id || path == "highballistic"))
         {
             float dist = Vector3.Distance(owner.Position, aim);

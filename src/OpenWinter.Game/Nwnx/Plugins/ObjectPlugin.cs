@@ -162,7 +162,8 @@ static partial class ObjectPlugin
     }
 
     [NwnxFunc(P, "GetIsDestroyable")] static void GetIsDestroyable(NwnxCall n) => n.Push(n.PopObject() switch { Creature c => c.IsDestroyable, null => false, _ => true });
-    [NwnxFunc(P, "GetAILevel")] static void GetAILevel(NwnxCall n) => n.Push(n.PopObject<Creature>()?.AILevel ?? -1);
+    /// <summary>The level the creature runs at now (AI_LEVEL_VERY_LOW in an area without players, nwnx_object).</summary>
+    [NwnxFunc(P, "GetAILevel")] static void GetAILevel(NwnxCall n) => n.Push(n.PopObject<Creature>() is { } c ? n.World.EffectiveAILevel(c) : -1);
     [NwnxFunc(P, "SetAILevel")]
     static void SetAILevel(NwnxCall n)
     {
@@ -189,7 +190,7 @@ static partial class ObjectPlugin
             foreach (var v in t.Geometry)
                 sb.Append('{').Append(F(v.X)).Append(", ").Append(F(v.Y)).Append(", ").Append(F(v.Z)).Append('}');
         n.Push(sb.ToString());
-        static string F(float f) => f.ToString("0.000", CultureInfo.InvariantCulture);
+        static string F(float f) => f.ToString("0.000000", CultureInfo.InvariantCulture);
     }
 
     [NwnxFunc(P, "SetTriggerGeometry")]
@@ -226,7 +227,13 @@ static partial class ObjectPlugin
         w.HasMapNote = true;
     }
 
-    [NwnxFunc(P, "PeekUUID")] static void PeekUUID(NwnxCall n) { n.PopObject(); n.Push(""); }
+    /// <summary>The object's UUID if it has been given one; asking never assigns one here.</summary>
+    [NwnxFunc(P, "PeekUUID")]
+    static void PeekUUID(NwnxCall n)
+    {
+        var o = n.PopObject();
+        n.Push(o?.Uuid is { } uuid && n.World.System<Persistence.PersistenceSystem>().ByUuid(uuid) == o ? uuid : "");
+    }
 
     // The plugin's own object variables (separate from locals). With bPersist they travel in the object's GFF
     // (NWNX_POS: saved characters, serialized objects; parity suite nwnx_object_serialize).
@@ -324,6 +331,7 @@ static partial class ObjectPlugin
         Store => 14,
         Sound => 16,
         { Type: ObjectType.AreaOfEffect } => 11,
+        null => -1,
         _ => 0,
     });
 }

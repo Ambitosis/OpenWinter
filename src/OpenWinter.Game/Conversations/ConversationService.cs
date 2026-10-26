@@ -220,15 +220,20 @@ public sealed class ConversationService : IWorldSystem
         return true;
     }
 
-    /// <summary>Starts a conversation between an owner (NPC, placeable, the PC itself) and a player character.</summary>
-    public bool Start(GameObject owner, Creature pc, string resref, bool isPrivate = false)
+    /// <summary>
+    /// Starts a conversation between an owner (NPC, placeable, the PC itself) and a player character. Without an
+    /// explicit <paramref name="isPrivate"/> it is private when the owner was made to start private ones
+    /// (NWNX_Object_SetConversationPrivate).
+    /// </summary>
+    public bool Start(GameObject owner, Creature pc, string resref, bool? isPrivate = null)
     {
         if (string.IsNullOrEmpty(resref)) resref = DefaultConversation(owner);
         if (string.IsNullOrEmpty(resref) || !pc.IsPC) return false;
         var dialog = Load(resref);
         if (dialog == null) return false;
         if (_byPc.ContainsKey(pc.Id)) Stop(pc);
-        var s = new ConversationSession { Pc = pc, Owner = owner, Dialog = dialog, ResRef = resref, Private = isPrivate };
+        var s = new ConversationSession { Pc = pc, Owner = owner, Dialog = dialog, ResRef = resref,
+            Private = isPrivate ?? Nwnx.Plugins.ObjectPlugin.ConversationPrivate(_world, owner) };
         _byPc[pc.Id] = s;
         int start = FirstPassing(s, dialog.Starts);
         if (start < 0) { _byPc.Remove(pc.Id); return false; }

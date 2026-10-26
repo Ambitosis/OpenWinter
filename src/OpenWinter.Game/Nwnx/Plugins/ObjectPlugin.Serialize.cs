@@ -12,7 +12,7 @@ static partial class ObjectPlugin
     /// and plugin values (NWNX_POS), creatures as "BIC ", the rest as their blueprint type. The module and areas
     /// give "".
     /// </summary>
-    [NwnxFunc(P, "Serialize")]
+    [NwnxFunc("Object", "Serialize")]
     static void Serialize(NwnxCall n)
     {
         var o = n.PopObject();
@@ -30,7 +30,7 @@ static partial class ObjectPlugin
     /// Creates the object in the world but in no area (items outside any inventory); scripts then place it with
     /// NWNX_Object_AddToArea, AcquireItem, a jump or CopyObject. Invalid input gives OBJECT_INVALID.
     /// </summary>
-    [NwnxFunc(P, "Deserialize")]
+    [NwnxFunc("Object", "Deserialize")]
     static void Deserialize(NwnxCall n)
     {
         var text = n.PopString();
@@ -54,7 +54,7 @@ static partial class ObjectPlugin
     }
 
     /// <summary>Moves an item into a creature's, placeable's, store's or container's inventory, as acquiring it does.</summary>
-    [NwnxFunc(P, "AcquireItem")]
+    [NwnxFunc("Object", "AcquireItem")]
     static void AcquireItem(NwnxCall n)
     {
         var owner = n.PopObject();
