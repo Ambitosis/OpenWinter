@@ -169,9 +169,9 @@ static class ItemFunctions
     {
         if (c.Obj<Creature>(0) is { } cr && c.I(1) > 0)
         {
-            Inv(c).ChangeGold(cr, c.I(1));
+            bool added = Inv(c).ChangeGold(cr, c.I(1));
             // "Acquired 925GP" (dialog.tlk 62489; dying scene chat log).
-            if (cr.IsPC) c.World.Output?.SendMessage(cr, c.World.TlkStringOverridden(62489).Replace("<CUSTOM0>", c.I(1).ToString()));
+            if (added && cr.IsPC) c.World.Output?.SendMessage(cr, c.World.TlkStringOverridden(62489).Replace("<CUSTOM0>", c.I(1).ToString()));
         }
         return null;
     }

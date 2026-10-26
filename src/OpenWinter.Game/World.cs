@@ -531,11 +531,12 @@ public sealed partial class World
     {
         // Cached per area (rebuilt when a trigger is added or removed); an array, so events may change the area safely.
         var triggers = area.TriggerCache ??= area.Objects.OfType<Trigger>().ToArray();
+        bool trapEvents = Nwnx.Plugins.EventsPlugin.Listening(this, "NWNX_ON_TRAP_ENTER");
         foreach (var t in triggers)
         {
             if (t.IsDestroyed || t.Area != area) continue;
             bool inside = t.Contains(c.Position);
-            if (!inside) Nwnx.NwnxTraps.Left(t, c);
+            if (!inside && trapEvents) Nwnx.NwnxTraps.Left(t, c);
             if (inside && t.TriggerType == Trigger.TypeTrap && !t.Inside.Contains(c.Id))
             {
                 // A trap trigger notices only creatures it goes off for: the trap's script first, then OnEnter,

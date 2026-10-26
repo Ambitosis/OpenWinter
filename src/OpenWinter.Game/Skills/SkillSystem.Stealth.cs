@@ -77,8 +77,7 @@ public sealed partial class SkillSystem
                     if (ev?.Before() == true) { ev.After(); return false; }
                     c.StealthMode = on;
                     if (on) EndRevealsOutOfSight(c);
-                    bool hips = ev is { HasResult: true } ? ev.Result == "1" : HasFeat(c, SkillIds.FeatHideInPlainSight);
-                    if (on && hips) HideInPlainSight(c);
+                    if (on && (ev is { HasResult: true } ? ev.Result == "1" : HasFeat(c, SkillIds.FeatHideInPlainSight))) HideInPlainSight(c);
                     ModeChanged(c, mode, on);
                     ev?.After();
                 }

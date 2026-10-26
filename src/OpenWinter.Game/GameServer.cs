@@ -683,8 +683,8 @@ public sealed partial class GameServer : IWorldOutput
             return;
         }
         if (!hello.DM && _options.Vault == VaultMode.Server && _options.CharacterSelection
-            && !Nwnx.NwnxSession.StickyName(World, hello.PlayerName, hello.PlayerKey, hello.DM,
-                () => Persistence.ServerVault.ClaimFolder(World, hello.PlayerName, hello.PlayerKey)))
+            && !Nwnx.NwnxSession.StickyName(Nwnx.NwnxSession.StickyNameBefore(World, hello.PlayerName, hello.PlayerKey, hello.DM),
+                World, hello.PlayerName, hello.PlayerKey))
         {
             s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That player name is in use with a different key." }.Write());
             s.Connection.Disconnect();
@@ -755,10 +755,11 @@ public sealed partial class GameServer : IWorldOutput
             else if (_options.Vault == VaultMode.Local && choice.Bic.Length > 0)
             {
                 var bic = Gff.Read(choice.Bic);
-                // NWNX_ON_ELC_VALIDATE_CHARACTER around the legal character check; the _AFTER half only for a character that passes.
+                // NWNX_ON_ELC_VALIDATE_CHARACTER around the legal character check (OBJECT_SELF OBJECT_INVALID: the character
+                // doesn't exist until it passes); a skip passes it, and the _AFTER half comes only for a character that passes.
                 var elc = _options.EnforceLegalCharacters ? Nwnx.NwnxEvent.Begin(World, "NWNX_ON_ELC_VALIDATE_CHARACTER", (GameObject?)null) : null;
-                elc?.Before();
-                if (_options.EnforceLegalCharacters && Progression.LegalCharacterCheck.Check(World, bic) is { Count: > 0 } illegal)
+                bool elcSkipped = elc?.Before() == true;
+                if (_options.EnforceLegalCharacters && !elcSkipped && Progression.LegalCharacterCheck.Check(World, bic) is { Count: > 0 } illegal)
                 {
                     Console.WriteLine($"[server] {s.PlayerName}: illegal character: {string.Join("; ", illegal.Take(5))}");
                     s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That character is not legal on this server: " + string.Join(" ", illegal.Take(5).Select(e => e.Message)) }.Write());
@@ -900,7 +901,9 @@ public sealed partial class GameServer : IWorldOutput
             viewer.Society.PerceptionArea = GameObject.InvalidId;
             viewer.Society.NextPerception = -1;
         }
-        Nwnx.NwnxSession.SendArea(World, s.Creature!, s.PlayerName + "/" + s.PublicKey, area, () => s.Send(area.Describe(World.Resources.Talk).Write()));
+        var sending = Nwnx.NwnxSession.SendingArea(World, s.Creature!, s.PlayerName + "/" + s.PublicKey, area);
+        s.Send(area.Describe(World.Resources.Talk).Write());
+        sending?.After();
         s.Send(Clock().Write());
         if (!alreadyPlaced) World.AddToArea(s.Creature!, area, position, facing);
         foreach (var o in area.Objects) SendSpawn(s, o);

@@ -216,6 +216,7 @@ public sealed partial class UseSkillAction : ApproachAction
     public override void Cancel(World world, GameObject owner)
     {
         if (owner is Creature pc && !double.IsNaN(_resolveAt)) Nwnx.NwnxTimingBar.Ended(world, pc, cancelled: true);
+        TrapAfter(false); // a trap attempt broken off ends its event too
         _walk?.Cancel(world, owner);
         base.Cancel(world, owner);
     }

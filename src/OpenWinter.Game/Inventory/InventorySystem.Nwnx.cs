@@ -42,8 +42,14 @@ public sealed partial class InventorySystem
         return new Arrival(acquire, add, skipped);
     }
 
-    /// <summary>The item a subscriber just refused (CreateItemOnObject then leaves it held by nothing).</summary>
+    /// <summary>The item whose acquisition a subscriber refused in the last MoveTo.</summary>
     Item? _refused;
+
+    /// <summary>
+    /// Whether the last <see cref="MoveTo"/> returned null because an NWNX_ON_ITEM_ACQUIRE subscriber refused the item
+    /// (it then stays where it was, or held by nothing if it was new).
+    /// </summary>
+    public bool Refused(Item item) => _refused == item;
 
     /// <summary>
     /// An item destroyed by DestroyObject or used up: NWNX_ON_ITEM_DESTROY_OBJECT around it, OBJECT_SELF the item;
@@ -56,24 +62,20 @@ public sealed partial class InventorySystem
         ev?.After();
     }
 
-    /// <summary>NWNX_ON_INVENTORY_REMOVE_ITEM around an item leaving a placeable or a bag (not skippable).</summary>
-    void Leaving(GameObject holder, Item item, Action detach)
+    /// <summary>NWNX_ON_INVENTORY_REMOVE_ITEM's _BEFORE half as an item leaves a placeable or a bag (not skippable).</summary>
+    NwnxEvent? LeavingBefore(GameObject holder, Item item)
     {
         var ev = holder is Placeable or Item ? NwnxEvent.Begin(_world, "NWNX_ON_INVENTORY_REMOVE_ITEM", holder)?.Add("ITEM", item) : null;
         ev?.Before();
-        detach();
-        ev?.After();
+        return ev;
     }
 
-    /// <summary>NWNX_ON_VALIDATE_ITEM_EQUIP: the engine's verdict, or the one a subscriber skipped it with.</summary>
-    bool ValidateEquip(Creature c, Item item, int slot, Func<bool> valid)
+    /// <summary>NWNX_ON_VALIDATE_ITEM_EQUIP's _BEFORE half (Skipped and Result set), or null when nobody listens.</summary>
+    NwnxEvent? ValidateEquipBefore(Creature c, Item item, int slot)
     {
-        var ev = NwnxEvent.Begin(_world, "NWNX_ON_VALIDATE_ITEM_EQUIP", c);
-        if (ev == null) return valid();
-        ev.Add("ITEM_OBJECT_ID", item).Add("SLOT", slot);
-        bool ok = ev.Before() ? int.TryParse(ev.Result, out var r) && r != 0 : valid();
-        ev.Add("BEFORE_RESULT", ok).After();
-        return ok;
+        var ev = NwnxEvent.Begin(_world, "NWNX_ON_VALIDATE_ITEM_EQUIP", c)?.Add("ITEM_OBJECT_ID", item).Add("SLOT", slot);
+        ev?.Before();
+        return ev;
     }
 
     /// <summary>
@@ -117,7 +119,10 @@ public sealed partial class InventorySystem
     bool EventsListening(string name) => Nwnx.Plugins.EventsPlugin.Listening(_world, name);
 }
 
-/// <summary>Equipped item properties whose effects an NWNX subscriber kept off the wearer.</summary>
+/// <summary>
+/// Equipped item properties whose effects an NWNX subscriber kept off the wearer, keyed by the property instance (each
+/// world has its own, so worlds never share entries; the count only lets the common case skip the lookup).
+/// </summary>
 public static class ItemPropertyEffects
 {
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<ItemProperty, object> _suppressed = new();

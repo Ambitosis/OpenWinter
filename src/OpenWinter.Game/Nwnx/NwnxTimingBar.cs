@@ -6,7 +6,7 @@ namespace OpenWinter.Game.Nwnx;
 /// <summary>
 /// A player's timing bar (NWNX_EVENTS_TIMING_BAR_*: 1-5 the trap skills, 6 rest, 10 a script's own):
 /// NWNX_ON_TIMING_BAR_START (EVENT_ID, DURATION in milliseconds) as it begins, then _STOP when it runs out or
-/// _CANCEL when it is broken off.
+/// _CANCEL when it is broken off. Bars the server times end on the server only.
 /// </summary>
 public static class NwnxTimingBar
 {

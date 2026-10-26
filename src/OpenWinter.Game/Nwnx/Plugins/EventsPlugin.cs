@@ -55,6 +55,20 @@ public static class EventsPlugin
             "NWNX_ON_HAS_FEAT", "NWNX_ON_RUN_EVENT_SCRIPT", "NWNX_ON_ITEMPROPERTY_EFFECT",
         };
         public int Count;
+        /// <summary>Event names with a subscriber, also by base name (without _BEFORE / _AFTER), for cheap checks.</summary>
+        public readonly HashSet<string> Live = new(StringComparer.Ordinal);
+
+        public void Changed()
+        {
+            Live.Clear();
+            foreach (var (evt, list) in Subscribers)
+            {
+                if (list.Count == 0) continue;
+                Live.Add(evt);
+                if (evt.EndsWith("_BEFORE", StringComparison.Ordinal)) Live.Add(evt[..^7]);
+                else if (evt.EndsWith("_AFTER", StringComparison.Ordinal)) Live.Add(evt[..^6]);
+            }
+        }
     }
 
     static readonly ConditionalWeakTable<World, State> _states = new();
@@ -70,9 +84,7 @@ public static class EventsPlugin
     /// <summary>Whether an event with this base name, or its _BEFORE / _AFTER halves, has a subscriber.</summary>
     public static bool Listening(World world, string baseName)
     {
-        if (!_states.TryGetValue(world, out var st) || st.Count == 0) return false;
-        return Has(st, baseName) || Has(st, baseName + "_BEFORE") || Has(st, baseName + "_AFTER");
-        static bool Has(State st, string evt) => st.Subscribers.TryGetValue(evt, out var l) && l.Count > 0;
+        return _states.TryGetValue(world, out var st) && st.Count > 0 && st.Live.Contains(baseName);
     }
 
     /// <summary>False when <paramref name="whitelist"/>'s ID whitelist is on and <paramref name="id"/> isn't on it.</summary>
@@ -141,12 +153,14 @@ public static class EventsPlugin
         if (list.Any(s => s.Same(name, chunk, wrap))) return;
         list.Add(new Subscriber { Name = name, IsChunk = chunk, Wrap = wrap });
         st.Count++;
+        st.Changed();
     }
 
     static void Remove(NwnxCall n, string evt, Func<Subscriber, bool> match)
     {
         var st = Of(n.World);
         if (st.Subscribers.TryGetValue(evt, out var list)) st.Count -= list.RemoveAll(s => match(s));
+        st.Changed();
     }
 
     [NwnxFunc(P, "SubscribeEvent")]
@@ -181,6 +195,7 @@ public static class EventsPlugin
         var st = Of(n.World);
         foreach (var list in st.Subscribers.Values)
             st.Count -= list.RemoveAll(s => s.Name.StartsWith(prefix, StringComparison.Ordinal));
+        st.Changed();
     }
     [NwnxFunc(P, "PushEventData")]
     static void PushData(NwnxCall n)

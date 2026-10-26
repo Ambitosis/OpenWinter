@@ -221,4 +221,55 @@ public sealed class NwnxEventsTests
         Assert.Equal(0, EventsPlugin.SubscriberCount(f.World, "EV2"));
         Assert.Equal(1, EventsPlugin.SubscriberCount(f.World, "EV"));
     }
+
+    [DataFact]
+    public void ListeningFollowsLiveSubscriptionsByBaseName()
+    {
+        using var f = new Fixture();
+        Assert.False(EventsPlugin.Listening(f.World, "NWNX_ON_HEAL"));
+        f.Subscribe("NWNX_ON_HEAL_AFTER");
+        Assert.True(EventsPlugin.Listening(f.World, "NWNX_ON_HEAL"));
+        Assert.True(EventsPlugin.Listening(f.World, "NWNX_ON_HEAL_AFTER"));
+        Assert.False(EventsPlugin.Listening(f.World, "NWNX_ON_HEAL_BEFORE"));
+        var reg = f.World.System<NwnxRegistry>();
+        reg.Stack.Push(NwnxValue.String("pev_log"));
+        reg.Stack.Push(NwnxValue.String("NWNX_ON_HEAL_AFTER"));
+        Assert.True(reg.Call("Events", "UnsubscribeEvent"));
+        Assert.False(EventsPlugin.Listening(f.World, "NWNX_ON_HEAL"));
+    }
+
+    [DataFact]
+    public void ARefusedAcquisitionLeavesTheItemWhereItWas()
+    {
+        using var f = new Fixture();
+        var chest = new Placeable { HasInventory = true, Tag = "CHEST" };
+        f.World.AddToArea(chest, f.Player.Area!, f.Player.Position + new Vector3(1, 0, 0), 0);
+        var inv = f.World.Inventory;
+        var item = inv.CreateOn("nw_it_mpotion001", chest, 1, "");
+        Assert.NotNull(item);
+        f.Watch("NWNX_ON_ITEM_ACQUIRE", "RESULT");
+        f.Skip("NWNX_ON_ITEM_ACQUIRE_BEFORE");
+        Assert.Null(inv.MoveTo(item!, f.Player, actor: f.Player));
+        Assert.True(inv.Refused(item!));
+        Assert.Same(chest, inv.Holder(item!));
+        Assert.Equal("NWNX_ON_ITEM_ACQUIRE_BEFORE=0;NWNX_ON_ITEM_ACQUIRE_AFTER=0;", f.Log);
+    }
+
+    [DataFact]
+    public void AnAttackTargetChangeResultMustBeAttackable()
+    {
+        using var f = new Fixture();
+        var area = f.Player.Area!;
+        var foe = new Creature { MaxHitPoints = 10, CurrentHitPoints = 10, Tag = "FOE" };
+        var corpse = new Creature { MaxHitPoints = 10, CurrentHitPoints = 10, Tag = "CORPSE" };
+        f.World.AddToArea(foe, area, f.Player.Position + new Vector3(1, 0, 0), 0);
+        f.World.AddToArea(corpse, area, f.Player.Position + new Vector3(0, 1, 0), 0);
+        OpenWinter.Game.Rules.HitPoints.Kill(f.World, corpse, GameObject.InvalidId);
+        f.Watch("NWNX_ON_ATTACK_TARGET_CHANGE", "NEW_TARGET_OBJECT_ID");
+        f.Result("NWNX_ON_ATTACK_TARGET_CHANGE_BEFORE", corpse.Id.ToString("x"));
+        var combat = f.World.System<OpenWinter.Game.Combat.CombatSystem>();
+        combat.Attack(f.Player, foe);
+        Assert.Equal(foe.Id, combat.TargetOf(f.Player));
+        Assert.EndsWith($"NWNX_ON_ATTACK_TARGET_CHANGE_AFTER={foe.Id:x};", f.Log);
+    }
 }

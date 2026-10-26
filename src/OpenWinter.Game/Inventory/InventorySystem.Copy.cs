@@ -95,7 +95,7 @@ public sealed partial class InventorySystem
     Item? PlaceLike(Item copy, Item original, GameObject? target)
     {
         target ??= Owner(original) ?? Holder(original);
-        if (target != null) return MoveTo(copy, target);
+        if (target != null) return MoveTo(copy, target) ?? (Refused(copy) ? copy : null); // a refused copy stays, held by nothing
         if (original.Area != null && Drop(copy, original.Location)) return copy;
         _world.Destroy(copy);
         return null;
@@ -259,7 +259,7 @@ public sealed partial class InventorySystem
                 // Items keep their local variables and cursed flag but not the droppable flag.
                 var c = Copy(item, copyVars: true, asStored: true);
                 c.Droppable = true;
-                if (owner != null && HasInventory(owner)) copy = MoveTo(c, owner, merge: false);
+                if (owner != null && HasInventory(owner)) copy = MoveTo(c, owner, merge: false) ?? (Refused(c) ? c : null);
                 else if (area != null && Drop(c, loc)) copy = c;
                 else _world.Destroy(c);
                 break;

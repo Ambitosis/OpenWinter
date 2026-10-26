@@ -16,7 +16,7 @@ namespace OpenWinter.Game.Spells;
 public sealed partial class CastSpellAction
 {
     const int NoClass = 255, AbilityClass = 254;
-    bool _failedEvent;
+    bool _failedEvent, _slotSpent;
 
     static int ClassIndex(Creature? c, int classType)
     {
@@ -104,12 +104,14 @@ public sealed partial class CastSpellAction
             .Add("SPELL_METAMAGIC", _slot?.Meta ?? 0).Add("SPELL_FEAT", FeatId).Add("SPELL_SPONTANEOUS", _slot?.Spontaneous == true);
         bool skipped = ev.Before();
         ev.After();
+        // Casting goes on as if the check had passed.
+        if (skipped) _failedCheck = false;
         return !skipped;
     }
 
     /// <summary>
     /// NWNX_ON_BROADCAST_SAFE_PROJECTILE for a spell's projectile (PROJECTILE_TYPE 6, or 7 along a script-chosen path;
-    /// whitelists NWNX_ON_BROADCAST_SAFE_PROJECTILE_TYPE and _SPELL); a skip sends no projectile, the impact still lands.
+    /// whitelists NWNX_ON_BROADCAST_SAFE_PROJECTILE_TYPE and _SPELL). Not skippable here: the projectile is only presentation.
     /// </summary>
     void SafeProjectile(World world, GameObject owner)
     {

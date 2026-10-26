@@ -228,7 +228,8 @@ public sealed partial class EffectSystem
         if (c.PolymorphForm is not { } p || p.EffectId != e.UniqueId) return;
         // The original raises NWNX_ON_UNPOLYMORPH once the script that ended the effect is over, and again as the
         // creature changes back (nwnx_events_creature).
-        _world.After(0, () => { if (!c.IsDestroyed) UnpolymorphEvent(c); }, persist: false);
+        if (Nwnx.Plugins.EventsPlugin.Listening(_world, "NWNX_ON_UNPOLYMORPH"))
+            _world.After(0, () => { if (!c.IsDestroyed) UnpolymorphEvent(c); }, persist: false);
         if (e.Ints[5] != 0 || c.IsDead || c.IsDestroyed) { ShowChangeBack(c, p); Unpolymorph(c); return; }
         if (p.Ending) return;
         p.Ending = true;

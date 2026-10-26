@@ -17,10 +17,12 @@ reported once per world through the `NwnxRegistry.Log` sink.
   an automatic `NWNX_ON_*` event OpenWinter never raises: `NWNX_ON_ITEM_SCROLL_LEARN` (no scroll learning yet),
   `NWNX_ON_COMBAT_DR_BROKEN` (not reproduced on the original server), `NWNX_ON_WEBHOOK_*` (no WebHook plugin),
   `NWNX_ON_RESOURCE_*` (resource folders aren't watched) and `NWNX_ON_DEBUG_RUN_SCRIPT[_CHUNK]` (no debug console).
-  The subscription is kept, so explicit script signals still work. Custom events and every other automatic event
-  (`Nwnx/NwnxEvent.cs` lists them) do not warn. A few are raised only for client notices the OpenWinter client
-  doesn't send yet (`inventory-close`, `inventory-panel`, `item-inventory`, `journal-close`, `character-close`,
-  `device-property`, `export-character`, `force-move`, `timing-bar-end`; `Requests/NwnxClientRequests.cs`).
+  It also warns for the events raised by client windows and notices the OpenWinter client has no message for:
+  `NWNX_ON_INVENTORY_CLOSE`, `NWNX_ON_INVENTORY_SELECT_PANEL`, `NWNX_ON_ITEM_INVENTORY_OPEN` / `_CLOSE`,
+  `NWNX_ON_JOURNAL_CLOSE`, `NWNX_ON_CHARACTER_SHEET_CLOSE`, `NWNX_ON_CLIENT_SET_DEVICE_PROPERTY`,
+  `NWNX_ON_CLIENT_EXPORT_CHARACTER` and `NWNX_ON_INPUT_FORCE_MOVE_TO_OBJECT`. The subscription is kept, so explicit
+  script signals still work. Custom events and every other automatic event (`Nwnx/NwnxEvent.cs` lists them) do not
+  warn.
 
 `MissingCalls` counts every unsupported invocation, placeholders included. Plugin prefix and case aliases share
 one warning, and calls from scripts name the calling script. Arguments and stored values are never logged.

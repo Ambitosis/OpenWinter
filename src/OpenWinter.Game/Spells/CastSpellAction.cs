@@ -639,7 +639,8 @@ public sealed partial class CastSpellAction : GameAction
         // The cast reached its commit point: its class is what a later failed Concentration check costs.
         if (!Fake && !IsItem && owner is Creature committed)
             committed.LastCommittedCastClass = _slot?.Kind == SlotKind.Ability ? NwRules.ClassInvalid : _slot?.Class ?? -1;
-        if (owner is Creature c && _slot != null && !_polymorphFree) DecrementEvent(world, c);
+        // A subscriber can keep the slot (NWNX_ON_DECREMENT_SPELL_COUNT): only a slot really spent is given back later.
+        _slotSpent = owner is Creature c && _slot != null && !_polymorphFree && DecrementEvent(world, c);
         if (!Fake && FeatId == NwRules.FeatTurnUndead && owner is Creature featUser)
             CreatureRules.AdjustFeatUses(world, featUser, FeatId, -1);
     }
@@ -667,7 +668,8 @@ public sealed partial class CastSpellAction : GameAction
     {
         if (!_spent) return;
         _spent = false;
-        if (owner is Creature c && _slot != null && !_polymorphFree) SpellSlots.Restore(world, c, _slot);
+        if (_slotSpent && owner is Creature c && _slot != null) SpellSlots.Restore(world, c, _slot);
+        _slotSpent = false;
     }
 
     ActionStatus Interrupt(World world, GameObject owner, string reason)

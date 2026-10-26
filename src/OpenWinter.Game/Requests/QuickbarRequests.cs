@@ -69,6 +69,11 @@ public static class QuickbarRequests
         try { slot = data.ValueKind == JsonValueKind.Null ? null : data.Deserialize<QuickbarSlot>(); }
         catch (JsonException) { return; }
         if (slot != null && !Valid(slot)) return;
+        // NWNX_ON_QUICKBAR_SET_BUTTON (TYPE as NWNX_PLAYER_QBS_TYPE_*), before anything is remembered; a skip keeps the
+        // button as it was server side.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_QUICKBAR_SET_BUTTON", r.Player)?.Add("BUTTON", index).Add("TYPE", NwnxButtonType(slot));
+        if (ev?.Before() == true) { ev.After(); return; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         Item? item = null;
         Item? secondary = null;
         if (slot?.Kind == "item")
@@ -90,10 +95,6 @@ public static class QuickbarRequests
                 QuickbarItemState.Remember(r.World, r.Player, item, slot);
             }
         }
-        // NWNX_ON_QUICKBAR_SET_BUTTON (TYPE as NWNX_PLAYER_QBS_TYPE_*); a skip keeps the button as it was server side.
-        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_QUICKBAR_SET_BUTTON", r.Player)?.Add("BUTTON", index).Add("TYPE", NwnxButtonType(slot));
-        if (ev?.Before() == true) { ev.After(); return; }
-        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         r.Player.QuickbarEdits[index] = slot;
         r.Player.QuickbarItems.Remove(index);
         r.Player.QuickbarSecondaryItems.Remove(index);

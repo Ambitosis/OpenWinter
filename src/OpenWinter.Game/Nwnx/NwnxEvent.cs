@@ -30,6 +30,8 @@ public sealed class NwnxEvent
     public string Result { get; private set; } = "";
     /// <summary>A subscriber of the _BEFORE half called SetEventResult.</summary>
     public bool HasResult { get; private set; }
+    /// <summary>The result read as a number other than 0 ("1" allows, "0" or nothing refuses).</summary>
+    public bool ResultIsTrue => int.TryParse(Result, out var r) && r != 0;
 
     NwnxEvent(World world, string name, uint self) { _world = world; _name = name; _self = self; }
 
@@ -125,11 +127,11 @@ public sealed class NwnxEvent
         "NWNX_ON_SERVER_CHARACTER_SAVE", "NWNX_ON_COMBAT_ENTER", "NWNX_ON_COMBAT_EXIT", "NWNX_ON_INPUT_WALK_TO_WAYPOINT",
         "NWNX_ON_INPUT_EMOTE", "NWNX_ON_INPUT_KEYBOARD", "NWNX_ON_BARTER_START", "NWNX_ON_BARTER_ADD_ITEM", "NWNX_ON_BARTER_END",
         "NWNX_SET_MEMORIZED_SPELL_SLOT", "NWNX_CLEAR_MEMORIZED_SPELL_SLOT", "NWNX_ON_ITEM_USE_LORE", "NWNX_ON_AREA_PLAY_BATTLE_MUSIC",
-        "NWNX_ON_HEALER_KIT", "NWNX_ON_BROADCAST_SAFE_PROJECTILE", "NWNX_ON_ELC_VALIDATE_CHARACTER", "NWNX_ON_INVENTORY_CLOSE",
-        "NWNX_ON_INVENTORY_SELECT_PANEL", "NWNX_ON_ITEM_INVENTORY_OPEN", "NWNX_ON_ITEM_INVENTORY_CLOSE", "NWNX_ON_JOURNAL_CLOSE",
-        "NWNX_ON_CHARACTER_SHEET_CLOSE", "NWNX_ON_CLIENT_SET_DEVICE_PROPERTY", "NWNX_ON_CLIENT_EXPORT_CHARACTER",
-        "NWNX_ON_INPUT_FORCE_MOVE_TO_OBJECT", "NWNX_ON_TIMING_BAR_START", "NWNX_ON_TIMING_BAR_STOP", "NWNX_ON_TIMING_BAR_CANCEL",
-        "NWNX_ON_ITEM_MERGE", "NWNX_ON_UUID_COLLISION", "NWNX_ON_DEBUG_PLAY_VISUAL_EFFECT", "NWNX_ON_DO_SPOT_DETECTION", "NWNX_ON_DO_LISTEN_DETECTION", "NWNX_ON_TRAP_ENTER", "NWNX_ON_TRAP_DISARM", "NWNX_ON_TRAP_FLAG", "NWNX_ON_TRAP_RECOVER", "NWNX_ON_TRAP_EXAMINE", "NWNX_ON_TRAP_SET",
+        "NWNX_ON_HEALER_KIT", "NWNX_ON_BROADCAST_SAFE_PROJECTILE", "NWNX_ON_ELC_VALIDATE_CHARACTER",
+        "NWNX_ON_TIMING_BAR_START", "NWNX_ON_TIMING_BAR_STOP", "NWNX_ON_TIMING_BAR_CANCEL",
+        "NWNX_ON_ITEM_MERGE", "NWNX_ON_UUID_COLLISION", "NWNX_ON_DEBUG_PLAY_VISUAL_EFFECT", "NWNX_ON_DO_SPOT_DETECTION",
+        "NWNX_ON_DO_LISTEN_DETECTION", "NWNX_ON_TRAP_ENTER", "NWNX_ON_TRAP_DISARM", "NWNX_ON_TRAP_FLAG", "NWNX_ON_TRAP_RECOVER",
+        "NWNX_ON_TRAP_EXAMINE", "NWNX_ON_TRAP_SET",
     };
 
     /// <summary>Why an automatic event is never raised, or null when it is (or is a script-defined event).</summary>

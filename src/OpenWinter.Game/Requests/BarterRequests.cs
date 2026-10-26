@@ -189,7 +189,8 @@ public sealed class BarterService : IWorldSystem
         void Give(Side from, Side to)
         {
             foreach (var id in from.Items)
-                if (_world.Get<Item>(id) is { } item && inv.MoveTo(item, to.Player, actor: from.Player, source: from.Player) == null)
+                // An item the receiver's NWNX_ON_ITEM_ACQUIRE refused stays with its owner.
+                if (_world.Get<Item>(id) is { } item && inv.MoveTo(item, to.Player, actor: from.Player, source: from.Player) == null && !inv.Refused(item))
                     inv.Drop(item, new Location(to.Player.Area!.Id, to.Player.Position, to.Player.Facing));
             if (from.Gold > 0)
             {

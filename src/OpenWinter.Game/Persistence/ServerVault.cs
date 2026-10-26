@@ -114,13 +114,13 @@ public static class ServerVault
         return null;
     }
 
-    /// <summary>Writes the character's BIC and returns its path.</summary>
+    /// <summary>Writes the character's BIC and returns its path ("" when an NWNX_ON_SERVER_CHARACTER_SAVE subscriber skipped it).</summary>
     public static string Export(World world, Creature c)
     {
         c = c.Player?.PlayerCreature ?? c;
         // NWNX_ON_SERVER_CHARACTER_SAVE; a skip writes nothing.
         var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_SERVER_CHARACTER_SAVE", c);
-        if (ev?.Before() == true) { ev.After(); return Path.Combine(VaultDir(world, c), c.VaultFile + ".bic"); }
+        if (ev?.Before() == true) { ev.After(); return ""; }
         using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         var sys = world.System<PersistenceSystem>();
         var dir = VaultDir(world, c);

@@ -1,5 +1,6 @@
 using System.Globalization;
 using OpenWinter.Game.Objects;
+using OpenWinter.Game.Rules;
 
 namespace OpenWinter.Game.Combat;
 
@@ -21,8 +22,9 @@ public sealed partial class CombatSystem
         ev.Before();
         GameObject? chosen = null;
         if (ev.HasResult && uint.TryParse(ev.Result, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var id)
-            && _world.Get(id) is { } picked && picked != attacker && picked.Area == attacker.Area)
-            chosen = picked;
+            && _world.Get(id) is { } picked && picked != attacker && !picked.IsDestroyed && !HitPoints.IsDead(picked)
+            && picked.Area == attacker.Area && _world.PvpAllows(attacker, picked))
+            chosen = picked; // the same checks Attack makes of the target it was given
         ev.Add("NEW_TARGET_OBJECT_ID", chosen ?? next).Add("RETARGETABLE", false).After();
         return chosen;
     }
