@@ -115,6 +115,18 @@ public sealed partial class EffectSystem : IWorldSystem
             if (!EffectImmunity.Blocks(_world, target, leaf)) ApplyInstant(leaf, target, durationType, duration);
     }
 
+    /// <summary>
+    /// Gives a creature an innate effect (feat and racial modifiers): lasting, out of the scripts' list, without
+    /// immunity checks or feedback.
+    /// </summary>
+    public void ApplyInnate(Effect effect, GameObject target)
+    {
+        if (!effect.IsValid || target.IsDestroyed) return;
+        var leaf = effect.Copy(false);
+        leaf.Innate = true;
+        Land([leaf], target, K.Permanent, 0, hidden: true);
+    }
+
     /// <summary>Whether the target refuses an effect; a player kept safe by an immunity is told so.</summary>
     bool Refused(GameObject target, Effect e)
     {

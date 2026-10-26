@@ -56,6 +56,7 @@ public static class NativeEffects
         ("AREA_OF_EFFECT", 31, -1), ("DAMAGE", 38, -1), ("HEAL", 39, -1), ("DISPELMAGICALL", 51, -1),
         ("DISPELMAGICBEST", 52, -1), ("HITPOINTCHANGEWHENDYING", 57, -1), ("POLYMORPH", 62, -1), ("TIMESTOP", 64, -1),
         ("DISAPPEARAPPEAR", 79, -1), ("DISAPPEAR", 80, -1), ("APPEAR", 81, -1), ("SWARM", 85, -1),
+        ("ARCANE_SPELL_FAILURE", 25, -1),
     };
 
     /// <summary>The original's effect number for an effect (0 when not measured) and the state code (-1 for none).</summary>

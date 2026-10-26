@@ -40,8 +40,13 @@ static class EffectPlugin
         public string Tag = "", ItemProp = "0";
     }
 
-    /// <summary>One entry of an object's full effect list: an effect, the icon record beside it, or a creature's race.</summary>
-    readonly record struct TrueEntry(Effect Effect, int Icon, int Race = -1);
+    /// <summary>
+    /// One entry of an object's full effect list: an effect, the icon record beside it, a creature's race, or one of
+    /// the two records the original adds to an ultravision effect (<see cref="Vision"/> 1: its visual, 2: the other).
+    /// </summary>
+    readonly record struct TrueEntry(Effect Effect, int Icon, int Race = -1, int Vision = 0);
+
+    const int UltravisionVisual = 244, NativeVisual = 30, NativeVision = 69;
 
     static EffectSystem Effects(World w) => w.System<EffectSystem>();
 
@@ -64,7 +69,15 @@ static class EffectPlugin
     {
         var u = new Unpacked();
         if (e.Type == 0 && !e.IsLinked) return u;
-        if (e.Type == InternalType) return UnpackRace(e.Creator, e.Ints[0]);
+        if (e.Type == InternalType)
+        {
+            if (e.Ints[7] != NativeVision) return UnpackRace(e.Creator, e.Ints[0]);
+            var v = UnpackIcon(w, e, 0);
+            v.Type = NativeVision;
+            v.Ints[0] = e.Ints[0];
+            v.ShowIcon = 0;
+            return v;
+        }
         var k = EffectConstants.Of(w);
         if (e.IsLinked)
         {
@@ -101,8 +114,15 @@ static class EffectPlugin
         for (int i = 0; i < 8 && i < ints.Count; i++) u.Ints[i] = (int)ints[i].GetInt("Value");
         // An interval effect only has a next tick once applied.
         if (e.Target == GameObject.InvalidId && (e.Type == k.RunScript || e.Type == k.Regenerate)) u.Ints[2] = u.Ints[3] = 0;
+        // Feat and racial modifiers are innate records, exposed but without an icon.
+        if (e.Innate)
+        {
+            u.SubType = (u.SubType & ~7) | 4;
+            u.Expose = 1;
+            u.ShowIcon = 0;
+        }
         // A lasting effect applied as instant is in force but out of the scripts' list: an exposed instant record.
-        if (e.Hidden && e.Target != GameObject.InvalidId)
+        else if (e.Hidden && e.Target != GameObject.InvalidId)
         {
             u.SubType &= ~7;
             u.Expose = u.ShowIcon = 1;
@@ -290,20 +310,44 @@ static class EffectPlugin
         if (o == null) return [];
         var k = EffectConstants.Of(w);
         var sys = Effects(w);
-        var list = new List<(TrueEntry Entry, int Native, int Order)>();
-        int order = 0;
-        foreach (var e in o.Effects) list.Add((new TrueEntry(e, 0), NativeOf(k, e), order++));
-        // Icon records follow in the order the effects were applied.
-        foreach (var e in o.Effects.OrderBy(e => e.UniqueId))
-            if (!e.Hidden && e.Type != k.Icon && sys.IconFor(e) is > 0 and var icon) list.Add((new TrueEntry(e, icon), NativeIcon, order++));
-        if (o is Creature c) list.Add((new TrueEntry(new Effect(), 0, (int)c.Race), NativeRace, order++));
+        var list = new List<(TrueEntry Entry, int Native, long Order)>();
+        int ultravision = k["EFFECT_TYPE_ULTRAVISION"];
+        // Within a kind, records go in the order their effects were applied.
+        foreach (var e in o.Effects)
+        {
+            list.Add((new TrueEntry(e, 0), NativeOf(k, e), e.UniqueId));
+            if (!e.Hidden && e.Type != k.Icon && sys.IconFor(e) is > 0 and var icon) list.Add((new TrueEntry(e, icon), NativeIcon, e.UniqueId));
+            if (e.Type == ultravision)
+            {
+                list.Add((new TrueEntry(e, 0, -1, 1), NativeVisual, e.UniqueId));
+                list.Add((new TrueEntry(e, 0, -1, 2), NativeVision, e.UniqueId));
+            }
+        }
+        if (o is Creature c) list.Add((new TrueEntry(new Effect(), 0, BirthRace(w, c)), NativeRace, long.MaxValue));
         return list.OrderBy(x => x.Native).ThenBy(x => x.Order).Select(x => x.Entry).ToList();
     }
 
     static int NativeOf(EffectConstants k, Effect e) => NativeEffects.NativeType(k, e).Native;
 
+    /// <summary>The race the creature's racial record was made with: a later NWNX_Creature_SetRacialType leaves it (nwnx_race).</summary>
+    static int BirthRace(World w, Creature c) =>
+        w.Systems.OfType<NwnxRegistry>().FirstOrDefault() is { } r && r.HasState(c.Id) && r.ObjectState(c.Id).TryGetValue(NwnxRegistry.BirthRaceKey, out var v) && v.Value is int race
+            ? race : c.Race;
+
     static Unpacked UnpackEntry(World w, GameObject o, TrueEntry t) =>
-        t.Race >= 0 ? UnpackRace(o.Id, t.Race) : t.Icon > 0 ? UnpackIcon(w, t.Effect, t.Icon) : Unpack(w, t.Effect);
+        t.Race >= 0 ? UnpackRace(o.Id, t.Race) : t.Vision > 0 ? UnpackVision(w, t.Effect, t.Vision)
+        : t.Icon > 0 ? UnpackIcon(w, t.Effect, t.Icon) : Unpack(w, t.Effect);
+
+    /// <summary>An ultravision effect's visual (244) or its other record (number 69, 3 in its first integer): not exposed.</summary>
+    static Unpacked UnpackVision(World w, Effect e, int vision)
+    {
+        var u = UnpackIcon(w, e, 0);
+        u.Type = vision == 1 ? NativeVisual : NativeVision;
+        u.Ints[0] = vision == 1 ? UltravisionVisual : 3;
+        if (vision == 1) u.Floats[0] = 1;
+        u.ShowIcon = 0;
+        return u;
+    }
 
     static Effect EntryEffect(World w, GameObject o, TrueEntry t)
     {
@@ -312,6 +356,19 @@ static class EffectPlugin
             var race = new Effect { Type = InternalType, Creator = o.Id };
             race.Ints[0] = t.Race;
             return race;
+        }
+        if (t.Vision > 0)
+        {
+            var k0 = EffectConstants.Of(w);
+            var record = t.Effect.Copy(false);
+            record.Type = t.Vision == 1 ? k0.VisualEffect : InternalType;
+            record.Ints = new int[8];
+            record.Ints[0] = t.Vision == 1 ? UltravisionVisual : 3;
+            record.Ints[7] = NativeVision;
+            record.Tag = "";
+            record.DurationType = k0.Instant;
+            record.Hidden = true;
+            return record;
         }
         if (t.Icon == 0) return t.Effect;
         var k = EffectConstants.Of(w);

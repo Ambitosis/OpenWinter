@@ -1,0 +1,6 @@
+{
+ "seconds": 12,
+ "nwnx": true,
+ "templates": { "ft_gob": {"from": "nw_goblina", "type": "utc"} },
+ "instances": [ {"type": "utc", "from": "ft_gob", "x": 30, "y": 30, "facing": 0, "set": {"Tag": "FT_PLACED"}} ]
+}

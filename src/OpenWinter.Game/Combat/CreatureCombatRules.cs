@@ -334,8 +334,12 @@ public sealed partial class CreatureCombatRules : ICombatRules
     public bool FavoredEnemy(Creature attacker, GameObject target)
     {
         if (target is not Creature t) return false;
+        // A race with a parent race (NWNX_Race) counts as either; races can have their own favoured enemy feat.
+        int parent = Nwnx.Plugins.RulesModifiers.ParentRace(_w, t.Race);
         foreach (var (feat, race) in CombatK.FavoredEnemies)
-            if (race == t.Race && Has(attacker, feat)) return true;
+            if ((race == t.Race || race == parent) && Has(attacker, feat)) return true;
+        foreach (int race in parent == t.Race ? new[] { (int)t.Race } : new[] { t.Race, parent })
+            if (Nwnx.Plugins.RulesModifiers.FavoredEnemyFeat(_w, race) is >= 0 and var custom && Has(attacker, custom)) return true;
         return false;
     }
 

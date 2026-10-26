@@ -179,7 +179,15 @@ public sealed class NwnxRegistry : IWorldSystem
         _world = world;
         // Lifting an item off the ground also reports it removed; only destruction ends its plugin state.
         world.ObjectRemoved += o => { if (o.IsDestroyed) { _objectState.Remove(o.Id); _limbo.Remove(o.Id); } };
+        Plugins.RulesModifiers.Attach(world, this);
+        world.ObjectAdded += o => { if (o is Creature c) ObjectState(c.Id).TryAdd(BirthRaceKey, NwnxValue.Int(c.Race)); };
     }
+
+    /// <summary>A creature's race when it first entered an area (its racial effect record keeps it).</summary>
+    public const string BirthRaceKey = "creature:birthRace";
+
+    /// <summary>After each plugin call, with the first object it was given (feat and race modifiers follow changes).</summary>
+    public event Action<NwnxCall, GameObject?>? Called;
 
     // Objects created in no area (NWNX_Object_Deserialize): their actions still run, so a jump places them.
     readonly HashSet<uint> _limbo = new();
@@ -240,7 +248,9 @@ public sealed class NwnxRegistry : IWorldSystem
         if (Handlers.TryGetValue((call.Plugin, function.ToLowerInvariant()), out var handler))
         {
             if (handler.UnsupportedReason is { } reason) call.ReportUnsupported(reason);
+            var subject = Called != null && call.Args.TopDown().FirstOrDefault(v => v.Type == NwnxType.Object) is { Value: uint id } ? _world.Get(id) : null;
             handler.Invoke(call);
+            Called?.Invoke(call, subject);
             return true;
         }
         call.ReportUnsupported("no handler; generic Set/Get storage only, no engine behavior");
