@@ -25,6 +25,10 @@ static partial class Parity
         /// (nwserver without -difficulty, a new OpenWinter world).</summary>
         public int Difficulty => Math.Clamp(Get("difficulty") is { } v ? v.GetInt32() : 3, 0, 4);
         public int MinPerHour => Get("minPerHour") is { } v ? v.GetInt32() : 2;
+        /// <summary>"nwnx": true runs the original side on the Linux nwserver with NWNX:EE (tools/nwnws), and compiles
+        /// against NWNX:EE's NWScript headers; "nwnx": "risenholm" also loads that fork's NWNX_Risenholm plugin.</summary>
+        public bool Nwnx => Get("nwnx") is { } v && v.ValueKind is JsonValueKind.True or JsonValueKind.String;
+        public bool NwnxRisenholm => Get("nwnx") is { ValueKind: JsonValueKind.String } v && v.GetString() == "risenholm";
         public JsonElement? Get(string key) => Json.ValueKind == JsonValueKind.Object && Json.TryGetProperty(key, out var v) ? v : null;
     }
 
@@ -66,6 +70,7 @@ static partial class Parity
         if (Directory.Exists(buildDir)) Directory.Delete(buildDir, true);
         Directory.CreateDirectory(buildDir);
         var include = Path.Combine(Repo(cfg), "parity", "include");
+        if (s.Nwnx) include += "," + NwnxScripts(cfg);
         var sources = Directory.GetFiles(s.Dir, "*.nss").ToList();
 
         // Compile with the official compiler, so both engines run the same bytecode.
@@ -392,9 +397,50 @@ static partial class Parity
         return list;
     }
 
+    /// <summary>NWNX:EE's NWScript headers, copied from the WSL build once (tools/nwnws/nwnws.py scripts).</summary>
+    static string NwnxScripts(LocalConfig cfg)
+    {
+        var dir = Path.Combine(Repo(cfg), "out", "nwnx", "scripts");
+        if (!File.Exists(Path.Combine(dir, "nwnx_core.nss"))) Nwnws(cfg, "scripts", "--dest", dir);
+        if (!File.Exists(Path.Combine(dir, "nwnx_core.nss"))) throw new FileNotFoundException("NWNX:EE scripts not found; run tools/nwnws/nwnws.py setup");
+        return dir;
+    }
+
+    static void Nwnws(LocalConfig cfg, params string[] args)
+    {
+        var psi = new ProcessStartInfo("python") { UseShellExecute = false };
+        psi.ArgumentList.Add(Path.Combine(Repo(cfg), "tools", "nwnws", "nwnws.py"));
+        foreach (var a in args) psi.ArgumentList.Add(a);
+        using var p = Process.Start(psi)!;
+        p.WaitForExit();
+        if (p.ExitCode != 0) throw new InvalidOperationException($"nwnws.py {args[0]} failed");
+    }
+
+    /// <summary>Runs the module on the Linux nwserver with NWNX:EE and returns the parity lines.</summary>
+    static List<string> RunNwnx(LocalConfig cfg, Suite s, string mod)
+    {
+        var output = Path.Combine(Repo(cfg), "out", "parity", "results", s.Name, "nwnx.log");
+        var args = new List<string> { "run-parity", "--module", mod, "--name", s.Name, "--out", output,
+            "--port", (5200 + (int)((uint)StableHash(s.Name + Repo(cfg)) % 700)).ToString(), "--seconds", s.Seconds.ToString(),
+            "--difficulty", (s.Difficulty > 0 ? s.Difficulty : 3).ToString() };
+        foreach (var table in Directory.GetFiles(s.Dir, "*.2da").Concat(Directory.GetFiles(Path.Combine(Repo(cfg), "out", "parity", "build", s.Name), "*.2da")))
+        {
+            args.Add("--override");
+            args.Add(table);
+        }
+        if (s.NwnxRisenholm) args.Add("--risenholm");
+        if (File.Exists(output)) File.Delete(output);
+        Nwnws(cfg, [.. args]);
+        var lines = File.Exists(output) ? File.ReadAllLines(output, OpenWinter.Aurora.Text.Windows1252).ToList() : [];
+        if (!lines.Any(l => l.Contains("PARITY|")))
+            Console.WriteLine("[nwn] no parity output; server log tail:\n  " + string.Join("\n  ", lines.TakeLast(15)));
+        return lines.Concat(lines.Select(ErrorReading).OfType<string>()).ToList();
+    }
+
     /// <summary>Runs the module on the original game's dedicated server and returns the parity lines.</summary>
     static List<string> RunNwn(LocalConfig cfg, Suite s, string mod)
     {
+        if (s.Nwnx) return RunNwnx(cfg, s, mod);
         if (s.Get("saveReload") is { } save && save.GetBoolean())
         {
             string output = Path.Combine(Repo(cfg), "out", "parity", "results", s.Name, "native-reload.log");
