@@ -197,7 +197,15 @@ public sealed class NwnxRegistry : IWorldSystem
         world.ObjectRemoved += o => _objectState.Remove(o.Id);
     }
 
-    public void Step(float dt) { }
+    readonly System.Collections.Concurrent.ConcurrentQueue<Action> _posted = new();
+
+    /// <summary>Runs an action on the game thread at the next step: how plugins finish work done in the background.</summary>
+    public void Post(Action action) => _posted.Enqueue(action);
+
+    public void Step(float dt)
+    {
+        while (_posted.TryDequeue(out var action)) action();
+    }
 
     /// <summary>"NWNX_Creature" and "Creature" both name the Creature plugin.</summary>
     public static string PluginKey(string plugin) =>

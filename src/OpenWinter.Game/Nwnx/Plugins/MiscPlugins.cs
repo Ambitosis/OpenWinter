@@ -525,18 +525,6 @@ static class DamagePlugin
     }
 }
 
-/// <summary>NWNX_WebHook: outbound HTTP is not performed; messages are logged.</summary>
-static class WebHookPlugin
-{
-    [NwnxFunc("WebHook", "SendWebHookHTTPS")]
-    static void Send(NwnxCall n)
-    {
-        var host = n.PopString(); var path = n.PopString(); var message = n.PopString();
-        n.PopString(); n.PopInt();
-        n.Registry.Log($"[nwnx] webhook {host}{path}: {message}");
-    }
-}
-
 /// <summary>NWNX_Administration: the calls that map onto server actions.</summary>
 static class AdministrationPlugin
 {
