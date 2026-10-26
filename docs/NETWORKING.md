@@ -120,7 +120,8 @@ no scripts, settings or other plugins.
   [nwn-message.py](https://github.com/niv/nwn-message.py) (GPL-3.0); the types that library codes by hand are written
   by hand in `Messages/Custom`. Where recorded traffic differs from those definitions, the generator corrects them
   (`apply_corrections`): NUI windows, binds, events and layouts carry JSON fields (type byte, length, text) rather
-  than length-prefixed blobs, and a NUI bind entry ends after its value.
+  than length-prefixed blobs, and a NUI bind entry ends after its value. A body bag's creature is an object id,
+  not a dword.
 - **Session.** It handles login, keep-alives and echoes.
 - **Bridge.** `NwnBridgeConnection` is an `IConnection` that turns NWN messages into the OpenWinter messages the client
   already understands, and the client's requests into NWN input. NWN sends a walking creature's path once; the bridge
@@ -138,8 +139,15 @@ Supported so far:
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
+- combat: attacking (the attack command, and a click on a hostile creature), each attack's swing, weapon sounds,
+  the target's reaction and the damage floating over it; the combat log (attack rolls, damage by type, kills,
+  initiative, saving throws, spell resistance, damage immunity, resistance and reduction, immunities, healing,
+  experience); hit points, temporary hit points and effect icons in the HUD, the selected target's health and
+  attitude, health bars over creatures, hostile creatures coloured as such; dead and dying creatures lying down and
+  corpses fading; the death panel and respawn; battle music; impact visual effects and lasting ones on creatures
 
-Dialog, inventory, combat feedback, NWSync and character creation are still to come.
+The server names neither swing clips nor weapon sounds; the bridge picks them from what the attacker holds, as the
+client does on its own server. Dialog, inventory, NWSync and character creation are still to come.
 
 Testing:
 
@@ -148,6 +156,9 @@ Testing:
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
-  can also say a line, use objects, drive with the keyboard, click NUI elements and record (`--say`, `--use`,
-  `--drive`, `--nui-click`, `--record`). `nwn-dump` reads 2DAs with the haks the recorded server named, since
+  can also say a line, use objects, drive with the keyboard, click NUI elements, attack, respawn and record (`--say`,
+  `--use`, `--drive`, `--nui-click`, `--attack`, `--respawn-at`, `--record`).
+- The visual scene `bridgecombat` (`visual-build bridgecombat`) is a fight to run on that server: goblins attack,
+  effects, spells and saves, dying, death and respawn, each announced in chat. The client's `--capture-nwn-combat`
+  follows it and takes shots; `NwnBridgeCombatTests` replays frames recorded from it. `nwn-dump` reads 2DAs with the haks the recorded server named, since
   some fields' presence depends on them.

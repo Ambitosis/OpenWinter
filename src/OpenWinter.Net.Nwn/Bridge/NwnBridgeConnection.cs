@@ -29,6 +29,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly INwnBridgeData _data;
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
+    readonly NwnCombat _combat;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -49,6 +50,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _data = data;
         _context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
+        _combat = new NwnCombat(data, _world, m => _toClient.Enqueue(m));
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -151,11 +153,14 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 // Into the backpack wherever it fits: no container, no grid position.
                 ToServer(new InventoryMessages.InventoryPickupC2S { Item = a.Target, TargetRepository = GameObjUpdateMessages.InvalidObjectId, X = 255, Y = 255 });
                 break;
+            case ActionKind.Use or ActionKind.Talk when _combat.Click(a.Target) is { } attack:
+                ToServer(attack);
+                break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
                 // Doors change state; everything else is used (the server walks the player there first).
                 ToServer((NwnMessage?)_world.DoorRequest(a.Target, a.Action == ActionKind.Use) ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true });
                 break;
-            case ActionKind.Attack:
+            case ActionKind.Attack when a.Target != 0:
                 ToServer(new InputMessages.InputAttack { Target = a.Target });
                 break;
         }
@@ -218,9 +223,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void Request(ClientRequestMessage request)
     {
-        if (NwnNui.FromClient(request.Kind, request.Json) is { } nui)
+        if ((NwnNui.FromClient(request.Kind, request.Json) ?? _combat.FromClient(request.Kind, request.Json)) is { } m)
         {
-            ToServer(nui);
+            ToServer(m);
             return;
         }
         switch (request.Kind)
@@ -252,6 +257,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         if (now - _lastTick < 0.1) return;
         var dt = (float)Math.Min(0.25, now - _lastTick);
         _world.Tick(dt);
+        _combat.Tick(dt);
         Drive(dt);
         _lastTick = now;
     }
@@ -278,19 +284,19 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 _world.Area(area);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
-                _world.ObjectList(list);
+                _combat.ObjectList(list, _world.ObjectList);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
                 break;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
-                NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
+                if (!_combat.Feedback(feedback)) NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
                 break;
             case LoginMessages.LoginDeny or LoginMessages.LoginCharacterFail:
                 Tell("The server refused the character.");
                 break;
             default:
-                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)))
+                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !_combat.ToClient(message))
                     NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
                 break;
         }

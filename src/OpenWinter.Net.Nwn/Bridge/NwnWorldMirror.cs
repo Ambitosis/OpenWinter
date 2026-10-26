@@ -406,7 +406,8 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
     {
         if (!_objects.Remove(id, out var m)) return;
         _touched.Remove(m);
-        if (m.Spawned) emit(new DespawnMessage { ObjectId = id }.Write());
+        // A corpse the server removes fades out where it lies.
+        if (m.Spawned) emit(new DespawnMessage { ObjectId = id, DecayingCorpse = (m.Flags & ObjectFlags.Dead) != 0 }.Write());
     }
 
     public void Control(uint objectId)
@@ -418,6 +419,22 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
             _pendingControl = null;
         }
         else _pendingControl = objectId;
+    }
+
+    /// <summary>A known object's name; empty when it isn't known.</summary>
+    public string NameOf(uint id) => _objects.TryGetValue(id, out var m) ? m.Name : "";
+
+    /// <summary>A known creature's appearance and equipment; null when it isn't known.</summary>
+    public Appearance? AppearanceOf(uint id) => _objects.TryGetValue(id, out var m) && m.HasAppearance ? m.Appearance : null;
+
+    /// <summary>Sets a creature's condition flags (dead, dying) within <paramref name="mask"/>; sent with the object list being read.</summary>
+    public void SetFlags(uint id, ObjectFlags value, ObjectFlags mask)
+    {
+        var m = Get(id, ObjectKind.Creature);
+        var flags = (m.Flags & ~mask) | (value & mask);
+        if (flags == m.Flags) return;
+        m.Flags = flags;
+        m.StateChanged = true;
     }
 
     /// <summary>The kind of a known object; null when it isn't known.</summary>
