@@ -81,6 +81,10 @@ public sealed class ItemProperty
     public int UsesPerDay = 255;
     public string Tag = "";
     public uint Creator = GameObject.InvalidId;
+    /// <summary>The spell that made the property (NWNX_ItemProperty), or -1.</summary>
+    public int SpellId = -1;
+    /// <summary>Stored on an item (loaded with it or added by AddItemProperty), not just a script's value.</summary>
+    public bool OnItem;
     /// <summary>
     /// Identity kept by copies: a property added to an item shares it with the script's variable, so
     /// RemoveItemProperty works with either, but not with an equal property built separately.

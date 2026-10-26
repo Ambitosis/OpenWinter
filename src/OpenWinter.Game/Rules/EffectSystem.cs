@@ -680,6 +680,7 @@ public sealed partial class EffectSystem : IWorldSystem
         var k = K;
         if (!ip.Valid || item.IsDestroyed || (durationType != k.Temporary && durationType != k.Permanent)) return;
         var copy = ip.Clone();
+        copy.OnItem = true;
         copy.DurationType = durationType;
         copy.Duration = durationType == k.Temporary ? Math.Max(0, duration) : 0;
         copy.ExpiresAt = durationType == k.Temporary ? _world.Time + copy.Duration : 0;

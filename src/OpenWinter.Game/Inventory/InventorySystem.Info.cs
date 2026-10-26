@@ -128,10 +128,7 @@ public sealed partial class InventorySystem
         int value = Rules.GoldValue(item);
         if (_world.ItemLevelRestrictions && item.Identified)
         {
-            var t = res.TwoDA("itemvalue");
-            int level = 0;
-            for (int row = 0; row < t.RowCount; row++)
-                if (t.GetInt(row, "MAXSINGLEITEMVALUE", int.MaxValue) >= value) { level = row + 1; break; }
+            int level = Nwnx.Plugins.ItemPlugin.MinEquipLevel(_world, item);
             if (level > 1) requirements.Add(new { text = $"Character level {level}", met = viewer == null || !viewer.IsPC || _world.CanEquipByLevel(viewer, item) });
         }
 

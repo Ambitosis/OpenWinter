@@ -346,8 +346,12 @@ static class ItemFunctions
 
     // ----- NWNX bridge -----
 
-    [NwFunc("NWNXPushItemProperty")] static object? NwnxPush(Call c) { Inv(c).NwnxItemProperties.Push(c.IP(0)); return null; }
+    [NwFunc("NWNXPushItemProperty")]
+    static object? NwnxPush(Call c)
+    {
+        c.World.System<Nwnx.NwnxRegistry>().Stack.Push(new Nwnx.NwnxValue(Nwnx.NwnxType.ItemProperty, c.IP(0)));
+        return null;
+    }
     [NwFunc("NWNXPopItemProperty")]
-    static object? NwnxPop(Call c) =>
-        Inv(c).NwnxItemProperties.TryPop(out var ip) ? ip : new ItemProperty();
+    static object? NwnxPop(Call c) => c.World.System<Nwnx.NwnxRegistry>().PopAs(Nwnx.NwnxType.ItemProperty) as ItemProperty ?? new ItemProperty();
 }

@@ -100,9 +100,7 @@ public sealed partial class World
     public bool CanEquipByLevel(Creature c, Item item)
     {
         if (!ItemLevelRestrictions || !c.IsPC) return true;
-        var table = Resources.TwoDA("itemvalue");
-        int level = Math.Clamp(c.TotalLevel, 1, Math.Max(1, table.RowCount));
-        int max = table.GetInt(level - 1, "MAXSINGLEITEMVALUE", int.MaxValue);
-        return Inventory.Rules.GoldValue(item) <= max;
+        // The level the item needs (itemvalue.2da by its value; NWNX_Item can override and modify it).
+        return Math.Max(1, c.TotalLevel) >= Nwnx.Plugins.ItemPlugin.MinEquipLevel(this, item);
     }
 }
