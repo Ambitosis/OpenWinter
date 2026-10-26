@@ -138,6 +138,8 @@ public sealed class AttackOutcome
     public required AttackContext Context;
     public int Roll, AttackBonus, ArmorClass;
     public bool Hit, Critical, Threat;
+    /// <summary>A critical hit that brings a devastating critical (its Fortitude save comes when the blow lands).</summary>
+    public bool Devastating;
     /// <summary>A confirmed threat, or a sneak attack, on a target immune to it (the log says so).</summary>
     public bool CriticalImmune, SneakImmune;
     public int ConfirmRoll;

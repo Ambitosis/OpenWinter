@@ -135,6 +135,7 @@ public sealed partial class CombatSystem
                 if (o.Damage.Sneak > 0 && !o.SneakSituation) o.Feedback.Add(o.Damage.DeathAttack ? "Death Attack" : "Sneak Attack");
             }
         }
+        if (o.Critical) o.Devastating = DevastatingCriticalApplies(o);
         AttackEvent(o, ref hit);
         if (impactDelay > 0)
         {
@@ -186,7 +187,7 @@ public sealed partial class CombatSystem
             if (!o.Killed && tc != null)
             {
                 SpecialAttackHit(o);
-                if (o.Critical) DevastatingCritical(o);
+                if (o.Critical && o.Devastating) DevastatingCritical(o);
             }
             if (!HitPoints.IsDead(t)) OnHitProperties(o);
         }
@@ -411,13 +412,25 @@ public sealed partial class CombatSystem
         return best;
     }
 
+    /// <summary>
+    /// Whether a critical hit brings a devastating critical: the attacker has the feat for the weapon and the
+    /// devastating critical event script (NWNX_Weapon), told as the attack is swung, doesn't bypass it. As on nwserver
+    /// (parity suite nwnx_weapon): the script runs for every such critical hit, before the attack event, which then
+    /// reads attack result 10.
+    /// </summary>
+    bool DevastatingCriticalApplies(AttackOutcome o)
+    {
+        var a = o.Context;
+        if (Creature is not { } r || a.Target is not Objects.Creature) return false;
+        if (!r.HasWeaponFeat(a.Attacker, r.Stats(a.Weapon), WeaponFeat.DevastatingCritical)) return false;
+        return !Nwnx.Plugins.WeaponPlugin.RunDevastatingCriticalEvent(_world, a.Attacker, a.Weapon, a.Target, o.Damage?.Total ?? 0);
+    }
+
     /// <summary>Devastating Critical: a critical hit with the weapon forces a Fortitude save (10 + half HD + Str) or death.</summary>
     void DevastatingCritical(AttackOutcome o)
     {
         var a = o.Context;
-        if (Creature is not { } r || a.Target is not Creature tc) return;
-        var s = r.Stats(a.Weapon);
-        if (!HasFeat(a.Attacker, s.Devastating)) return;
+        if (a.Target is not Creature tc) return;
         int dc = RI("DEVASTATING_CRITICAL_BASE_DC", 10) + a.Attacker.TotalLevel / 2 + CreatureRules.AbilityModifier(_world, a.Attacker, NwRules.AbilityStr);
         if (SavingThrow(tc, NwRules.SaveFort, dc, NwRules.SaveTypeAll, a.Attacker) == 0)
         {

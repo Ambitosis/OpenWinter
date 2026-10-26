@@ -56,6 +56,7 @@ public sealed partial class CombatSystem
         if (hit)
         {
             // A natural 20 that the attack bonus wouldn't have made is an ordinary hit (nwnx_damage nat20).
+            if (o.Critical && o.Devastating) return NwnxAttackEventData.DevastatingCritical;
             return o.Critical ? NwnxAttackEventData.CriticalHit : NwnxAttackEventData.Hit;
         }
         if (o.Parried || o.Deflected) return NwnxAttackEventData.Parried;
@@ -107,7 +108,7 @@ public sealed partial class CombatSystem
         if (hit && !nowHit)
         {
             hit = o.Hit = false;
-            o.Critical = false;
+            o.Critical = o.Devastating = false;
             o.Damage = null;
             o.Feedback.Remove("Critical Hit");
         }
@@ -118,6 +119,7 @@ public sealed partial class CombatSystem
             if (critical && !o.Critical) o.Feedback.Add("Critical Hit");
             else if (!critical && o.Critical) o.Feedback.Remove("Critical Hit");
             o.Critical = critical;
+            o.Devastating = data.AttackResult == NwnxAttackEventData.DevastatingCritical;
             if (!data.Damage.SameAs(before) || o.Damage == null)
             {
                 var set = new DamageRoll { Defended = true, Power = o.Damage?.Power ?? 0 };
