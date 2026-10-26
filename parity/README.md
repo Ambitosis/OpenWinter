@@ -36,6 +36,12 @@ dotnet run --project src/OpenWinter.Tools -c Release -- parity-run basics --only
   `"fields": {"DecayTime": {"dword": 0}, "IsDestroyable": {"byte": 0}}` (`corpse_drops`). A visual scene's official
   `"source"` can bring that module's compiled scripts with `"moduleScripts": ["m1q0ddeadgob_9"]` (`pavelroom`, `corpsehilite`).
 - `nwserver` runs with `-userdirectory out/parity/user/<suite>`, and each suite gets its own port.
+- `"nwnx": true` in suite.json measures NWNX:EE plugins: the original side runs on the Linux nwserver with NWNX:EE
+  in WSL (`tools/nwnws/nwnws.py setup` once), in `/home/nwnws/parity/<suite>`, with no outbound network. Scripts
+  compile against NWNX:EE's own `nwnx_*.nss` headers (copied from that build into `out/nwnx/scripts`). Every plugin
+  loads except those that need outside services or change engine behaviour (Optimizations, Experimental, HTTPClient,
+  Redis, WebHook ...); NWNX_SQL uses SQLite. `"nwnx": "risenholm"` also loads the `NWNX_Risenholm` plugin, from the
+  build that `nwnxBinaries` in config/local.json names. `nwnx_pilot` is the smallest example.
   It never touches the real user folder.
 - A suite can ship conversations as `<resref>.dlg.json`, in the format visual scenes use (`convo_busy`).
 - Results are written to `out/parity/results/<suite>/{nwn,openwinter}.txt`.

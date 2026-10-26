@@ -8,6 +8,8 @@
         --port <n>              UDP and websocket port (default 5121)
     python tools/nwnws/nwnws.py stop
     python tools/nwnws/nwnws.py status                server process and the end of its log
+    python tools/nwnws/nwnws.py run-parity ...        a parity suite's module with NWNX (parity-run does this)
+    python tools/nwnws/nwnws.py scripts --dest <dir>  NWNX:EE's NWScript headers, for compiling suites
 
 The server runs as the WSL user "nwnws" in /home/nwnws/sandbox (its -userdirectory). It can't open connections
 to the outside (iptables drops new outbound traffic from that user except to WSL itself), so it never reaches the
@@ -170,6 +172,79 @@ grep -q "Module loaded" {HOME}/server.log && echo "nwserver ready on port {port}
     print(f"connect with ws://localhost:{port}; player {args.player}, character {character.stem.lower()}")
 
 
+# The plugins parity suites measure. The rest need outside services, change engine behaviour (Optimizations,
+# Experimental) or move the server log (ServerLogRedirector).
+PARITY_PLUGINS = ["ADMINISTRATION", "APPEARANCE", "AREA", "CHAT", "CREATURE", "DAMAGE", "DIALOG", "ELC", "EFFECT",
+                  "ENCOUNTER", "EVENTS", "FEAT", "FEEDBACK", "ITEM", "ITEMPROPERTY", "MAXLEVEL", "NOSTACK",
+                  "NWSQLITEEXTENSIONS", "OBJECT", "PLAYER", "RACE", "RENAME", "RESOURCES", "REVEAL", "SKILLRANKS", "SQL",
+                  "STORE", "TILESET", "TWEAKS", "UTIL", "VISIBILITY", "WEAPON"]
+
+
+def run_parity(cfg, args):
+    """Runs a parity module with NWNX until it logs PARITY|__done__|1 (or the time runs out) and copies the server
+    log back. Each suite has its own sandbox and port, and only its own server is stopped."""
+    game = wsl_path(cfg["gameRoot"])
+    binaries = cfg.get("nwnxBinaries") or f"{BUILD}/unified/Binaries"
+    name = args.name
+    sandbox = f"{HOME}/parity/{name}"
+    module = Path(args.module)
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    overrides = [Path(p) for p in args.override]
+    plugins = PARITY_PLUGINS + (["RISENHOLM"] if args.risenholm else [])
+    enabled = "\n".join(f"export NWNX_{p}_SKIP=n" for p in plugins)
+    script = f"""
+uid=$(id -u nwnws)
+iptables -C OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \\
+  iptables -A OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -C OUTPUT -m owner --uid-owner $uid -o lo -j ACCEPT 2>/dev/null || iptables -A OUTPUT -m owner --uid-owner $uid -o lo -j ACCEPT
+iptables -C OUTPUT -m owner --uid-owner $uid -j REJECT 2>/dev/null || iptables -A OUTPUT -m owner --uid-owner $uid -j REJECT
+[ -f {sandbox}/server.pid ] && kill -9 "$(cat {sandbox}/server.pid)" 2>/dev/null || true
+rm -rf {sandbox}
+mkdir -p {sandbox}/modules {sandbox}/override {sandbox}/database
+cp "{wsl_path(module)}" "{sandbox}/modules/{module.stem}.mod"
+{"".join(f'cp "{wsl_path(o)}" {sandbox}/override/' + chr(10) for o in overrides)}
+cat > {sandbox}/settings.tml <<'EOF'
+{SERVER_SETTINGS}EOF
+cat > {sandbox}/run.sh <<'EOF'
+cd "{game}/bin/linux-x86"
+export LD_PRELOAD="{binaries}/NWNX_Core.so"
+export NWNX_CORE_LOAD_PATH="{binaries}"
+export NWNX_CORE_LOG_LEVEL=6
+export NWNX_CORE_SKIP_ALL=y
+{enabled}
+export NWNX_SQL_TYPE=SQLITE
+export NWNX_SQL_DATABASE=nwnx_sql
+exec ./nwserver-linux -userdirectory {sandbox} -module "{module.stem}" -port {args.port} -publicserver 0 \\
+  -servername openwinter-parity -maxclients 1 -difficulty {args.difficulty}
+EOF
+chmod +x {sandbox}/run.sh
+chown -R nwnws:nwnws {HOME}/parity
+su nwnws -c "nohup {sandbox}/run.sh > {sandbox}/stdout.log 2>&1 & echo \\$! > {sandbox}/server.pid"
+log={sandbox}/logs.0/nwserverLog1.txt
+for i in $(seq 1 {(args.seconds + 60) * 2}); do
+  grep -q "PARITY|__done__|1" $log 2>/dev/null && break
+  kill -0 "$(cat {sandbox}/server.pid)" 2>/dev/null || break
+  sleep 0.5
+done
+kill "$(cat {sandbox}/server.pid)" 2>/dev/null || true
+sleep 1
+kill -9 "$(cat {sandbox}/server.pid)" 2>/dev/null || true
+cat $log {sandbox}/logs.0/nwserverError1.txt 2>/dev/null > "{wsl_path(out)}" || true
+echo "--- stdout" >> "{wsl_path(out)}"
+grep -v "^$" {sandbox}/stdout.log >> "{wsl_path(out)}" || true
+"""
+    wsl(cfg, script)
+
+
+def scripts(cfg, args):
+    """Copies NWNX:EE's NWScript headers (nwnx_*.nss) from the build into a folder, for compiling suites."""
+    dest = Path(args.dest)
+    dest.mkdir(parents=True, exist_ok=True)
+    source = cfg.get("nwnxSource") or f"{BUILD}/unified"
+    wsl(cfg, f'find "{source}" -name "nwnx*.nss" -exec cp {{}} "{wsl_path(dest)}/" \\;')
+
+
 def stop(cfg, _args):
     wsl(cfg, "pkill -u nwnws -f nwserver-linux && echo stopping || echo 'not running'; "
              "for i in $(seq 1 60); do pgrep -u nwnws -f nwserver-linux >/dev/null || break; sleep 0.5; done")
@@ -190,8 +265,20 @@ def main():
     s.add_argument("--port", type=int, default=5121)
     sub.add_parser("stop")
     sub.add_parser("status")
+    r = sub.add_parser("run-parity")
+    r.add_argument("--module", required=True)
+    r.add_argument("--name", required=True)
+    r.add_argument("--out", required=True)
+    r.add_argument("--port", type=int, required=True)
+    r.add_argument("--seconds", type=int, default=30)
+    r.add_argument("--difficulty", type=int, default=3)
+    r.add_argument("--override", action="append", default=[])
+    r.add_argument("--risenholm", action="store_true")
+    c = sub.add_parser("scripts")
+    c.add_argument("--dest", required=True)
     args = ap.parse_args()
-    {"setup": setup, "start": start, "stop": stop, "status": status}[args.cmd](config(), args)
+    {"setup": setup, "start": start, "stop": stop, "status": status, "run-parity": run_parity,
+     "scripts": scripts}[args.cmd](config(), args)
 
 
 if __name__ == "__main__":
