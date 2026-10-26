@@ -34,7 +34,7 @@ public static class NwnItems
             ["id"] = id,
             ["name"] = Name(data, item),
             ["baseItem"] = (int)item.BaseItemId,
-            ["stack"] = (int)Math.Max(1, item.StackSize),
+            ["stack"] = Stack(item),
             ["icon"] = icon,
             ["identified"] = item.Identified,
             ["info"] = Info(data, item),
@@ -87,7 +87,8 @@ public static class NwnItems
             case ArmorModel a:
             {
                 int Colour(int index) => index < 6 ? At(a.Palette, index)
-                    : (index - 6) / 6 < a.PalettePerPart.Count ? At(a.PalettePerPart[(index - 6) / 6], (index - 6) % 6) : 255;
+                    : (index - 6) / 6 < a.PalettePerPart.Count && (index - 6) % 6 < a.PalettePerPart[(index - 6) / 6].Count
+                        ? a.PalettePerPart[(index - 6) / 6][(index - 6) % 6] : 255;
                 int robe = At(a.Parts, ArmourIcon.Robe);
                 var layers = ArmourIcon.Layers(female, part => At(a.Parts, part), Colour, r => data.HasResource(r, ResType.Plt),
                     column => Int(data, "parts_robe", robe, column) == 1);
@@ -208,7 +209,7 @@ public static class NwnItems
             ["requirements"] = requirements,
             ["charges"] = charges,
             ["weight"] = Weight(data, item),
-            ["value"] = item.Identified ? (int)item.Cost : -1,
+            ["value"] = item.Identified ? (int)Math.Min(item.Cost, int.MaxValue) : -1,
             ["plot"] = false,
             ["stolen"] = item.Stolen,
             ["cursed"] = item.Cursed,
@@ -225,8 +226,11 @@ public static class NwnItems
     {
         int b = (int)item.BaseItemId;
         int unit = b == BaseArmor && item.ArmorValue is { } ac ? Int(data, "armor", ac, "WEIGHT") : Int(data, "baseitems", b, "TenthLBS");
-        return unit * (int)Math.Max(1, item.StackSize);
+        return (int)Math.Clamp((long)unit * Stack(item), int.MinValue, int.MaxValue);
     }
+
+    /// <summary>The stack size the client shows: at least one.</summary>
+    public static int Stack(ItemAppearanceAndProps item) => (int)Math.Clamp(item.StackSize, 1, int.MaxValue);
 
     static string InventorySound(INwnBridgeData data, int baseItem, int ac)
     {

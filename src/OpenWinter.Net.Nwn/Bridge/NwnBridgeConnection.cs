@@ -308,6 +308,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case AreaMessages.AreaClientArea area:
                 _world.Area(area);
+                _inventory.AreaChanged();
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
                 _world.ObjectList(list);

@@ -42,15 +42,17 @@ public sealed partial class NwnInventory
                 break;
             case "barter-gold":
             {
-                // The offer holds the gold the player names: the difference goes in, or comes back out.
-                int offered = Gold(_mine), wanted = Math.Max(0, number("gold", 0));
-                if (wanted > offered)
-                    send(new GoldMessages.GoldTransferGold { ObjectId = Pc, Amount = wanted - offered, Barter = true, XPos = 255, YPos = 255 });
-                else if (_mine != null)
-                    foreach (var pile in _mine.Items.Values.Where(h => h.Look.BaseItemId == BaseGold).ToList())
-                        send(new BarterMessages.BarterRqstRemoveItem { Item = pile.Id, X = 255, Y = 255 });
+                // The offer holds the gold the player names: the piles offered come back out and that much goes in.
+                int wanted = Math.Max(0, number("gold", 0));
+                if (_mine == null || wanted == Gold(_mine)) break;
+                foreach (var pile in _mine.Items.Values.Where(h => h.Look.BaseItemId == BaseGold).ToList())
+                    send(new BarterMessages.BarterRqstRemoveItem { Item = pile.Id, X = 255, Y = 255 });
+                if (wanted > 0) send(new GoldMessages.GoldTransferGold { ObjectId = Pc, Amount = wanted, Barter = true, XPos = 255, YPos = 255 });
                 break;
             }
+            case "barter-answer":
+                // The server starts a barter for both players at once and asks the other nothing: no answer to give.
+                break;
             case "barter-lock":
                 send(new BarterMessages.BarterRqstLockList { Locked = true });
                 break;
@@ -106,15 +108,21 @@ public sealed partial class NwnInventory
                 BarterState();
                 break;
             case BarterMessages.BarterAcptCloseBarter close:
-                if (_mine != null) Notify("barter-close", new JsonObject { ["cancelled"] = !close.Accepted }, Pc);
-                _mine = _theirs = null;
-                Resync();
+                EndBarter(cancelled: !close.Accepted);
+                Want();
                 break;
         }
     }
 
+    void EndBarter(bool cancelled)
+    {
+        if (_mine != null) Notify("barter-close", new JsonObject { ["cancelled"] = cancelled }, Pc);
+        _mine = _theirs = null;
+        _bagsWanted = true;
+    }
+
     static int Gold(BarterSide? side) =>
-        side == null ? 0 : (int)side.Items.Values.Where(h => h.Look.BaseItemId == BaseGold).Sum(h => (long)h.Look.StackSize);
+        side == null ? 0 : (int)Math.Min(side.Items.Values.Where(h => h.Look.BaseItemId == BaseGold).Sum(h => (long)h.Look.StackSize), int.MaxValue);
 
     void BarterState()
     {
