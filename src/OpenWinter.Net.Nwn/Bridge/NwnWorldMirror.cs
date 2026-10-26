@@ -19,6 +19,8 @@ public interface INwnBridgeData
     string Text(uint strRef, byte gender);
     /// <summary>The server's haks and custom talk table, once it has named them.</summary>
     void UseContent(IReadOnlyList<string> haks, string customTlk);
+    /// <summary>Whether a resource of this type (ResType) is installed.</summary>
+    bool HasResource(string resref, ushort type) => false;
 }
 
 /// <summary>
@@ -419,6 +421,9 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         }
         else _pendingControl = objectId;
     }
+
+    /// <summary>A known object's name; empty when it isn't known.</summary>
+    public string NameOf(uint id) => _objects.TryGetValue(id, out var m) ? m.Name : "";
 
     /// <summary>The kind of a known object; null when it isn't known.</summary>
     public ObjectKind? KindOf(uint id) => _objects.TryGetValue(id, out var m) ? m.Kind : null;

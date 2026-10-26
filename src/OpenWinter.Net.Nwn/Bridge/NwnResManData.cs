@@ -11,5 +11,6 @@ public sealed class NwnResManData(GamePaths paths) : INwnBridgeData
     public int TwoDARowCount(string table) => _rm.TwoDA(table).RowCount;
     public string TwoDA(string table, int row, string column) => _rm.TwoDA(table).Get(row, column);
     public string Text(uint strRef, byte gender) => _rm.Talk.Get(strRef);
+    public bool HasResource(string resref, ushort type) => _rm.Contains(resref, type);
     public void UseContent(IReadOnlyList<string> haks, string customTlk) => _rm = ResMan.ForClient(paths, haks, customTlk);
 }

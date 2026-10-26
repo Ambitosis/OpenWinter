@@ -1,5 +1,6 @@
 using OpenWinter.Aurora.Resources;
 using OpenWinter.Game.Objects;
+using OpenWinter.Net;
 
 namespace OpenWinter.Game.Inventory;
 

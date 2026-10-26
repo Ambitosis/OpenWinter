@@ -3,6 +3,7 @@ using OpenWinter.Content;
 using OpenWinter.Game;
 using OpenWinter.Game.Inventory;
 using OpenWinter.Game.Objects;
+using OpenWinter.Net;
 using Xunit;
 
 namespace OpenWinter.Tests;
