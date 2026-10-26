@@ -194,7 +194,7 @@ public sealed partial class EffectSystem : IWorldSystem
         foreach (var leaf in added)
         {
             if (!target.Effects.Contains(leaf)) continue; // removed by an earlier leaf's side effects
-            WhileApplying(leaf, () => OnApplied(leaf, target));
+            Applying(leaf, target, () => WhileApplying(leaf, () => OnApplied(leaf, target)));
             if (!hidden) Notify("effect-applied", target, Describe(k, leaf));
             if (!hidden) NotStacking(leaf, target);
         }
@@ -405,6 +405,7 @@ public sealed partial class EffectSystem : IWorldSystem
     void OnRemoved(Effect e, GameObject target)
     {
         var k = K;
+        Removed(e, target);
         if (e.Type == k.HitPointChangeWhenDying && target is Creature { IsDestroyed: false } holder) DyingChangeRemoved(holder, e);
         if (e.Type == k.SummonCreature && _world.Get<Creature>(e.SummonedObject) is { } summon) Unsummon(summon, e.Ints[2]);
         else if (e.Type == k["EFFECT_TYPE_SWARM"]) EndSwarm(e);
