@@ -144,8 +144,19 @@ Supported so far:
   items' cast-spell properties (potions, wands, scrolls), combat and stealth/detect modes, resting, cancelling a
   queued action, the radial menu's use of all of these, and the character sheet (abilities, saves, base attack,
   armour class, hit points, skills, feats, experience) as the server sends it; spells' conjure and cast effects
+- conversations: the speaker's line, name, portrait and voice-over, the answers, picking one, Esc and the end
+  choice, the lines in the chat window, and one-liners spoken over the talker. The server sends text as written or
+  as a talk table reference, with the creature its tokens describe, and leaves the tokens (names, race, class,
+  gender words, custom tokens) to the client; the bridge fills them in. Text for a female character comes from the
+  female talk tables (dialogf.tlk and the custom table's "f" file) where the language has them; English has none.
+- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature, as
+  on any object, is a use, and the server picks the default action (talking, attacking).
+- the journal: opening its window opens the quest screen, and the server sends the whole journal (it sends it only
+  then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
+  and flashes the button.
+- cutscene mode and fades
 
-Dialog, inventory, combat feedback, NWSync and character creation are still to come.
+Inventory, combat feedback, NWSync and character creation are still to come.
 
 What the server accepts, as measured against it:
 
@@ -165,8 +176,11 @@ Testing:
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
-  can also say a line, use objects, drive with the keyboard, click NUI elements, send any client request and record
-  (`--say`, `--use`, `--drive`, `--nui-click`, `--request kind=json|...`, `--record`). The client's
-  `--capture-nwn-actions` takes shots of the quickbar, character sheet and spellbook, then of a mode, a cast, a feat
-  and a rest. `nwn-dump` reads 2DAs with the haks the recorded server named, since
-  some fields' presence depends on them.
+  can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
+  click NUI elements, send any client request and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`,
+  `--drive`, `--nui-click`, `--request kind=json|...`, `--record`). `nwn-dump` reads 2DAs with the haks the recorded
+  server named, since some fields' presence depends on them.
+- The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
+  every line, then opens the journal.
+- The client's `--capture-nwn-actions` takes shots of the quickbar, character sheet and spellbook, then of a mode, a
+  cast, a feat and a rest.

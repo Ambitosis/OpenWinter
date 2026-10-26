@@ -20,7 +20,11 @@ static class BuiltinRequests
             r.World.Output?.SendMessage(r.Player, r.World.Resources.TlkString(68708));
             return;
         }
+        // NWNX_ON_INVENTORY_OPEN; a skip keeps the panel shut.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_INVENTORY_OPEN", r.Player)?.Add("TARGET_INVENTORY", r.Player);
+        if (ev?.Before() == true) { ev.After(); return; }
         r.World.Output?.Notify("inventory-open", r.Player, r.World.Inventory.InventoryView(r.Player), r.Player);
+        ev?.After();
     }
 
     [ClientRequest("equip")]
@@ -45,6 +49,11 @@ static class BuiltinRequests
     {
         if (r.Obj<Item>("item") is not { } item || !r.Owns(item) || !item.Droppable || !ActionQueues.Accepts(r.Player)
             || !ItemDropDestination.Read(r, out var destination)) return;
+        // NWNX_ON_INPUT_DROP_ITEM; a skip keeps the item.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_INPUT_DROP_ITEM", r.Player)?.Add("ITEM", item)
+            .Position("POS_", destination?.Position ?? r.Player.Position);
+        if (ev?.Before() == true) { ev.After(); return; }
+        ev?.After();
         var drop = new PutDownItemAction { ItemId = item.Id, Destination = destination };
         ActionQueues.EnqueuePlayerTask(r.World, r.Player, drop);
         if (destination is { } spot && r.World.Output is GameServer server) server.TrackOrder(r.Player, drop, spot.Position);
@@ -78,19 +87,35 @@ static class BuiltinRequests
     {
         if (OpenStore(r) is not { } s || r.Obj<Item>("item") is not { } item) return;
         (int, int)? cell = r.Int("x", -1) is >= 0 and var x && r.Int("y", -1) is >= 0 and var y ? (x, y) : null;
-        r.World.Inventory.Buy(r.Player, s, item, cell);
+        // NWNX_ON_STORE_REQUEST_BUY; a skip buys nothing.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_STORE_REQUEST_BUY", r.Player)?.Add("ITEM", item).Add("STORE", s)
+            .Add("PRICE", r.World.Inventory.SellPrice(s, item, r.Player));
+        if (ev?.Before() == true) { ev.Add("RESULT", false).After(); return; }
+        bool ok = r.World.Inventory.Buy(r.Player, s, item, cell);
+        ev?.Add("RESULT", ok).After();
     }
 
     [ClientRequest("store-sell")]
     static void StoreSell(Request r)
     {
-        if (OpenStore(r) is { } s && r.Obj<Item>("item") is { } item && r.Owns(item)) r.World.Inventory.Sell(r.Player, s, item);
+        if (OpenStore(r) is not { } s || r.Obj<Item>("item") is not { } item || !r.Owns(item)) return;
+        // NWNX_ON_STORE_REQUEST_SELL; a skip sells nothing.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_STORE_REQUEST_SELL", r.Player)?.Add("ITEM", item).Add("STORE", s)
+            .Add("PRICE", r.World.Inventory.BuyPrice(s, item, r.Player));
+        if (ev?.Before() == true) { ev.Add("RESULT", false).After(); return; }
+        bool ok = r.World.Inventory.Sell(r.Player, s, item);
+        ev?.Add("RESULT", ok).After();
     }
 
     [ClientRequest("store-identify")]
     static void StoreIdentify(Request r)
     {
-        if (OpenStore(r) is { } s && r.Obj<Item>("item") is { } item && r.Owns(item)) r.World.Inventory.Identify(r.Player, s, item);
+        if (OpenStore(r) is not { } s || r.Obj<Item>("item") is not { } item || !r.Owns(item)) return;
+        // NWNX_ON_ITEM_PAY_TO_IDENTIFY; a skip identifies nothing.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_ITEM_PAY_TO_IDENTIFY", r.Player)?.Add("ITEM", item).Add("STORE", s);
+        if (ev?.Before() == true) { ev.After(); return; }
+        r.World.Inventory.Identify(r.Player, s, item);
+        ev?.After();
     }
 
     [ClientRequest("store-close")]

@@ -13,7 +13,7 @@ namespace OpenWinter.Game.Skills;
 /// disarmed, ends the attempt on arrival.
 /// </para>
 /// </summary>
-public sealed class UseSkillAction : ApproachAction
+public sealed partial class UseSkillAction : ApproachAction
 {
     public int Skill;
     public int SubSkill;
@@ -77,8 +77,14 @@ public sealed class UseSkillAction : ApproachAction
             if (!_atSpot && owner is Creature walker)
             {
                 if (walker.Area?.Id != spot.Area) return ActionStatus.Failed;
+                bool first = _walk == null;
                 _walk ??= new MoveAction { Target = spot.Position, Range = Range, Run = true };
                 var status = _walk.Step(world, owner, dt);
+                if (status == ActionStatus.InProgress && first && TrapSkill && TrapBefore(world, walker, null, needsToMove: true))
+                {
+                    _walk.Cancel(world, owner);
+                    return ActionStatus.Failed;
+                }
                 if (status == ActionStatus.InProgress) return status;
                 _atSpot = true;
             }
@@ -91,6 +97,7 @@ public sealed class UseSkillAction : ApproachAction
             if (!_atSpot)
             {
                 if (trap.Area != cr.Area) return ActionStatus.Failed;
+                _trapStart ??= cr.Position;
                 _walk ??= trap switch
                 {
                     Trigger t => new MoveAction { Target = OutsideEdge(t, cr.Position), Range = 0.1f, Run = true },
@@ -98,6 +105,12 @@ public sealed class UseSkillAction : ApproachAction
                     _ => new MoveAction { TargetObject = Target, Range = DoorReach, Run = true },
                 };
                 var status = _walk.Step(world, owner, dt);
+                // Setting off: the walk has moved the creature.
+                if (System.Numerics.Vector3.DistanceSquared(cr.Position, _trapStart.Value) > 0.0025f && TrapBefore(world, cr, trap, needsToMove: true))
+                {
+                    _walk.Cancel(world, owner);
+                    return ActionStatus.Failed;
+                }
                 if (status == ActionStatus.InProgress) return status;
                 _atSpot = true;
             }
@@ -149,33 +162,48 @@ public sealed class UseSkillAction : ApproachAction
                 bool can = Skill == SkillIds.DisableTrap ? skills.CanDisableTrap(c, target, SubSkill)
                     : item != null && skills.CanSetTrap(c, item, on is Door or Placeable ? on : null);
                 if (!can) return ActionStatus.Failed;
+                if (TrapBefore(world, c, on ?? target, needsToMove: false)) return ActionStatus.Failed;
                 Face(world, c, Spot?.Position ?? target.Position);
                 float duration = skills.TrapSkillDuration(Skill, SubSkill);
                 _resolveAt = world.GameTime + LeadIn + duration;
+                Nwnx.NwnxTimingBar.Start(world, c, TimingBarId, (int)MathF.Round(duration * 1000));
                 world.Output?.PlayAnimation(c, 12, 1, duration); // ANIMATION_LOOPING_GET_LOW
                 return ActionStatus.InProgress;
             }
             if (world.GameTime < _resolveAt - 1e-4) return ActionStatus.InProgress;
+            var tev = SkillEvent(world, c, target, item);
+            if (tev?.Before() == true) { tev.Add("ACTION_RESULT", false).After(); return ActionStatus.Failed; }
             bool done = Skill == SkillIds.DisableTrap
                 ? skills.DisableTrap(c, target, SubSkill)
                 : item != null && skills.SetTrap(c, item, on, Spot ?? target.Location);
+            tev?.Add("ACTION_RESULT", done).After();
+            TrapAfter(done);
+            Nwnx.NwnxTimingBar.Ended(world, c, cancelled: false);
             return done ? ActionStatus.Done : ActionStatus.Failed;
         }
+        var ev = SkillEvent(world, c, target, item);
+        if (ev?.Before() == true) { ev.Add("ACTION_RESULT", false).After(); return ActionStatus.Failed; }
         Animate(world, c);
         bool ok = Skill switch
         {
             SkillIds.OpenLock => skills.OpenLock(c, target, item),
             SkillIds.PickPocket => target is Creature victim && skills.PickPocket(c, victim),
             SkillIds.Taunt => target is Creature t && skills.Taunt(c, t),
-            SkillIds.Heal => target is Creature patient && skills.Heal(c, patient, item),
+            SkillIds.Heal => target is Creature patient && HealerKit(world, c, patient, item, () => skills.Heal(c, patient, item)),
             SkillIds.AnimalEmpathy => target is Creature animal && skills.AnimalEmpathy(c, animal),
             SkillIds.Hide or SkillIds.MoveSilently => skills.SetActionMode(c, SkillIds.ModeStealth, !c.StealthMode),
             SkillIds.Search or SkillIds.Spot or SkillIds.Listen => skills.SetActionMode(c, SkillIds.ModeDetect, !c.DetectMode),
             SkillIds.Lore => target is Item i && skills.TryIdentify(c, i),
             _ => false,
         };
+        ev?.Add("ACTION_RESULT", ok).After();
         return ok ? ActionStatus.Done : ActionStatus.Failed;
     }
+
+    /// <summary>NWNX_ON_USE_SKILL as the skill is applied (nwnx_events_creature); ACTION_RESULT is added for the _AFTER half.</summary>
+    Nwnx.NwnxEvent? SkillEvent(World world, Creature c, GameObject target, Item? item) =>
+        Nwnx.NwnxEvent.Begin(world, "NWNX_ON_USE_SKILL", c)?.Add("USED_ITEM_OBJECT_ID", item).Add("TARGET_OBJECT_ID", target == c && Spot != null ? null : target)
+            .Add("SKILL_ID", Skill).Add("SUB_SKILL_ID", SubSkill).Position("TARGET_POSITION_", Spot?.Position ?? target.Position);
 
     static void Face(World world, Creature c, System.Numerics.Vector3 at)
     {
@@ -187,6 +215,8 @@ public sealed class UseSkillAction : ApproachAction
 
     public override void Cancel(World world, GameObject owner)
     {
+        if (owner is Creature pc && !double.IsNaN(_resolveAt)) Nwnx.NwnxTimingBar.Ended(world, pc, cancelled: true);
+        TrapAfter(false); // a trap attempt broken off ends its event too
         _walk?.Cancel(world, owner);
         base.Cancel(world, owner);
     }

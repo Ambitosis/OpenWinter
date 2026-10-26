@@ -53,7 +53,12 @@ public sealed class EquipItemAction : EquipmentAction
             if ((mask & EquipSlot.LeftHand) == 0) return ActionStatus.Failed;
             slot = (mask & EquipSlot.RightHand) != 0 && !c.Equipment.ContainsKey(EquipSlot.RightHand) ? 4 : 5;
         }
-        return world.Inventory.Equip(c, item, slot) ? ActionStatus.Done : Fail(world, "ActionEquipItem");
+        // NWNX_ON_ITEM_EQUIP wraps the equip command (not the equipping a character loads with); a skip leaves it undone.
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_ITEM_EQUIP", c)?.Add("ITEM", item).Add("SLOT", slot);
+        if (ev?.Before() == true) { ev.After(); return ActionStatus.Done; }
+        bool ok = world.Inventory.Equip(c, item, slot);
+        ev?.After();
+        return ok ? ActionStatus.Done : Fail(world, "ActionEquipItem");
     }
 }
 
@@ -66,7 +71,12 @@ public sealed class UnequipItemAction : EquipmentAction
         if (world.Get<Item>(ItemId) is not { } item) return ActionStatus.Failed;
         // An explicit drag destination must still be free when this command executes.
         if (Cell is { } cell && !world.Inventory.FitsAt(c, item, cell.X, cell.Y)) return ActionStatus.Failed;
-        return world.Inventory.Unequip(c, item, Cell) ? ActionStatus.Done : ActionStatus.Failed;
+        // NWNX_ON_ITEM_UNEQUIP wraps the unequip command; a skip leaves the item on.
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_ITEM_UNEQUIP", c)?.Add("ITEM", item);
+        if (ev?.Before() == true) { ev.After(); return ActionStatus.Done; }
+        bool ok = world.Inventory.Unequip(c, item, Cell);
+        ev?.After();
+        return ok ? ActionStatus.Done : ActionStatus.Failed;
     }
 }
 
@@ -300,6 +310,22 @@ public sealed class UseItemAction : ItemAction
         var prop = item.Properties.FirstOrDefault(p => ReferenceEquals(p, Property))
             ?? item.Properties.FirstOrDefault(p => p.Type == Property.Type && p.SubType == Property.SubType && p.CostTableValue == Property.CostTableValue);
         if (prop == null || !prop.Useable) return ActionStatus.Failed;
+        // NWNX_ON_USE_ITEM: around the use's checks, before the property takes effect; a skip stops the use.
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_USE_ITEM", owner);
+        if (ev != null)
+        {
+            var at = world.Get(Target) == null && TargetLocation.Area != Location.Invalid.Area ? TargetLocation.Position : System.Numerics.Vector3.Zero;
+            ev.Add("ITEM_OBJECT_ID", item).AddObject("TARGET_OBJECT_ID", Target).Add("ITEM_PROPERTY_INDEX", item.Properties.IndexOf(prop))
+                .Add("ITEM_SUB_PROPERTY_INDEX", SubPropertyIndex).Position("TARGET_POSITION_", at).Add("USE_CHARGES", DecrementCharges);
+            if (ev.Before()) { ev.After(); return ActionStatus.Failed; }
+        }
+        var status = StartUse(world, owner, item, prop, dt, ev);
+        return status;
+    }
+
+    ActionStatus StartUse(World world, GameObject owner, Item item, ItemProperty prop, float dt, Nwnx.NwnxEvent? ev)
+    {
+        var inv = world.Inventory;
         if (prop.Type == Skills.SkillIds.IpTrap && owner is Creature)
         {
             bool onObject = world.Get(Target) is { } t && t != owner;
@@ -309,12 +335,18 @@ public sealed class UseItemAction : ItemAction
                 Spot = onObject ? null : TargetLocation.Area != Location.Invalid.Area ? TargetLocation : owner.Location,
                 Range = Skills.UseSkillAction.RangeFor(Skills.SkillIds.SetTrap),
             };
+            ev?.After();
             return _setTrap.Step(world, owner, dt);
         }
         int spell = prop.Type == ItemRules.PropCastSpell ? world.Resources.TwoDA("iprp_spells").GetInt(prop.SubType, "SpellIndex", -1) : -1;
-        if (spell < 0) return inv.UseItemProperty(owner, item, prop, Target, TargetLocation, DecrementCharges) ? ActionStatus.Done : ActionStatus.Failed;
-        if (owner is Creature user && !world.System<Skills.SkillSystem>().CanActivateSpellItem(user, item))
-            return ActionStatus.Failed;
+        if (spell < 0)
+        {
+            ev?.After();
+            return inv.UseItemProperty(owner, item, prop, Target, TargetLocation, DecrementCharges) ? ActionStatus.Done : ActionStatus.Failed;
+        }
+        bool usable = owner is not Creature user || world.System<Skills.SkillSystem>().CanActivateSpellItem(user, item);
+        ev?.After();
+        if (!usable) return ActionStatus.Failed;
         // Cast-spell properties go through spell casting (range, animation, impact); charges are spent at impact.
         _endsWhenConsumed = true;
         _cast = new Spells.CastSpellAction

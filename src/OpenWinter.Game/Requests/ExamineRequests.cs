@@ -27,7 +27,11 @@ public static class Examine
         // Examining an unidentified item of your own tries Lore on it first.
         if (o is Item { Identified: false } unknown && r.World.Inventory.Owner(unknown) == r.Player)
             r.World.System<Skills.SkillSystem>().TryIdentify(r.Player, unknown);
+        // NWNX_ON_EXAMINE_OBJECT; a skip shows nothing.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_EXAMINE_OBJECT", r.Player)?.Add("EXAMINEE_OBJECT_ID", o);
+        if (ev?.Before() == true) { ev.After(); return; }
         Send(r.World, r.Player, o);
+        ev?.After();
     }
 
     /// <summary>void ActionExamine(object oExamine): the player examines an object (shows the examine window).</summary>

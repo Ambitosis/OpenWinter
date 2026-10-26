@@ -36,7 +36,7 @@ static class SpellRequests
         }
         else if (r.Element("pos") != null) action.TargetLocation = new Location(r.Player.Area.Id, r.Vec("pos"), 0);
         else action.Target = r.Player.Id;
-        ActionQueues.EnqueuePlayerTask(r.World, r.Player, action);
+        if (action.Queued(r.World, r.Player)) ActionQueues.EnqueuePlayerTask(r.World, r.Player, action);
     }
 
     [ClientRequest("counterspell")]

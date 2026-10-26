@@ -395,11 +395,14 @@ public sealed partial class InventorySystem : IWorldSystem
             if (h is Creature c && SlotOf(c, item) is var slot and >= 0)
             {
                 c.Equipment.Remove(EquipSlot.Bit(slot));
+                PropertyEffects(c, item, slot, applied: false);
                 if (slot == 4) RemoveDefaultAmmo(c);
                 EquipmentChanged(c, item, -1);
                 FireUnequip(c, item, slot);
             }
+            var leaving = LeavingBefore(h, item);
             DetachFrom(h, item);
+            leaving?.After();
             if (h is Store) item.StorePanel = -1;
         }
         else if (item.Area != null) _world.LiftFromArea(item);
@@ -449,6 +452,7 @@ public sealed partial class InventorySystem : IWorldSystem
     {
         EnsureLoaded();
         Load(target);
+        _refused = null;
         if (item.IsDestroyed || !CanHold(target, item)) return null;
         // A polymorph's own items never leave the creature (they are destroyed when it changes back).
         if (global::OpenWinter.Game.Rules.EffectSystem.IsFormItem(_world, item)) return null;
@@ -475,6 +479,8 @@ public sealed partial class InventorySystem : IWorldSystem
         bool directTransfer = oldHolder is not Item && target is not Item;
         int oldLoad = directTransfer ? VoiceLoadBefore(oldOwner) : -1;
         int newLoad = directTransfer && newOwner != oldOwner ? VoiceLoadBefore(newOwner) : -1;
+        var arrival = Arriving(item, target, oldOwner, newOwner, source);
+        if (arrival.Skipped) { _refused = item; arrival.After(false); return null; }
         Detach(item);
         int stack = item.StackSize;
 
@@ -486,6 +492,7 @@ public sealed partial class InventorySystem : IWorldSystem
             AddGold(gc, stack);
             if (gc.IsPC && oldOwner != newOwner) _world.Output?.Notify("item-acquired", gc, new { item = item.Id, sound }, gc);
             Disturb(oldOwner, actor, item, DisturbRemoved);
+            arrival.After(true);
             return null;
         }
 
@@ -573,6 +580,7 @@ public sealed partial class InventorySystem : IWorldSystem
         }
         VoiceLoadChanged(oldOwner, oldLoad);
         VoiceLoadChanged(newOwner, newLoad);
+        arrival.After(true, item.IsDestroyed ? result : null);
         return result;
     }
 
@@ -655,6 +663,9 @@ public sealed partial class InventorySystem : IWorldSystem
         item.StackSize = Math.Min(stackSize, Rules.MaxStack(item.BaseItem));
         if (!CanHold(target, item)) return item;
         var result = MoveTo(item, target, force: true);
+        // An item whose acquisition a subscriber refused stays, held by nothing (nwnx_events_items).
+        // An item whose acquisition a subscriber refused stays, held by nothing (nwnx_events_items).
+        if (Refused(item)) return item;
         if (result == null && !item.IsDestroyed && item.Area == null && Holder(item) == null) _world.Destroy(item);
         return target is Store && item.IsDestroyed ? item : result;
     }
@@ -671,14 +682,19 @@ public sealed partial class InventorySystem : IWorldSystem
         // A weapon that needs both hands goes to the main hand whichever hand it was meant for.
         if (slot == 5 && Rules.IsTwoHanded(item.BaseItem, c.Size)) slot = 4;
         int bit = EquipSlot.Bit(slot);
-        if ((Rules.EquipableSlots(item.BaseItem) & bit) == 0) return false;
         if (Owner(item) != c) return false;
         if (c.Equipment.TryGetValue(bit, out var current) && current == item) return true;
         // Moving an equipped item to another slot only works into an empty one.
         if (current != null && SlotOf(c, item) >= 0) return false;
-        if (!_world.CanEquipByLevel(c, item)) return false; // server item level restriction
-        if (!HasProficiency(c, item) || !_world.System<Skills.SkillSystem>().CanUseItem(c, item, out _)) return false;
-        if (!Rules.FitsWielder(item.BaseItem, c.Size)) return false; // too big or too small to wield
+        // NWNX_ON_VALIDATE_ITEM_EQUIP: a skip with a result decides alone, "0" refusing and anything else allowing any slot.
+        var validation = ValidateEquipBefore(c, item, slot);
+        bool valid = validation is { Skipped: true } ? validation.ResultIsTrue
+            : (Rules.EquipableSlots(item.BaseItem) & bit) != 0
+              && _world.CanEquipByLevel(c, item) // server item level restriction
+              && HasProficiency(c, item) && _world.System<Skills.SkillSystem>().CanUseItem(c, item, out _)
+              && Rules.FitsWielder(item.BaseItem, c.Size); // too big or too small to wield
+        validation?.Add("BEFORE_RESULT", valid).After();
+        if (!valid) return false;
 
         // What comes off goes where the new item was (when it was in the backpack and fits there).
         (int X, int Y)? freed = Holder(item) == c && c.Inventory.Contains(item) && item.InvX >= 0 ? (item.InvX, item.InvY) : null;
@@ -692,6 +708,7 @@ public sealed partial class InventorySystem : IWorldSystem
         c.Equipment[bit] = item;
         item.Possessor = c.Id;
         EquipmentChanged(c, item, slot);
+        PropertyEffects(c, item, slot, applied: true);
         // Only for players: the original fires nothing when other creatures equip (unless NWNX_Tweaks says so).
         if (c.IsPC || Nwnx.Plugins.NwnxTweaks.Of(_world).FireEquipEventsForAllCreatures)
             _world.RunEvent(_world.Module, "Mod_OnPlrEqItm",
@@ -745,6 +762,7 @@ public sealed partial class InventorySystem : IWorldSystem
         (int X, int Y)? place = cell is { } at && FitsAt(c, item, at.X, at.Y) ? at : FirstFit(c, item);
         if (place == null && !force) { InventoryFull(c); return false; }
         c.Equipment.Remove(EquipSlot.Bit(slot));
+        PropertyEffects(c, item, slot, applied: false);
         if (slot == 4) RemoveDefaultAmmo(c);
         c.Inventory.Add(item);
         item.Possessor = c.Id;

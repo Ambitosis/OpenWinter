@@ -70,6 +70,10 @@ public sealed class ContainerService : IWorldSystem
         _openedAt.Remove(pc.Id);
         if (_world.Get<Placeable>(id) is { } container)
         {
+            // NWNX_ON_PLACEABLE_CLOSE, OBJECT_SELF the placeable (not skippable).
+            var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_PLACEABLE_CLOSE", container)?.Add("OBJECT", pc);
+            ev?.Before();
+            using var after = new Nwnx.NwnxEvent.AfterScope(ev);
             // The last looter closing it shuts the lid (OnClosed).
             if (!_open.ContainsValue(id) && DoorService.IsOpen(container)) DoorService.Close(_world, container, pc);
             if (notifyClient) _world.Output?.Notify("container-close", container, new { container = id }, pc);

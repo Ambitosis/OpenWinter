@@ -130,6 +130,7 @@ public static class Movement
             c.Facing = MathF.Atan2(locked.Position.Y - c.Position.Y, locked.Position.X - c.Position.X);
         // Coming to a standing stop sets the standing stance: idle out of combat, combat-ready in it (Creature.IdleStance).
         if (!moved && c.Mode != MovementMode.Stand) c.IdleStance = !c.InCombat;
+        if (moved) Nwnx.NwnxMovement.Moved(world, c);
         var mode = !moved ? MovementMode.Stand : c.MoveBackward ? MovementMode.Backward : walking ? MovementMode.Walk : MovementMode.Run;
         if (moved || before != c.Speed || mode != c.Mode)
         {

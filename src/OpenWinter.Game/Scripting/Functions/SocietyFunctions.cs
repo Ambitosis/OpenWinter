@@ -254,7 +254,7 @@ static partial class SocietyFunctions
     static object? SetStandard(Call c)
     {
         int f = Factions(c).StandardFaction(c.I(0));
-        if (f >= 0 && Factions(c).IsValidFaction(f) && c.ObjOrSelf(2) is Creature cr) Factions(c).SetStanding(f, cr, c.I(1));
+        if (f >= 0 && Factions(c).IsValidFaction(f) && c.ObjOrSelf(2) is Creature cr) Factions(c).SetStanding(f, cr, c.I(1), c.World);
         return null;
     }
 

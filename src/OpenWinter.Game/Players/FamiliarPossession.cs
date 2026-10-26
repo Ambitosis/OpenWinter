@@ -126,10 +126,22 @@ public sealed class FamiliarPossession : IWorldSystem
     [ClientRequest("possess-familiar")]
     static void RequestPossess(Request r)
     {
-        if (r.Player.Player is { } session && r.Obj<Creature>("target") is { } familiar)
-            r.World.System<FamiliarPossession>().Possess(session, familiar);
+        if (r.Player.Player is not { } session || r.Obj<Creature>("target") is not { } familiar) return;
+        // NWNX_ON_POSSESS_FAMILIAR; a skip keeps control where it is.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_POSSESS_FAMILIAR", r.Player)?.Add("FAMILIAR", familiar);
+        if (ev?.Before() == true) { ev.After(); return; }
+        r.World.System<FamiliarPossession>().Possess(session, familiar);
+        ev?.After();
     }
 
     [ClientRequest("unpossess-familiar")]
-    static void RequestRelease(Request r) => r.World.System<FamiliarPossession>().Unpossess(r.Player);
+    static void RequestRelease(Request r)
+    {
+        // NWNX_ON_UNPOSSESS_FAMILIAR, OBJECT_SELF the player character; a skip keeps the familiar possessed.
+        var master = r.Player.Player?.FamiliarMaster;
+        var ev = master != null ? Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_UNPOSSESS_FAMILIAR", master)?.Add("FAMILIAR", r.Player) : null;
+        if (ev?.Before() == true) { ev.After(); return; }
+        r.World.System<FamiliarPossession>().Unpossess(r.Player);
+        ev?.After();
+    }
 }
