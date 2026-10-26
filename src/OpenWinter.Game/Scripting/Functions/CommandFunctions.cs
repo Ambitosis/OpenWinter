@@ -235,14 +235,29 @@ static class CommandFunctions
     [NwFunc("JumpToLocation")]
     static object? JumpLoc(Call c)
     {
-        if (c.Self is { } o) { ActionQueues.Clear(c.World, o); c.World.Jump(o, c.L(0)); }
+        if (c.Self is { } o) { ActionQueues.Clear(c.World, o); JumpToPoint(c.World, o, c.L(0)); }
         return null;
     }
     [NwFunc("JumpToObject")]
     static object? JumpObj(Call c)
     {
-        if (c.Self is { } o && c.Obj(0) is { } t) { ActionQueues.Clear(c.World, o); c.World.Jump(o, JumpTarget(c.World, o, t)); }
+        if (c.Self is { } o && c.Obj(0) is { } t)
+        {
+            ActionQueues.Clear(c.World, o);
+            // NWNX_ON_CREATURE_JUMP_TO_OBJECT; a skip keeps the creature where it is.
+            var ev = o is Creature ? Nwnx.NwnxEvent.Begin(c.World, "NWNX_ON_CREATURE_JUMP_TO_OBJECT", o)?.Add("OBJECT", t) : null;
+            if (ev?.Before() != true) c.World.Jump(o, JumpTarget(c.World, o, t));
+            ev?.After();
+        }
         return null;
+    }
+
+    /// <summary>A jump to a location between NWNX_ON_CREATURE_JUMP_TO_POINT_BEFORE and _AFTER; a skip keeps the creature where it is.</summary>
+    internal static void JumpToPoint(World world, GameObject o, Location loc)
+    {
+        var ev = o is Creature ? Nwnx.NwnxEvent.Begin(world, "NWNX_ON_CREATURE_JUMP_TO_POINT", o)?.AddObject("TARGET_AREA", loc.Area).Position("POS_", loc.Position) : null;
+        if (ev?.Before() != true) world.Jump(o, loc);
+        ev?.After();
     }
 
     /// <summary>

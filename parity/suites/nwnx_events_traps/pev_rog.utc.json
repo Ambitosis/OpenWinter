@@ -1,0 +1,6 @@
+{
+  "template": "nw_bandit001",
+  "tag": "PEV_FTR",
+  "classLevels": [ { "class": 8, "level": 6 } ],
+  "skills": { "2": 20, "15": 20, "14": 10, "17": 10, "6": 10, "5": 10, "8": 10 }
+}

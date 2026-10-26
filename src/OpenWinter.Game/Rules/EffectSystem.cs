@@ -206,7 +206,7 @@ public sealed partial class EffectSystem : IWorldSystem
         foreach (var leaf in added)
         {
             if (!target.Effects.Contains(leaf)) continue; // removed by an earlier leaf's side effects
-            WhileApplying(leaf, () => OnApplied(leaf, target));
+            Applying(leaf, target, () => WhileApplying(leaf, () => OnApplied(leaf, target)));
             if (!hidden) Notify("effect-applied", target, Describe(k, leaf));
             if (!hidden) NotStacking(leaf, target);
         }
@@ -320,8 +320,13 @@ public sealed partial class EffectSystem : IWorldSystem
     /// </summary>
     void ApplyHeal(Effect e, GameObject target)
     {
-        if (HitPoints.IsDead(target) || target is not Creature healed) { HitPoints.Heal(_world, target, e.Ints[0]); return; }
-        int amount = HitPoints.Heal(_world, target, e.Ints[0]);
+        // NWNX_ON_HEAL: the creator heals; a skip heals nothing and a result is the amount to heal instead.
+        var ev = NwnxHeal(e, target);
+        if (ev?.Before() == true) { ev.After(); return; }
+        int heal = ev is { HasResult: true } && int.TryParse(ev.Result, out var r) ? r : e.Ints[0];
+        if (HitPoints.IsDead(target) || target is not Creature healed) { HitPoints.Heal(_world, target, heal); ev?.After(); return; }
+        int amount = HitPoints.Heal(_world, target, heal);
+        ev?.After();
         var audience = Society.AssociateService.FeedbackPlayers(_world, target, healed, _world.Get(e.Creator) as Creature);
         if (audience.Count == 0) return;
         string name = target.DisplayName(_world.Resources.Talk) is { Length: > 0 } n ? n : target.Tag;
@@ -417,6 +422,7 @@ public sealed partial class EffectSystem : IWorldSystem
     void OnRemoved(Effect e, GameObject target)
     {
         var k = K;
+        Removed(e, target);
         if (e.Type == k.HitPointChangeWhenDying && target is Creature { IsDestroyed: false } holder) DyingChangeRemoved(holder, e);
         if (e.Type == k.SummonCreature && _world.Get<Creature>(e.SummonedObject) is { } summon) Unsummon(summon, e.Ints[2]);
         else if (e.Type == k["EFFECT_TYPE_SWARM"]) EndSwarm(e);

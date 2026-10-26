@@ -143,8 +143,15 @@ public sealed class UnlockAction : ApproachAction
     public override int ActionType => 13; // ACTION_OPENLOCK
     /// <summary>Knock: no key or skill needed.</summary>
     public bool Magic;
-    protected override ActionStatus Arrive(World world, GameObject owner, GameObject target) =>
-        (Magic ? DoorService.Unlock(world, target, null) : DoorService.Unlock(world, target, owner)) ? ActionStatus.Done : ActionStatus.Failed;
+    protected override ActionStatus Arrive(World world, GameObject owner, GameObject target)
+    {
+        // NWNX_ON_OBJECT_UNLOCK around the attempt (nwnx_events_creature); a skip leaves the lock alone.
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_OBJECT_UNLOCK", owner)?.Add("DOOR", target).Add("THIEVES_TOOL", (GameObject?)null).Add("ACTIVE_PROPERTY_INDEX", 0);
+        if (ev?.Before() == true) { ev.Add("ACTION_RESULT", false).After(); return ActionStatus.Failed; }
+        bool ok = Magic ? DoorService.Unlock(world, target, null) : DoorService.Unlock(world, target, owner);
+        ev?.Add("ACTION_RESULT", ok).After();
+        return ok ? ActionStatus.Done : ActionStatus.Failed;
+    }
 }
 
 /// <summary>ActionLockObject: run to the lock and lock it.</summary>
@@ -152,8 +159,14 @@ public sealed class LockAction : ApproachAction
 {
     public LockAction() { Run = true; }
     public override int ActionType => 14; // ACTION_LOCK
-    protected override ActionStatus Arrive(World world, GameObject owner, GameObject target) =>
-        DoorService.Lock(world, target, owner) ? ActionStatus.Done : ActionStatus.Failed;
+    protected override ActionStatus Arrive(World world, GameObject owner, GameObject target)
+    {
+        var ev = Nwnx.NwnxEvent.Begin(world, "NWNX_ON_OBJECT_LOCK", owner)?.Add("DOOR", target);
+        if (ev?.Before() == true) { ev.Add("ACTION_RESULT", false).After(); return ActionStatus.Failed; }
+        bool ok = DoorService.Lock(world, target, owner);
+        ev?.Add("ACTION_RESULT", ok).After();
+        return ok ? ActionStatus.Done : ActionStatus.Failed;
+    }
 }
 
 /// <summary>ActionInteractObject: run to the object and use it (a door opens or closes), then stand half a second.</summary>

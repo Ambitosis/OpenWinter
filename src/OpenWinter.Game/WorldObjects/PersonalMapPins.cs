@@ -38,7 +38,11 @@ public static class PersonalMapPins
         var all = AreaSettings.Of(r.World, area).PersonalMapPins;
         if (!all.TryGetValue(r.Player.Id, out var pins)) all[r.Player.Id] = pins = [];
         if (pins.Count >= MaxPinsPerArea || PinCount(r.World, r.Player) >= MaxPinsPerPlayer) return;
+        // NWNX_ON_MAP_PIN_ADD_PIN; a skip adds nothing.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_MAP_PIN_ADD_PIN", r.Player)?.Add("PIN_X", x).Add("PIN_Y", y).Add("PIN_NOTE", note);
+        if (ev?.Before() == true) { ev.After(); return; }
         pins.Add(new PersonalMapPin(Guid.NewGuid().ToString("N"), note, x, y));
+        ev?.After();
         MapExploration.Send(r.World, r.Player);
     }
 
@@ -53,6 +57,11 @@ public static class PersonalMapPins
         if (CurrentArea(r) is not { } area || !AreaSettings.Of(r.World, area).PersonalMapPins.TryGetValue(r.Player.Id, out var pins)) return;
         int index = pins.FindIndex(p => p.Id == r.Str("id"));
         if (index < 0) return;
+        // NWNX_ON_MAP_PIN_DESTROY_PIN / _CHANGE_PIN (PIN_ID counts the player's pins in this area from 1); a skip keeps the pin.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, remove ? "NWNX_ON_MAP_PIN_DESTROY_PIN" : "NWNX_ON_MAP_PIN_CHANGE_PIN", r.Player)?.Add("PIN_ID", index + 1);
+        if (ev != null && !remove) ev.Add("PIN_X", pins[index].X).Add("PIN_Y", pins[index].Y).Add("PIN_NOTE", r.Str("note"));
+        if (ev?.Before() == true) { ev.After(); return; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         if (remove) pins.RemoveAt(index);
         else
         {

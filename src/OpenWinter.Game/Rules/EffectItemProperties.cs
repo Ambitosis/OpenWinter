@@ -105,7 +105,7 @@ public static class ItemPropertyRules
     }
 
     static IEnumerable<ItemProperty> Equipped(GameObject o) =>
-        o is Creature c ? c.Equipment.Values.SelectMany(i => i.Properties) : Enumerable.Empty<ItemProperty>();
+        o is Creature c ? c.Equipment.Values.SelectMany(i => i.Properties).Where(Inventory.ItemPropertyEffects.Active) : Enumerable.Empty<ItemProperty>();
 
     static int Cost(World w, string table, string column, int row) => w.Resources.TwoDA(table).GetInt(row, column, 0);
 

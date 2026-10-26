@@ -88,6 +88,10 @@ public sealed partial class SkillSystem
     public bool TryIdentify(Creature c, Item item)
     {
         if (item.Identified || item.IsDestroyed) return item.Identified;
+        // NWNX_ON_ITEM_USE_LORE for a player trying Lore on an item; a skip leaves it unidentified.
+        var ev = c.IsPC ? Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_ITEM_USE_LORE", c)?.Add("ITEM", item) : null;
+        if (ev?.Before() == true) { ev.After(); return false; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         if (ItemValue(item) > LoreLimit(c)) return false;
         item.Identified = true;
         _world.MarkChanged(item);
@@ -136,8 +140,12 @@ public sealed partial class SkillSystem
     /// skillvsitemcost.2da requirement (a static comparison, as in the original, not a roll). For the spells
     /// and items packages; <paramref name="required"/> is the highest rank that was needed (0 when no emulation).
     /// </summary>
-    public bool CanUseItem(Creature c, Item item, out int required)
-        => CheckItemLimitations(c, item, out required);
+    public bool CanUseItem(Creature c, Item item, out int required) => CheckItemLimitations(c, item, out required);
+
+    /// <summary>
+    /// NWNX_ON_VALIDATE_USE_ITEM around the use limitation check when an item is activated, not when it is
+    /// equipped (nwnx_events_items): a skip with a result decides alone ("0" unusable).
+    /// </summary>
 
     /// <summary>
     /// Spell-item activation requires wearing equippable items and satisfying their
@@ -147,7 +155,12 @@ public sealed partial class SkillSystem
     public bool CanActivateSpellItem(Creature c, Item item)
     {
         if (_world.Inventory.Rules.EquipableSlots(item.BaseItem) != 0 && Inventory.InventorySystem.SlotOf(c, item) < 0) return false;
-        return CheckItemLimitations(c, item, out _);
+        // NWNX_ON_VALIDATE_USE_ITEM, when an item is activated (not when it is equipped; nwnx_events_items): a skip with
+        // a result decides alone ("0" unusable).
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_VALIDATE_USE_ITEM", c)?.Add("ITEM_OBJECT_ID", item);
+        bool ok = ev != null && ev.Before() ? ev.ResultIsTrue : CheckItemLimitations(c, item, out _);
+        ev?.Add("BEFORE_RESULT", ok).After();
+        return ok;
     }
 
     bool CheckItemLimitations(Creature c, Item item, out int required)

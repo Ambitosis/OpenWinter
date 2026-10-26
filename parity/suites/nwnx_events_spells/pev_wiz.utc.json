@@ -1,0 +1,22 @@
+{
+  "template": "nw_drowmage020",
+  "tag": "PEV_WIZ",
+  "classLevels": [
+    {
+      "class": 10, "level": 10,
+      "knownSpells": { "1": [102, 107, 165] },
+      "memorizedSpells": {
+        "1": [
+          { "spell": 102, "ready": true, "metamagic": 0 },
+          { "spell": 107, "ready": true, "metamagic": 0 },
+          { "spell": 107, "ready": true, "metamagic": 0 },
+          { "spell": 165, "ready": true, "metamagic": 0 },
+          { "spell": 107, "ready": true, "metamagic": 0 },
+          { "spell": 165, "ready": true, "metamagic": 0 }
+        ]
+      }
+    }
+  ],
+  "equipment": [],
+  "abilities": { "intelligence": 20 }
+}

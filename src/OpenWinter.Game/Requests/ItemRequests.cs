@@ -36,6 +36,10 @@ static class ItemRequests
         if (r.Obj<Item>("item") is not { } item || !r.Owns(item) || InventorySystem.SlotOf(r.Player, item) >= 0) return;
         int count = r.Int("count");
         var inv = r.World.Inventory;
+        // NWNX_ON_ITEM_SPLIT; a skip keeps the stack whole.
+        var ev = Nwnx.NwnxEvent.Begin(r.World, "NWNX_ON_ITEM_SPLIT", r.Player)?.Add("ITEM", item).Add("NUMBER_SPLIT_OFF", count);
+        if (ev?.Before() == true) { ev.After(); return; }
+        using var after = new Nwnx.NwnxEvent.AfterScope(ev);
         if (inv.Holder(item) is not { } holder || inv.Split(item, count) is not { } part) return;
         if (inv.MoveTo(part, holder, merge: false) == null)
         {

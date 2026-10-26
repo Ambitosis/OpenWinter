@@ -75,7 +75,7 @@ public class NwnxDiagnosticsTests
     public void UnemittedEngineSubscriptionsWarnButRemainAvailableToExplicitSignals()
     {
         var (world, registry, log) = Setup();
-        foreach (var evt in new[] { "CUSTOM_EVENT", "NWNX_ON_DM_POSSESS_BEFORE", "NWNX_ON_COMBAT_ENTER_BEFORE", "NWNX_ON_COMBAT_ENTER_BEFORE", "NWNX_ON_COMBAT_EXIT_BEFORE" })
+        foreach (var evt in new[] { "CUSTOM_EVENT", "NWNX_ON_DM_POSSESS_BEFORE", "NWNX_ON_UNKNOWN_A_BEFORE", "NWNX_ON_UNKNOWN_A_BEFORE", "NWNX_ON_UNKNOWN_B_BEFORE" })
         {
             registry.Stack.Push(NwnxValue.String("callback"));
             registry.Stack.Push(NwnxValue.String(evt));
@@ -85,8 +85,8 @@ public class NwnxDiagnosticsTests
         // One warning per unemitted event, naming it.
         Assert.Equal(2, log.Count);
         Assert.All(log, text => Assert.Contains("explicit SignalEvent still works", text));
-        Assert.Contains("NWNX_ON_COMBAT_ENTER_BEFORE", log[0]);
-        Assert.Contains("NWNX_ON_COMBAT_EXIT_BEFORE", log[1]);
+        Assert.Contains("NWNX_ON_UNKNOWN_A_BEFORE", log[0]);
+        Assert.Contains("NWNX_ON_UNKNOWN_B_BEFORE", log[1]);
         Assert.Equal(3, registry.MissingCalls["NWNX_events_SubscribeEvent"]);
     }
 }

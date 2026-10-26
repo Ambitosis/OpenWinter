@@ -12,7 +12,8 @@ static class SpellFunctions
 
     static void Enqueue(Call c, GameAction a)
     {
-        if (c.Self is { Commandable: true } o) o.Actions.Add(a);
+        // A spell cast raises NWNX_ON_INPUT_CAST_SPELL as it is queued; a skip queues nothing.
+        if (c.Self is { Commandable: true } o && (a is not CastSpellAction cast || cast.Queued(c.World, o))) o.Actions.Add(a);
     }
 
     /// <summary>The spell context of OBJECT_SELF: an area of effect's spell inside its scripts, else the caller's current/last spell.</summary>

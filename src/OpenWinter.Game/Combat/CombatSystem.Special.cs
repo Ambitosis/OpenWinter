@@ -105,9 +105,14 @@ public sealed partial class CombatSystem
             {
                 var weapon = t.Equipment.GetValueOrDefault(EquipSlot.RightHand);
                 if (weapon == null || !t.Disarmable || weapon.Plot) { o.Feedback.Add("Cannot be disarmed"); break; }
-                if (SkillCheck(t, CombatK.SkillDiscipline, attackTotal)) { o.Feedback.Add("Discipline: resisted"); break; }
+                // NWNX_ON_DISARM, OBJECT_SELF the one disarmed (nwnx_events_combat); a skip keeps the weapon.
+                var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_DISARM", t)?.Add("DISARMER_OBJECT_ID", att)
+                    .Add("FEAT_ID", a.SpecialAttack == CombatK.SpecialImprovedDisarm ? FeatImprovedDisarm : FeatDisarm);
+                if (ev?.Before() == true) { ev.Add("ACTION_RESULT", false).After(); break; }
+                if (SkillCheck(t, CombatK.SkillDiscipline, attackTotal)) { o.Feedback.Add("Discipline: resisted"); ev?.Add("ACTION_RESULT", false).After(); break; }
                 Disarm(t, weapon);
                 o.Feedback.Add("Disarmed");
+                ev?.Add("ACTION_RESULT", true).After();
                 break;
             }
             case CombatK.SpecialCalledShotLeg:

@@ -43,7 +43,11 @@ public sealed class BattleMusicSystem : IWorldSystem
         if (s.On && s.Area == pc.Area.Id) return;
         s.On = true;
         s.Area = pc.Area.Id;
+        // NWNX_ON_AREA_PLAY_BATTLE_MUSIC, OBJECT_SELF the area.
+        var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_AREA_PLAY_BATTLE_MUSIC", pc.Area)?.Add("PLAY", true);
+        ev?.Before();
         _world.Output?.Notify("battle-music", pc, new { on = true }, pc);
+        ev?.After();
     }
 
     /// <summary>A living creature in her area is attacking her.</summary>
@@ -77,7 +81,10 @@ public sealed class BattleMusicSystem : IWorldSystem
             if (now - s.OutOfCombatSince < HoldSeconds) continue;
             s.On = false;
             _states.Remove(id);
+            var ev = Nwnx.NwnxEvent.Begin(_world, "NWNX_ON_AREA_PLAY_BATTLE_MUSIC", pc.Area)?.Add("PLAY", false);
+            ev?.Before();
             _world.Output?.Notify("battle-music", pc, new { on = false }, pc);
+            ev?.After();
         }
     }
 }
