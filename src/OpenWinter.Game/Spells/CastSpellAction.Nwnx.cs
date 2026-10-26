@@ -73,7 +73,7 @@ public sealed partial class CastSpellAction
     bool DecrementEvent(World world, Creature c)
     {
         var ev = NwnxEvent.Begin(world, "NWNX_ON_DECREMENT_SPELL_COUNT", c);
-        if (ev == null) return true;
+        if (ev == null) { SpellSlots.Spend(world, c, _slot!); return true; }
         ev.Add("SPELL_ID", Spell).Add("CLASS", SlotClass(c)).Add("DOMAIN", _slot!.Domain ? _slot.SlotLevel : 0).Add("METAMAGIC", _slot.Meta)
             .Add("CASTERLEVEL", _slot.Kind == SlotKind.Ability && _slot.Ability is { } a ? a.CasterLevel : 255);
         bool skipped = ev.Before();

@@ -14,9 +14,14 @@ reported once per world through the `NwnxRegistry.Log` sink.
   Creature.GetAttackBonus (base attack and ability only) and Creature.JumpToLimbo.
 - **Unknown Set/Get calls** use the generic compatibility store and warn that storing a value does not implement
   the engine behaviour.
-- **Events.SubscribeEvent** warns, once per event name, when a script subscribes to an automatic `NWNX_ON_*` event
-  outside the `NWNX_ON_DM_*` family that OpenWinter emits. The subscription is kept, so explicit script signals
-  still work. Custom events and DM subscriptions do not warn.
+- **Events.SubscribeEvent** (and SubscribeEventScriptChunk) warns, once per event name, when a script subscribes to
+  an automatic `NWNX_ON_*` event OpenWinter never raises: `NWNX_ON_ITEM_SCROLL_LEARN` (no scroll learning yet),
+  `NWNX_ON_COMBAT_DR_BROKEN` (not reproduced on the original server), `NWNX_ON_WEBHOOK_*` (no WebHook plugin),
+  `NWNX_ON_RESOURCE_*` (resource folders aren't watched) and `NWNX_ON_DEBUG_RUN_SCRIPT[_CHUNK]` (no debug console).
+  The subscription is kept, so explicit script signals still work. Custom events and every other automatic event
+  (`Nwnx/NwnxEvent.cs` lists them) do not warn. A few are raised only for client notices the OpenWinter client
+  doesn't send yet (`inventory-close`, `inventory-panel`, `item-inventory`, `journal-close`, `character-close`,
+  `device-property`, `export-character`, `force-move`, `timing-bar-end`; `Requests/NwnxClientRequests.cs`).
 
 `MissingCalls` counts every unsupported invocation, placeholders included. Plugin prefix and case aliases share
 one warning, and calls from scripts name the calling script. Arguments and stored values are never logged.
