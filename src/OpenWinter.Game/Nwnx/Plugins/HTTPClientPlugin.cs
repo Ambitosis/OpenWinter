@@ -11,6 +11,29 @@ public static class NwnxHttp
 {
     static readonly HttpClient Shared = new(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) });
 
+    /// <summary>The most of an answer's body that is read; the rest is left unread.</summary>
+    public const int MaxResponseBytes = 1024 * 1024;
+
+    static readonly ConditionalWeakTable<NwnxRegistry, HttpMessageInvoker> Clients = new();
+
+    /// <summary>Sends a world's requests through <paramref name="client"/> instead of the network (tests); null restores it.</summary>
+    public static void SetClient(NwnxRegistry reg, HttpMessageInvoker? client)
+    {
+        if (client == null) Clients.Remove(reg);
+        else Clients.AddOrUpdate(reg, client);
+    }
+
+    public static HttpMessageInvoker? ClientFor(NwnxRegistry reg) => Clients.TryGetValue(reg, out var c) ? c : null;
+
+    static async Task<byte[]> ReadCapped(HttpContent content, CancellationToken ct)
+    {
+        using var stream = await content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+        var buffer = new byte[MaxResponseBytes];
+        int total = 0, read;
+        while (total < buffer.Length && (read = await stream.ReadAsync(buffer.AsMemory(total), ct).ConfigureAwait(false)) > 0) total += read;
+        return buffer[..total];
+    }
+
     /// <summary>The outcome of one request: the status (-1 when no answer came), the body and the rate-limit headers.</summary>
     public sealed record Result(int Status, string Body, Dictionary<string, string> Headers);
 
@@ -37,8 +60,8 @@ public static class NwnxHttp
             try
             {
                 using var cts = new CancellationTokenSource(timeoutMs > 0 ? timeoutMs : Timeout.Infinite);
-                using var response = await (client ?? Shared).SendAsync(request, cts.Token).ConfigureAwait(false);
-                var body = await response.Content.ReadAsByteArrayAsync(cts.Token).ConfigureAwait(false);
+                using var response = await (client != null ? client.SendAsync(request, cts.Token) : Shared.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)).ConfigureAwait(false);
+                var body = await ReadCapped(response.Content, cts.Token).ConfigureAwait(false);
                 result = new Result((int)response.StatusCode, OpenWinter.Aurora.Text.Windows1252.GetString(body), RateLimits(response));
             }
             catch (Exception e) when (e is HttpRequestException or TaskCanceledException or OperationCanceledException or InvalidOperationException)
@@ -68,6 +91,8 @@ public static class NwnxHttp
 /// NWNX_HTTPClient: SendRequest sends at once in the background and returns the request's id; the answer comes as
 /// NWNX_ON_HTTPCLIENT_SUCCESS (a 2xx status) or NWNX_ON_HTTPCLIENT_FAILED on the module, with event data REQUEST_ID,
 /// STATUS, RESPONSE and the rate-limit headers (plugin README). NWNX_HTTPCLIENT_REQUEST_TIMEOUT is in milliseconds.
+/// Nothing is sent unless the host allows plugins outside the game (a dedicated server) and NWNX_HTTPCLIENT_ENABLE is
+/// on; otherwise every request fails at once with status -1. Answers are read up to 1 MiB.
 /// </summary>
 public static class HTTPClientPlugin
 {
@@ -85,9 +110,6 @@ public static class HTTPClientPlugin
 
     static readonly ConditionalWeakTable<NwnxRegistry, State> States = new();
 
-    /// <summary>Sends through this instead of the network (tests).</summary>
-    public static HttpMessageInvoker? Client;
-
     static readonly HttpMethod[] Methods = [HttpMethod.Get, HttpMethod.Post, HttpMethod.Delete, HttpMethod.Patch, HttpMethod.Put, HttpMethod.Options, HttpMethod.Head];
     static readonly string[] ContentTypes = ["text/html", "text/plain", "application/json", "application/x-www-form-urlencoded", "application/xml"];
 
@@ -100,6 +122,12 @@ public static class HTTPClientPlugin
         int id = ++st.NextId;
         st.Requests[id] = r;
         n.Push(id);
+        if (!n.Registry.OutsideEnabled("NWNX_HTTPCLIENT_ENABLE"))
+        {
+            n.ReportUnsupported("outbound HTTP is off: it needs a dedicated server with NWNX_HTTPCLIENT_ENABLE set");
+            n.Registry.Post(() => Finish(n.World, id, new NwnxHttp.Result(-1, "outbound HTTP is not enabled", new())));
+            return;
+        }
         if (r.Method < 0 || r.Method >= Methods.Length || r.Host.Length == 0)
         {
             n.Registry.Post(() => Finish(n.World, id, new NwnxHttp.Result(-1, "invalid request", new())));
@@ -114,10 +142,11 @@ public static class HTTPClientPlugin
         }
         var world = n.World;
         int timeout = n.Registry.EnvInt("NWNX_HTTPCLIENT_REQUEST_TIMEOUT", 2000);
-        var client = Client ?? (r.AuthType == 2 ? DigestClient(message.RequestUri!, r) : null);
+        var test = NwnxHttp.ClientFor(n.Registry);
+        var client = test ?? (r.AuthType == 2 ? DigestClient(message.RequestUri!, r) : null);
         NwnxHttp.Send(n.Registry, message, timeout, res =>
         {
-            if (client != null && client != Client) client.Dispose();
+            if (client != null && client != test) client.Dispose();
             Finish(world, id, res);
         }, client);
     }

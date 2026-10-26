@@ -18,15 +18,32 @@ public static class NWSQLiteExtensionsPlugin
     const string EnvMersenne = "NWNX_NWSQLITEEXTENSIONS_ENABLE_MERSENNE_TWISTER_FUNCTIONS";
     const string EnvAllObjects = "NWNX_NWSQLITEEXTENSIONS_ENABLE_DATABASE_ON_ALL_OBJECT_TYPES";
 
-    static NwnxRegistry Registry(World w) => w.System<NwnxRegistry>();
+    static NwnxRegistry Registry(World w) => NwnxRegistry.Of(w);
+
+    /// <summary>The settings a world's databases are opened with, read once (again if the settings source is replaced).</summary>
+    sealed record Settings(Func<string, string?> Source, bool AllObjects, bool Mersenne);
+
+    static readonly ConditionalWeakTable<NwnxRegistry, Settings> Cached = new();
+
+    static Settings Of(World w)
+    {
+        var reg = Registry(w);
+        if (Cached.TryGetValue(reg, out var s) && s.Source == reg.EnvironmentVariable) return s;
+        s = new Settings(reg.EnvironmentVariable, reg.EnvBool(EnvAllObjects), reg.EnvBool(EnvMersenne));
+        Cached.AddOrUpdate(reg, s);
+        return s;
+    }
 
     /// <summary>Whether SqlPrepareQueryObject works on objects other than the module and player characters.</summary>
-    public static bool DatabaseOnAllObjects(World w) => Registry(w).EnvBool(EnvAllObjects);
+    public static bool DatabaseOnAllObjects(World w) => Of(w).AllObjects;
+
+    /// <summary>The most values one MT_DISCARD call skips.</summary>
+    const long MaxDiscard = 10_000_000;
 
     /// <summary>Called for every database the game opens: adds the Mersenne Twister functions when they are enabled.</summary>
     public static void Opened(World w, SqlDb db)
     {
-        if (!Registry(w).EnvBool(EnvMersenne)) return;
+        if (!Of(w).Mersenne) return;
         var twisters = Twisters.GetValue(Registry(w), _ => new Dictionary<string, MersenneTwister>(StringComparer.Ordinal));
         const int Utf8 = 1;
         raw.sqlite3_create_function(db.Handle, "MT_SEED", 2, Utf8, null, (ctx, _, a) =>
@@ -47,7 +64,7 @@ public static class NWSQLiteExtensionsPlugin
             var name = raw.sqlite3_value_text(a[0]).utf8_to_string() ?? "";
             if (name.Length == 0) { raw.sqlite3_result_int(ctx, 0); return; }
             var mt = Twister(twisters, name);
-            for (long i = raw.sqlite3_value_int64(a[1]); i > 0; i--) mt.Next();
+            for (long i = Math.Min(raw.sqlite3_value_int64(a[1]), MaxDiscard); i > 0; i--) mt.Next();
             raw.sqlite3_result_int(ctx, 1);
         });
     }

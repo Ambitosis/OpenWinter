@@ -158,17 +158,50 @@ public class NwnxMiscPluginTests
         }
     }
 
+    static NwnxValue[] Issue => [S("c3"), S("c2"), S("c1"), S("Accept: application/json|X-Test: 1"),
+        I(0), S("pw"), S("user"), I(1), S("{\"a\":1}"), I(2), S("/issues"), S("api.example.org"), I(1), S("TAG")];
+
+    [DataFact]
+    public void OutboundHttpNeedsADedicatedServerAndItsSetting()
+    {
+        foreach (var (host, setting) in new[] { (false, true), (true, false) })
+        {
+            var (_, r) = Setup(new() { ["NWNX_HTTPCLIENT_ENABLE"] = setting ? "y" : "n", ["NWNX_WEBHOOK_ENABLE"] = setting ? "y" : "n" });
+            r.AllowOutside = host;
+            var recorder = new Recorder();
+            NwnxHttp.SetClient(r, new HttpMessageInvoker(recorder));
+            Assert.Equal(1, Int(Call(r, "HTTPClient", "SendRequest", Issue)));
+            Call(r, "WebHook", "SendWebHookHTTPS", I(1), S("bot"), S("hello"), S("/hook"), S("hooks.example.org"));
+            Thread.Sleep(100);
+            r.Step(0.05f);
+            Assert.Empty(recorder.Seen);
+        }
+    }
+
+    [DataFact]
+    public void WebHookPostsSlackJsonWhenEnabled()
+    {
+        var (_, r) = Setup(new() { ["NWNX_WEBHOOK_ENABLE"] = "true" });
+        r.AllowOutside = true;
+        var recorder = new Recorder();
+        NwnxHttp.SetClient(r, new HttpMessageInvoker(recorder));
+        Call(r, "WebHook", "SendWebHookHTTPS", I(1), S("bot"), S("hello"), S("/hook"), S("hooks.example.org"));
+        for (int i = 0; i < 200 && recorder.Seen.Count == 0; i++) Thread.Sleep(10);
+        var (req, body) = Assert.Single(recorder.Seen);
+        Assert.Equal("https://hooks.example.org/hook", req.RequestUri!.ToString());
+        Assert.Equal("{\"text\":\"hello\",\"username\":\"bot\"}", body);
+    }
+
     [DataFact]
     public void HttpClientSendsTheDescribedRequestAndKeepsItForGetRequest()
     {
-        var (world, r) = Setup();
+        var (world, r) = Setup(new() { ["NWNX_HTTPCLIENT_ENABLE"] = "true" });
+        r.AllowOutside = true;
         var recorder = new Recorder();
-        HTTPClientPlugin.Client = new HttpMessageInvoker(recorder);
-        try
+        NwnxHttp.SetClient(r, new HttpMessageInvoker(recorder));
         {
             // Pushed as nwnx_httpclient.nss pushes the struct: custom3 first, the tag last.
-            var id = Int(Call(r, "HTTPClient", "SendRequest", S("c3"), S("c2"), S("c1"), S("Accept: application/json|X-Test: 1"),
-                I(0), S("pw"), S("user"), I(1), S("{\"a\":1}"), I(2), S("/issues"), S("api.example.org"), I(1), S("TAG")));
+            var id = Int(Call(r, "HTTPClient", "SendRequest", Issue));
             Assert.Equal(1, id);
             for (int i = 0; i < 200 && recorder.Seen.Count == 0; i++) Thread.Sleep(10);
             var (req, body) = Assert.Single(recorder.Seen);
@@ -185,6 +218,5 @@ public class NwnxMiscPluginTests
             while (r.Stack.Pop() is { } v) popped.Add(v.Value);
             Assert.Equal(new object?[] { "TAG", 1, "api.example.org", "/issues", 2, "{\"a\":1}", 1, "user", "pw", 0, "Accept: application/json|X-Test: 1", "c1", "c2", "c3" }, popped);
         }
-        finally { HTTPClientPlugin.Client = null; }
     }
 }

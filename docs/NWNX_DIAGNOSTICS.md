@@ -38,6 +38,13 @@ port, user, password, database, character set, UTF-8), `NWNX_TWEAKS_*`, `NWNX_NO
 trimming switches) are read from the server's environment. `NwnxRegistry.EnvironmentVariable` lets a host supply
 them another way; the parity lab gives each suite its `nwnxEnv`.
 
+Features that reach outside the game are off unless the host is a dedicated server (`OpenWinter.Server`, which sets
+`NwnxRegistry.DedicatedServer`; single player never does) and their own setting is on:
+`NWNX_RISENHOLM_ALLOW_EXECUTE_COMMAND` (ExecuteCommand, which waits at most `NWNX_RISENHOLM_EXECUTE_COMMAND_TIMEOUT`
+milliseconds), `NWNX_HTTPCLIENT_ENABLE` (requests otherwise fail at once with status -1), `NWNX_WEBHOOK_ENABLE`
+(messages are otherwise only logged) and `NWNX_RISENHOLM_RPC_PORT` with its secret (the RPC listener). Each refusal
+is reported once.
+
 ## Testing
 
 `dotnet test tests/OpenWinter.Tests --filter FullyQualifiedName~Nwnx` covers warning deduplication for the native

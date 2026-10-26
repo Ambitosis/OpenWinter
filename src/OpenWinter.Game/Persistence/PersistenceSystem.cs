@@ -265,6 +265,8 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
 
     public void Dispose()
     {
+        // The world is shutting down: so does what NWNX plugins keep open for it.
+        _world.System<Nwnx.NwnxRegistry>().Shutdown();
         foreach (var db in _campaigns.Values) db.Dispose();
         foreach (var db in _characters.Values) db.Dispose();
         _module?.Dispose();

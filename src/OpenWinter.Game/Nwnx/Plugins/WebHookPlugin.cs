@@ -8,13 +8,11 @@ namespace OpenWinter.Game.Nwnx.Plugins;
 /// NWNX_WebHook: a Slack-format message posted to https://host/path. Text is sent as {"text", "username", "mrkdwn"};
 /// a message that is already JSON (NWNX_WebHook_BuildMessageForWebHook) is sent as it is. The answer comes as
 /// NWNX_ON_WEBHOOK_SUCCESS or NWNX_ON_WEBHOOK_FAILED on the module, with STATUS, MESSAGE, HOST, PATH and the
-/// rate-limit data (plugin README; RETRY_AFTER in milliseconds).
+/// rate-limit data (plugin README; RETRY_AFTER in milliseconds). Nothing is sent unless the host allows plugins outside
+/// the game (a dedicated server) and NWNX_WEBHOOK_ENABLE is on; otherwise the message is only logged.
 /// </summary>
 public static class WebHookPlugin
 {
-    /// <summary>Sends through this instead of the network (tests).</summary>
-    public static HttpMessageInvoker? Client;
-
     /// <summary>The JSON body posted for a message.</summary>
     public static string Body(string message, string username, bool mrkdwn)
     {
@@ -31,6 +29,12 @@ public static class WebHookPlugin
         var host = n.PopString(); var path = n.PopString(); var message = n.PopString(); var username = n.PopString(); bool mrkdwn = n.PopInt() != 0;
         var world = n.World;
         var body = Body(message, username, mrkdwn);
+        if (!n.Registry.OutsideEnabled("NWNX_WEBHOOK_ENABLE"))
+        {
+            n.ReportUnsupported("webhooks are off: they need a dedicated server with NWNX_WEBHOOK_ENABLE set");
+            n.Registry.Log($"[nwnx] webhook {host}{path} not sent: {message}");
+            return;
+        }
         HttpRequestMessage request;
         try
         {
@@ -58,6 +62,6 @@ public static class WebHookPlugin
                 data["RETRY_AFTER"] = ((long)(seconds * 1000)).ToString(CultureInfo.InvariantCulture);
             if (!NwnxHttp.Succeeded(res.Status)) world.System<NwnxRegistry>().Log($"[nwnx] WebHook: {host}{path} answered {res.Status}: {res.Body}");
             EventsPlugin.Signal(world, NwnxHttp.Succeeded(res.Status) ? "NWNX_ON_WEBHOOK_SUCCESS" : "NWNX_ON_WEBHOOK_FAILED", world.Module, data);
-        }, Client);
+        }, NwnxHttp.ClientFor(n.Registry));
     }
 }

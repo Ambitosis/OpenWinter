@@ -13,51 +13,64 @@ namespace OpenWinter.Game.Nwnx.Plugins;
 /// step, and answers with what it set through SetRpcResponse as application/json: 200, or 401 (secret), 404 (no such
 /// script), 500 (no answer), 503 (no module yet), 504 (not run within 5 seconds; it is then never run). The secret
 /// is checked before any of the body is read; requests are capped at 100 header lines of 8 KiB and a 64 KiB body.
+/// Only a host that lets plugins reach outside the game (<see cref="NwnxRegistry.AllowOutside"/>) opens it, and the
+/// world's shutdown closes it. Worker threads only parse HTTP; everything about the game is looked at on its thread.
 /// </summary>
 public sealed class RisenholmRpc : IWorldSystem
 {
-    const int MaxHeaderLines = 100, MaxHeaderLine = 8192, MaxBody = 64 * 1024, Workers = 4, Backlog = 32;
+    const int MaxHeaderLines = 100, MaxHeaderLine = 8192, MaxBody = 64 * 1024, WorkerCount = 4, Backlog = 32;
     static readonly Regex NamePattern = new("^[a-z0-9_]+$", RegexOptions.CultureInvariant);
 
+    /// <summary>The listener's runtime state: a host resource, never written into save games.</summary>
+    public sealed class Listener
+    {
+        public bool Checked;
+        public TcpListener? Socket;
+        public byte[] Secret = [];
+        public string Prefix = "pw_rpc_";
+        public readonly SemaphoreSlim Workers = new(WorkerCount);
+        public DateTime LastRejectLog = DateTime.MinValue;
+        public int RejectsSinceLog;
+    }
+
     readonly World _world;
-    bool _checked;
-    TcpListener? _listener;
-    byte[] _secret = [];
-    string _prefix = "pw_rpc_";
-    readonly SemaphoreSlim _workers = new(Workers);
-    DateTime _lastRejectLog = DateTime.MinValue;
-    int _rejectsSinceLog;
+    readonly Listener _l = new();
 
     public RisenholmRpc(World world) { _world = world; }
 
     /// <summary>The port the listener took (0 when off).</summary>
-    public int Port => (_listener?.LocalEndpoint as IPEndPoint)?.Port ?? 0;
+    public int Port => (_l.Socket?.LocalEndpoint as IPEndPoint)?.Port ?? 0;
 
     public void Step(float dt)
     {
-        if (_checked) return;
-        _checked = true;
+        if (_l.Checked) return;
+        _l.Checked = true;
         var reg = _world.System<NwnxRegistry>();
         int port = reg.EnvInt("NWNX_RISENHOLM_RPC_PORT");
         if (port <= 0) return;
+        if (!reg.AllowOutside)
+        {
+            reg.Log("[nwnx] Risenholm: RPC listener not started: only a dedicated server may listen for RPC");
+            return;
+        }
         var secret = reg.Env("NWNX_RISENHOLM_RPC_SECRET") ?? "";
         if (secret.Length < 16)
         {
             reg.Log("[nwnx] Risenholm: RPC listener not started: NWNX_RISENHOLM_RPC_SECRET must be at least 16 characters");
             return;
         }
-        _prefix = reg.Env("NWNX_RISENHOLM_RPC_SCRIPT_PREFIX") ?? "pw_rpc_";
-        _secret = Encoding.UTF8.GetBytes(secret);
+        _l.Prefix = reg.Env("NWNX_RISENHOLM_RPC_SCRIPT_PREFIX") ?? "pw_rpc_";
+        _l.Secret = Encoding.UTF8.GetBytes(secret);
         var bind = reg.Env("NWNX_RISENHOLM_RPC_BIND") ?? "127.0.0.1";
         try
         {
-            _listener = new TcpListener(IPAddress.Parse(bind), port);
-            _listener.Start(Backlog);
+            _l.Socket = new TcpListener(IPAddress.Parse(bind), port);
+            _l.Socket.Start(Backlog);
         }
         catch (Exception e) when (e is SocketException or FormatException)
         {
             reg.Log($"[nwnx] Risenholm: RPC listener cannot listen on {bind}:{port}: {e.Message}");
-            _listener = null;
+            _l.Socket = null;
             return;
         }
         reg.Log($"[nwnx] Risenholm: RPC listener on {bind}:{Port}");
@@ -66,12 +79,12 @@ public sealed class RisenholmRpc : IWorldSystem
 
     async Task AcceptLoop()
     {
-        while (_listener is { } listener)
+        while (_l.Socket is { } listener)
         {
             TcpClient client;
             try { client = await listener.AcceptTcpClientAsync().ConfigureAwait(false); }
             catch (Exception e) when (e is SocketException or ObjectDisposedException) { return; }
-            if (!_workers.Wait(0))
+            if (!_l.Workers.Wait(0))
             {
                 // Every worker is busy: past the backlog a connection is closed at once.
                 client.Dispose();
@@ -81,15 +94,15 @@ public sealed class RisenholmRpc : IWorldSystem
             {
                 try { await Handle(client).ConfigureAwait(false); }
                 catch (Exception e) when (e is IOException or SocketException or ObjectDisposedException or OperationCanceledException) { }
-                finally { client.Dispose(); _workers.Release(); }
+                finally { client.Dispose(); _l.Workers.Release(); }
             });
         }
     }
 
     public void Stop()
     {
-        _listener?.Stop();
-        _listener = null;
+        _l.Socket?.Stop();
+        _l.Socket = null;
     }
 
     static async Task<string?> ReadLine(Stream s, CancellationToken ct)
@@ -127,7 +140,7 @@ public sealed class RisenholmRpc : IWorldSystem
         // The secret first, before any of the body is read.
         var auth = headers.GetValueOrDefault("Authorization") ?? "";
         var given = auth.StartsWith("Bearer ", StringComparison.Ordinal) ? Encoding.UTF8.GetBytes(auth[7..]) : [];
-        if (!CryptographicOperations.FixedTimeEquals(given, _secret))
+        if (!CryptographicOperations.FixedTimeEquals(given, _l.Secret))
         {
             Rejected(ip);
             await Reply(stream, 401, "").ConfigureAwait(false);
@@ -139,23 +152,25 @@ public sealed class RisenholmRpc : IWorldSystem
             return;
         }
         var name = parts[1][5..];
-        var script = _prefix + name;
-        if (!NamePattern.IsMatch(name) || script.Length > 16 || !_world.Resources.Contains(script, Aurora.Resources.ResType.Ncs))
+        var script = _l.Prefix + name;
+        if (!NamePattern.IsMatch(name) || script.Length > 16)
         {
             await Reply(stream, 404, "").ConfigureAwait(false);
             return;
         }
         var body = await ReadBody(stream, headers, cts.Token).ConfigureAwait(false);
         if (body == null) { await Reply(stream, 413, "").ConfigureAwait(false); return; }
-        if (_world.Module == null || _world.Scripts == null) { await Reply(stream, 503, "").ConfigureAwait(false); return; }
 
-        var done = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var done = new TaskCompletionSource<(int Status, string Body)>(TaskCreationOptions.RunContinuationsAsynchronously);
         int abandoned = 0;
         _world.System<NwnxRegistry>().Post(() =>
         {
             // A request nobody waits for any more is not run.
             if (Interlocked.CompareExchange(ref abandoned, 2, 0) != 0) return;
-            done.TrySetResult(RisenholmPlugin.RunRpc(_world, script, Encoding.Latin1.GetString(body)));
+            if (_world.Scripts == null || !_world.IsRegistered(_world.Module)) { done.TrySetResult((503, "")); return; }
+            if (!_world.Resources.Contains(script, Aurora.Resources.ResType.Ncs)) { done.TrySetResult((404, "")); return; }
+            var answer = RisenholmPlugin.RunRpc(_world, script, Encoding.Latin1.GetString(body));
+            done.TrySetResult(answer == null ? (500, "") : (200, answer));
         });
         var finished = await Task.WhenAny(done.Task, Task.Delay(TimeSpan.FromSeconds(5))).ConfigureAwait(false);
         if (finished != done.Task && Interlocked.CompareExchange(ref abandoned, 1, 0) == 0)
@@ -163,9 +178,8 @@ public sealed class RisenholmRpc : IWorldSystem
             await Reply(stream, 504, "").ConfigureAwait(false);
             return;
         }
-        var answer = await done.Task.ConfigureAwait(false);
-        if (answer == null) await Reply(stream, 500, "").ConfigureAwait(false);
-        else await Reply(stream, 200, answer).ConfigureAwait(false);
+        var (status, reply) = await done.Task.ConfigureAwait(false);
+        await Reply(stream, status, reply).ConfigureAwait(false);
     }
 
     static async Task<byte[]?> ReadBody(Stream s, Dictionary<string, string> headers, CancellationToken ct)
@@ -213,13 +227,15 @@ public sealed class RisenholmRpc : IWorldSystem
     /// <summary>A rejected request is logged with its sender at most once every ten seconds, with a count of the rest.</summary>
     void Rejected(string ip)
     {
-        lock (_workers)
+        lock (_l)
         {
-            _rejectsSinceLog++;
-            if (DateTime.UtcNow - _lastRejectLog < TimeSpan.FromSeconds(10)) return;
-            _world.System<NwnxRegistry>().Log($"[nwnx] Risenholm: RPC request from {ip} refused (wrong or missing secret; {_rejectsSinceLog} since the last report)");
-            _rejectsSinceLog = 0;
-            _lastRejectLog = DateTime.UtcNow;
+            _l.RejectsSinceLog++;
+            if (DateTime.UtcNow - _l.LastRejectLog < TimeSpan.FromSeconds(10)) return;
+            int count = _l.RejectsSinceLog;
+            _l.RejectsSinceLog = 0;
+            _l.LastRejectLog = DateTime.UtcNow;
+            var reg = _world.System<NwnxRegistry>();
+            reg.Post(() => reg.Log($"[nwnx] Risenholm: RPC request from {ip} refused (wrong or missing secret; {count} since the last report)"));
         }
     }
 }

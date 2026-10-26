@@ -36,6 +36,12 @@ public static class HitPoints
     public static event Action<GameObject, uint>? Died;
 
     public const int PlayerDeathThreshold = -10;
+
+    /// <summary>
+    /// The hit points at which a creature is dead rather than dying: -10, or for player characters the limit
+    /// NWNX_TWEAKS_PLAYER_DYING_HP_LIMIT sets. A death leaves one below it, and a blow past that is a spectacular one.
+    /// </summary>
+    public static int DeathThreshold(World world, Creature c) => c.IsPC ? Nwnx.Plugins.NwnxTweaks.Of(world).PlayerDyingHpLimit : PlayerDeathThreshold;
     const int PhysicalTypes = 1 | 2 | 4, BaseWeaponDamage = 4096;
 
     public static int Current(GameObject o) => o switch
@@ -283,7 +289,7 @@ public static class HitPoints
         int hp = Current(target);
         if (hp > 0 || IsDead(target)) return;
         if (target is Creature possessed) world.System<Players.FamiliarPossession>().ReleaseControl(possessed);
-        if (target is Creature { IsPC: true } pc && hp > Nwnx.Plugins.NwnxTweaks.Of(world).PlayerDyingHpLimit)
+        if (target is Creature { IsPC: true } pc && hp > DeathThreshold(world, pc))
         {
             if (before > 0)
             {
@@ -294,7 +300,7 @@ public static class HitPoints
         }
         // A blow that leaves -11 or fewer hit points ends the body as a spectacular death does: it lasts three
         // seconds, not its decay time (nwserver corpse_drops dmgover5..12: -10 lasts 5 s, -11 3 s).
-        if (target is Creature { IsDead: false } overkilled && hp <= PlayerDeathThreshold - 1) overkilled.SpectacularDeath = true;
+        if (target is Creature { IsDead: false } overkilled && hp <= DeathThreshold(world, overkilled) - 1) overkilled.SpectacularDeath = true;
         Die(world, target, killer);
     }
 
@@ -308,10 +314,10 @@ public static class HitPoints
             CreatureRules.EnsureInit(world, init);
             world.System<Players.FamiliarPossession>().ReleaseControl(init);
         }
-        if (target is Creature form && world.System<EffectSystem>().SurvivesDeath(form, PlayerDeathThreshold - 1)) return;
+        if (target is Creature form && world.System<EffectSystem>().SurvivesDeath(form, DeathThreshold(world, form) - 1)) return;
         if (target is Creature dying) dying.SpectacularDeath = spectacular;
         // A door keeps its hit points (nwserver, parity suite door_bashed: EK_0.now.hp).
-        if (target is not Door) Set(target, Math.Min(Current(target), PlayerDeathThreshold - 1));
+        if (target is not Door) Set(target, Math.Min(Current(target), (target is Creature killed ? DeathThreshold(world, killed) : PlayerDeathThreshold) - 1));
         Die(world, target, killer);
     }
 
@@ -324,7 +330,7 @@ public static class HitPoints
             c.IsDead = true;
             world.System<Players.FamiliarPossession>().ReleaseControl(c);
             // A creature that dies has at most -11 hit points (a player bled to exactly -10 reads -11 too: dyingfx).
-            c.CurrentHitPoints = Math.Min(c.CurrentHitPoints, PlayerDeathThreshold - 1);
+            c.CurrentHitPoints = Math.Min(c.CurrentHitPoints, DeathThreshold(world, c) - 1);
             c.Actions.Clear();
             // Death strips effects except unyielding ones (state-changing effects go regardless).
             var k = EffectConstants.Of(world);

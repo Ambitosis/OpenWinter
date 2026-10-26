@@ -19,6 +19,7 @@ networks) and the server is not listed. Clients on Windows reach it at ws://loca
 """
 import argparse
 import json
+import re
 import shlex
 import shutil
 import subprocess
@@ -196,7 +197,12 @@ def run_parity(cfg, args):
     plugins = PARITY_PLUGINS + (["RISENHOLM"] if args.risenholm else [])
     enabled = "\n".join(f"export NWNX_{p}_SKIP=n" for p in plugins)
     # A suite's own environment ("nwnxEnv" in suite.json), set after the defaults so it can override them.
-    extra = "\n".join(f"export {k}={shlex.quote(v)}" for k, v in (e.split("=", 1) for e in args.env))
+    env = [e.split("=", 1) for e in args.env]
+    for pair in env:
+        # The script runs as root: only plain variable names may reach it.
+        if len(pair) != 2 or not re.fullmatch(r"[A-Z0-9_]+", pair[0]):
+            sys.exit(f"nwnws: bad --env entry {'='.join(pair)!r} (want NAME=value, NAME in A-Z, 0-9 and _)")
+    extra = "\n".join(f"export {k}={shlex.quote(v)}" for k, v in env)
     script = f"""
 uid=$(id -u nwnws)
 iptables -C OUTPUT -m owner --uid-owner $uid -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \\

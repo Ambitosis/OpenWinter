@@ -208,8 +208,7 @@ public static class RisenholmPlugin
     /// <summary>The health text row a creature shows: rows 0-4 shifted by its SetDamageLevelBase block; dead (5) passes.</summary>
     public static int ShiftDamageLevel(World w, Creature c, int level)
     {
-        if (level is < 0 or > 4) return level;
-        var st = w.System<NwnxRegistry>().ObjectState(c.Id);
+        if (level is < 0 or > 4 || !NwnxRegistry.Of(w).TryGetObjectState(c.Id, out var st)) return level;
         return st.TryGetValue("risenholm:damageLevelBase", out var v) && v.Value is int b && b > 0 ? b + level : level;
     }
 
@@ -225,31 +224,52 @@ public static class RisenholmPlugin
 
     // ---- server
 
-    /// <summary>Runs a program and returns what it printed. The arguments after the first empty one are left out.</summary>
+    /// <summary>
+    /// Runs a program and returns what it printed; the arguments after the first empty one are left out. Off unless
+    /// the host allows plugins outside the game (a dedicated server) and NWNX_RISENHOLM_ALLOW_EXECUTE_COMMAND is on.
+    /// The script waits for the output at most NWNX_RISENHOLM_EXECUTE_COMMAND_TIMEOUT milliseconds (2000): a program
+    /// still running then gets "" and finishes in the background, reported in the log.
+    /// </summary>
     [NwnxFunc(P, "ExecuteCommand")]
     static void ExecuteCommand(NwnxCall n)
     {
         var cmd = n.PopString();
         var args = new List<string>();
         for (int i = 0; i < 6; i++) args.Add(n.PopString());
+        if (!n.Registry.OutsideEnabled("NWNX_RISENHOLM_ALLOW_EXECUTE_COMMAND"))
+        {
+            n.ReportUnsupported("running programs is off: it needs a dedicated server with NWNX_RISENHOLM_ALLOW_EXECUTE_COMMAND set");
+            n.Push("");
+            return;
+        }
         if (cmd.Length == 0) { n.Push(""); return; }
         var psi = new ProcessStartInfo(cmd) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
         foreach (var a in args.TakeWhile(a => a.Length > 0)) psi.ArgumentList.Add(a);
-        try
+        var reg = n.Registry;
+        var run = Task.Run(() =>
         {
-            using var p = Process.Start(psi);
-            if (p == null) { n.Push(""); return; }
+            using var p = Process.Start(psi) ?? throw new InvalidOperationException("the program did not start");
             p.ErrorDataReceived += (_, _) => { };
             p.BeginErrorReadLine();
-            var output = p.StandardOutput.ReadToEndAsync();
-            if (!p.WaitForExit(30000)) { try { p.Kill(true); } catch (InvalidOperationException) { } }
-            n.Push(output.Wait(1000) ? output.Result : "");
-        }
-        catch (System.ComponentModel.Win32Exception e)
+            var output = p.StandardOutput.ReadToEnd();
+            p.WaitForExit();
+            return output;
+        });
+        int timeout = Math.Clamp(reg.EnvInt("NWNX_RISENHOLM_EXECUTE_COMMAND_TIMEOUT", 2000), 0, 30000);
+        try
         {
-            n.Registry.Log($"[nwnx] Risenholm: cannot run {cmd}: {e.Message}");
-            n.Push("");
+            if (run.Wait(timeout)) { n.Push(run.Result); return; }
         }
+        catch (AggregateException e)
+        {
+            reg.Log($"[nwnx] Risenholm: cannot run {cmd}: {e.InnerException?.Message}");
+            n.Push("");
+            return;
+        }
+        n.Push("");
+        run.ContinueWith(t => reg.Post(() => reg.Log(t.IsFaulted
+            ? $"[nwnx] Risenholm: {cmd} failed: {t.Exception?.InnerException?.Message}"
+            : $"[nwnx] Risenholm: {cmd} finished after the script stopped waiting")), TaskScheduler.Default);
     }
 
     /// <summary>

@@ -140,14 +140,31 @@ public class NwnxRisenholmTests
         Assert.Equal(0, Call(s.Registry, "CheckForShutdownFile")?.Value);
     }
 
+    static NwnxValue[] Echo => OperatingSystem.IsWindows()
+        ? [S(""), S(""), S(""), S("echo hi"), S("/c"), S("/d"), S("cmd.exe")]
+        : [S(""), S(""), S(""), S(""), S(""), S("hi"), S("/bin/echo")];
+
+    [DataFact]
+    public void ExecuteCommandIsOffWithoutADedicatedServerAndItsSetting()
+    {
+        var s = Make();
+        Assert.Equal("", Call(s.Registry, "ExecuteCommand", Echo)?.Value);
+        s.Registry.AllowOutside = true;
+        Assert.Equal("", Call(s.Registry, "ExecuteCommand", Echo)?.Value);
+        s.Registry.AllowOutside = false;
+        s.Env["NWNX_RISENHOLM_ALLOW_EXECUTE_COMMAND"] = "y";
+        Assert.Equal("", Call(s.Registry, "ExecuteCommand", Echo)?.Value);
+    }
+
     [DataFact]
     public void ExecuteCommandReturnsWhatTheProgramPrinted()
     {
         var s = Make();
+        s.Registry.AllowOutside = true;
+        s.Env["NWNX_RISENHOLM_ALLOW_EXECUTE_COMMAND"] = "y";
+        s.Env["NWNX_RISENHOLM_EXECUTE_COMMAND_TIMEOUT"] = "10000";
         // Pushed last argument first, the command last.
-        var output = OperatingSystem.IsWindows()
-            ? Call(s.Registry, "ExecuteCommand", S(""), S(""), S(""), S("echo hi"), S("/c"), S("/d"), S("cmd.exe"))
-            : Call(s.Registry, "ExecuteCommand", S(""), S(""), S(""), S(""), S(""), S("hi"), S("/bin/echo"));
+        var output = Call(s.Registry, "ExecuteCommand", Echo);
         Assert.Equal("hi", (output?.Value as string)?.Trim());
         Assert.Equal("", Call(s.Registry, "ExecuteCommand", S(""), S(""), S(""), S(""), S(""), S(""), S("no-such-program-anywhere"))?.Value);
     }
@@ -173,9 +190,23 @@ public class NwnxRisenholmTests
         s.Env["NWNX_RISENHOLM_RPC_SECRET"] = Secret;
         var rpc = s.World.System<RisenholmRpc>();
         rpc.Step(0);
+        // Not on a host that keeps plugins inside the game (single player).
+        Assert.Equal(0, rpc.Port);
+        var server = Make(scripts: true);
+        server.World.System<PersistenceSystem>().SetTemplate("pw_rpc_echo", ResType.Ncs, ncs);
+        server.World.System<PersistenceSystem>().SetTemplate("pw_rpc_mute", ResType.Ncs, silent);
+        foreach (var kv in s.Env) server.Env[kv.Key] = kv.Value;
+        server.Registry.AllowOutside = true;
+        s = server;
+        rpc = s.World.System<RisenholmRpc>();
+        rpc.Step(0);
         try
         {
             Assert.Equal(port, rpc.Port);
+            // The listener's state, the secret above all, stays out of save games.
+            var snapshot = OpenWinter.Game.SaveGames.WorldSnapshot.Capture(s.World, out _).ToJsonString();
+            Assert.DoesNotContain("Secret", snapshot);
+            Assert.DoesNotContain("allowOutside", snapshot, StringComparison.OrdinalIgnoreCase);
             using var http = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{port}") };
             (int Status, string Body) Post(string path, string body, string? secret)
             {
@@ -196,7 +227,9 @@ public class NwnxRisenholmTests
             // Outside a request there is nothing to read.
             Assert.Equal("", Call(s.Registry, "GetRpcRequest")?.Value);
         }
-        finally { rpc.Stop(); }
+        finally { s.World.System<PersistenceSystem>().Dispose(); }
+        // The world's shutdown closed the listener.
+        Assert.Equal(0, rpc.Port);
     }
 
     [Theory]

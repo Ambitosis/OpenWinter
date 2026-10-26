@@ -204,7 +204,46 @@ public sealed class NwnxRegistry : IWorldSystem
 
     public void Step(float dt)
     {
-        while (_posted.TryDequeue(out var action)) action();
+        while (_posted.TryDequeue(out var action))
+        {
+            try { action(); }
+            catch (Exception e) when (e is not OutOfMemoryException)
+            {
+                Log($"[nwnx] a plugin's background work failed: {e.GetType().Name}: {e.Message}");
+            }
+        }
+    }
+
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, NwnxRegistry> Registries = new();
+
+    /// <summary>A world's registry, without searching its systems each time (rule code asks on hot paths).</summary>
+    public static NwnxRegistry Of(World w) => Registries.GetValue(w, x => x.System<NwnxRegistry>());
+
+    /// <summary>
+    /// Set by a dedicated server host for the whole process: plugins may then reach outside the game (run programs,
+    /// send HTTP requests, listen for RPC), each still only when its own setting asks for it. Single player never
+    /// sets it.
+    /// </summary>
+    public static bool DedicatedServer;
+
+    // Held in a type save games skip, so a loaded save cannot turn it on.
+    System.Runtime.CompilerServices.StrongBox<bool>? _allowOutside;
+
+    /// <summary>Whether this world's plugins may reach outside the game (<see cref="DedicatedServer"/> unless set).</summary>
+    public bool AllowOutside
+    {
+        get => _allowOutside?.Value ?? DedicatedServer;
+        set => _allowOutside = new(value);
+    }
+
+    /// <summary>An outward-facing feature: allowed by the host and switched on by its own setting.</summary>
+    public bool OutsideEnabled(string setting) => AllowOutside && EnvBool(setting);
+
+    /// <summary>Stops what plugins keep running for the world (the RPC listener, the SQL connection) as it shuts down.</summary>
+    public void Shutdown()
+    {
+        Plugins.SqlPlugin.Close(this);
+        _world.System<Plugins.RisenholmRpc>().Stop();
     }
 
     /// <summary>"NWNX_Creature" and "Creature" both name the Creature plugin.</summary>
@@ -227,6 +266,9 @@ public sealed class NwnxRegistry : IWorldSystem
         var key = PluginKey(plugin);
         return Handlers.Keys.Any(k => k.Item1 == key);
     }
+
+    /// <summary>An object's plugin state if it has any (does not create it).</summary>
+    public bool TryGetObjectState(uint id, out Dictionary<string, NwnxValue> state) => _objectState.TryGetValue(id, out state!);
 
     public Dictionary<string, NwnxValue> ObjectState(uint id)
     {
