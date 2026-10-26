@@ -446,6 +446,7 @@ public partial class Main : Node3D
             _ = QuickbarRadialCapture.Run(quickbarRadialDir, ActionBar, GetTree().Root.FindChildren("*", "Control", true, false).OfType<RadialMenu>().First(), Shot, Wait, code => GetTree().Quit(code));
         else if (_args.TryGetValue("capture-hud", out var hudDir)) _ = CaptureHud(hudDir);
         else if (_args.TryGetValue("capture-nwn", out var nwnDir)) _ = CaptureNwn(nwnDir);
+        else if (_args.TryGetValue("capture-nwn-nui", out var nwnNuiDir)) _ = CaptureNwnNui(nwnNuiDir);
         else if (_args.TryGetValue("capture-cutscene", out var cutDir)) _ = CaptureCutscene(cutDir);
         else if (_args.TryGetValue("capture-world", out var worldDir)) _ = CaptureWorld(worldDir);
         else if (_args.TryGetValue("capture-items", out var itemsDir)) _ = CaptureItems(itemsDir);

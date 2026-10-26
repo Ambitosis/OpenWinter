@@ -50,4 +50,28 @@ public partial class Main
         }
         GetTree().Quit();
     }
+
+    /// <summary>
+    /// --connect-nwn ws://host:port --character resref --capture-nwn-nui dir [--nui-click WINDOW:ELEMENT,...]: on an NWN:EE
+    /// server, waits for the controlled character and the script-built windows, takes a shot, then clicks each element
+    /// two seconds apart, with a shot after each. The character doesn't move.
+    /// </summary>
+    async Task CaptureNwnNui(string dir)
+    {
+        System.IO.Directory.CreateDirectory(dir);
+        for (int i = 0; i < 600 && (_session.Controlled == null || Nui.Windows.Count == 0); i++) await Wait(0.1);
+        GD.Print($"[nwn] controlling {_session.ControlledId}; windows: {string.Join(", ", Nui.Windows.Values.Select(w => w.WindowId))}");
+        await Wait(3);
+        await Shot(dir, "01_windows");
+        int n = 2;
+        foreach (var click in _args.GetValueOrDefault("nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var p = click.Split(':');
+            GD.Print($"[nwn] click {click}: {(p.Length == 2 && Nui.Click(p[0], p[1], -1) ? "ok" : "not found")}");
+            await Wait(2);
+            await Shot(dir, $"{n++:00}_after_{p[^1].ToLowerInvariant()}");
+        }
+        GD.Print($"[nwn] windows: {string.Join(", ", Nui.Windows.Values.Select(w => w.WindowId))}");
+        GetTree().Quit();
+    }
 }
