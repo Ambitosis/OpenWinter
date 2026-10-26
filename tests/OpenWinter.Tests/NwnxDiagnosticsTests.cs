@@ -49,7 +49,7 @@ public class NwnxDiagnosticsTests
         var calls = new (string Plugin, string Function)[]
         {
             ("Visibility", "SetVisibilityOverride"), ("Item", "SetWeight"),
-            ("Dialog", "End"), ("Damage", "SetEventScript"),
+            ("Dialog", "End"),
             ("Player", "SetCustomToken"), ("Player", "PossessCreature"),
             ("Util", "SetResourceOverride"), ("Feedback", "SetMessageHidden"),
             ("Administration", "DeletePlayerCharacter"), ("Creature", "GetAttackBonus"),

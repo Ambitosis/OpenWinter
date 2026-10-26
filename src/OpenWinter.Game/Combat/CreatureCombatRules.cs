@@ -179,8 +179,9 @@ public sealed partial class CreatureCombatRules : ICombatRules
 
         Item? Pick(int i) => cw.Count > 0 ? cw[i % cw.Count] : main;
         for (int i = 0; i < count; i++) list.Add(new PlannedAttack { Weapon = Pick(i), Penalty = i * step });
-        // Extra attacks (haste, EffectModifyAttacks, flurry, rapid shot) have their own iterative penalties, as in the original.
-        list.InsertRange(Math.Min(1, list.Count), Enumerable.Range(0, Math.Clamp(extra, 0, 5))
+        // Extra attacks (haste, EffectModifyAttacks, flurry, rapid shot) have their own iterative penalties and come after
+        // the normal ones, as in the original (nwnx_damage: a hasted fighter's third swing is its extra attack).
+        list.AddRange(Enumerable.Range(0, Math.Clamp(extra, 0, 5))
             .Select(i => new PlannedAttack { Weapon = Pick(i), Extra = true, Penalty = i * step }));
         if (off != null && !dirty)
         {

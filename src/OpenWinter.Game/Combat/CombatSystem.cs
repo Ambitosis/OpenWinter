@@ -62,6 +62,8 @@ public sealed partial class CombatSystem : IWorldSystem
         public double DefenceStart = -1;
         public List<PlannedAttack> Plan = new();
         public int NextAttack;
+        /// <summary>Attacks of opportunity swung outside the plan this round (they take the first attack numbers).</summary>
+        public int OpportunitySwings;
         public uint LastAttacker = GameObject.InvalidId;
         public AttackOutcome? LastAttack;
         public uint LastWeapon = GameObject.InvalidId;
@@ -252,6 +254,7 @@ public sealed partial class CombatSystem : IWorldSystem
             s.Plan.Insert(0, new PlannedAttack { Weapon = Creature?.Weapons(c).Main, OpportunityTarget = owed.Id });
         s.OpportunityNextRound = GameObject.InvalidId;
         s.NextAttack = 0;
+        s.OpportunitySwings = 0;
         s.StepsPlanned = false;
         s.StepTimes.Clear();
         s.StepsTaken = 0;
@@ -589,6 +592,7 @@ public sealed partial class CombatSystem : IWorldSystem
         }
         var a = Rules.Context(c, target, weapon, planned.OffHand, Dice);
         a.Penalty = planned.Penalty;
+        (a.AttackNumber, a.ExtraAttack) = AttackNumber(s.Plan, planned, s.OpportunitySwings);
         if (planned.OpportunityTarget != GameObject.InvalidId) a.Kind = AttackKind.Opportunity;
         if (s.PendingFeat >= 0 && !planned.OffHand)
         {

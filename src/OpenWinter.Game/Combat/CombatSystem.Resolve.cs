@@ -135,6 +135,7 @@ public sealed partial class CombatSystem
                 if (o.Damage.Sneak > 0 && !o.SneakSituation) o.Feedback.Add(o.Damage.DeathAttack ? "Death Attack" : "Sneak Attack");
             }
         }
+        AttackEvent(o, ref hit);
         if (impactDelay > 0)
         {
             // The swing is seen now (animation, sounds); the blow lands later.
@@ -171,7 +172,7 @@ public sealed partial class CombatSystem
                 ApplyHardness(t, o.Damage);
                 o.Breakdown = new DamageBreakdown();
                 o.Dealt = HitPoints.Damage(_world, t, att.Id, o.Damage.ByType, o.Damage.Power, ignoreReductions: false, ranged: a.Ranged, combat: true,
-                    unresisted: o.Damage.Unresisted, breakdown: o.Breakdown);
+                    unresisted: o.Damage.Unresisted, breakdown: o.Breakdown, defended: o.Damage.Defended);
                 o.Killed = HitPoints.IsDead(t);
                 // A blow that lands puts the attacker back in combat, even after ClearAllActions(TRUE) took it out
                 // between the swing and the blow (nwserver round_idle cut: its idle OnEndCombatRound came 5.85-5.97 s

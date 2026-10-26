@@ -248,8 +248,9 @@ public class CombatRulesTests
         c.Effects.Add(Effect(CombatK.EffectHaste));
         var plan = f.Rules.PlanRound(c);
         Assert.Equal(5, plan.Count);
-        Assert.True(plan[1].Extra);
-        Assert.Equal(0, plan[1].Penalty);
+        // The extra attack comes after the normal ones (nwnx_damage).
+        Assert.True(plan[4].Extra);
+        Assert.Equal(0, plan[4].Penalty);
         // Extra attacks (haste, then EffectModifyAttacks) have their own iterative penalties.
         var more = Effect(CombatK.EffectModifyAttacks, 2);
         c.Effects.Add(more);
