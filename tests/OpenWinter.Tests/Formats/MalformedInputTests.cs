@@ -190,8 +190,11 @@ public class MalformedInputTests
     }, type, 7, new Dictionary<int, string> { [0] = "A module" }, new DateTime(2020, 1, 1));
 
     [Fact]
-    public void ErfSurvivesMutation() =>
+    public void ErfSurvivesMutation()
+    {
         Survives("ERF", Mutations(ValidErf(), 3), b => Erf.Read(b, out _), typeof(InvalidDataException));
+        Survives("E1 ERF", Mutations(ErfE1Tests.ZstdHak, 6), b => Erf.Read(b, out _), typeof(InvalidDataException));
+    }
 
     [Fact]
     public void ErfSourceSurvivesMutation()
@@ -201,6 +204,13 @@ public class MalformedInputTests
         {
             int n = 0;
             Survives("ERF source", Mutations(ValidErf("HAK "), 4, 200, everyTruncation: false), b =>
+            {
+                string path = Path.Combine(dir, $"{n++}.hak");
+                File.WriteAllBytes(path, b);
+                using var source = new ErfSource(path);
+                foreach (var key in source.Keys.ToList()) source.Read(key);
+            }, typeof(InvalidDataException));
+            Survives("E1 ERF source", Mutations(ErfE1Tests.ZstdHak, 5, 200, everyTruncation: false), b =>
             {
                 string path = Path.Combine(dir, $"{n++}.hak");
                 File.WriteAllBytes(path, b);
