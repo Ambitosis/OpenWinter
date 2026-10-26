@@ -83,6 +83,10 @@ void main()
     PLog("assoc.added", IntToString(GetMaster(oH) == oB) + " " + IntToString(GetAssociateType(oH)) + " "
         + IntToString(GetHenchman(oB) == oH) + " " + IntToString(GetFactionEqual(oB, oH)) + " " + IntToString(GetAssociate(ASSOCIATE_TYPE_HENCHMAN, oB) == oH));
 
+    // A safe spot near a point on open floor.
+    vector vSafe = NWNX_Creature_ComputeSafeLocation(oB, Vector(23.0, 21.0, 0.0), 5.0, FALSE);
+    PLog("safe.floor", FloatToString(vSafe.x, 0, 1) + " " + FloatToString(vSafe.y, 0, 1) + " " + FloatToString(vSafe.z, 0, 1));
+
     // Killer.
     ExecuteScript("p_lk", oB);
     NWNX_Creature_SetLastKiller(oB, oG);

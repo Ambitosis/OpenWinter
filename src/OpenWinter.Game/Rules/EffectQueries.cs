@@ -97,7 +97,7 @@ public static class EffectImmunity
         // A script's chance to bypass immunities (NWNX_Creature_SetBypassEffectImmunity), for the effect's creator
         // or its target.
         if (target is Creature c && (c.Overrides != null || (versus as Creature)?.Overrides != null))
-            return CreatureRules.BypassImmunity(c, immunityType, versus as Creature, immune);
+            return CreatureRules.BypassImmunity(world, c, immunityType, versus as Creature, immune);
         return immune;
     }
 

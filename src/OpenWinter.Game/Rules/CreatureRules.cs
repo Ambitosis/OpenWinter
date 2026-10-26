@@ -183,14 +183,14 @@ public static partial class CreatureRules
     {
         int total = c.TotalLevel;
         var pre = new List<(int Class, int Level)>();
-        var history = c.Template.GetList("LvlStatList");
-        if (total <= 20 && history.Count != total)
+        var history = c.Template.Field("LvlStatList")?.Value as List<GffStruct>;
+        if (total <= 20 && (history?.Count ?? 0) != total)
         {
             foreach (var cc in c.Classes) pre.Add((cc.Class, cc.Level));
             return (pre, 0);
         }
         var counts = new Dictionary<int, int>();
-        if (history.Count >= Math.Min(20, total))
+        if (history != null && history.Count >= Math.Min(20, total))
         {
             for (int i = 0; i < Math.Min(20, total); i++)
             {

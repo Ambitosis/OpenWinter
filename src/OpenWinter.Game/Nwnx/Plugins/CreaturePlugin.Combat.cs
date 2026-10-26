@@ -10,6 +10,9 @@ static partial class CreaturePlugin
     static CombatSystem Combat(NwnxCall n) => n.World.System<CombatSystem>();
     static CreatureCombatRules? CombatRules(NwnxCall n) => Combat(n).Rules as CreatureCombatRules;
 
+    /// <summary>Keeps a setting with the creature's saved form (bPersist), or stops keeping it.</summary>
+    static void Persist(Creature c, string name, int? value) => CreatureOverridesPersistence.Persist(O(c), name, value);
+
     /// <summary>The base attack bonus, replacing the class tables' (attacks per round follow); 0 goes back to them.</summary>
     [NwnxFunc("Creature", "SetBaseAttackBonus")]
     static void SetBab(NwnxCall n)
@@ -100,8 +103,10 @@ static partial class CreaturePlugin
     [NwnxFunc("Creature", "SetMaximumBonusAttacks")]
     static void SetMaximumBonusAttacks(NwnxCall n)
     {
-        var c = n.PopObject<Creature>(); int max = n.PopInt(); n.PopInt();
-        if (c != null) O(c).MaxBonusAttacks = max < 0 ? null : max;
+        var c = n.PopObject<Creature>(); int max = n.PopInt(); bool persist = n.PopInt() != 0;
+        if (c == null) return;
+        O(c).MaxBonusAttacks = max < 0 ? null : max;
+        Persist(c, "MAXIMUM_BONUS_ATTACKS", persist && max >= 0 ? max : null);
     }
 
     // ---- Critical hits ---------------------------------------------------------
@@ -109,13 +114,15 @@ static partial class CreaturePlugin
     /// <summary>Hands 1 (main) and 2 (off); anything else stands for all attacks.</summary>
     static int Hand(int hand) => hand is 1 or 2 ? hand : 0;
 
-    static void SetCrit(NwnxCall n, Func<CreatureOverrides, Dictionary<(int, int), int>> table, bool clearOnNegative)
+    static void SetCrit(NwnxCall n, Func<CreatureOverrides, Dictionary<(int, int), int>> table, bool clearOnNegative, string kind)
     {
-        var c = n.PopObject<Creature>(); int value = n.PopInt(); int hand = Hand(n.PopInt()); n.PopInt(); int item = n.PopInt();
+        var c = n.PopObject<Creature>(); int value = n.PopInt(); int hand = Hand(n.PopInt()); bool persist = n.PopInt() != 0; int item = n.PopInt();
         if (c == null) return;
         var d = table(O(c));
-        if (clearOnNegative && value < 0) d.Remove((hand, item));
+        bool clear = clearOnNegative && value < 0;
+        if (clear) d.Remove((hand, item));
         else d[(hand, item)] = value;
+        Persist(c, CreatureOverridesPersistence.CritKey(kind, hand, item), persist && !clear ? value : null);
     }
 
     static void GetCrit(NwnxCall n, Func<CreatureOverrides, Dictionary<(int, int), int>> table, int none)
@@ -124,13 +131,13 @@ static partial class CreaturePlugin
         n.Push(c?.Overrides is { } o && table(o).TryGetValue((hand, item), out int v) ? v : c == null ? -1 : none);
     }
 
-    [NwnxFunc("Creature", "SetCriticalMultiplierModifier")] static void SetCritMultMod(NwnxCall n) => SetCrit(n, o => o.CritMultiplierModifier, false);
+    [NwnxFunc("Creature", "SetCriticalMultiplierModifier")] static void SetCritMultMod(NwnxCall n) => SetCrit(n, o => o.CritMultiplierModifier, false, "MULTIPLIER_MODIFIER");
     [NwnxFunc("Creature", "GetCriticalMultiplierModifier")] static void GetCritMultMod(NwnxCall n) => GetCrit(n, o => o.CritMultiplierModifier, 0);
-    [NwnxFunc("Creature", "SetCriticalMultiplierOverride")] static void SetCritMultOver(NwnxCall n) => SetCrit(n, o => o.CritMultiplierOverride, true);
+    [NwnxFunc("Creature", "SetCriticalMultiplierOverride")] static void SetCritMultOver(NwnxCall n) => SetCrit(n, o => o.CritMultiplierOverride, true, "MULTIPLIER_OVERRIDE");
     [NwnxFunc("Creature", "GetCriticalMultiplierOverride")] static void GetCritMultOver(NwnxCall n) => GetCrit(n, o => o.CritMultiplierOverride, -1);
-    [NwnxFunc("Creature", "SetCriticalRangeModifier")] static void SetCritRangeMod(NwnxCall n) => SetCrit(n, o => o.CritRangeModifier, false);
+    [NwnxFunc("Creature", "SetCriticalRangeModifier")] static void SetCritRangeMod(NwnxCall n) => SetCrit(n, o => o.CritRangeModifier, false, "RANGE_MODIFIER");
     [NwnxFunc("Creature", "GetCriticalRangeModifier")] static void GetCritRangeMod(NwnxCall n) => GetCrit(n, o => o.CritRangeModifier, 0);
-    [NwnxFunc("Creature", "SetCriticalRangeOverride")] static void SetCritRangeOver(NwnxCall n) => SetCrit(n, o => o.CritRangeOverride, true);
+    [NwnxFunc("Creature", "SetCriticalRangeOverride")] static void SetCritRangeOver(NwnxCall n) => SetCrit(n, o => o.CritRangeOverride, true, "RANGE_OVERRIDE");
     [NwnxFunc("Creature", "GetCriticalRangeOverride")] static void GetCritRangeOver(NwnxCall n) => GetCrit(n, o => o.CritRangeOverride, -1);
 
     // ---- Rolls, initiative, special attacks ------------------------------------
@@ -138,8 +145,10 @@ static partial class CreaturePlugin
     [NwnxFunc("Creature", "SetInitiativeModifier")]
     static void SetInitiativeModifier(NwnxCall n)
     {
-        var c = n.PopObject<Creature>(); int mod = n.PopInt(); n.PopInt();
-        if (c != null) O(c).InitiativeModifier = mod;
+        var c = n.PopObject<Creature>(); int mod = n.PopInt(); bool persist = n.PopInt() != 0;
+        if (c == null) return;
+        O(c).InitiativeModifier = mod;
+        Persist(c, "INITIATIVE_MOD", persist ? mod : null);
     }
 
     [NwnxFunc("Creature", "GetInitiativeModifier")]
@@ -181,9 +190,10 @@ static partial class CreaturePlugin
     [NwnxFunc("Creature", "OverrideRangedProjectileVFX")]
     static void OverrideRangedProjectileVfx(NwnxCall n)
     {
-        var c = n.PopObject<Creature>(); int vfx = n.PopInt(); n.PopInt();
+        var c = n.PopObject<Creature>(); int vfx = n.PopInt(); bool persist = n.PopInt() != 0;
         if (c == null) return;
         O(c).RangedProjectileVfx = vfx < 0 ? null : vfx;
+        Persist(c, "ORPVFX", persist && vfx >= 0 ? vfx : null);
         n.World.Output?.Notify("creature-override", c, new { rangedProjectileVfx = vfx });
     }
 }

@@ -51,7 +51,7 @@ public static partial class CreatureRules
     {
         bool immune = IsImmuneByRules(w, c, immunity, versus);
         if (c.Overrides == null && (versus as Creature)?.Overrides == null) return immune;
-        return BypassImmunity(c, immunity, versus as Creature, immune);
+        return BypassImmunity(w, c, immunity, versus as Creature, immune);
     }
 
     /// <summary>
@@ -59,11 +59,12 @@ public static partial class CreatureRules
     /// target's incoming one each roll; positive makes the target not immune, negative immune. Outcomes that disagree
     /// cancel out and the immunity stands as the rules have it.
     /// </summary>
-    internal static bool BypassImmunity(Creature c, int immunity, Creature? versus, bool immune)
+    internal static bool BypassImmunity(World w, Creature c, int immunity, Creature? versus, bool immune)
     {
         static int? Chance(CreatureOverrides? o, int key, int all) =>
             o == null ? null : o.BypassImmunity.TryGetValue(key, out int v) || o.BypassImmunity.TryGetValue(all, out v) ? v : null;
-        static bool? Roll(int? chance) => chance is int ch && ch != 0 && Random.Shared.Next(100) < Math.Abs(ch) ? ch < 0 : null;
+        var dice = w.System<Combat.CombatSystem>().Dice;
+        bool? Roll(int? chance) => chance is int ch && ch != 0 && dice.Roll(100) <= Math.Abs(ch) ? ch < 0 : null;
         var outgoing = Roll(Chance(versus?.Overrides, immunity, 255));
         var incoming = Roll(Chance(c.Overrides, -immunity, -255));
         if (outgoing is bool a && incoming is bool b) return a == b ? a : immune;

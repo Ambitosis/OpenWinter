@@ -278,4 +278,45 @@ public class NwnxCreatureTests
         Assert.Equal(2, c.TotalLevel);
         Assert.Equal(-1, Int(f, "GetClassByLevel", c, 3));
     }
+    [DataFact]
+    public void PersistedSettingsTravelInNwnxPosAndKeepOtherPluginsEntries()
+    {
+        var f = Make();
+        var c = Creature(f, Fighter, 1, new Vector3(5, 5, 0));
+        c.Template.SetString(CreatureOverridesPersistence.Field, "[INTMAP:1]<16>NWNX_Other!THING = 9;[STRMAP:0]");
+        Call(f, "SetInitiativeModifier", c, 4, 1);
+        Call(f, "SetCriticalRangeModifier", c, -2, 2, 1, 22);
+        Call(f, "SetCasterLevelModifier", c, Wizard, 3, 0);
+        var s = new GffStruct();
+        CreatureOverridesPersistence.Save(c, s);
+        var raw = s.GetString(CreatureOverridesPersistence.Field);
+        Assert.Equal("[INTMAP:3]<44>NWNX_Creature!CRITICAL_RANGE_MODIFIER!2!BI22 = -2;<28>NWNX_Creature!INITIATIVE_MOD = 4;"
+            + "<16>NWNX_Other!THING = 9;[STRMAP:0]", raw);
+
+        var copy = f.W.Creatures.FromTemplate(s);
+        Assert.Equal(4, copy.Overrides!.InitiativeModifier);
+        Assert.Equal(-2, copy.Overrides.CritRangeModifier[(2, 22)]);
+        Assert.False(copy.Overrides.CasterLevelModifier.ContainsKey(Wizard));
+        // Set again without bPersist, it is no longer kept.
+        Call(f, "SetInitiativeModifier", c, 6, 0);
+        var again = new GffStruct();
+        CreatureOverridesPersistence.Save(c, again);
+        Assert.DoesNotContain("INITIATIVE_MOD", again.GetString(CreatureOverridesPersistence.Field));
+    }
+
+    [DataFact]
+    public void ComputeSafeLocationTakesAndReturnsAVector()
+    {
+        var f = Make();
+        var c = Creature(f, Fighter, 1, new Vector3(5, 5, 0));
+        f.Nwnx.Stack.Push(NwnxValue.Int(0));
+        f.Nwnx.Stack.Push(NwnxValue.Float(5f));
+        f.Nwnx.Stack.Push(new NwnxValue(NwnxType.Vector, new Vector3(7, 8, 0)));
+        f.Nwnx.Stack.Push(NwnxValue.Object(c.Id));
+        Assert.True(f.Nwnx.Call("NWNX_Creature", "ComputeSafeLocation"));
+        var v = (Vector3)f.Nwnx.PopAs(NwnxType.Vector)!;
+        Assert.Equal(7f, v.X);
+        Assert.Equal(8f, v.Y);
+        Assert.Equal(0, f.Nwnx.Stack.Count);
+    }
 }

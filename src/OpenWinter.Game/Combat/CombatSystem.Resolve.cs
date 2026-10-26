@@ -342,7 +342,7 @@ public sealed partial class CombatSystem
         riposte = false;
         var a = o.Context;
         if (a.Target is not Creature tc || !tc.ActionModes.Contains(CombatK.ModeParry) || a.TargetDeniedDex || !CanAttack(tc)) return false;
-        bool parryAll = tc.Overrides?.ParryAllAttacks == true || _world.System<CreatureOverrideSystem>().ParryAllAttacks;
+        bool parryAll = tc.Overrides?.ParryAllAttacks == true || OverrideSystem.ParryAllAttacks;
         if (!parryAll && tState.Parries >= Math.Max(1, CreatureRules.AttacksPerRound(_world, tc))) return false;
         tState.Parries++;
         int parry = Dice.Roll(20) + CreatureRules.SkillRank(_world, tc, CombatK.SkillParry);
@@ -353,11 +353,14 @@ public sealed partial class CombatSystem
         return true;
     }
 
+    CreatureOverrideSystem? _overrideSystem;
+    CreatureOverrideSystem OverrideSystem => _overrideSystem ??= _world.System<CreatureOverrideSystem>();
+
     /// <summary>The attacker's (else every creature's) modifier for a natural attack roll, or null for none.</summary>
     int? AttackRollOverride(Creature attacker, int roll)
     {
         if (attacker.Overrides is { } o && o.AttackRollOverride.TryGetValue(roll, out int m)) return m;
-        var all = _world.System<CreatureOverrideSystem>().AttackRollOverride;
+        var all = OverrideSystem.AttackRollOverride;
         return all.Count > 0 && all.TryGetValue(roll, out m) ? m : null;
     }
 

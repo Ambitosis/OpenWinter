@@ -223,8 +223,11 @@ static partial class CreaturePlugin
     [NwnxFunc("Creature", "SetMulticlassLimit")]
     static void SetMulticlassLimit(NwnxCall n)
     {
-        var c = n.PopObject<Creature>(); int limit = n.PopInt(); n.PopInt();
-        if (c is { IsPC: true }) O(c).MulticlassLimit = Math.Max(0, limit);
+        var c = n.PopObject<Creature>(); int limit = n.PopInt(); bool persist = n.PopInt() != 0;
+        if (c is not { IsPC: true }) return;
+        O(c).MulticlassLimit = Math.Max(0, limit);
+        // NWNX keeps this one for players only, which the parity lab (no players) can't show; it lasts the session.
+        if (persist) n.ReportUnsupported("bPersist: the multiclass limit is not kept in the character file", "persist");
     }
 
     [NwnxFunc("Creature", "SetLastKiller")]
@@ -240,10 +243,12 @@ static partial class CreaturePlugin
     [NwnxFunc("Creature", "SetBypassEffectImmunity")]
     static void SetBypassImmunity(NwnxCall n)
     {
-        var c = n.PopObject<Creature>(); int type = n.PopInt(); int chance = n.PopInt(); n.PopInt();
+        var c = n.PopObject<Creature>(); int type = n.PopInt(); int chance = n.PopInt(); bool persist = n.PopInt() != 0;
         if (c == null) return;
+        chance = Math.Clamp(chance, -100, 100);
         if (chance == 0) c.Overrides?.BypassImmunity.Remove(type);
-        else O(c).BypassImmunity[type] = Math.Clamp(chance, -100, 100);
+        else O(c).BypassImmunity[type] = chance;
+        Persist(c, CreatureOverridesPersistence.BypassKey(type), persist && chance != 0 ? chance : null);
     }
     [NwnxFunc("Creature", "GetBypassEffectImmunity")]
     static void GetBypassImmunity(NwnxCall n)

@@ -175,7 +175,8 @@ public sealed partial class CreatureCombatRules : ICombatRules
         foreach (var e in c.Effects) if (e.Type == CombatK.EffectModifyAttacks) modify += e.Ints[0];
         // EffectModifyAttacks gives at most five, or the creature's own limit (NWNX_Creature_SetMaximumBonusAttacks).
         int maxBonus = c.Overrides?.MaxBonusAttacks ?? 5;
-        extra += Math.Clamp(modify, 0, maxBonus);
+        // A negative one takes extra attacks away (nwserver nwnx_creature_combat: -1 beside haste leaves one attack).
+        extra += Math.Min(modify, maxBonus);
         if (RapidShotActive(c, main)) extra++;
         if (FlurryActive(c, main)) extra++;
         bool dirty = DirtyFightingActive(c);

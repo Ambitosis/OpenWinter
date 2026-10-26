@@ -165,10 +165,11 @@ static partial class CreaturePlugin
     [NwnxFunc("Creature", "SetCasterLevelModifier")]
     static void SetCasterLevelModifier(NwnxCall n)
     {
-        var c = n.PopObject<Creature>(); int cls = n.PopInt(); int mod = n.PopInt(); n.PopInt();
+        var c = n.PopObject<Creature>(); int cls = n.PopInt(); int mod = n.PopInt(); bool persist = n.PopInt() != 0;
         if (c == null) return;
         if (mod == 0) c.Overrides?.CasterLevelModifier.Remove(cls);
         else O(c).CasterLevelModifier[cls] = mod;
+        Persist(c, $"CASTERLEVEL_MODIFIER{cls}", persist && mod != 0 ? mod : null);
     }
     [NwnxFunc("Creature", "GetCasterLevelModifier")]
     static void GetCasterLevelModifier(NwnxCall n)
@@ -180,10 +181,11 @@ static partial class CreaturePlugin
     [NwnxFunc("Creature", "SetCasterLevelOverride")]
     static void SetCasterLevelOverride(NwnxCall n)
     {
-        var c = n.PopObject<Creature>(); int cls = n.PopInt(); int level = n.PopInt(); n.PopInt();
+        var c = n.PopObject<Creature>(); int cls = n.PopInt(); int level = n.PopInt(); bool persist = n.PopInt() != 0;
         if (c == null) return;
         if (level < 0) c.Overrides?.CasterLevelOverride.Remove(cls);
         else O(c).CasterLevelOverride[cls] = level;
+        Persist(c, $"CASTERLEVEL_OVERRIDE{cls}", persist && level >= 0 ? level : null);
     }
     [NwnxFunc("Creature", "GetCasterLevelOverride")]
     static void GetCasterLevelOverride(NwnxCall n)

@@ -328,12 +328,11 @@ static partial class CreaturePlugin
     [NwnxFunc(P, "ComputeSafeLocation")]
     static void SafeLocation(NwnxCall n)
     {
-        var c = n.PopObject<Creature>();
-        float z = n.PopFloat(), y = n.PopFloat(), x = n.PopFloat();
+        var c = n.PopObject<Creature>(); var pos = n.PopVector();
         n.PopFloat(); n.PopInt();
-        var pos = new Vector3(x, y, z);
-        if (c?.Area?.Walkmesh.HighestGround(x, y) is { } ground) pos.Z = ground;
-        n.Push(pos.X); n.Push(pos.Y); n.Push(pos.Z);
+        if (c == null) { n.Push(new NwnxValue(NwnxType.Vector, Vector3.Zero)); return; }
+        if (c.Area?.Walkmesh.HighestGround(pos.X, pos.Y) is { } ground) pos.Z = ground;
+        n.Push(new NwnxValue(NwnxType.Vector, pos));
     }
 
     // ---- Quickbar (shared with NWNX_Player's quickbar slots) ---------------

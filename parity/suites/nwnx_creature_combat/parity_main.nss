@@ -44,6 +44,7 @@ void Report()
     PReportRounds("base");
     PReportRounds("mba2");
     PReportRounds("mba7");
+    PReportRounds("neg");
     PReportHits("crit");
     int hits = PGet("crit.hit");
     PLogRate("crit.critrate", PGet("crit.crit"), hits);
@@ -73,6 +74,11 @@ void main()
         Perm(a, EffectModifyAttacks(5));
         Perm(a, EffectModifyAttacks(5));
         NWNX_Creature_SetMaximumBonusAttacks(a, 7);
+        // A negative EffectModifyAttacks beside haste.
+        a = PPair("neg", "nw_bandit001", "nw_bandit001");
+        SetBaseAttackBonus(1, a);
+        Perm(a, EffectModifyAttacks(-1));
+        Perm(a, EffectHaste());
     }
     object t;
 
