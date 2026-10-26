@@ -35,8 +35,29 @@ public static class ElcPlugin
         SubFeatBab = 25, SubFeatAbility = 26, SubFeatSkill = 27, SubFeatFeat = 28, SubTooManyFeats = 29, SubInvalidSpell = 36,
         SubSpellList = 47, SubSkillList = 48, SubFeatList = 49, SubNumMulticlass = 52;
 
-    /// <summary>The message a player gets when validation fails (dialog.tlk: the character didn't pass validation).</summary>
-    public const int DefaultStrRef = 66166;
+    /// <summary>The message a player gets when validation fails without a more specific one (dialog.tlk "Invalid character - player login refused.").</summary>
+    public const int DefaultStrRef = 66168;
+
+    /// <summary>The dialog.tlk message that names a failure subtype, else <see cref="DefaultStrRef"/>.</summary>
+    public static int StrRefFor(int subType) => subType switch
+    {
+        SubServerLevel => 57924,
+        SubMinEquipLevel => 68521,
+        SubNonPlayerRace => 66166,
+        SubNonPlayerClass => 66167,
+        SubTooManyHitPoints => 3109,
+        SubUnusableSkill => 63815,
+        SubNotEnoughSkillPoints => 66155,
+        SubClassSkillRanks or SubCrossClassSkillRanks or SubSkillList => 66165,
+        SubInvalidFeat or SubFeatList => 76383,
+        SubFeatSpellLevel => 66176,
+        SubFeatAbility => 66175,
+        SubFeatSkill => 66183,
+        SubFeatFeat or SubFeatBab => 66182,
+        SubTooManyFeats => 66222,
+        SubInvalidSpell or SubSpellList => 66499,
+        _ => DefaultStrRef,
+    };
 
     public sealed class Options
     {
@@ -116,7 +137,7 @@ public static class ElcPlugin
             "spells" => (TypeSpell, SubInvalidSpell),
             _ => (TypeCharacter, SubNone),
         };
-        return new ElcFailure { Type = type, SubType = sub, StrRef = DefaultStrRef, Level = e.Level, Feat = e.Feat, Skill = e.Skill, Spell = e.Spell, Reason = m };
+        return new ElcFailure { Type = type, SubType = sub, StrRef = StrRefFor(sub), Level = e.Level, Feat = e.Feat, Skill = e.Skill, Spell = e.Spell, Reason = m };
     }
 
     /// <summary>Character checks NWNX_ELC adds to the rule check: a coloured name, the caster primary stat option.</summary>
@@ -144,7 +165,7 @@ public static class ElcPlugin
             if (!item.Identified)
                 yield return new ElcFailure { Type = TypeItem, SubType = SubUnidentifiedItem, StrRef = DefaultStrRef, Item = item.Id, Reason = "unidentified equipped item" };
             else if (!world.CanEquipByLevel(pc, item))
-                yield return new ElcFailure { Type = TypeItem, SubType = SubMinEquipLevel, StrRef = DefaultStrRef, Item = item.Id, Reason = "equipped item above the character's level" };
+                yield return new ElcFailure { Type = TypeItem, SubType = SubMinEquipLevel, StrRef = StrRefFor(SubMinEquipLevel), Item = item.Id, Reason = "equipped item above the character's level" };
         }
     }
 

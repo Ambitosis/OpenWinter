@@ -8,7 +8,7 @@ reported once per world through the `NwnxRegistry.Log` sink.
 - **Unknown functions** get one warning each and return their empty result stack.
 - **Registered placeholders** (handlers marked with `NwnxFunc.UnsupportedReason`) warn the same way. They keep
   their argument, result and storage behaviour; the warning says the engine effect is missing. They are:
-  Damage.SetEventScript, Dialog.End, Visibility.SetVisibilityOverride, Item.SetWeight, Player.SetCustomToken,
+  Dialog.End, Visibility.SetVisibilityOverride, Item.SetWeight, Player.SetCustomToken,
   Player.PossessCreature, Util.SetResourceOverride, Feedback.SetMessageHidden,
   Administration.DeletePlayerCharacter (boots the player but keeps the vault file),
   Creature.GetAttackBonus (base attack and ability only) and Creature.JumpToLimbo.
@@ -23,6 +23,11 @@ one warning, and calls from scripts name the calling script. Arguments and store
 
 This is OpenWinter's diagnostic policy; it makes no claim about NWNX or original-engine behaviour, and does not
 certify every DM event name or complete plugin coverage.
+
+The combat plugins (NWNX_Damage, NWNX_Weapon, NWNX_SkillRanks, NWNX_ELC) have no placeholders: their events and
+settings act on combat, skill ranks and character validation. NWNX_ELC reads its options, and NWNX_MaxLevel its level
+cap, from the same environment variables as NWNX (`NWNX_ELC_*`, `NWNX_MAXLEVEL_MAX`). One call keeps
+its value without an engine effect, as on nwserver: NWNX_Weapon_SetWeaponUnarmed doesn't make a weapon finessable.
 
 ## Testing
 
