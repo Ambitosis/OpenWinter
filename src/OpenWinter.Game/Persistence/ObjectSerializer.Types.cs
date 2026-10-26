@@ -81,7 +81,7 @@ public static partial class ObjectSerializer
         s.SetFloat("Y", d.Position.Y);
         s.SetFloat("Z", d.Position.Z);
         s.SetFloat("Bearing", d.Facing);
-        WriteCommon(s, d);
+        WriteCommon(world, s, d);
         return s;
     }
 
@@ -97,7 +97,7 @@ public static partial class ObjectSerializer
             s.SetByte("MapNoteEnabled", w.MapNoteEnabled ? 1 : 0);
         }
         Positioned(s, w);
-        WriteCommon(s, w);
+        WriteCommon(world, s, w);
         return s;
     }
 
@@ -119,7 +119,7 @@ public static partial class ObjectSerializer
         Positioned(s, tr);
         s.SetList("Geometry", tr.Geometry.Select(p => new GffStruct(3)
             .SetFloat("PointX", p.X - tr.Position.X).SetFloat("PointY", p.Y - tr.Position.Y).SetFloat("PointZ", p.Z - tr.Position.Z)).ToList());
-        WriteCommon(s, tr);
+        WriteCommon(world, s, tr);
         return s;
     }
 
@@ -156,7 +156,7 @@ public static partial class ObjectSerializer
         }
         s.SetList("StoreList", panels);
         Positioned(s, st);
-        WriteCommon(s, st);
+        WriteCommon(world, s, st);
         return s;
     }
 
@@ -177,7 +177,7 @@ public static partial class ObjectSerializer
         s.SetFloat("XPosition", snd.Position.X);
         s.SetFloat("YPosition", snd.Position.Y);
         s.SetFloat("ZPosition", snd.Position.Z);
-        WriteCommon(s, snd);
+        WriteCommon(world, s, snd);
         return s;
     }
 
@@ -209,7 +209,7 @@ public static partial class ObjectSerializer
         s.SetFloat("ZPosition", e.Position.Z);
         s.SetList("Geometry", e.Geometry.Select(p => new GffStruct(1)
             .SetFloat("X", p.X - e.Position.X).SetFloat("Y", p.Y - e.Position.Y).SetFloat("Z", p.Z - e.Position.Z)).ToList());
-        WriteCommon(s, e);
+        WriteCommon(world, s, e);
         return s;
     }
 

@@ -177,10 +177,24 @@ public sealed class NwnxRegistry : IWorldSystem
     public NwnxRegistry(World world)
     {
         _world = world;
-        world.ObjectRemoved += o => _objectState.Remove(o.Id);
+        // Lifting an item off the ground also reports it removed; only destruction ends its plugin state.
+        world.ObjectRemoved += o => { if (o.IsDestroyed) { _objectState.Remove(o.Id); _limbo.Remove(o.Id); } };
     }
 
-    public void Step(float dt) { }
+    // Objects created in no area (NWNX_Object_Deserialize): their actions still run, so a jump places them.
+    readonly HashSet<uint> _limbo = new();
+
+    public void TrackLimbo(GameObject o) => _limbo.Add(o.Id);
+
+    public void Step(float dt)
+    {
+        if (_limbo.Count == 0) return;
+        foreach (uint id in _limbo.ToList())
+        {
+            if (_world.Get(id) is not { Area: null } o || o is Item) { _limbo.Remove(id); continue; }
+            ActionQueues.Step(_world, o, dt);
+        }
+    }
 
     /// <summary>"NWNX_Creature" and "Creature" both name the Creature plugin.</summary>
     public static string PluginKey(string plugin) =>
@@ -202,6 +216,8 @@ public sealed class NwnxRegistry : IWorldSystem
         var key = PluginKey(plugin);
         return Handlers.Keys.Any(k => k.Item1 == key);
     }
+
+    public bool HasState(uint id) => _objectState.ContainsKey(id);
 
     public Dictionary<string, NwnxValue> ObjectState(uint id)
     {

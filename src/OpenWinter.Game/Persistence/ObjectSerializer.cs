@@ -150,7 +150,7 @@ public static partial class ObjectSerializer
             s.SetFloat("YOrientation", MathF.Sin(it.Facing));
             s.SetFloat("ZOrientation", 0f);
         }
-        WriteCommon(s, it);
+        WriteCommon(world, s, it);
         return s;
     }
 
@@ -261,7 +261,7 @@ public static partial class ObjectSerializer
             Sync(s, "IsPC", GffType.Byte, 1, 0);
             if (PersistenceSystem.CharacterDbStruct(c) is { } db) s.SetStruct("SQLite", db);
         }
-        WriteCommon(s, c);
+        WriteCommon(world, s, c);
         return s;
     }
 
@@ -395,14 +395,15 @@ public static partial class ObjectSerializer
             s.SetFloat("Z", p.Position.Z);
             s.SetFloat("Bearing", p.Facing);
         }
-        WriteCommon(s, p);
+        WriteCommon(world, s, p);
         return s;
     }
 
-    static void WriteCommon(GffStruct s, GameObject o)
+    static void WriteCommon(World world, GffStruct s, GameObject o)
     {
         WriteLocals(s, o.Locals);
         if (o.Uuid != null) s.SetString("UUID", o.Uuid);
+        Nwnx.NwnxPersistence.WriteField(world, o, s);
     }
 
     /// <summary>
@@ -454,18 +455,33 @@ public static partial class ObjectSerializer
     /// Items always keep their state; anything else only reads it with <paramref name="loadObjectState"/>.
     /// A creature fires OnAcquireItem for what it carries and then OnSpawn, but no area OnEnter (as in the original).
     /// A combined-format area becomes a new area instance (the location is ignored, as in the original).
+    /// With <paramref name="limbo"/> and no area, the object is created in the world but in no area
+    /// (NWNX_Object_Deserialize).
     /// </summary>
-    public static GameObject? Deserialize(World world, GffStruct s, string fileType, Location at, GameObject? owner, bool loadObjectState = false)
+    public static GameObject? Deserialize(World world, GffStruct s, string fileType, Location at, GameObject? owner, bool loadObjectState = false, bool limbo = false)
     {
         string type = fileType.Trim().ToUpperInvariant();
         if (type is "GFF" or "") type = s.Has("BaseItem") ? "UTI" : s.Has("Appearance_Type") ? "UTC" : s.Has("Appearance") && s.Has("Static") ? "UTP" : type;
         if (type == "CAF") return DeserializeArea(world, s);
-        var o = DeserializeObject(world, s, type, at, owner, loadObjectState);
+        GameObject? o;
+        if (limbo && world.Get(at.Area) is not Area && type is not ("UTI" or "UTC" or "BIC"))
+        {
+            // The other kinds are built in an area: build them in the first one and take them out again.
+            if (world.Areas.FirstOrDefault() is not { } host) return null;
+            o = DeserializeObject(world, s, type, new Location(host.Id, Vector3.Zero, 0), owner, loadObjectState, limbo: true);
+            if (o != null)
+            {
+                world.MoveToLimbo(o);
+                // Out of any area a waypoint keeps the position it was saved with (nwnx_object_serialize).
+                if (o is not (Placeable or Door)) o.Position = new Vector3(s.GetFloat("XPosition"), s.GetFloat("YPosition"), s.GetFloat("ZPosition"));
+            }
+        }
+        else o = DeserializeObject(world, s, type, at, owner, loadObjectState, limbo);
         if (o != null && (loadObjectState || o is Item)) ObjectStateGff.Read(world, o, s);
         return o;
     }
 
-    static GameObject? DeserializeObject(World world, GffStruct s, string type, Location at, GameObject? owner, bool loadObjectState)
+    static GameObject? DeserializeObject(World world, GffStruct s, string type, Location at, GameObject? owner, bool loadObjectState, bool limbo = false)
     {
         var area = world.Get(at.Area) as Area;
         float facing = at.FacingDegrees * MathF.PI / 180f;
@@ -483,13 +499,18 @@ public static partial class ObjectSerializer
                     world.Inventory.Acquired(owner, item);
                     return item;
                 }
-                if (area == null) { DestroyItem(world, item); return null; }
+                if (area == null)
+                {
+                    if (limbo) return item;
+                    DestroyItem(world, item);
+                    return null;
+                }
                 world.AddToArea(item, area, at.Position, facing);
                 return item;
             }
             case "UTC" or "BIC":
             {
-                if (area == null) return null;
+                if (area == null && !limbo) return null;
                 var c = world.Creatures.FromTemplate(s);
                 foreach (var item in c.Equipment.Values.Concat(c.Inventory)) { FixItem(world, item); item.Possessor = c.Id; }
                 if (loadObjectState) ReadLocals(s, c.Locals);
@@ -497,6 +518,12 @@ public static partial class ObjectSerializer
                 world.Register(c);
                 foreach (var item in c.Equipment.Values.Concat(c.Inventory)) item.Possessor = c.Id;
                 ClaimUuid(world, c, s);
+                if (area == null)
+                {
+                    world.Inventory.FireSpawnAcquires(c);
+                    world.QueueSpawn(c);
+                    return c;
+                }
                 var pos = at.Position;
                 if (area.Walkmesh.GroundHeight(pos.X, pos.Y, pos.Z, 2f) is { } z) pos.Z = z;
                 world.Inventory.FireSpawnAcquires(c);
@@ -507,7 +534,7 @@ public static partial class ObjectSerializer
             case "UTP":
             {
                 if (area == null || world.Loader == null) return null;
-                var p = world.Loader.CreatePlaceable(area, s, at.Position, GameObject.BearingFor(facing));
+                var p = world.Loader.CreatePlaceable(area, s, at.Position, GameObject.BearingFor(facing), walkmesh: !limbo);
                 p.OpenLockDC = (int)s.GetInt("OpenLockDC");
                 p.CloseLockDC = (int)s.GetInt("CloseLockDC");
                 p.KeyName = s.GetString("KeyName");
@@ -552,9 +579,11 @@ public static partial class ObjectSerializer
         foreach (var inner in item.Inventory) { FixItem(world, inner); inner.Possessor = item.Id; }
     }
 
+    /// <summary>Restores what an object's struct carries beside its fields: its UUID and plugin values (NWNX_POS).</summary>
     static void ClaimUuid(World world, GameObject o, GffStruct s)
     {
         if (s.GetString("UUID") is { Length: > 0 } uuid) world.System<PersistenceSystem>().TryClaim(o, uuid);
+        Nwnx.NwnxPersistence.ReadField(world, o, s);
     }
 
     /// <summary>Puts an item into a creature's, placeable's, store's or container's inventory. False if the owner cannot hold items.</summary>

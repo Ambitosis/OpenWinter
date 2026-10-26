@@ -159,7 +159,8 @@ public sealed class AreaLoader
         if (o is Door) area.DoorCache = null;
     }
 
-    public Placeable CreatePlaceable(Area area, GffStruct s, Vector3 position, float bearing)
+    /// <param name="walkmesh">False leaves the placeable's walkmesh out of the area (one built only to leave it again).</param>
+    public Placeable CreatePlaceable(Area area, GffStruct s, Vector3 position, float bearing, bool walkmesh = true)
     {
         var p = new Placeable
         {
@@ -179,7 +180,7 @@ public sealed class AreaLoader
             "OnMeleeAttacked", "OnOpen", "OnSpellCastAt", "OnTrapTriggered", "OnUnlock", "OnUsed", "OnUserDefined", "OnClick", "OnDialog");
         Place(area, p, s);
         var model = _rm.TwoDA("placeables").Get(p.Appearance, "ModelName");
-        if (_models.GetWalkmesh(model, ResType.Pwk) is { } pwk)
+        if (walkmesh && _models.GetWalkmesh(model, ResType.Pwk) is { } pwk)
         {
             area.Walkmesh.SetPlaceableOwner((int)p.Id);
             AddWalkmesh(area.Walkmesh, pwk, Placement(position, bearing), onlyWalkmeshNodes: false, owner: (int)p.Id);
