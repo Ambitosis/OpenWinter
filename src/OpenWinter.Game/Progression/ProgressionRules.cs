@@ -333,7 +333,7 @@ public static partial class ProgressionRules
         var errors = new List<RuleError>();
         var t = FeatTable(w);
         string name = FeatName(w, feat);
-        void Fail(string why) => errors.Add(new("feat-prereq", $"{name}: {why}"));
+        void Fail(string why) => errors.Add(new("feat-prereq", $"{name}: {why}", Feat: feat));
         if (t.Get(feat, "MINATTACKBONUS").Length > 0 && CreatureRules.BaseAttackBonus(w, after) < t.GetInt(feat, "MINATTACKBONUS"))
             Fail($"requires base attack bonus +{t.GetInt(feat, "MINATTACKBONUS")}.");
         for (int a = 0; a < 6; a++)

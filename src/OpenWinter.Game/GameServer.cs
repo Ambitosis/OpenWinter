@@ -620,9 +620,10 @@ public sealed partial class GameServer : IWorldOutput
             module = World.Module.Name.Resolve(World.Resources.Talk),
             players = _sessions.Count(x => x.Creature != null && !x.IsDM),
             maxPlayers = _options.MaxPlayers,
-            // Levels allowed: OpenWinter servers set no limits, so the game's whole range (nwserver's default 1 - 40).
+            // Levels allowed: OpenWinter servers set no limits, so the game's whole range (nwserver's default 1 - 40,
+            // more with NWNX_MAXLEVEL_MAX).
             minLevel = 1,
-            maxLevel = 40,
+            maxLevel = Rules.CreatureRules.MaxLevel,
             password = false, // OpenWinter servers take no player password
             localCharacters = _options.Vault == VaultMode.Local,
         }),
@@ -709,20 +710,13 @@ public sealed partial class GameServer : IWorldOutput
             {
                 if (Persistence.ServerVault.Load(World, s.PlayerName, choice.File) is { } bic)
                 {
-                    c = World.Creatures.FromTemplate(bic);
+                    if (!Legal(s, bic, out c)) return;
                     c.VaultFile = Path.GetFileNameWithoutExtension(choice.File);
                 }
             }
             else if (_options.Vault == VaultMode.Local && choice.Bic.Length > 0)
             {
-                var bic = Gff.Read(choice.Bic);
-                if (_options.EnforceLegalCharacters && Progression.LegalCharacterCheck.Check(World, bic) is { Count: > 0 } illegal)
-                {
-                    Console.WriteLine($"[server] {s.PlayerName}: illegal character: {string.Join("; ", illegal.Take(5))}");
-                    s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That character is not legal on this server: " + string.Join(" ", illegal.Take(5).Select(e => e.Message)) }.Write());
-                    return;
-                }
-                c = World.Creatures.FromTemplate(bic);
+                if (!Legal(s, Gff.Read(choice.Bic), out c)) return;
             }
         }
         catch (Exception e) when (e is InvalidDataException or EndOfStreamException or IOException)
@@ -736,6 +730,29 @@ public sealed partial class GameServer : IWorldOutput
         }
         SetPlayerSpeeds(c);
         EnterWorld(s, c);
+    }
+
+    /// <summary>
+    /// Loads a chosen character and, with Enforce Legal Characters on, validates it: the rule check replays its level
+    /// history, and NWNX_ELC's script, checks and events (<see cref="Nwnx.Plugins.ElcPlugin.Validate"/>) decide which
+    /// failures stand. A character that fails is told why and never enters.
+    /// </summary>
+    bool Legal(PlayerSession s, GffStruct bic, out Creature c)
+    {
+        var illegal = _options.EnforceLegalCharacters ? Progression.LegalCharacterCheck.Check(World, bic) : null;
+        c = World.Creatures.FromTemplate(bic);
+        if (illegal == null) return true;
+        World.Register(c);
+        c.Player = s;
+        var failure = Nwnx.Plugins.ElcPlugin.Validate(World, c, illegal);
+        c.Player = null;
+        if (failure == null) return true;
+        Console.WriteLine($"[server] {s.PlayerName}: illegal character: {(failure.Reason.Length > 0 ? failure.Reason : string.Join("; ", illegal.Take(5)))}");
+        string text = World.Resources.Talk?.Get((uint)failure.StrRef) is { Length: > 0 } message ? message
+            : "That character is not legal on this server: " + string.Join(" ", illegal.Take(5).Select(e => e.Message));
+        s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = text }.Write());
+        World.Destroy(c);
+        return false;
     }
 
     /// <summary>Enters the game with a character made on the selection screen (character creation).</summary>
