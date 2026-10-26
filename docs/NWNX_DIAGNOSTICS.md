@@ -10,8 +10,8 @@ reported once per world through the `NwnxRegistry.Log` sink.
   their argument, result and storage behaviour; the warning says the engine effect is missing. They are:
   Damage.SetEventScript, Dialog.End, Visibility.SetVisibilityOverride, Item.SetWeight, Player.SetCustomToken,
   Player.PossessCreature, Util.SetResourceOverride, Feedback.SetMessageHidden,
-  Administration.DeletePlayerCharacter (boots the player but keeps the vault file),
-  Creature.GetAttackBonus (base attack and ability only) and Creature.JumpToLimbo.
+  Administration.DeletePlayerCharacter (boots the player but keeps the vault file). NWNX_Creature has none: every
+  function has its engine behaviour (measured by the `nwnx_creature_*` parity suites).
 - **Unknown Set/Get calls** use the generic compatibility store and warn that storing a value does not implement
   the engine behaviour.
 - **Events.SubscribeEvent** warns, once per event name, when a script subscribes to an automatic `NWNX_ON_*` event

@@ -52,15 +52,14 @@ public class NwnxDiagnosticsTests
             ("Dialog", "End"), ("Damage", "SetEventScript"),
             ("Player", "SetCustomToken"), ("Player", "PossessCreature"),
             ("Util", "SetResourceOverride"), ("Feedback", "SetMessageHidden"),
-            ("Administration", "DeletePlayerCharacter"), ("Creature", "GetAttackBonus"),
-            ("Creature", "JumpToLimbo"),
+            ("Administration", "DeletePlayerCharacter"),
         };
         foreach (var (plugin, function) in calls)
         {
             for (int i = 0; i < 2; i++)
             {
                 Assert.True(registry.Call(plugin, function));
-                registry.Stack.Clear(); // PossessCreature and GetAttackBonus retain their existing results.
+                registry.Stack.Clear(); // PossessCreature retains its existing result.
             }
             Assert.Equal(2, registry.MissingCalls[$"NWNX_{plugin}_{function}"]);
         }
