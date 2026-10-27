@@ -10,6 +10,7 @@ public sealed class NwnResManData(GamePaths paths) : INwnBridgeData
     TalkTable? _female = Female(paths, "");
 
     public IReadOnlyList<string> MissingHaks => _rm.MissingHaks;
+    public ResMan Resources => _rm;
     public int TwoDARowCount(string table) => _rm.TwoDA(table).RowCount;
     public string TwoDA(string table, int row, string column) => _rm.TwoDA(table).Get(row, column);
 

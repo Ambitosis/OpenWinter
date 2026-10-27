@@ -48,8 +48,6 @@ public static partial class GameObjUpdatePlayerinfoMessages
         public uint StartingPackageNew { get; set; }
         [NwnField("starting_package_old")]
         public byte StartingPackageOld { get; set; }
-        [NwnField("multiclass_level")]
-        public byte MulticlassLevel { get; set; }
 
         public void Read(NwnReader r)
         {
@@ -69,7 +67,6 @@ public static partial class GameObjUpdatePlayerinfoMessages
             CompanionName = r.ReadString();
             StartingPackageNew = r.ReadDword();
             StartingPackageOld = r.ReadByte();
-            MulticlassLevel = r.ReadByte();
         }
 
         public void Write(NwnWriter w)
@@ -85,7 +82,6 @@ public static partial class GameObjUpdatePlayerinfoMessages
             w.WriteString(CompanionName);
             w.WriteDword(StartingPackageNew);
             w.WriteByte(StartingPackageOld);
-            w.WriteByte(MulticlassLevel);
         }
     }
 

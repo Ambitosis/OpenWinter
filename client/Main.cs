@@ -405,6 +405,7 @@ public partial class Main : Node3D
         }.Write());
         _session.AreaLoaded += () => GD.Print($"[client] area loaded at {sw.ElapsedMilliseconds} ms");
         if (_args.TryGetValue("capture-prologue", out var prologueDir)) _ = CapturePrologue(prologueDir);
+        if (_args.TryGetValue("capture-nwn-chargen", out var nwnChargenDir)) _ = CaptureNwnChargen(nwnChargenDir);
         if (_args.TryGetValue("mp-trace", out var mpDir)) StartMultiplayerTrace(mpDir, effects, hudState); // client/MainMultiplayerTrace.cs
         if (_args.ContainsKey("playtest")) StartPlaytest(hud); // client/Playtest/Main.Playtest.cs
     }
@@ -449,6 +450,7 @@ public partial class Main : Node3D
         else if (_args.TryGetValue("capture-nwn", out var nwnDir)) _ = CaptureNwn(nwnDir);
         else if (_args.TryGetValue("capture-nwn-nui", out var nwnNuiDir)) _ = CaptureNwnNui(nwnNuiDir);
         else if (_args.TryGetValue("capture-nwn-dialog", out var nwnDialogDir)) _ = CaptureNwnDialog(nwnDialogDir);
+        else if (_args.TryGetValue("capture-nwn-levelup", out var nwnLevelUpDir)) _ = CaptureNwnLevelUp(nwnLevelUpDir);
         else if (_args.TryGetValue("capture-cutscene", out var cutDir)) _ = CaptureCutscene(cutDir);
         else if (_args.TryGetValue("capture-world", out var worldDir)) _ = CaptureWorld(worldDir);
         else if (_args.TryGetValue("capture-items", out var itemsDir)) _ = CaptureItems(itemsDir);

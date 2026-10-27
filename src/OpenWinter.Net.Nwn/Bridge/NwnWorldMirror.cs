@@ -19,6 +19,8 @@ public interface INwnBridgeData
     string Text(uint strRef, byte gender);
     /// <summary>The server's haks and custom talk table, once it has named them.</summary>
     void UseContent(IReadOnlyList<string> haks, string customTlk);
+    /// <summary>The game data itself, for the character rules (level-up, character creation); null without it.</summary>
+    OpenWinter.Aurora.Resources.ResMan? Resources => null;
 }
 
 /// <summary>

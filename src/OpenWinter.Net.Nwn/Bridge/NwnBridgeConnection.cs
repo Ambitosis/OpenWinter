@@ -30,6 +30,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
     readonly NwnDialog _dialog;
+    readonly NwnRules _rules;
+    readonly NwnProgression _progression;
+    readonly NwnCharacterCreation _creation;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -51,6 +54,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
         _dialog = new NwnDialog(_world, data, m => _toClient.Enqueue(m));
+        _rules = new NwnRules(data, m => _toClient.Enqueue(m));
+        _progression = new NwnProgression(_rules, ToServer);
+        _creation = new NwnCharacterCreation(_rules, ToServer);
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -237,6 +243,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             ToServer(handled);
             return;
         }
+        if (_progression.FromClient(request.Kind, request.Json) || _creation.FromClient(request.Kind, request.Json)) return;
         switch (request.Kind)
         {
             case "area-ready":
@@ -280,7 +287,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void FromServer(NwnMessage message)
     {
-        if (_dialog.ToClient(message)) return;
+        if (_dialog.ToClient(message) || _progression.ToClient(message) || _creation.ToClient(message)) return;
         switch (message)
         {
             case ServerStatusMessages.ServerStatusModuleRunning status:
@@ -302,6 +309,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
                 _world.ObjectList(list);
+                _progression.ObjectList(list);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
@@ -349,6 +357,8 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _toClient.Enqueue(new CharacterListMessage
         {
             Mode = VaultMode.Server,
+            // nwmain offers New on a server vault; the server says whether it takes the character.
+            AllowNew = true,
             Characters = list.Characters.Select(c => new CharacterEntry
             {
                 File = c.Resref,

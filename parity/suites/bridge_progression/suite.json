@@ -1,0 +1,5 @@
+{
+  "seconds": 600,
+  "tile": 4,
+  "events": { "OnClientEntr": "br_enter" }
+}
