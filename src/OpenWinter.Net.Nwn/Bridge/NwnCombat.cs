@@ -386,6 +386,15 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
     // -- the HUD, labels and reactions --------------------------------------
 
     /// <summary>Called ten times a second: swings and damage due, and the HUD, labels and reactions when they changed.</summary>
+    /// <summary>The player's action queue as the HUD shows it, from the abilities bridge.</summary>
+    public void ActionQueue(JsonArray queue)
+    {
+        _queue = queue;
+        _hudDirty = true;
+    }
+
+    JsonArray _queue = [];
+
     public void Tick(float seconds)
     {
         _clock += seconds;
@@ -424,7 +433,7 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
                 ["id"] = me, ["name"] = Name(me), ["portrait"] = self.Portrait, ["hp"] = self.Hp ?? 0, ["maxHp"] = self.MaxHp ?? 0,
                 ["tempHp"] = self.TempHp ?? 0, ["dead"] = self.Condition == ObjectFlags.Dead, ["level"] = self.Level,
                 ["xp"] = xpNow, ["xpLevel"] = xpLevel, ["xpNext"] = xpNext, ["canLevelUp"] = _canLevelUp, ["gold"] = _gold, ["ac"] = _ac,
-                ["queue"] = new JsonArray(), ["effects"] = new JsonArray(_icons.Select(i => (JsonNode)(int)i.Icon).ToArray()),
+                ["queue"] = _queue.DeepClone(), ["effects"] = new JsonArray(_icons.Select(i => (JsonNode)(int)i.Icon).ToArray()),
             },
             ["party"] = party,
             ["target"] = Target(),

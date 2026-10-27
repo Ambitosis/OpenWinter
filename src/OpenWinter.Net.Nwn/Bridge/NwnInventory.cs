@@ -703,6 +703,10 @@ public sealed partial class NwnInventory(INwnBridgeData data, NwnInventoryHost h
         _bagsWanted = true;
     }
 
+    /// <summary>Everything the player carries and wears, as last seen (for using items' powers).</summary>
+    public IEnumerable<(uint Id, ItemAppearanceAndProps Look)> Items() =>
+        _carried.Values.Concat(_equipped.Values).Select(h => (h.Id, h.Look)).DistinctBy(i => i.Id);
+
     Held? Find(uint id) => _carried.GetValueOrDefault(id) ?? _equipped.Values.FirstOrDefault(h => h.Id == id);
 
     void Forget(uint id)

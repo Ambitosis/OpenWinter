@@ -438,7 +438,10 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
     }
 
     /// <summary>A portrait id as a texture base name: "po_" + portraits.2da BaseResRef, or the custom resref.</summary>
-    string PortraitResRef(ushort id, string? custom) =>
+    string PortraitResRef(ushort id, string? custom) => PortraitResRef(data, id, custom);
+
+    /// <summary>A portrait as the server names it: a custom resref, or a portraits.2da row.</summary>
+    public static string PortraitResRef(INwnBridgeData data, ushort id, string? custom) =>
         id >= 0xFFFE ? custom ?? "" : data.TwoDA("portraits", id, "BaseResRef") is { Length: > 0 } b ? "po_" + b.ToLowerInvariant() : "";
 
     /// <summary>A known creature's appearance and equipment; null when it isn't known.</summary>

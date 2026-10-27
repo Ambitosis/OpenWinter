@@ -9,6 +9,7 @@
         --instance <name>       run several servers side by side: each instance has its own sandbox
                                 (/home/nwnws/instances/<name>) and stop/status act on that one only
         --elc / --ilr <0|1>     enforce legal characters / item level restrictions (default 0)
+        --nwnx <A,B>            more NWNX plugins to load (e.g. CREATURE), for test modules that call them
     python tools/nwnws/nwnws.py stop [--instance <name>]
     python tools/nwnws/nwnws.py status [--instance <name>]   server process and the end of its log
     python tools/nwnws/nwnws.py run-parity ...        a parity suite's module with NWNX (parity-run does this)
@@ -139,6 +140,11 @@ def start(cfg, args):
         shutil.copy(character, stage / "character.bic")
         (stage / "settings.tml").write_text(SERVER_SETTINGS, encoding="utf-8", newline="\n")
         mod_name = module.stem
+        # More NWNX plugins (--nwnx CREATURE,...), for test modules that call them.
+        names = [n.strip().upper() for n in args.nwnx.split(",") if n.strip()]
+        if any(not re.fullmatch(r"[A-Z0-9_]+", n) for n in names):
+            sys.exit(f"nwnws: bad --nwnx {args.nwnx!r} (plugin names, comma-separated)")
+        plugins = "\n".join(f"export NWNX_{n}_SKIP=n" for n in names)
         script = f"""
 uid=$(id -u nwnws)
 # The server user may answer connections but not open them, so the master server is unreachable.
@@ -164,6 +170,7 @@ export NWNX_CORE_LOG_LEVEL=6
 export NWNX_CORE_SKIP_ALL=y
 export NWNX_WSNETLAYER_SKIP=n
 export NWNX_SERVERLOGREDIRECTOR_SKIP=n
+{plugins}
 export NWNX_WSNETLAYER_PORT={port}
 exec ./nwserver-linux -userdirectory {box} -module "{mod_name}" -port {port} -publicserver 0 \\
   -servername openwinter-nwnws -maxclients 8 -servervault 1 -elc {args.elc} -ilr {args.ilr}
@@ -303,6 +310,7 @@ def main():
     s.add_argument("--instance", default="sandbox", help="a name, so several servers can run side by side")
     s.add_argument("--elc", type=int, default=0)
     s.add_argument("--ilr", type=int, default=0)
+    s.add_argument("--nwnx", default="", help="more NWNX plugins to load, comma-separated (e.g. CREATURE)")
     for name in ("stop", "status"):
         sub.add_parser(name).add_argument("--instance", default="sandbox")
     r = sub.add_parser("run-parity")
