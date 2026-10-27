@@ -136,8 +136,9 @@ Supported so far:
 - login and choosing a server-vault character
 - the area and its static objects
 - creatures with appearance and equipment, placeables, doors (open or closed) and ground items
-- chat in both directions, explored map tiles, and the server's feedback lines (items and gold gained or lost,
-  locked doors, script messages)
+- chat in both directions, explored map tiles and the area's map pins (SetMapPinEnabled hides and shows them; the
+  client's map asks for the map when it opens and gets what the bridge knows), and the server's feedback lines
+  (items and gold gained or lost, locked doors, script messages)
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back (an
@@ -293,7 +294,8 @@ Testing:
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
   click NUI elements, attack, respawn, send any client request, play emotes and record (`--say`, `--use`,
   `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`, `--attack`, `--respawn-at`,
-  `--request kind=json|...`, `--emote`, `--record`), and run a script of client requests as another player
+  `--request kind=json|...`, `--emote`, `--record`; `--trace FILE` writes every message for the client in full,
+  one a line, and `--levelup-at SECONDS` starts `--levelup` later), and run a script of client requests as another player
   (`--player`; `--do "use:Chest;req:container-take {\"item\":\"@c:Arrow\"}"`, items named from the last
   inventory, container or store contents); it prints the animations it passes on. `nwn-dump` reads 2DAs with the
   haks the recorded server named, since some fields' presence depends on them.
@@ -327,6 +329,20 @@ Testing:
   `en N [TAG]`, `pop N`, `exam TAG`, `flip N`, `flipd N`; TAG an object's tag, `pc` or `item`). The client's
   `--capture-nwn-gui dir` (either interface) disables, forces and opens panels and examines, with a shot after
   each step. `nwn-bridge --do` takes `say:TEXT` and `gap:SECONDS` steps for such scripts.
+- `parity/suites/bridge_takeaway` builds a test module (start the server with `--nwnx CREATURE,PLAYER`) whose chat
+  commands ("bt COMMAND [ARG]", each answered with a "BT|" line of what the server holds now) take things away:
+  experience below or within a level, ability scores (an effect, or the base score), hit points, skills, armour
+  class and attack, feats and their uses, known and prepared spells, spell uses and slots, class levels; items
+  destroyed, taken, unequipped, restacked, recharged, stripped of properties, renamed, unidentified or replaced, and
+  gold; effects, polymorph (cast, scripted and supernatural), appearance, portrait and name and their undoing; a
+  henchman or summons removed or destroyed; a NUI window, a journal entry, a map pin, a quickbar button, a
+  conversation, a store and an open container taken away by the server. `NwnBridgeTakeAwayTests` replays frames
+  recorded from it. What the bridge passes on matched the server's new state in each, with these measured details:
+  the server lowers spell uses left only when it says so (after a level is taken back they can exceed the new
+  casts per day until a rest), keeps current hit points above a lowered maximum, ends a conversation when its
+  speaker is destroyed but not when the speaker's actions are cleared, and closes a store when the player is jumped
+  or the store destroyed. Its polymorph message's "allow cancel" was false for every form measured, and the server
+  cancelled each one when asked, so a polymorphed player is always offered the cancel.
 - `parity/suites/bridge_nui` builds a test module whose window has a text field bound to a single value and a list
   bound to an array, both watched; its event script reports each watch (index and value) in chat, so
   `nwn-bridge --request 'nui-bind={"token":1,"bind":"rows","value":[...],"index":1}'` shows what the server made of

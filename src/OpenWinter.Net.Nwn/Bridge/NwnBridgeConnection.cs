@@ -300,6 +300,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 if (JsonDocument.Parse(request.Json).RootElement.GetProperty("token").GetUInt32() == _world.LoadToken)
                     ToServer(new AreaMessages.AreaAreaLoaded());
                 break;
+            case "area-map":
+                _world.SendMap();
+                break;
         }
     }
 
@@ -370,6 +373,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 return true;
             case ModuleMessages.ModuleTime time:
                 _world.Time(time);
+                return true;
+            case MapPinMessages.MapPinPinEnabled pin:
+                _world.MapPin(pin);
                 return true;
             case AreaMessages.AreaClientArea area:
                 _world.Area(area);

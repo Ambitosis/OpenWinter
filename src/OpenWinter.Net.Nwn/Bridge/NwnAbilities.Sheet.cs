@@ -44,8 +44,15 @@ public sealed partial class NwnAbilities
         double now = _clock();
         if (!_sheetOpen || now - _sheetPolled > SheetClosedAfter)
         {
+            // Opened again: the panel the server kept active is current and the other is brought up to date at
+            // once, so skills lowered while the sheet was shut (a level taken back) don't show their old totals.
             _sheetOpen = true;
-            Panel(0, now);
+            if (_panel == 0 && _sheetFilled) Panel(1, now);
+            else
+            {
+                _sheetFilled = false;
+                Panel(0, now);
+            }
         }
         else if (_sheetFilled && now - _panelSince >= PanelSwitchEvery) Panel((sbyte)(1 - _panel), now);
         _sheetPolled = now;

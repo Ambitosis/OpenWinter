@@ -113,7 +113,7 @@ public sealed partial class NwnAbilities
         {
             ["classes"] = classes,
             ["abilities"] = abilities,
-            ["polymorphed"] = _formSpells.Length > 0,
+            ["polymorphed"] = _polymorphed || _formSpells.Length > 0,
             ["formAbilities"] = new JsonArray(_formSpells.Select(s => (JsonNode)(SpellExists(s) ? s : -1)).ToArray()),
             ["metamagic"] = metamagic,
             ["info"] = info,

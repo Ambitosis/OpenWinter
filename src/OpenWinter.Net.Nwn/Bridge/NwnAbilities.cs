@@ -55,6 +55,8 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     readonly HashSet<int>[] _known = Enumerable.Range(0, ClassSlots).Select(_ => new HashSet<int>()).ToArray();
     readonly List<(int Index, int Spell, int CasterLevel, bool Ready)> _spellAbilities = [];
     int[] _formSpells = [];
+    /// <summary>Polymorphed, as the server last said.</summary>
+    bool _polymorphed;
     uint _skillsUsable;
     bool _stateKnown;
     short _ac;
@@ -118,6 +120,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         foreach (var k in _known) k.Clear();
         _spellAbilities.Clear();
         _formSpells = [];
+        _polymorphed = false;
         _skillsUsable = 0;
         _stateKnown = false;
         _modesOn.Clear();
@@ -252,7 +255,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
                 {
                     case FeatChangeType.Add: _feats.TryAdd(c.FeatId, null); break;
                     case FeatChangeType.BonusAdd: _feats.TryAdd(c.FeatId, null); _bonusFeats.Add(c.FeatId); break;
-                    case FeatChangeType.Delete or FeatChangeType.BonusDelete: _feats.Remove(c.FeatId); _bonusFeats.Remove(c.FeatId); break;
+                    case FeatChangeType.Delete or FeatChangeType.BonusDelete: _feats.Remove(c.FeatId); _bonusFeats.Remove(c.FeatId); _featMax.Remove(c.FeatId); break;
                 }
             }
             foreach (var u in feats.Uses)
@@ -392,6 +395,13 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         {
             case GuiTimingEventMessages.GuiTimingEventInfo timing: TimingEvent(timing); return true;
             case ItemPropertyMessages.ItemPropertyUpdateUses uses: ItemUses(uses); return true;
+            case ClientSideMessageMiscMessages.ClientSideMessagePolymorph form when form.Morpher == _player:
+                // The form's start and end, a form without abilities of its own (a bear) too. Its "allow cancel" was
+                // false for every form measured, and the server cancelled each one (cast, scripted, supernatural).
+                _polymorphed = form.IsPolymorphed;
+                SendSpellbook();
+                SendAbilities();
+                return true;
         }
         return false;
     }
