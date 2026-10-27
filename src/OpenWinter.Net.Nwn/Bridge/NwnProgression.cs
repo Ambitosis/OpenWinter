@@ -101,6 +101,7 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
     /// <summary>The object list's entries about the player's creature.</summary>
     public void ObjectList(GameObjUpdateMessages.GameObjUpdateObjList list)
     {
+        bool levelState = false;
         foreach (var entry in list.Entries)
         {
             switch (entry)
@@ -114,6 +115,7 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
                     break;
                 case GameObjUpdateObjListPlayerInfo p:
                     PlayerInfo(p);
+                    levelState |= p.ObjectId == _player && p.AcGoldWeightLevelup != null;
                     break;
                 case GameObjUpdateMessages.ObjListGuiEntry { Value: GuiCharacterSheet { Experience: { } xp } s } when _described.TryGetValue(s.ObjectId, out var d):
                     d.Experience = xp;
@@ -121,7 +123,10 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
                     break;
             }
         }
-        if (_confirmedLevel >= 0 && _attributes.GetValueOrDefault(_player) is { } shown && shown.Classes.Sum(k => k.Level) >= _confirmedLevel)
+        // The server's update after a confirmed level shows it: the creature's classes come before its level-up
+        // state in the same list (measured). Level-up state without the level means the server took it back (a
+        // module's level-up script lowering the experience below the level's), and the level is planned again.
+        if (_confirmedLevel >= 0 && (levelState || _attributes.GetValueOrDefault(_player) is { } shown && shown.Classes.Sum(k => k.Level) >= _confirmedLevel))
             _confirmedLevel = -1;
         AnswerOpen();
     }

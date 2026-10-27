@@ -135,6 +135,45 @@ public class NwnBridgeProgressionTests
     }
 
     [DataFact]
+    public void ALevelTheServerTakesBackIsPlannedAgain()
+    {
+        // A module's level-up script may take a level back by lowering the experience below it (Risenholm does
+        // until a cleric picks a divine polarity): the server's update after the confirmation then has the player's
+        // level-up state without the new level (recorded there 42 ms after the confirmation). The window opened
+        // afterwards is answered at once, for the level the server kept.
+        var data = new NwnResManData(TestData.Paths);
+        var context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
+        var notes = new List<NotifyMessage>();
+        var sent = new List<NwnMessage>();
+        var progression = new NwnProgression(new NwnRules(data, b => notes.Add(NotifyMessage.Read(new MessageReader(b)))), sent.Add);
+        var frames = Recording(context);
+        var begin = frames.Single(f => f.Message is LevelupMessages.LevelUpBeginS2C).Message;
+        progression.Player = 0x7FFFFFFF;
+        foreach (var f in frames.TakeWhile(f => f.Message is not LevelupMessages.LevelUpBeginS2C))
+            if (f.Message is GameObjUpdateMessages.GameObjUpdateObjList list) progression.ObjectList(list);
+        progression.FromClient("levelup-data", "{}");
+        progression.ToClient(begin);
+        progression.FromClient("levelup-data", """{"choice":{"class":10},"auto":true}""");
+        var plan = JsonDocument.Parse(Assert.Single(notes, n => n.Kind == "levelup-plan").Json).RootElement;
+        progression.FromClient("levelup-apply", JsonSerializer.Serialize(new { choice = plan.GetProperty("auto") }));
+        Assert.IsType<LevelupMessages.LevelUpNull>(sent[^1]);
+        progression.ToClient(new LevelupMessages.LevelUpConfirm());
+        notes.Clear();
+
+        // The server's update after the level, without the creature's classes: the level didn't stay.
+        foreach (var f in frames.SkipWhile(f => f.Message is not LevelupMessages.LevelUpConfirm))
+            if (f.Message is GameObjUpdateMessages.GameObjUpdateObjList list)
+                progression.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+                {
+                    Entries = [.. list.Entries.Where(e => e is not GameObjUpdateUpdateMessages.GameObjUpdateObjListUpdateCreature)],
+                });
+        progression.FromClient("levelup-data", "{}");
+        progression.ToClient(begin);
+        var summary = JsonDocument.Parse(Assert.Single(notes, n => n.Kind == "levelup-data").Json).RootElement;
+        Assert.Equal(1, summary.GetProperty("level").GetInt32());
+    }
+
+    [DataFact]
     public void ALevelPlannedAfterPossessingACreatureIsTheCharactersOwn()
     {
         // As recorded: a level-1 wizard (Int 16) possesses a goblin and returns. The server describes each creature
