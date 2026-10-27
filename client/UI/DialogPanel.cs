@@ -301,7 +301,7 @@ public partial class DialogPanel : Control
         text = text.Trim();
         foreach (Match m in Spans.Matches(text))
         {
-            sb.Append(Escape(text[at..m.Index]));
+            sb.Append(Plain(text[at..m.Index]));
             var inner = Escape(m.Groups[2].Value);
             sb.Append(m.Groups[1].Value switch
             {
@@ -311,9 +311,13 @@ public partial class DialogPanel : Control
             });
             at = m.Index + m.Length;
         }
-        sb.Append(Escape(text[at..].Replace("[[/]]", "")));
+        sb.Append(Plain(text[at..]));
         return sb.ToString();
     }
+
+    /// <summary>Text outside the spans: a closing [[/]] (the conversation's &lt;/Start&gt;) ends a colour token's run, as in
+    /// the original, where modules close &lt;cRGB&gt; with &lt;/Start&gt;.</summary>
+    static string Plain(string s) => Escape(s.Replace("[[/]]", "</c>"));
 
     /// <summary>Text to BBCode: '[' escaped and NWN colour tokens (&lt;cRGB&gt;) as colours.</summary>
     static string Escape(string s) => NwnText.ToBbcode(s);
