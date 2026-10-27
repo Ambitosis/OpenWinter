@@ -1,0 +1,13 @@
+{
+  "starts": [0],
+  "entries": [
+    { "text": "First line.", "replies": [0, 1] },
+    { "text": "Second line.", "replies": [2] },
+    { "text": "Last line." }
+  ],
+  "replies": [
+    { "text": "Go on.", "entries": [1] },
+    { "text": "Stop." },
+    { "text": "And then?", "entries": [2] }
+  ]
+}
