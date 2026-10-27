@@ -23,6 +23,8 @@ public interface INwnBridgeData
     byte[]? Resource(string resref, string extension) => null;
     /// <summary>Whether a resource of this type (ResType) is installed.</summary>
     bool HasResource(string resref, ushort type) => false;
+    /// <summary>The game data itself, for the character rules (level-up, character creation); null without it.</summary>
+    OpenWinter.Aurora.Resources.ResMan? Resources => null;
 }
 
 /// <summary>

@@ -205,7 +205,9 @@ static class NwnRecordingDump
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
 ///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS]
-///              [--emote KEY,... [--emote-gap SECONDS]] [--do STEP;...] [--request KIND=JSON|KIND=JSON...] [--player NAME] [--record FILE]
+///              [--emote KEY,... [--emote-gap SECONDS]] [--do STEP;...] [--request KIND=JSON|KIND=JSON...] [--player NAME]
+///              [--levelup CLASS,...] [--new-character FIRST[,CLASS]] [--record FILE]
+/// (CHARACTER "-" with --new-character creates one)
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
@@ -221,7 +223,7 @@ static class NwnBridgeProbe
         var bridge = new OpenWinter.Net.Nwn.Bridge.NwnBridgeConnection(
             new OpenWinter.Net.Nwn.Bridge.NwnBridgeOptions(new Uri(args[1]), NwnCdKey.Generate()) { RecordTo = Opt("--record", "") is { Length: > 0 } rec ? rec : null },
             new OpenWinter.Net.Nwn.Bridge.NwnResManData(paths));
-        bridge.Send(new OpenWinter.Net.HelloMessage { PlayerName = Opt("--player", "probe"), CharacterResRef = args[2], AreaReadyHandshake = true }.Write());
+        bridge.Send(new OpenWinter.Net.HelloMessage { PlayerName = Opt("--player", "probe"), CharacterResRef = args[2] == "-" ? "" : args[2], AreaReadyHandshake = true }.Write());
         var clock = Stopwatch.StartNew();
         var seconds = double.Parse(Opt("--seconds", "10"));
         var walk = Opt("--walk", "");
@@ -255,6 +257,9 @@ static class NwnBridgeProbe
         OpenWinter.Net.DialogMessage? step = null;
         var answerAt = 0.0;
         var journalAt = double.Parse(Opt("--journal", "0"));
+        var levelUp = Opt("--levelup", "") is { Length: > 0 } levels ? new NwnBridgeLevelUp(levels) : null;
+        var newCharacter = Opt("--new-character", "") is { Length: > 0 } spec ? new NwnBridgeNewCharacter(spec) : null;
+        void Request(string kind, object data) => bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = kind, Json = System.Text.Json.JsonSerializer.Serialize(data) }.Write());
         var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
         var counts = new SortedDictionary<string, int>();
         uint controlled = 0;
@@ -280,6 +285,8 @@ static class NwnBridgeProbe
                     case OpenWinter.Net.MessageType.Notify:
                         var n = OpenWinter.Net.NotifyMessage.Read(r);
                         if (!steps.Observe(n, clock.ElapsedMilliseconds)) Console.WriteLine($"{clock.ElapsedMilliseconds,6} Notify {n.Kind} {(n.Json.Length > 300 ? n.Json[..300] + "..." : n.Json)}");
+                        levelUp?.Observe(n, clock.ElapsedMilliseconds, clock.Elapsed.TotalSeconds, Request);
+                        newCharacter?.Observe(n, clock.ElapsedMilliseconds, Request);
                         if (n.Kind == "nui-open" && System.Text.Json.JsonDocument.Parse(n.Json).RootElement is var open)
                         {
                             windows[open.GetProperty("id").GetString()!] = open.GetProperty("token").GetInt32();
@@ -325,7 +332,8 @@ static class NwnBridgeProbe
                         answerAt = clock.Elapsed.TotalSeconds + 2;
                         break;
                     case OpenWinter.Net.MessageType.CharacterList:
-                        Console.WriteLine($"{clock.ElapsedMilliseconds,6} CharacterList (the named character wasn't there)");
+                        Console.WriteLine($"{clock.ElapsedMilliseconds,6} CharacterList{(newCharacter != null ? ": creating a character" : " (the named character wasn't there)")}");
+                        newCharacter?.Begin(Request);
                         break;
                 }
             }
@@ -413,6 +421,7 @@ static class NwnBridgeProbe
                 bridge.Send(new OpenWinter.Net.DialogReplyMessage { Choice = choice }.Write());
                 step = null;
             }
+            if (controlled != 0) levelUp?.Tick(clock.Elapsed.TotalSeconds, Request);
             if (journalAt > 0 && clock.Elapsed.TotalSeconds > journalAt)
             {
                 journalAt = 0;

@@ -55,6 +55,10 @@ public static class LevelUpRequests
     sealed class PendingRoll { public int Class, Level, Die; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Creature, PendingRoll> Pending = new();
 
+    /// <summary>The hit die a summary rolled for this class and character level, if it showed one.</summary>
+    public static int? HeldHitDie(Creature c, int cls, int level) =>
+        Pending.TryGetValue(c, out var held) && held.Class == cls && held.Level == level ? held.Die : null;
+
     /// <summary>
     /// The level-up summary (the classic window's last step): the hit points the level gives, rolled now and kept for
     /// the level when it is taken (the original shows the figure before the level is confirmed).

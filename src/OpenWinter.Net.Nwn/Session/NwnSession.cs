@@ -61,6 +61,15 @@ public sealed class NwnSession(INwnTransport transport, NwnLogin login, NwnSessi
     public BndrPacket? Description { get; private set; }
     public NwnVersion ServerVersion { get; private set; }
     public List<NwnDecodeError> DecodeErrors { get; } = [];
+    /// <summary>Messages refused because the server can't take them (see <see cref="MaxClientFrameBytes"/>).</summary>
+    public List<string> Unsent { get; } = [];
+
+    /// <summary>
+    /// The largest message frame (type byte, major, minor and fields) sent to the server. WSNetLayer takes at most
+    /// 4088 bytes of a message from a client, and a bigger one stops the server (measured, with or without
+    /// compression or fragments); this keeps a margin under that.
+    /// </summary>
+    public const int MaxClientFrameBytes = 4064;
     /// <summary>Every frame received and sent, for recordings; null unless requested.</summary>
     public Action<bool, byte[]>? FrameObserver { get; set; }
 
@@ -86,12 +95,20 @@ public sealed class NwnSession(INwnTransport transport, NwnLogin login, NwnSessi
         if (!transport.IsOpen && transport.CloseReason is { } reason) Fail(reason);
     }
 
-    public void Send(NwnMessage message)
+    /// <summary>Sends a message; false (and noted in <see cref="Unsent"/>) when it is too large for the server.</summary>
+    public bool Send(NwnMessage message)
     {
         if (State != NwnSessionState.Ready) throw new InvalidOperationException("not logged in");
         var w = new NwnWsWriter(context);
         message.Write(w);
-        SendFrame([ClientToServer, message.Major, message.Minor, .. w.ToArray()]);
+        byte[] frame = [ClientToServer, message.Major, message.Minor, .. w.ToArray()];
+        if (frame.Length > MaxClientFrameBytes)
+        {
+            Unsent.Add($"{message.GetType().Name}: {frame.Length} bytes, more than the server takes");
+            return false;
+        }
+        SendFrame(frame);
+        return true;
     }
 
     public void Close(string reason) => transport.Close(reason);

@@ -34,6 +34,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly NwnDialog _dialog;
     readonly NwnCombat _combat;
     readonly NwnPresentation _presentation;
+    readonly NwnRules _rules;
+    readonly NwnProgression _progression;
+    readonly NwnCharacterCreation _creation;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -58,6 +61,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _inventory = new NwnInventory(data, new NwnInventoryHost(ToServer, m => _toClient.Enqueue(m), () => _world.Controlled,
             () => _world.TryPose(_world.Controlled, out var p, out _, out _, out _) ? p : default, _world.NameOf));
         _dialog = new NwnDialog(_world, data, m => _toClient.Enqueue(m));
+        _rules = new NwnRules(data, m => _toClient.Enqueue(m));
+        _progression = new NwnProgression(_rules, ToServer);
+        _creation = new NwnCharacterCreation(_rules, ToServer);
         _combat = new NwnCombat(data, _world, m => _toClient.Enqueue(m));
         _presentation = new NwnPresentation(data, _world, m => _toClient.Enqueue(m));
         // Using an item's power is the abilities' (an item they don't know is left to the inventory); the inventory
@@ -142,15 +148,34 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void Chat(ChatSendMessage chat)
     {
-        NwnMessage? m = chat.Channel switch
+        foreach (var part in ChatParts(chat.Text))
         {
-            ChatChannel.Talk => new ChatMessages.ChatTalkC2S { Message = chat.Text },
-            ChatChannel.Shout => new ChatMessages.ChatShoutC2S { Message = chat.Text },
-            ChatChannel.Whisper => new ChatMessages.ChatWhisperC2S { Message = chat.Text },
-            ChatChannel.Party => new ChatMessages.ChatPartyC2S { Message = chat.Text },
-            _ => null,
-        };
-        if (m != null) ToServer(m);
+            NwnMessage? m = chat.Channel switch
+            {
+                ChatChannel.Talk => new ChatMessages.ChatTalkC2S { Message = part },
+                ChatChannel.Shout => new ChatMessages.ChatShoutC2S { Message = part },
+                ChatChannel.Whisper => new ChatMessages.ChatWhisperC2S { Message = part },
+                ChatChannel.Party => new ChatMessages.ChatPartyC2S { Message = part },
+                _ => null,
+            };
+            if (m != null) ToServer(m);
+        }
+    }
+
+    /// <summary>The longest chat line sent as one message: well inside what the server takes from a client.</summary>
+    public const int MaxChatChars = 2000;
+
+    /// <summary>A chat line in pieces the server takes, broken at spaces where it can be.</summary>
+    public static IEnumerable<string> ChatParts(string text)
+    {
+        while (text.Length > MaxChatChars)
+        {
+            int cut = text.LastIndexOf(' ', MaxChatChars - 1, MaxChatChars / 2);
+            if (cut <= 0) cut = MaxChatChars;
+            yield return text[..cut];
+            text = text[cut..].TrimStart(' ');
+        }
+        if (text.Length > 0) yield return text;
     }
 
     void Action(ActionRequestMessage a)
@@ -260,6 +285,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         }
         if (_abilities.FromClient(request.Kind, request.Json)) return;
         if (_inventory.FromClient(request.Kind, request.Json)) return;
+        if (_progression.FromClient(request.Kind, request.Json) || _creation.FromClient(request.Kind, request.Json)) return;
         switch (request.Kind)
         {
             case "area-ready":
@@ -309,7 +335,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void FromServer(NwnMessage message)
     {
-        if (_dialog.ToClient(message)) return;
+        if (_dialog.ToClient(message) || _progression.ToClient(message) || _creation.ToClient(message)) return;
         switch (message)
         {
             case ServerStatusMessages.ServerStatusModuleRunning status:
@@ -336,10 +362,12 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 _combat.ObjectList(list, l => _presentation.ObjectList(l, _world.ObjectList));
                 _inventory.ObjectList(list);
                 _abilities.ObjectList(list);
+                _progression.ObjectList(list);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
                 _abilities.Player = control.ObjectId;
+                _progression.Player = control.ObjectId;
                 break;
             case GuiQuickbarMessages.GuiQuickbarSetAllButtons quickbar:
                 _abilities.Quickbar(quickbar);
@@ -395,6 +423,8 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _toClient.Enqueue(new CharacterListMessage
         {
             Mode = VaultMode.Server,
+            // nwmain offers New on a server vault; the server says whether it takes the character.
+            AllowNew = true,
             Characters = list.Characters.Select(c => new CharacterEntry
             {
                 File = c.Resref,
