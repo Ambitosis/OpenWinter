@@ -98,5 +98,6 @@ public partial class ClientSession
         while (!_presentationLoading && _presentationMessages.TryDequeue(out var message)) Handle(message);
         if (token != 0) Request("area-ready", new { token });
         AreaLoadTiming.End();
+        AreaPresented?.Invoke();
     }
 }

@@ -579,8 +579,8 @@ public partial class ClassicTalkLine : Control
         _line.AddThemeColorOverride("selection_color", new Color(0.4f, 0.35f, 0.2f));
         foreach (var style in new[] { "normal", "focus", "read_only" }) _line.AddThemeStyleboxOverride(style, new StyleBoxEmpty());
         _line.TextSubmitted += Submit;
-        _line.FocusEntered += () => DM.ChatInput.Typing = true;
-        _line.FocusExited += () => DM.ChatInput.Typing = false;
+        _line.FocusEntered += () => { DM.ChatInput.Typing = true; DM.ChatInput.ReportFocus(true, _channel); };
+        _line.FocusExited += () => { DM.ChatInput.Typing = false; DM.ChatInput.ReportFocus(false, _channel); };
         _line.GuiInput += LineInput;
         AddChild(_line);
         _list = new ModeList { Talk = this, Visible = false };

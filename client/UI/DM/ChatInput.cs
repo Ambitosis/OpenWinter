@@ -19,6 +19,10 @@ public partial class ChatInput : HBoxContainer
     /// <summary>True while the player is typing (movement and camera keys pause).</summary>
     public static bool Typing { get; set; }
 
+    /// <summary>The chat line (this one or the classic talk line) took or lost focus, with the selected channel.</summary>
+    public static event Action<bool, ChatChannel>? FocusChanged;
+    public static void ReportFocus(bool focused, ChatChannel channel) => FocusChanged?.Invoke(focused, channel);
+
     static readonly (string Name, ChatChannel Channel)[] Channels =
     {
         ("Talk", ChatChannel.Talk), ("Shout", ChatChannel.Shout), ("Whisper", ChatChannel.Whisper), ("Party", ChatChannel.Party), ("DM", ChatChannel.Dm),
@@ -34,8 +38,8 @@ public partial class ChatInput : HBoxContainer
         AddChild(_channel);
         _line = new LineEdit { PlaceholderText = "Press Enter to chat", TooltipText = "Channels: /s shout · /w whisper · /p party · /dm Dungeon Master", SizeFlagsHorizontal = SizeFlags.ExpandFill, MaxLength = 1000 };
         _line.TextSubmitted += Submit;
-        _line.FocusEntered += () => Typing = true;
-        _line.FocusExited += () => Typing = false;
+        _line.FocusEntered += () => { Typing = true; ReportFocus(true, Channels[Math.Max(0, _channel.Selected)].Channel); };
+        _line.FocusExited += () => { Typing = false; ReportFocus(false, Channels[Math.Max(0, _channel.Selected)].Channel); };
         AddChild(_line);
     }
 

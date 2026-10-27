@@ -354,7 +354,7 @@ static class NwnBridgeProbe
                 bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Emote, Argument = emote }.Write());
             }
             if (walked && uses.Count == 0)
-                steps.Step(bridge, clock.Elapsed.TotalSeconds, name => objects.Where(kv => kv.Key != controlled && kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+                steps.Step(bridge, clock.Elapsed.TotalSeconds, name => name == "me" ? controlled : objects.Where(kv => kv.Key != controlled && kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
                     .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, at)).Select(kv => kv.Key).FirstOrDefault());
             if (walked && uses.Count > 0 && clock.Elapsed.TotalSeconds > nextUse)
             {

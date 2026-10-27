@@ -15,6 +15,8 @@ namespace OpenWinter.Client.UI.Classic;
 public partial class ClassicCompass : Control
 {
     public ClassicContext Ctx = null!;
+    /// <summary>A left click on the compass (GUIEVENT_COMPASS_CLICK).</summary>
+    public static Action? Clicked;
     GuiModelView _frame = null!;
     GuiModel? _compass;
     Control _dial = null!;
@@ -123,6 +125,7 @@ public partial class ClassicCompass : Control
         if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true })
         {
             AcceptEvent();
+            Clicked?.Invoke();
         }
     }
 }

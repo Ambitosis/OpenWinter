@@ -265,6 +265,10 @@ Encounter scenes (`docs/ENCOUNTERS.md`): `encounterbudget`, `encounterparty` (`p
 `encounterrules`, `encountermix`, `encounterspawn` and `encounterwaves` (`parity/gen_encounterwaves.py`: how far a
 henchman may stand and still count, and respawn waves against the point pool).
 
+GUI panels (docs/UI.md "Panels scripts control"): the scene `guipanels` (`--only nwn`) logs every OnPlayerGuiEvent
+while panels are disabled, forced open and opened by their keys; the suite `gui_events` reads GetLastGuiEvent*
+outside an event and the panel functions on a non-player.
+
 Player-side checks: `encmodes` (stealth and detect stages), `bleedinst`
 (instant EffectHitPointChangeWhenDying), `playerai` (AI levels, a player's attack whose target leaves, an encounter
 creature's chase), `plotshot` (a player's shots, plot and immortal threateners; run with `--difficulty 3` and `2`),

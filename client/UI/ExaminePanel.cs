@@ -45,7 +45,12 @@ public partial class ExaminePanel : UiTheme.Window
     }
 
     /// <summary>Asks the server to describe an object.</summary>
-    public void Examine(uint id) => Session.Request("examine", new { @object = id });
+    public void Examine(uint id)
+    {
+        // A disabled examine panel stays shut and the attempt goes to the module (SetGuiPanelDisabled).
+        if (GuiPanels.Current?.AllowExamine(id) == false) return;
+        Session.Request("examine", new { @object = id });
+    }
 
     void OnNotify(NotifyMessage m)
     {

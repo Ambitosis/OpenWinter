@@ -1,0 +1,33 @@
+{
+  "seconds": 600,
+  "tile": 4,
+  "events": {
+    "OnClientEntr": "bg_enter",
+    "OnPlrChat": "bg_chat"
+  },
+  "areas": [
+    {
+      "resref": "parity",
+      "tag": "PARITY_AREA",
+      "name": "Parity",
+      "instances": [
+        {
+          "type": "utd",
+          "from": "bg_door",
+          "x": 25,
+          "y": 20,
+          "facing": 90
+        }
+      ]
+    }
+  ],
+  "templates": {
+    "bg_door": {
+      "from": "nw_door_metal",
+      "type": "utd",
+      "set": {
+        "Tag": "BG_DOOR"
+      }
+    }
+  }
+}

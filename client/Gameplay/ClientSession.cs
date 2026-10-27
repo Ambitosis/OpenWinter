@@ -30,6 +30,8 @@ public partial class ClientSession : Node3D
     /// <summary>An animation the server played on an object (the multiplayer trace records them).</summary>
     public event Action<PlayAnimationMessage>? AnimationReceived;
     public event Action? AreaLoaded;
+    /// <summary>The area has drawn, its loading screen is gone and the server has been told (after <see cref="AreaLoaded"/>).</summary>
+    public event Action? AreaPresented;
     /// <summary>Verified resources changed, including a replacement module Welcome.</summary>
     public event Action? ContentChanged;
     /// <summary>The previous module was cleared; close object-bound UI without sending old requests.</summary>
