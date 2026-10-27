@@ -157,7 +157,8 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         foreach (var entry in list.Entries)
         {
             // Anyone's spell: its conjuring, then its casting at the target.
-            if (entry is GameObjUpdateObjListUpdateCreature { AnimTypeData.Spell: { } cast } caster) Casting(caster.ObjectId, cast, caster.AnimTypeData.CastTarget);
+            // A script's conjure animation carries no spell (0xFFFFFFFF).
+            if (entry is GameObjUpdateObjListUpdateCreature { AnimTypeData.Spell: { SpellId: not uint.MaxValue } cast } caster) Casting(caster.ObjectId, cast, caster.AnimTypeData.CastTarget);
             switch (entry)
             {
                 case GameObjUpdateObjListPlayerInfo p when p.ObjectId == _player:

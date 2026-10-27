@@ -367,6 +367,8 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
     {
         foreach (var e in effects)
         {
+            // Beams are drawn between two objects (NwnPresentation).
+            if (NwnPresentation.IsBeam(data, e.EffectId)) continue;
             var key = (id, e.EffectId);
             if (e.ChangeType == 'A')
             {

@@ -10,7 +10,7 @@ namespace OpenWinter.Net.Nwn.Messages;
 /// <summary>Creates the message type for a major, minor and direction.</summary>
 public static class NwnMessageRegistry
 {
-    public const int Count = 463;
+    public const int Count = 464;
 
     public static NwnMessage? Create(byte major, byte minor, NwnDirection direction) =>
         (major, minor, direction) switch
@@ -134,6 +134,7 @@ public static class NwnMessageRegistry
             (0x09, 0x05, NwnDirection.ServerToClient) => new ChatMessages.ChatServerTell(),
             (0x09, 0x06, NwnDirection.ClientToServer) => new ChatMessages.ChatPartyC2S(),
             (0x09, 0x06, NwnDirection.ServerToClient) => new ChatMessages.ChatParty(),
+            (0x09, 0x07, NwnDirection.ServerToClient) => new ChatMessages.ChatPlaySound(),
             (0x09, 0x08, NwnDirection.ServerToClient) => new ChatMessages.ChatTalkRef(),
             (0x09, 0x09, NwnDirection.ServerToClient) => new ChatMessages.ChatShoutRef(),
             (0x09, 0x0A, NwnDirection.ServerToClient) => new ChatMessages.ChatWhisperRef(),

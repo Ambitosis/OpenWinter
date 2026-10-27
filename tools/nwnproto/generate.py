@@ -137,6 +137,20 @@ def apply_corrections():
     del nui.NuiBindEntry.__dataclass_fields__["array_index"]
     bag = game_obj_update_add.GameObjUpdateObjListAddPlaceable.__dataclass_fields__["body_bag_creature_id"]
     bag.type = typing.Annotated[_message.ObjectId, *(a for a in typing.get_args(bag.type)[1:] if not isinstance(a, MessageType))]
+    add_chat_play_sound()
+
+
+def add_chat_play_sound():
+    """PlaySound (chat 0x09 0x07, server to client), which the definitions lack: the object that plays it and the
+    sound's resref as a string (recorded from nwserver: a creature's PlaySound("as_cv_bell1"))."""
+    from nwn_message import message as m
+    from nwn_message.messages import chat
+
+    if hasattr(chat, "ChatPlaySound"):
+        return
+    ns = {"MAJOR": 0x09, "MINOR": 0x07, "DIRECTION": m.Direction.S2C, "__module__": chat.__name__,
+          "__annotations__": {"speaker_id": m.ObjectId, "sound": m.String}}
+    chat.ChatPlaySound = dataclasses.dataclass(kw_only=True)(type("ChatPlaySound", (m.Message,), ns))
 
 
 def git_commit() -> str:
