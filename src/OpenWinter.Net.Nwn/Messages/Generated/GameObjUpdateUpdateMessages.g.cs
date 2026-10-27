@@ -309,14 +309,14 @@ public static partial class GameObjUpdateUpdateMessages
 
             public void Read(NwnReader r)
             {
-                InviterId = r.ReadDword();
+                InviterId = r.ReadObjectId();
                 InviterFirst = r.ReadLocString();
                 InviterLast = r.ReadLocString();
             }
 
             public void Write(NwnWriter w)
             {
-                w.WriteDword(InviterId);
+                w.WriteObjectId(InviterId);
                 w.WriteLocString(InviterFirst);
                 w.WriteLocString(InviterLast);
             }

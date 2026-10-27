@@ -5,6 +5,9 @@
         --module <.mod path>    default: Contest Of Champions from the game's data/mod
         --character <name>      local-vault character copied into the server vault (default: the first one)
         --player <name>         the player name the vault folder is for (default: probe)
+        --also-player <name[:character]>  another player's vault folder with a copy of that local-vault character
+                                (default: the same one); repeatable, for tests with several players
+        --one-party <0|1>       server.one-party-only (nwserver's default is 1)
         --port <n>              UDP and websocket port (default 5121)
         --instance <name>       run several servers side by side: each instance has its own sandbox
                                 (/home/nwnws/instances/<name>) and stop/status act on that one only
@@ -138,7 +141,20 @@ def start(cfg, args):
     try:
         shutil.copy(module, stage / "module.mod")
         shutil.copy(character, stage / "character.bic")
-        (stage / "settings.tml").write_text(SERVER_SETTINGS, encoding="utf-8", newline="\n")
+        settings = SERVER_SETTINGS
+        if args.one_party is not None:
+            settings = settings.replace("[server]\n", f"[server]\n\tone-party-only = {'true' if args.one_party else 'false'}\n", 1)
+        (stage / "settings.tml").write_text(settings, encoding="utf-8", newline="\n")
+        # More players' vault folders (--also-player NAME[:CHARACTER]), each with its own copy of a character.
+        others = []
+        for i, spec in enumerate(args.also_player):
+            name, _, char = spec.partition(":")
+            if not re.fullmatch(r"[A-Za-z0-9_-]+", name):
+                sys.exit(f"nwnws: bad --also-player {spec!r}")
+            bic = find_character(cfg, char) if char else character
+            shutil.copy(bic, stage / f"other{i}.bic")
+            others.append(f'mkdir -p "{box}/servervault/{name}"\n'
+                          f'cp "{wsl_path(stage)}/other{i}.bic" "{box}/servervault/{name}/{bic.stem.lower()}.bic"')
         mod_name = module.stem
         # More NWNX plugins (--nwnx CREATURE,...), for test modules that call them.
         names = [n.strip().upper() for n in args.nwnx.split(",") if n.strip()]
@@ -161,6 +177,7 @@ mkdir -p {box}/modules "{box}/servervault/{args.player}"
 cp "{wsl_path(stage)}/module.mod" "{box}/modules/{mod_name}.mod"
 cp "{wsl_path(stage)}/character.bic" "{box}/servervault/{args.player}/{character.stem.lower()}.bic"
 cp "{wsl_path(stage)}/settings.tml" {box}/settings.tml
+{chr(10).join(others)}
 chown -R nwnws:nwnws {box}
 cat > {run} <<'EOF'
 cd "{game}/bin/linux-x86"
@@ -311,6 +328,8 @@ def main():
     s.add_argument("--elc", type=int, default=0)
     s.add_argument("--ilr", type=int, default=0)
     s.add_argument("--nwnx", default="", help="more NWNX plugins to load, comma-separated (e.g. CREATURE)")
+    s.add_argument("--also-player", action="append", default=[], help="NAME[:CHARACTER]: another player's vault folder")
+    s.add_argument("--one-party", type=int, choices=(0, 1), help="server.one-party-only")
     for name in ("stop", "status"):
         sub.add_parser(name).add_argument("--instance", default="sandbox")
     r = sub.add_parser("run-parity")
