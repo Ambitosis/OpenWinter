@@ -4,7 +4,7 @@
     <RootNamespace>OpenWinter.Net</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LiteNetLib" Version="1.2.0" />
+    <PackageReference Include="LiteNetLib" Version="2.1.5" />
   </ItemGroup>
   <Import Project="../../build/NetworkBuild.targets" />
 </Project>
