@@ -113,11 +113,24 @@ public sealed partial class NwnAbilities
         catch (JsonException) { return; }
         if (Button(slot) is not { } button) return;
         if (_quickbar.Length == 0) _quickbar = new NwnTagged?[QuickbarSlots];
+        // The original client sends a button only when the player changes it, so a slot the client hands back as the
+        // server's button already is (after the server set it, or after a level-up refreshed the bar) isn't sent.
+        if (_quickbar[index] is { } current && Same(current, slot)) return;
         _quickbar[index] = button;
-        // An item is named by its id and property field only; the server fills in the rest.
-        send(button.Value is ButtonItem { Primary: { } item }
-            ? new GuiQuickbarSetItemButton { Button = (byte)index, Item = item.ObjectId, PropertyId = item.PropertyId }
+        // An item is named by its id and property field (and a pair's off-hand item); the server fills in the rest.
+        send(button.Value is ButtonItem { Primary: { } item } pair
+            ? new GuiQuickbarSetItemButton { Button = (byte)index, Item = item.ObjectId, PropertyId = item.PropertyId, SecondaryItem = pair.Secondary?.ObjectId }
             : new GuiQuickbarSetButton { Button = (byte)index, Slot = button });
+    }
+
+    /// <summary>Whether a client slot is what the server's button already shows the client.</summary>
+    bool Same(NwnTagged current, QuickbarSlot? slot)
+    {
+        if (slot == null) return current.Value is ButtonEmpty;
+        if (Slot(current) is not { } shown) return false;
+        return (shown.Kind, shown.Id, shown.Class, shown.Meta, shown.Sub, shown.Item, shown.Paired, shown.SecondaryItem, shown.Prop, shown.Arg, shown.Text)
+            == (slot.Kind, slot.Id, slot.Class, slot.Meta, slot.Sub, slot.Item, slot.Paired, slot.SecondaryItem, slot.Prop, slot.Arg, slot.Text)
+            && (slot.Kind != "macro" || shown.Name == slot.Name);
     }
 
     /// <summary>A quickbar slot as an NWN button; null when it can't be one (an item the server hasn't described).</summary>
@@ -127,10 +140,15 @@ public sealed partial class NwnAbilities
         if (s == null) return Tag(ButtonObjectType.Empty, new ButtonEmpty());
         switch (s.Kind)
         {
-            // How the client names a main/off-hand pair to the server isn't known (a second item id after the first was
-            // not stored as one): the server's button is emptied and the pair lives on the client's bar until it reloads.
+            // A main/off-hand pair names both items; the server stores it as its own pair button.
             case "item" when s.Paired:
-                return Tag(ButtonObjectType.Empty, new ButtonEmpty());
+                return _items.TryGetValue(s.Item, out var main) && _items.TryGetValue(s.SecondaryItem, out var offHand)
+                    ? Tag(ButtonObjectType.Item, new ButtonItem
+                    {
+                        Primary = new ButtonItem.PrimaryItem { ObjectId = s.Item, PropertyId = FirstProperty, Item = main },
+                        Secondary = new ButtonItem.SecondaryItem { ObjectId = s.SecondaryItem, Item = offHand },
+                    })
+                    : null;
             case "item" when _items.TryGetValue(s.Item, out var item):
             {
                 int active = s.Prop < 0 ? 0 : item.Properties.Take(s.Prop).Count(Activatable);

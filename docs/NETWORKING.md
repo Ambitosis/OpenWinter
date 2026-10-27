@@ -222,6 +222,12 @@ Supported so far:
   wizard's spellbook does not, and the window says so. The server's copy has every field again (body parts and all)
   and passes enforce legal characters. The server says nothing about whether it takes new characters, so the
   character list always offers one.
+- walking: with WSNetLayer, a module that subscribes to NWNX_Events' walk-to-waypoint events
+  (`NWNX_ON_INPUT_WALK_TO_WAYPOINT_*`) makes the server crash inside NWNX_Events on the first click-to-move walk,
+  or keyboard drive the server accepts, from a websocket client (measured with NWNX:EE master and with a fork of
+  it; the same messages work without the subscription, and attacks, casts and pausing work with their own input
+  events subscribed). It is a server-side fault the client can't avoid: such servers can't be walked on through
+  WSNetLayer yet.
 - message size: WSNetLayer takes at most 4088 bytes of a message from a client and a bigger one stops the server
   (measured, with or without compression or fragments). The session never sends a message over 4064 bytes (it notes
   it in `NwnSession.Unsent` instead), and long chat lines go in pieces of up to 2000 characters.
@@ -251,9 +257,11 @@ What the server accepts, as measured against it:
   abilities, saves, base attack, combat figures and experience, the skills panel (1) each skill's total, and
   switching back to a panel brings all its figures again. While the client polls an open sheet the bridge switches
   between the two every few seconds, and sends the sheet only in answer to those polls.
-- The client sets an item quickbar button with only the item's id and property field, not the full item
-  description the server's own item buttons carry (`Messages/Custom/GuiQuickbarItemButton.cs`). How it names a
-  main/off-hand pair isn't known: the bridge empties the server's button and the pair stays on the client's bar.
+- The client sets an item quickbar button with the item's id and property field, then a flag and, for a
+  main/off-hand pair, the off-hand item's id; not the full item description the server's own item buttons carry
+  (`Messages/Custom/GuiQuickbarItemButton.cs`). Without the flag WSNetLayer logs the message as short ("desync at
+  stream pos 4: expected BOOL"). A button is sent only when the player changes it, never back to the server after
+  the server set it.
 
 Testing:
 
