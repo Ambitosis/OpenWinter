@@ -88,6 +88,27 @@ void main()
         + IntToString(GetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_CLOTH1)) + "/"
         + IntToString(GetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_NUM_COLORS + (ITEM_APPR_ARMOR_MODEL_TORSO * ITEM_APPR_ARMOR_NUM_COLORS) + ITEM_APPR_ARMOR_COLOR_LEATHER1)));
     PLog("app.setstring", NWNX_Item_GetEntireItemAppearance(oArmor2));
+    // Colours past the palettes' 176 rows (persistent worlds ship taller palettes).
+    NWNX_Item_SetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_CLOTH2, 249);
+    NWNX_Item_SetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_METAL2, 255);
+    NWNX_Item_SetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_NUM_COLORS + (ITEM_APPR_ARMOR_MODEL_TORSO * ITEM_APPR_ARMOR_NUM_COLORS) + ITEM_APPR_ARMOR_COLOR_METAL1, 254);
+    PLog("app.highcolours", IntToString(GetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_CLOTH2)) + "/"
+        + IntToString(GetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_METAL2)) + "/"
+        + IntToString(GetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_NUM_COLORS + (ITEM_APPR_ARMOR_MODEL_TORSO * ITEM_APPR_ARMOR_NUM_COLORS) + ITEM_APPR_ARMOR_COLOR_METAL1)));
+    PLog("app.highstring", NWNX_Item_GetEntireItemAppearance(oArmor2));
+    object oHigh = CopyItemAndModify(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_CLOTH1, 30, TRUE);
+    PLog("app.highcopy", IntToString(GetItemAppearance(oHigh, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_CLOTH2)) + "/"
+        + IntToString(GetItemAppearance(oHigh, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_CLOTH1)));
+    DestroyObject(oHigh);
+    // A per-part colour of 255 clears the override; values past a byte.
+    int nPart = ITEM_APPR_ARMOR_NUM_COLORS + (ITEM_APPR_ARMOR_MODEL_TORSO * ITEM_APPR_ARMOR_NUM_COLORS) + ITEM_APPR_ARMOR_COLOR_METAL1;
+    NWNX_Item_SetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, nPart, 255);
+    NWNX_Item_SetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_LEATHER2, 300);
+    NWNX_Item_SetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_METAL1, 256);
+    PLog("app.partclear", IntToString(GetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, nPart)) + "/"
+        + IntToString(GetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_LEATHER2)) + "/"
+        + IntToString(GetItemAppearance(oArmor2, ITEM_APPR_TYPE_ARMOR_COLOR, ITEM_APPR_ARMOR_COLOR_METAL1)));
+    PLog("app.partclearstring", NWNX_Item_GetEntireItemAppearance(oArmor2));
     NWNX_Item_SetItemAppearance(oWeapon, ITEM_APPR_TYPE_WEAPON_COLOR, ITEM_APPR_WEAPON_COLOR_TOP, 3);
     NWNX_Item_SetItemAppearance(oWeapon, ITEM_APPR_TYPE_WEAPON_MODEL, ITEM_APPR_WEAPON_MODEL_MIDDLE, 2);
     PLog("app.weaponset", NWNX_Item_GetEntireItemAppearance(oWeapon));

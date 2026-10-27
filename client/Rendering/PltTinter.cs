@@ -20,34 +20,67 @@ public sealed class PltTinter
     };
 
     readonly TextureFactory _textures;
-    readonly Dictionary<string, (byte[] Rgb, int W, int H)?> _palettes = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, (byte[] Rgba, int W, int H)?> _palettes = new(StringComparer.OrdinalIgnoreCase);
 
     public PltTinter(TextureFactory textures) { _textures = textures; }
 
     public bool IsPalette(string resref) => resref.Length > 0 && _textures.Source.KindOf(resref) == TextureCache.Kind.Palette;
 
-    /// <summary>Returns a texture key registered with the texture factory.</summary>
+    /// <summary>The PLT resref of a tinted texture key (<see cref="Tint"/>), or null for any other name.</summary>
+    public static string? Resref(string key)
+    {
+        if (!key.StartsWith("plt:", StringComparison.OrdinalIgnoreCase)) return null;
+        int end = key.IndexOf(':', 4);
+        return end > 4 ? key[4..end] : null;
+    }
+
+    /// <summary>Returns a texture key registered with the texture factory (opaque: plain materials draw it so).</summary>
     public string? Tint(string resref, byte[] layerColors)
     {
         string key = $"plt:{resref}:{System.Convert.ToHexString(layerColors)}";
         if (_textures.Cached(key) != null) return key;
+        return Paint(resref, layerColors, key, false) ? key : null;
+    }
+
+    /// <summary>
+    /// The texture of a tinted key (<see cref="Tint"/>) with the palette's alpha kept, for module shaders (their
+    /// texture 0: the environment-map mask, and the rows a colour index picked), or null.
+    /// </summary>
+    public string? WithAlpha(string key)
+    {
+        if (Resref(key) is not { } resref) return null;
+        string alpha = "plta:" + key[4..];
+        if (_textures.Cached(alpha) != null) return alpha;
+        try
+        {
+            return Paint(resref, System.Convert.FromHexString(key[(5 + resref.Length)..]), alpha, true) ? alpha : null;
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+    }
+
+    bool Paint(string resref, byte[] layerColors, string key, bool alpha)
+    {
         var plt = _textures.Source.GetPalette(resref);
-        if (plt == null) return null;
-        var rgb = new byte[plt.Width * plt.Height * 3];
+        if (plt == null || layerColors.Length < Layers) return false;
+        var rgba = new byte[plt.Width * plt.Height * 4];
         for (int i = 0; i < plt.Width * plt.Height; i++)
         {
             int layer = Math.Min(plt.Layers[i], (byte)(Layers - 1));
             var pal = Palette(Palettes[layer]);
-            if (pal is not { } p) { rgb[i * 3] = rgb[i * 3 + 1] = rgb[i * 3 + 2] = plt.Shades[i]; continue; }
+            if (pal is not { } p) { rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = plt.Shades[i]; rgba[i * 4 + 3] = 255; continue; }
             int row = Math.Clamp(layerColors[layer], 0, p.H - 1);
             int col = plt.Shades[i] * p.W / 256;
-            int src = (row * p.W + col) * 3;
-            rgb[i * 3] = p.Rgb[src]; rgb[i * 3 + 1] = p.Rgb[src + 1]; rgb[i * 3 + 2] = p.Rgb[src + 2];
+            Array.Copy(p.Rgba, (row * p.W + col) * 4, rgba, i * 4, 4);
+            if (!alpha) rgba[i * 4 + 3] = 255;
         }
-        var image = Image.CreateFromData(plt.Width, plt.Height, false, Image.Format.Rgb8, rgb);
+        var image = Image.CreateFromData(plt.Width, plt.Height, false, Image.Format.Rgba8, rgba);
+        if (!alpha) image.Convert(Image.Format.Rgb8);
         image.GenerateMipmaps();
         _textures.Put(key, image, hasAlpha: false);
-        return key;
+        return true;
     }
 
     /// <summary>An inventory icon PLT layer (<see cref="PltIcon"/>: transparent canvas, palette alpha, icon palettes).</summary>
@@ -78,7 +111,7 @@ public sealed class PltTinter
         return _iconPalettes[name] = result;
     }
 
-    (byte[] Rgb, int W, int H)? Palette(string name)
+    (byte[] Rgba, int W, int H)? Palette(string name)
     {
         if (_palettes.TryGetValue(name, out var cached)) return cached;
         (byte[], int, int)? result = null;
@@ -87,7 +120,7 @@ public sealed class PltTinter
             if (image.IsCompressed()) image.Decompress();
             image.ClearMipmaps();
             if (data.FlipV) image.FlipY();
-            image.Convert(Image.Format.Rgb8);
+            image.Convert(Image.Format.Rgba8);
             result = (image.GetData(), image.GetWidth(), image.GetHeight());
         }
         _palettes[name] = result;

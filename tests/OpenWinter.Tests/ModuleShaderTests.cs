@@ -219,7 +219,80 @@ public class ModuleShaderTests
         Assert.Contains("ow.vMine = ow_v_vMine;", t.Code);
         // Only what the fragment stage reads is passed on.
         Assert.DoesNotContain("ow_v_vUnused", t.Code);
+        // The library places the vertex in the model's space; the module's own code reads it in its mesh's space.
         Assert.Contains("ow.vPos = vec4(VERTEX, 1.0);", t.Code);
+        Assert.Contains("ow.vMine = ow." + EngineNames.MeshPosition + ".xyz;", t.Code);
+        Assert.True(t.MeshSpace);
+    }
+
+    [Fact]
+    public void AModuleThatMovesTheVertexKeepsTheModelsSpace()
+    {
+        var t = With(("ow_vs", "#define SHADER_TYPE 1\n#include \"inc_standard\"\nuniform float lift;\nvoid main() { vPos.z += lift; ApplyStandardShader(); }"))
+            .Translate("ow_vs", "fslit");
+        Assert.True(t.Ok, t.Reason);
+        Assert.False(t.MeshSpace);
+        Assert.Contains("ow.vPos.z += lift;", t.Code);
+        Assert.Contains(t.Notes, n => n.Contains("writes vPos"));
+    }
+
+    [Fact]
+    public void AModuleThatPlacesTheVertexItselfIsMarkedForMovingMeshes()
+    {
+        // gl_Position from m_mvp * vPos: mesh-space values are the rest pose, so meshes that move within their model
+        // give such a shader none of their mesh-space data (ModelBuilder) and it reads the model's space.
+        var t = With(("ow_vs", "#define SHADER_TYPE 1\n#include \"inc_standard\"\nuniform mat4 m_mvp;\nvarying vec3 vMine;\n" +
+                "void main() { ApplyStandardShader(); vMine = vPos.xyz; gl_Position = m_mvp * vPos; }"),
+            ("ow_fs", "#define SHADER_TYPE 2\n#define LIGHTING 0\n#include \"inc_standard\"\nvarying vec3 vMine;\nvoid main() { gl_FragColor = vec4(vMine, 1.0); }"))
+            .Translate("ow_vs", "ow_fs");
+        Assert.True(t.Ok, t.Reason);
+        Assert.True(t.MeshSpace);
+        Assert.True(t.PlacesVertex);
+        Assert.Contains("ow.gl_Position = ow." + EngineNames.MeshModelViewProjection + " * ow." + EngineNames.MeshPosition + ";", t.Code);
+        Assert.Contains("POSITION = " + EngineNames.GodotFromGlClip + " * ow.gl_Position;", t.Code);
+        Assert.Contains("(CUSTOM0.w > 0.5 ? vec4(CUSTOM0.xyz, 1.0) : vec4(VERTEX, 1.0))", t.Code);
+        Assert.Contains("(dot(CUSTOM1, CUSTOM1) == 0.0 ? mat4(1.0)", t.Code);
+    }
+
+    [Fact]
+    public void MeshSpaceProjectionIsGlsClipSpace()
+    {
+        Assert.StartsWith(EngineNames.GlFromGodotClip + " * PROJECTION_MATRIX * MODELVIEW_MATRIX", EngineNames.Find(EngineNames.MeshModelViewProjection)!.Vertex);
+        var t = With(("ow_vs", "#define SHADER_TYPE 1\n#include \"inc_standard\"\nuniform mat4 m_mvp;\nvarying vec4 vClip;\n" +
+                "void main() { ApplyStandardShader(); vClip = m_mvp * vPos; }"),
+            ("ow_fs", "#define SHADER_TYPE 2\n#define LIGHTING 0\n#include \"inc_standard\"\nvarying vec4 vClip;\nvoid main() { gl_FragColor = vClip; }"))
+            .Translate("ow_vs", "ow_fs");
+        Assert.True(t.Ok, t.Reason);
+        Assert.True(t.MeshSpace);
+        Assert.Contains("ow.vClip = ow." + EngineNames.MeshModelViewProjection + " * ow." + EngineNames.MeshPosition + ";", t.Code);
+    }
+
+    [Fact]
+    public void BoundingBoxesAreMaterialValues()
+    {
+        var t = With(("ow_vs", "#define SHADER_TYPE 1\n#include \"inc_standard\"\nuniform vec3 bboxMin;\nuniform vec3 bboxMax;\nvarying vec3 vRel;\n" +
+                "void main() { ApplyStandardShader(); vRel = (vPos.xyz - bboxMin) / (bboxMax - bboxMin); }"),
+            ("ow_fs", "#define SHADER_TYPE 2\n#define LIGHTING 0\n#include \"inc_standard\"\nvarying vec3 vRel;\nvoid main() { gl_FragColor = vec4(vRel, 1.0); }"))
+            .Translate("ow_vs", "ow_fs");
+        Assert.True(t.Ok, t.Reason);
+        Assert.True(t.Bounds);
+        Assert.True(t.MeshSpace);
+        Assert.Contains("uniform vec3 bboxMin = vec3(0.0);", t.Code);
+    }
+
+    [Fact]
+    public void TheMainTextureIsSampledDecodedAndHandedOverEncoded()
+    {
+        var t = With().Translate("vslit", "fslit");
+        Assert.True(t.Ok, t.Reason);
+        Assert.Contains("uniform sampler2D texUnit0 : source_color,", t.Code);
+        Assert.Contains("ow_encoded(texture(texUnit0, ", t.Code);
+        // A shader that hands the texture on to a function of its own samples it raw.
+        var passed = With(("ow_fs", "#define SHADER_TYPE 2\n#define LIGHTING 0\n#include \"inc_standard\"\nvec4 Fetch(sampler2D s) { return texture2D(s, vec2(0.5)); }\n" +
+            "void main() { gl_FragColor = Fetch(texUnit0); }")).Translate("vslit", "ow_fs");
+        Assert.True(passed.Ok, passed.Reason);
+        Assert.DoesNotContain("source_color", passed.Code);
+        Assert.DoesNotContain("ow_encoded", passed.Code);
     }
 
     [Fact]
@@ -391,7 +464,8 @@ public class ModuleShaderTests
         const string vs = "#define SHADER_TYPE 1\nuniform mat4 m_mvp;\nattribute vec4 vPos;\nvoid main() { gl_Position = m_mvp * vPos; gl_Position.y += 0.1; }";
         var t = With(("ow_place", vs)).Translate("ow_place", "fslit");
         Assert.True(t.Ok, t.Reason);
-        Assert.Contains("ow.m_mvp = " + EngineNames.GlFromGodotClip + " * PROJECTION_MATRIX", t.Code);
+        // The module's own code reads the mesh's matrices, in GL's clip space too.
+        Assert.Contains("ow." + EngineNames.MeshModelViewProjection + " = " + EngineNames.GlFromGodotClip + " * PROJECTION_MATRIX", t.Code);
         Assert.Contains("POSITION = " + EngineNames.GodotFromGlClip + " * ow.gl_Position;", t.Code);
         // The installed standard programs keep the renderer's own placement.
         var plain = With().Translate("vslit", "fslit");

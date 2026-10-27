@@ -1,0 +1,4 @@
+// Visual scene "shadertex": the barrel's wood, tinted red.
+customshaderVS vslit
+customshaderFS ow_texs
+parameter float owTint 1.0 0.35 0.35 1.0

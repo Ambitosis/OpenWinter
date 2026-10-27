@@ -40,6 +40,14 @@ static class ShaderCheck
         var materials = new List<MaterialData>();
         foreach (var key in content.SelectMany(s => s.Keys).Where(k => k.Type == ResType.Mtr).Distinct())
             if (rm.Read(key) is { } data) materials.Add(Mtr.Parse(data, key.ResRef));
+        // The game's own MTRs with shaders are used too (where the module has none of the same name).
+        var own = materials.Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var key in rm.Sources.Where(s => ShaderSources.IsInstalled(rm, s)).SelectMany(s => s.Keys).Where(k => k.Type == ResType.Mtr).Distinct())
+            if (!own.Contains(key.ResRef) && rm.Read(key) is { } data && Mtr.Parse(data, key.ResRef) is { HasCustomShader: true } stock)
+            {
+                materials.Add(stock);
+                own.Add(key.ResRef);
+            }
         var custom = materials.Where(m => m.HasCustomShader).ToList();
         Console.WriteLine($"{shaders.Count} shader files, {materials.Count} materials ({custom.Count} with custom shaders)");
 

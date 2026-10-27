@@ -25,6 +25,21 @@ public static class EngineNames
     public const string AuroraToGodot = "mat4(vec4(1.0, 0.0, 0.0, 0.0), vec4(0.0, 0.0, -1.0, 0.0), vec4(0.0, 1.0, 0.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))";
     public const string GodotToAurora = "mat4(vec4(1.0, 0.0, 0.0, 0.0), vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, -1.0, 0.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))";
 
+    /// <summary>vPos, m_mv and m_mvp as a module's own vertex code sees them (see <see cref="MeshSpace"/>).</summary>
+    public const string MeshPosition = "ow_mesh_vPos", MeshModelView = "ow_mesh_m_mv", MeshModelViewProjection = "ow_mesh_m_mvp";
+
+    /// <summary>The mesh-space name a module's vertex code reads instead of an engine name, or null.</summary>
+    public static string? MeshSpace(string name) => name switch
+    {
+        "vPos" => MeshPosition,
+        "m_mv" => MeshModelView,
+        "m_mvp" => MeshModelViewProjection,
+        _ => null,
+    };
+
+    /// <summary>The mesh's space to the model's, from the vertex's CUSTOM1-3 (rows of the mesh's transform; zero: none).</summary>
+    const string MeshMatrix = "(dot(CUSTOM1, CUSTOM1) == 0.0 ? mat4(1.0) : transpose(mat4(CUSTOM1, CUSTOM2, CUSTOM3, vec4(0.0, 0.0, 0.0, 1.0))))";
+
     /// <summary>
     /// Godot's clip space (y down, depth 1 at the near plane and 0 at the far one) to GL's (y up, depth -1 to 1), and
     /// back: the projection matrices given to shaders are GL's, as in the original, and gl_Position is turned back.
@@ -149,6 +164,14 @@ public static class EngineNames
         B("m_proj_inv", "mat4", "INV_PROJECTION_MATRIX * " + GodotFromGlClip, "INV_PROJECTION_MATRIX * " + GodotFromGlClip);
         B("m_vp_inv", "mat4", GodotToAurora + " * INV_VIEW_MATRIX * INV_PROJECTION_MATRIX * " + GodotFromGlClip,
             GodotToAurora + " * INV_VIEW_MATRIX * INV_PROJECTION_MATRIX * " + GodotFromGlClip);
+        // A module's own vertex code sees the vertex in its mesh's space and the mesh's own model-view
+        // matrices, as in the original; the client gives each vertex its mesh-space position (CUSTOM0, w 1) and, on
+        // meshes that don't move within their model, its mesh's transform into the model (CUSTOM1-3, rows). Without
+        // them the model's space is used (for the position too where the shader places the vertex itself, which the
+        // rest pose would freeze).
+        B(MeshPosition, "vec4", "(CUSTOM0.w > 0.5 ? vec4(CUSTOM0.xyz, 1.0) : vec4(VERTEX, 1.0))", null);
+        B(MeshModelView, "mat4", "MODELVIEW_MATRIX * " + MeshMatrix, null);
+        B(MeshModelViewProjection, "mat4", GlFromGodotClip + " * PROJECTION_MATRIX * MODELVIEW_MATRIX * " + MeshMatrix, null);
         B("ow_normal_matrix", "mat3", "MODELVIEW_NORMAL_MATRIX", "mat3(VIEW_MATRIX * MODEL_MATRIX)");
         B("screenParams", "vec2", "VIEWPORT_SIZE", "VIEWPORT_SIZE");
         B("pixelParams", "vec3", "vec3(1.0 / VIEWPORT_SIZE, VIEWPORT_SIZE.x / VIEWPORT_SIZE.y)", "vec3(1.0 / VIEWPORT_SIZE, VIEWPORT_SIZE.x / VIEWPORT_SIZE.y)");

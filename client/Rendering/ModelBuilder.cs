@@ -17,7 +17,16 @@ public static class ModelBuilder
         public readonly List<int> Indices = new();
         public readonly List<int> Bones = new();
         public readonly List<float> Weights = new();
+        /// <summary>For module shaders that read the vertex in its mesh's space: the mesh-space position and the rows
+        /// of the mesh's rest transform into the model, per vertex (CUSTOM0 to CUSTOM3).</summary>
+        public readonly List<float>[] MeshSpace = [new(), new(), new(), new()];
     }
+
+    /// <summary>The material is a module shader that needs each vertex's mesh-space data.</summary>
+    static bool WantsMeshSpace(Material material) => material.HasMeta(Shaders.ModuleShaders.MeshSpaceMeta);
+
+    /// <summary>The material's shader places the vertex itself: meshes that move within their model give it none of their mesh-space data.</summary>
+    static bool PlacesVertex(Material material) => material.HasMeta(Shaders.ModuleShaders.MeshSpaceMeta) && material.GetMeta(Shaders.ModuleShaders.MeshSpaceMeta).AsInt32() == 2;
 
     public sealed class StaticModel
     {
@@ -102,7 +111,7 @@ public static class ModelBuilder
                         if (!fade.TryGetValue(group, out target!)) fade[group] = target = new();
                     }
                     if (!target.TryGetValue(mat, out var batch)) target[mat] = batch = new Batch();
-                    Append(batch, part.Mesh!, xf, -1);
+                    Append(batch, part.Mesh!, xf, -1, WantsMeshSpace(mat));
                 }
             }
             if (lights && part.Light is { } l)
@@ -226,7 +235,7 @@ public static class ModelBuilder
             var mat = materialFor?.Invoke(part) ?? materials.Get(part.Mesh!, MaterialKind.Creature);
             if (mat == null) continue;
             if (!batches.TryGetValue(mat, out var batch)) batches[mat] = batch = new Batch();
-            Append(batch, part.Mesh!, Convert.T(globals[i]), i);
+            Append(batch, part.Mesh!, Convert.T(globals[i]), i, WantsMeshSpace(mat), PlacesVertex(mat));
         }
         if (batches.Count > 0)
         {
@@ -329,7 +338,7 @@ public static class ModelBuilder
     public static ArrayMesh MeshOf(MeshData mesh, Material? material = null)
     {
         var batch = new Batch();
-        Append(batch, mesh, Transform3D.Identity, -1);
+        Append(batch, mesh, Transform3D.Identity, -1, material != null && WantsMeshSpace(material));
         var result = Commit(new Dictionary<Material, Batch> { [material ?? new StandardMaterial3D()] = batch }, false);
         if (material == null) result.SurfaceSetMaterial(0, null);
         return result;
@@ -342,9 +351,24 @@ public static class ModelBuilder
     public static bool Drawable(MeshData? mesh) =>
         mesh is { Render: true, IsWalkmesh: false } && mesh.Indices.Length > 0 && !(mesh.Texture.Length == 0 && mesh.TransparencyHint != 0);
 
-    static void Append(Batch batch, MeshData mesh, Transform3D xf, int ownBone)
+    static void Append(Batch batch, MeshData mesh, Transform3D xf, int ownBone, bool meshSpace = false, bool placesVertex = false)
     {
         int baseIndex = batch.Vertices.Count;
+        if (meshSpace)
+        {
+            // Meshes that move within their model (bone-attached and skinned) get no transform: theirs is animated.
+            var b = xf.Basis;
+            for (int r = 0; r < 3; r++)
+            {
+                var row = batch.MeshSpace[r + 1];
+                for (int v = 0; v < mesh.Vertices.Length; v++)
+                    if (ownBone >= 0) row.AddRange([0f, 0f, 0f, 0f]);
+                    else row.AddRange([b.Column0[r], b.Column1[r], b.Column2[r], xf.Origin[r]]);
+            }
+            // A shader that places the vertex itself on such a mesh gets the model's space for the position too.
+            float has = ownBone >= 0 && placesVertex ? 0f : 1f;
+            foreach (var v in mesh.Vertices) batch.MeshSpace[0].AddRange([v.X, v.Y, v.Z, has]);
+        }
         var normalBasis = xf.Basis.Inverse().Transposed();
         var normals = mesh.Normals.Length == mesh.Vertices.Length ? null : SmoothNormals(mesh);
         bool skinned = ownBone >= 0;
@@ -428,7 +452,18 @@ public static class ModelBuilder
                 arrays[(int)Mesh.ArrayType.Bones] = b.Bones.ToArray();
                 arrays[(int)Mesh.ArrayType.Weights] = b.Weights.ToArray();
             }
-            mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+            Mesh.ArrayFormat format = 0;
+            if (b.MeshSpace[0].Count > 0)
+            {
+                arrays[(int)Mesh.ArrayType.Custom0] = b.MeshSpace[0].ToArray();
+                arrays[(int)Mesh.ArrayType.Custom1] = b.MeshSpace[1].ToArray();
+                arrays[(int)Mesh.ArrayType.Custom2] = b.MeshSpace[2].ToArray();
+                arrays[(int)Mesh.ArrayType.Custom3] = b.MeshSpace[3].ToArray();
+                const long rgba = (long)Mesh.ArrayCustomFormat.RgbaFloat;
+                format = (Mesh.ArrayFormat)((rgba << (int)Mesh.ArrayFormat.FormatCustom0Shift) | (rgba << (int)Mesh.ArrayFormat.FormatCustom1Shift)
+                    | (rgba << (int)Mesh.ArrayFormat.FormatCustom2Shift) | (rgba << (int)Mesh.ArrayFormat.FormatCustom3Shift));
+            }
+            mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays, null, null, format);
             mesh.SurfaceSetMaterial(mesh.GetSurfaceCount() - 1, material);
         }
         return mesh;

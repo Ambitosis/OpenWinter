@@ -26,11 +26,14 @@ public sealed class MaterialFactory
     public Material? Get(MeshData mesh, MaterialKind kind, string? textureOverride = null, bool moduleShaders = true)
     {
         string texName = textureOverride ?? mesh.Texture;
-        // A bitmap that names an MTR: its custom shaders, or else the texture it names.
-        if (Shaders != null && texName.Length is > 0 and <= 16 && !texName.Contains(':') && Shaders.Material(texName) is { } mtr)
+        // A bitmap that names an MTR: its custom shaders, or else the texture it names. A palette texture (PLT) names
+        // the MTR of its resref; its shaders get the tinted texture as texture 0.
+        string mtrName = PltTinter.Resref(texName) ?? texName;
+        if (Shaders != null && mtrName.Length is > 0 and <= 16 && !mtrName.Contains(':') && Shaders.Material(mtrName) is { } mtr)
         {
             if (moduleShaders && Shaders.For(mesh, mtr, texName, kind) is { } custom) return custom;
-            if (mtr.Textures[0].Length > 0) texName = mtr.Textures[0];
+            // A palette part keeps its tinted texture (an MTR's texture0 is not measured for one).
+            if (mtr.Textures[0].Length > 0 && PltTinter.Resref(texName) == null) texName = mtr.Textures[0];
         }
         // The original's water, when the module replaces the water program.
         if (moduleShaders && Shaders is { ModuleWater: true } && Shaders.Water(mesh, texName, kind) is { } water) return water;

@@ -225,15 +225,18 @@ public static class ShaderGlobals
             Set("fogColor", new Vector4(fog.R, fog.G, fog.B, 1f));
             float begin = Math.Max(0f, env.FogDepthBegin), end = Math.Max(begin + 0.01f, env.FogDepthEnd);
             Set("fogParams", new Vector4(env.FogEnabled ? 1f : 0f, begin, end, 1f / (end - begin)));
-            var ambient = env.AmbientLightColor;
+            // Area colours arrive linear, as the original gives them (scene shaderplt: 0xC0 grey reads 0.53).
+            var ambient = env.AmbientLightColor.SrgbToLinear();
             Set("lightAreaAmbient", new Vector3(ambient.R, ambient.G, ambient.B));
         }
         if (area.SunLight is { } sun && GodotObject.IsInstanceValid(sun))
         {
-            var c = sun.LightColor;
+            var c = sun.LightColor.SrgbToLinear();
             Set("lightAreaDiffuse", new Vector3(c.R, c.G, c.B));
-            // The direction the light travels, in Aurora coordinates.
-            Set("lightAreaDiffuseDirection", Aurora(-sun.GlobalTransform.Basis.Z));
+            // Towards the light in view space, the frame the original gives it in (scene shaderplt); OpenWinter's sun
+            // stands elsewhere in the sky than the original's, so the direction itself differs.
+            if (camera != null && camera.IsInsideTree())
+                Set("lightAreaDiffuseDirection", (camera.GlobalTransform.Basis.Inverse() * sun.GlobalTransform.Basis.Z).Normalized());
         }
         double hours = area.ClockMinutes / 60.0;
         Set("moduleHour", (int)hours % 24);

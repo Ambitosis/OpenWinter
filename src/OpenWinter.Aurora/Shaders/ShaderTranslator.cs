@@ -49,6 +49,13 @@ public sealed class ShaderTranslation
     public bool Lit;
     public bool Fog;
     public bool Keyholing;
+    /// <summary>The module's vertex code places the vertex itself (gl_Position): meshes that move within their model
+    /// must then give it the model's space, as their mesh-space matrices are the rest pose.</summary>
+    public bool PlacesVertex;
+    /// <summary>The module's vertex code reads the vertex in its mesh's space: meshes need their mesh-space data.</summary>
+    public bool MeshSpace;
+    /// <summary>The shader reads its mesh's bounding box (bboxMin / bboxMax): each mesh needs its own material.</summary>
+    public bool Bounds => Parameters.Any(p => p.Name is "bboxMin" or "bboxMax");
     /// <summary>Reads the colour or depth of what was drawn before it (texFBColor, texFBDepth).</summary>
     public bool ReadsColor, ReadsDepth;
     public string Reason => string.Join("; ", Problems);
@@ -287,11 +294,13 @@ public sealed class ShaderTranslator
                 var tokens = MarkedTokens(text);
                 unit.Parse(tokens);
                 unit.AddOverrides(pp);
+                unit.WritesVertex = stage == 1 && WritesVertexPosition(tokens, t.IsInstalled);
                 unit.SetsMaterial = tokens.Any(x => x.Text is "fSpecularity" or "fRoughness" or "fMetallicness" or "SpecularColor"
                     && x.File.Length > 0 && !t.IsInstalled(x.File));
                 // The installed library's own placement is the standard transform; a module's is used as written.
                 unit.WritesPosition = stage == 1 && tokens.Any(x => x.Text == "gl_Position" && x.File.Length > 0 && !t.IsInstalled(x.File));
                 unit.WritesDepth = stage == 2 && tokens.Any(x => x.Text == "gl_FragDepth" && x.File.Length > 0 && !t.IsInstalled(x.File));
+                if (unit.WritesVertex) result.Notes.Add($"{name}: writes vPos, so vPos, m_mv and m_mvp are the model's");
                 if (unit.Functions.Count > MaxFunctions) throw new TranslationException($"more than {MaxFunctions} functions");
             }
             catch (TranslationException e)
@@ -474,6 +483,38 @@ public sealed class ShaderTranslator
         /// <summary>Whether code outside the installed game sets gl_Position (vertex) or gl_FragDepth (fragment).</summary>
         public bool WritesPosition, WritesDepth;
 
+        /// <summary>Whether the module's own code assigns to vPos (it then shares the model-space vertex with the library).</summary>
+        public bool WritesVertex;
+
+        /// <summary>Whether code outside the installed game assigns to vPos (or a component of it).</summary>
+        static bool WritesVertexPosition(List<Tok> tokens, Func<string, bool> installed)
+        {
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                if (tokens[i].Text != "vPos" || tokens[i].File.Length == 0 || installed(tokens[i].File)) continue;
+                if (i > 0 && tokens[i - 1].Text == ".") continue;
+                if (i > 0 && tokens[i - 1].Text is "++" or "--") return true;
+                int j = i + 1;
+                while (j < tokens.Count)
+                {
+                    if (tokens[j].Text == "." && j + 1 < tokens.Count) j += 2;
+                    else if (tokens[j].Text == "[")
+                    {
+                        int depth = 0;
+                        for (; j < tokens.Count; j++)
+                        {
+                            if (tokens[j].Text == "[") depth++;
+                            else if (tokens[j].Text == "]" && --depth == 0) break;
+                        }
+                        j++;
+                    }
+                    else break;
+                }
+                if (j < tokens.Count && tokens[j].Text is "=" or "+=" or "-=" or "*=" or "/=" or "++" or "--") return true;
+            }
+            return false;
+        }
+
         public static List<List<Tok>> Split(List<Tok> tokens, string separator)
         {
             var parts = new List<List<Tok>> { new() };
@@ -553,6 +594,7 @@ public sealed class ShaderTranslator
             result.Lit = fs.Switch("LIGHTING") == 1;
             result.Fog = fs.Switch("FOG") == 1 && !options.FogDisabled;
             result.Keyholing = fs.Switch("KEYHOLING") == 1;
+            result.PlacesVertex = vs.WritesPosition && !options.PostProcess;
             if (options.PostProcess) result.Lit = result.Fog = result.Keyholing = false;
             foreach (var u in vs.Uniforms.Concat(fs.Uniforms)) AddUniform(u);
             foreach (var unit in new[] { vs, fs })
@@ -568,6 +610,9 @@ public sealed class ShaderTranslator
                 }
             foreach (var u in _uniforms.Keys) _topLevel.Add(u);
             // The fragment stage first: the vertex stage only passes on the varyings it reads.
+            // The main texture is sampled as the renderer samples plain materials' (decoded, then filtered) and
+            // handed to the shader encoded again, unless the code uses it other than by sampling it directly.
+            DecodedMain = DecodesMainTexture(vs) && DecodesMainTexture(fs);
             var fsStage = new Stage(this, fs, options, result);
             var fsCode = fsStage.Build();
             foreach (var name in _varyings.Keys.Where(fsStage.HasField).ToList()) _used.Add(name);
@@ -612,7 +657,8 @@ public sealed class ShaderTranslator
                 string type = engine?.Type ?? u.Type;
                 string array = u.Array.Length > 0 ? ConstArray(vs.Uniforms.Contains(u) ? vs : fs, u.Array) : "";
                 b.Append("uniform ").Append(type).Append(' ').Append(UniformName(u.Name)).Append(array);
-                if (engine?.Hint is { } hint) b.Append(" : ").Append(hint);
+                if (u.Name == MainTexture && DecodedMain) b.Append(" : source_color, ").Append(engine!.Hint);
+                else if (engine?.Hint is { } hint) b.Append(" : ").Append(hint);
                 else if (type is "sampler2D") b.Append(" : filter_linear_mipmap, repeat_enable");
                 if (engine?.Default is { } def && array.Length == 0) b.Append(" = ").Append(def);
                 b.Append(";\n");
@@ -621,6 +667,7 @@ public sealed class ShaderTranslator
             }
             foreach (var (name, (type, array, interpolation)) in _varyings.Where(v => _used.Contains(v.Key)))
                 b.Append("varying ").Append(interpolation.Length > 0 ? interpolation + " " : "").Append(type).Append(" ow_v_").Append(name).Append(array).Append(";\n");
+            if (DecodedMain) b.Append('\n').Append(EncodeFunction).Append('\n');
             if (options.PostProcess)
                 foreach (var g in new[] { EngineNames.PostView, EngineNames.PostViewInv, EngineNames.PostProj, EngineNames.PostProjInv, EngineNames.PostSize })
                 {
@@ -678,6 +725,43 @@ public sealed class ShaderTranslator
                 return;
             }
             _uniforms[u.Name] = u;
+        }
+
+        const string MainTexture = "texUnit0";
+
+        /// <summary>texUnit0 is declared decoded (source_color) and every sample of it is encoded back.</summary>
+        public bool DecodedMain;
+
+        const string EncodeFunction = """
+            vec4 ow_encoded(vec4 c)
+            {
+                vec3 l = max(c.rgb, vec3(0.0));
+                return vec4(mix(1.055 * pow(l, vec3(1.0 / 2.4)) - vec3(0.055), l * 12.92, lessThan(l, vec3(0.0031308))), c.a);
+            }
+            """;
+
+        /// <summary>The sampling functions whose result is a texel of their first argument.</summary>
+        internal static readonly HashSet<string> Sampling = new(StringComparer.Ordinal)
+        {
+            "texture", "texture2D", "textureLod", "texture2DLod", "texture2DLodEXT", "textureGrad", "texture2DGradEXT", "textureProj",
+            "texture2DProj", "textureProjLod", "texture2DProjLod", "textureOffset", "textureLodOffset", "textureGradOffset", "texelFetch",
+            "texelFetchOffset",
+        };
+
+        /// <summary>
+        /// Whether every use of texUnit0 in a stage's code samples it directly (or asks its size). A gather (one
+        /// channel of four texels) can't be encoded back, so it keeps the texture raw.
+        /// </summary>
+        static bool DecodesMainTexture(Unit unit)
+        {
+            foreach (var f in unit.Functions)
+                for (int i = 0; i < f.Body.Count; i++)
+                {
+                    if (f.Body[i].Text != MainTexture) continue;
+                    bool call = i >= 2 && f.Body[i - 1].Text == "(" && (Sampling.Contains(f.Body[i - 2].Text) || f.Body[i - 2].Text is "textureSize" or "textureQueryLevels");
+                    if (!call) return false;
+                }
+            return true;
         }
 
         public bool UseUniform(string name)
@@ -760,7 +844,7 @@ public sealed class ShaderTranslator
                 }
                 string ret = f.ReturnType.Length > 0 ? f.ReturnType : "void";
                 functions.Append(ret).Append(' ').Append(unit.Prefix).Append(f.Name).Append('(').Append(string.Join(", ", ps)).Append(")\n{\n");
-                functions.Append(Body(Rewrite(f.Body, scope))).Append("\n}\n\n");
+                functions.Append(Body(Rewrite(emitter.DecodedMain ? EncodeMainSamples(f.Body) : f.Body, scope))).Append("\n}\n\n");
             }
             var inits = new StringBuilder();
             foreach (var v in unit.State.Where(v => v.Init != null && v.Storage == "global"))
@@ -851,6 +935,41 @@ public sealed class ShaderTranslator
             b.Append("};\n\n");
             b.Append(functions).Append(stage);
             return b.ToString();
+        }
+
+        /// <summary>Each sample of texUnit0 wrapped in ow_encoded(...).</summary>
+        static List<Tok> EncodeMainSamples(List<Tok> body)
+        {
+            var output = new List<Tok>(body.Count + 8);
+            var closeAt = new Stack<int>();
+            int depth = 0;
+            for (int i = 0; i < body.Count; i++)
+            {
+                var t = body[i];
+                if (t.Kind == Kind.Ident && Emitter.Sampling.Contains(t.Text) && i + 2 < body.Count && body[i + 1].Text == "(" && body[i + 2].Text == "texUnit0"
+                    && (i == 0 || body[i - 1].Text != "."))
+                {
+                    output.Add(new Tok("ow_encoded", Kind.Ident, t.File));
+                    output.Add(new Tok("(", Kind.Punct, t.File));
+                    output.Add(t);
+                    output.Add(body[++i]);
+                    depth++;
+                    closeAt.Push(depth);
+                    continue;
+                }
+                output.Add(t);
+                if (t.Text == "(") depth++;
+                else if (t.Text == ")")
+                {
+                    if (closeAt.Count > 0 && closeAt.Peek() == depth)
+                    {
+                        closeAt.Pop();
+                        output.Add(new Tok(")", Kind.Punct, t.File));
+                    }
+                    depth--;
+                }
+            }
+            return output;
         }
 
         static string? Zero(string type) => type switch
@@ -971,6 +1090,15 @@ public sealed class ShaderTranslator
                     if (i + 2 < body.Count && body[i + 2].Text != ")") output.Add(new Tok(",", Kind.Punct));
                     paren++;
                     i++;
+                    continue;
+                }
+                if (MeshSpaceName(t) is { } meshName)
+                {
+                    Field(meshName, EngineNames.Find(meshName)!.Type, "");
+                    result.MeshSpace = true;
+                    output.Add(new Tok("ow", Kind.Ident));
+                    output.Add(new Tok(".", Kind.Punct));
+                    output.Add(t with { Text = meshName });
                     continue;
                 }
                 if (StateName(t.Text) is { } field)
@@ -1154,6 +1282,20 @@ public sealed class ShaderTranslator
             if (sampler == "texFBColor") { result.ReadsColor = true; return "ow_fb_color"; }
             result.ReadsDepth = true;
             return "ow_fb_depth";
+        }
+
+        /// <summary>
+        /// The mesh-space name a module's own vertex code reads for vPos, m_mv or m_mvp, or null: the library's code,
+        /// which places the vertex, keeps the model's space, as does a module that writes vPos, and the post-process
+        /// pass. (A module that writes gl_Position gets the model's space on meshes that move within their model:
+        /// <see cref="ShaderTranslation.PlacesVertex"/>.)
+        /// </summary>
+        string? MeshSpaceName(Tok t)
+        {
+            if (unit.Stage != 1 || t.File.Length == 0 || unit.Installed(t.File) || EngineNames.MeshSpace(t.Text) is not { } name) return null;
+            if (unit.WritesVertex || options.PostProcess) return null;
+            if (t.Text == "vPos") return _state.TryGetValue("vPos", out var v) && v.Storage == "attribute" ? name : null;
+            return _builtinUniforms.Contains(t.Text) ? name : null;
         }
 
         /// <summary>The state field a global name lives in, or null when it isn't one (adding the field on first use).</summary>

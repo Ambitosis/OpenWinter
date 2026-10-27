@@ -27,7 +27,12 @@ parameter float tint 1.0 0.5 0.25 1.0
   mesh's bitmap.
 - Each `parameter` sets the shader uniform of that name (`float` with one to four values, `int`).
 - An MTR without custom shaders still gives the mesh its `texture0`.
-- The game's own MTRs are not used yet: meshes that name one keep the material OpenWinter has always given them.
+- A body or armour part with a palette texture (PLT) uses the MTR named after its PLT. Its `texture0` is the part's
+  tinted texture, which keeps the palette's alpha (`texture0.a`, the environment-map mask), so a shader can
+  recognise texels by the palette row a colour index picked.
+- The game's own MTRs (the stock ice of `tti01`, the old man's and old woman's heads) are used as well, as in the
+  original (its ice walls are smooth grey, without the streaks the plain material shows; their shading still
+  differs with the sun's direction). A module's MTR of the same name comes first.
 - Shaders are sent to players with the module's other presentation resources (`.shd` and `.mtr` in the module,
   or in haks).
 
@@ -73,6 +78,9 @@ library runs as installed. A shader's fragment stage therefore describes the sur
 
 - `FragmentColor` after `ApplyStandardShader()` (and whatever the shader does to it afterwards) is the surface
   colour the renderer lights.
+- `texture0` is sampled as plain materials are (colour decoded before filtering) and handed to the shader in the
+  usual encoding, so a translated surface is exactly as bright as the same surface without a shader (scene
+  `shaderlit`).
 - `vFragmentNormal` (view space) and `fRoughness` are used for the lighting. A shader whose own code sets
   `fSpecularity`, `fRoughness`, `fMetallicness` or `SpecularColor` (wet surfaces, puddles) gets highlights from
   them; others are lit as OpenWinter lights plain meshes, without highlights.
@@ -87,20 +95,24 @@ fogged colour back (to mix in fog by hand, say) works on the unlit colour instea
 
 | Name | Meaning in OpenWinter |
 | --- | --- |
-| `vPos`, `vNormal`, `vTcIn`, `vColor` | The vertex in the mesh's space (skinned meshes arrive skinned) |
-| `m_mv`, `m_mvp`, `m_proj`, `m_proj_inv`, `m_view`, `m_view_inv`, `m_vp_inv`, `m_texture` | As in the original: world space is Z-up, projections are GL's (y up, depth -1 to 1) |
+| `vPos` | In the module's own vertex code, the vertex in its mesh's space, as in the original (a head's or an armour part's own coordinates). The model's space in the library's code, in a shader that assigns to `vPos`, and in a shader that writes `gl_Position` on a mesh that moves within its model (bone-attached and skinned meshes, whose mesh-space values would hold them in their rest pose) |
+| `vNormal`, `vTcIn`, `vColor` | The vertex's normal, texture coordinates and colour (skinned meshes arrive skinned) |
+| `m_mv`, `m_mvp` | In the module's own vertex code, on meshes that don't move within their model (tiles, placeables built still), the mesh's own matrices; otherwise the model's (bone-attached and skinned meshes, the library's code, shaders that assign to `vPos`) |
+| `m_proj`, `m_proj_inv`, `m_view`, `m_view_inv`, `m_vp_inv`, `m_texture` | As in the original: world space is Z-up, projections are GL's (y up, depth -1 to 1) |
+| `bboxMin`, `bboxMax` | The mesh's bounding box, in its own space |
 | `gl_FragCoord`, `gl_FrontFacing`, `screenParams`, `pixelParams`, `clipParams` | As in the original (origin at the bottom left, depth growing away from the camera); `clipParams` are OpenWinter's camera planes |
 | `texFBColor`, `texFBDepth` | What was drawn before, read at GL screen coordinates: for a surface the opaque scene, for the post-process pass the finished view (see below) |
 | `scriptableFloat1..16`, `scriptableInt1..16`, `scriptableVec1..16` | Set by SetShaderUniformFloat / Int / Vec for this player |
 | `worldtimerTimeOfDay`, `sceneCurrentFrame`, `moduleHour`, `moduleMinutesPerHour`, `moduleDawnHour`, `moduleDuskHour` | Milliseconds of real time (not the game clock: SetTime doesn't change it), frame count, game hour, the module's minutes per hour, dawn and dusk hours |
 | `playerPosition`, `cameraPosition`, `cameraFocus`, `cameraPitch`, `cameraYaw`, `cameraViewAngle`, `playerCameraDist` | Kept up to date every frame; `cameraPitch` in degrees from straight down, as SetCameraFacing's |
-| `areaFlags`, `fogColor`, `fogParams`, `lightAreaAmbient`, `lightAreaDiffuse`, `lightAreaDiffuseDirection` | The area's flags, fog and sun or moon |
+| `areaFlags`, `fogColor`, `fogParams` | The area's flags and fog |
+| `lightAreaAmbient`, `lightAreaDiffuse`, `lightAreaDiffuseDirection` | The area's ambient and sun or moon colours, linear as in the original, and the direction towards OpenWinter's sun or moon in view space (the original's sun stands elsewhere in the sky: not matched yet) |
 | `areaGlobalWind` | SetAreaWind's direction times its magnitude, as given; the area's own wind blows diagonally at its strength (medium (0.707, 0.707, 0)) |
 | `areaWeatherType`, `areaWeatherDensity` | WEATHER_* shown, and how far it has faded in, from 0 to 100; after SetWeather clear the type stays while it fades out (the original was still at full density three seconds after clearing, OpenWinter fades over the weather's fade time) |
 | `targetShape...`, `targetWorldCoords` | While a script's targeting mode with SetEnterTargetingModeData lasts: its shape, sizes, flags, range, spell and feat, and the ground under the mouse |
 | `materialFrontDiffuse`, `fAlphaDiscardValue`, `texUnitEnv`, `texUnitNoise` | From the mesh and its texture; the noise is the game's `solid_noise` |
 
-Not provided yet (they read as zero): the per-light arrays (`lightPosition` ...), `bboxMin` / `bboxMax`, the wind
+Not provided yet (they read as zero): the per-light arrays (`lightPosition` ...), the wind
 point sources (`windPointSourcesCount` is 0) and the targeting shape of spells cast from the spellbook. A module's own vertex code that writes `gl_Position` places
 the vertex; the installed library's placement is OpenWinter's own. A module's own fragment code that writes
 `gl_FragDepth` sets the depth.
@@ -128,7 +140,9 @@ with Godot, then lists each one as `ok` or `fallback` with the reason. `--show v
 
 In the client, `--shader-uniforms "int9=65280;float1=0.5;vec2=1,0,0,1"` holds script uniforms at these values
 (scripts can't change them) to preview a shader, `--module-shaders off` draws every mesh with its normal
-material, and `--capture-shaders <dir>` takes a few views of the area and writes which programs were used.
+material, and `--capture-shaders <dir>` takes a few views of the area (and of the player up close) and writes
+which programs were used; `--shader-script <name>` runs a script on the player first (from `--script-dir`, to set
+material uniforms), `--shader-wait` / `--shader-after <seconds>` start later and wait longer after it.
 
 ## Replacing the engine's own programs
 
@@ -160,6 +174,16 @@ the original, except where the water itself differs, below.)
 
 - Water past the area's edge: the original continues the water of the edge tiles beyond the area (with its own
   water as with a module's, scenes watershadow and waterfx); OpenWinter draws water only on the area's tiles.
-- The game's own MTRs (stock ice, some heads).
 - Geometry shaders (`customshaderGS`).
-- `ReplaceObjectTexture` on meshes drawn with a custom shader.
+- The sun's direction: `lightAreaDiffuseDirection` follows OpenWinter's sun, which stands elsewhere in the sky than
+  the original's (scene `shaderplt`: the original's sun about 43 degrees up in the north-east, OpenWinter's
+  about 64 degrees up in the south), so lighting and highlights fall differently.
+- The highlights the original adds to every lit surface from the library's material values (a small specular
+  term whose colour comes from the texture: the faint texture detail it keeps under a flat tint). OpenWinter lights
+  such surfaces without highlights, and gives a shader that sets the values itself the renderer's own highlights.
+
+## ReplaceObjectTexture
+
+`ReplaceObjectTexture` on a mesh drawn with a custom shader works as in the original (scene `shadertex`): when the
+new name has an MTR with shaders, the mesh is drawn with that material (whose `texture0` still defaults to the
+mesh's own bitmap); otherwise the mesh keeps its material and the new texture becomes its `texture0`.

@@ -1,0 +1,23 @@
+// Visual scene "shadertex" (part of OpenWinter, MIT licence): texture 0 times the material's owTint, unlit, so a
+// shot tells which material (by its tint) and which texture a mesh is drawn with.
+#define SHADER_TYPE 2
+#define FOG 0
+#define KEYHOLING 0
+#define LIGHTING 0
+#define NORMAL_MAP 0
+#define SPECULAR_MAP 0
+#define ROUGHNESS_MAP 0
+#define HEIGHT_MAP 0
+#define SELF_ILLUMINATION_MAP 0
+#define ENVIRONMENT_MAP 0
+
+#include "inc_standard"
+
+uniform vec4 owTint;
+
+void main()
+{
+    FragmentColor = vec4(1.0);
+    SetupStandardShaderInputs();
+    gl_FragColor = vec4(texture2D(texUnit0, vTexCoords).rgb * owTint.rgb, 1.0);
+}
