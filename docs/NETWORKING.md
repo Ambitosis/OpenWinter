@@ -209,7 +209,9 @@ Supported so far:
   ranks added to each raised skill (one rank of a cross-class skill for two points), the points left, the chosen
   feats and those the class grants at the level (the server adds only the feats it is sent), the spells learnt by
   spell level, the associates and the class's domains or school. The server confirms or refuses it; another level
-  waits until the server's update shows the last one. The server applies what it is sent without checking it, and
+  waits until the server's update shows the last one, or shows the player's level-up state without it (a module's
+  level-up script that takes the level back by lowering the experience, as Risenholm does until a cleric picks a
+  divine polarity). The classic window shows, and takes the input, only once the server has answered. The server applies what it is sent without checking it, and
   enforce legal characters checks the character at its next login: levels taken through the bridge pass (fighter,
   wizard, sorcerer, rogue with a cross-class skill, cleric then wizard, to fifth level, and after possession). A
   level's skill list is flagged in a 32-bit field, so skills past the 32nd row aren't raised yet. A sorcerer's or

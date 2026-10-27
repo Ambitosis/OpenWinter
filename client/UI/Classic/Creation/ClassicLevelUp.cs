@@ -50,12 +50,14 @@ public partial class ClassicLevelUp : CgFlow
         TreeExiting += () => { if (Current == this) Current = null; };
     }
 
+    /// <summary>
+    /// Asks the server for the level; the window shows, and takes the input, once it answers. A server that keeps the
+    /// window shut answers nothing, and the game goes on.
+    /// </summary>
     public void Open()
     {
         if (Visible) return;
-        Visible = true;
-        GetParent()?.MoveChild(this, -1);
-        Gameplay.PlayerInput.Blocked = true;
+        _opening = true;
         _choice = new LevelChoice();
         _plan = null;
         _summary = null;
@@ -63,14 +65,28 @@ public partial class ClassicLevelUp : CgFlow
         _afterPlan = null;
         if (Model == null) Session.Request("chargen-data");
         Session.Request("levelup-data");
+    }
+
+    bool _opening;
+
+    /// <summary>Shows the window once the level's summary and the creation data are in.</summary>
+    void Show()
+    {
+        if (!_opening || _summary == null || Model == null) return;
+        _opening = false;
+        Visible = true;
+        GetParent()?.MoveChild(this, -1);
+        Gameplay.PlayerInput.Blocked = true;
         // Single player pauses while the window is open (the server keeps answering): the original writes "PAUSED"
         // and "UNPAUSED" in red (l00, l10). A pause the player made stays.
         _paused = SinglePlayer && (_pauseState & 2) == 0;
         if (_paused) Session.Request("pause", new { state = 1 });
+        OpenClass();
     }
 
     public void Close()
     {
+        _opening = false;
         if (!Visible) return;
         Visible = false;
         ClosePopup();
@@ -91,10 +107,7 @@ public partial class ClassicLevelUp : CgFlow
         Validate();
     }
 
-    protected override void OnModel()
-    {
-        if (Visible && _summary != null && Screen == null) OpenClass();
-    }
+    protected override void OnModel() => Show();
 
     protected override void OnNotify(NotifyMessage m)
     {
@@ -104,13 +117,23 @@ public partial class ClassicLevelUp : CgFlow
             using var doc = JsonDocument.Parse(m.Json);
             _pauseState = doc.RootElement.GetProperty("state").GetInt32();
         }
+        if (_opening && m.Kind is "levelup-data" or "levelup-result")
+        {
+            using var doc = JsonDocument.Parse(m.Json);
+            if (m.Kind == "levelup-data") _summary = doc.RootElement.Clone();
+            // The level can't be opened: say why, without the window.
+            else if (!doc.RootElement.GetProperty("ok").GetBoolean())
+            {
+                _opening = false;
+                var why = string.Join("\n", doc.RootElement.GetProperty("errors").EnumerateArray().Select(e => e.GetProperty("message").GetString() ?? "").Take(4));
+                if (GetParent() is { } host) ClassicPopup.Ok(host, A, why);
+            }
+            Show();
+            return;
+        }
         if (!Visible) return;
         switch (m.Kind)
         {
-            case "levelup-data":
-                _summary = JsonDocument.Parse(m.Json).RootElement.Clone();
-                if (Model != null && Screen == null) OpenClass();
-                break;
             case "levelup-plan":
             {
                 using var doc = JsonDocument.Parse(m.Json);
