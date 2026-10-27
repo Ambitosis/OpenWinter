@@ -1,0 +1,100 @@
+// Visual scene "postfx" (part of OpenWinter, MIT licence): the module's own post-process pass. SetShaderUniformInt
+// bank 1 picks what it draws:
+//   0  the view as it is
+//   1  a sepia grade, by scriptableFloat1
+//   2  the depth: 2 m bands in world x on everything and a blue haze growing with distance
+//   3  a readout: engine values as exact 8-bit colours in 32 cells along the top of the screen
+//      (tools/visual/postfx_readout.py decodes them)
+#define SHADER_TYPE 2
+
+#include "inc_postpr"
+#include "inc_target"
+#include "inc_scriptable"
+
+vec3 PfxSepia(vec3 c)
+{
+    float fLuma = dot(c, vec3(0.299, 0.587, 0.114));
+    return clamp(vec3(fLuma * 1.07, fLuma * 0.74, fLuma * 0.43), 0.0, 1.0);
+}
+
+vec3 PfxWorldAt(vec2 vUV)
+{
+    return (m_view_inv * vec4(GetViewPositionFromDepth(vUV, GetDepth(vUV)), 1.0)).xyz;
+}
+
+// A value from 0 to 2^24 - 1 as three exact bytes (whole numbers that size are exact in a float).
+vec3 PfxBytes(int n)
+{
+    float fValue = float(n);
+    float fHigh = floor(fValue / 65536.0);
+    float fMiddle = floor((fValue - fHigh * 65536.0) / 256.0);
+    float fLow = fValue - fHigh * 65536.0 - fMiddle * 256.0;
+    return vec3(fHigh, fMiddle, fLow) / 255.0;
+}
+
+// A signed fixed-point value, offset by 2^23.
+int PfxFixed(float f, float fScale)
+{
+    return int(floor(f * fScale + 0.5)) + 8388608;
+}
+
+int PfxReadout(int nCell)
+{
+    vec2 vProbe = vec2(0.5, 0.25);
+    vec3 vProbeWorld = PfxWorldAt(vProbe);
+    if (nCell == 0) return 3368601;
+    if (nCell == 1) return 13369429;
+    if (nCell == 2) return worldtimerTimeOfDay - (worldtimerTimeOfDay / 16777216) * 16777216;
+    if (nCell == 3) return worldtimerTimeOfDay / 16777216;
+    if (nCell == 4) return PfxFixed(areaGlobalWind.x, 1000.0);
+    if (nCell == 5) return PfxFixed(areaGlobalWind.y, 1000.0);
+    if (nCell == 6) return PfxFixed(areaGlobalWind.z, 1000.0);
+    if (nCell == 7) return areaWeatherType + 8388608;
+    if (nCell == 8) return PfxFixed(areaWeatherDensity, 1000.0);
+    if (nCell == 9) return moduleHour;
+    if (nCell == 10) return moduleMinutesPerHour;
+    if (nCell == 11) return sceneCurrentFrame - (sceneCurrentFrame / 16777216) * 16777216;
+    if (nCell == 12) return windPointSourcesCount + 8388608;
+    if (nCell == 13) return PfxFixed(cameraViewAngle, 1000.0);
+    if (nCell == 14) return PfxFixed(nearClip, 1000.0);
+    if (nCell == 15) return PfxFixed(farClip, 100.0);
+    if (nCell == 16) return PfxFixed(playerPosition.x, 100.0);
+    if (nCell == 17) return PfxFixed(playerPosition.y, 100.0);
+    if (nCell == 18) return PfxFixed(playerPosition.z, 100.0);
+    if (nCell == 19) return areaFlags;
+    if (nCell == 20) return targetShape + 8388608;
+    if (nCell == 21) return PfxFixed(GetDepth(vProbe), 100.0);
+    if (nCell == 22) return PfxFixed(vProbeWorld.x, 100.0);
+    if (nCell == 23) return PfxFixed(vProbeWorld.y, 100.0);
+    if (nCell == 24) return PfxFixed(vProbeWorld.z, 100.0);
+    if (nCell == 25) return PfxFixed(m_view_inv[3].z, 100.0);
+    if (nCell == 26) return PfxFixed(fAspectRatio, 1000.0);
+    if (nCell == 27) return PfxFixed(screenParams.x, 1.0);
+    if (nCell == 28) return moduleDawnHour;
+    if (nCell == 29) return moduleDuskHour;
+    if (nCell == 30) return PfxFixed(cameraYaw, 100.0);
+    return PfxFixed(cameraPitch, 100.0);
+}
+
+void main()
+{
+    vec2 vUV = vVertexTexCoords;
+    vec4 Color = FS_PostProcess();
+    if (scriptableInt1 == 1)
+    {
+        Color.rgb = mix(Color.rgb, PfxSepia(Color.rgb), clamp(scriptableFloat1, 0.0, 1.0));
+    }
+    else if (scriptableInt1 == 2)
+    {
+        float fDepth = GetDepth(vUV);
+        vec3 vWorld = PfxWorldAt(vUV);
+        if (fDepth < farClip * 0.9 && fract(vWorld.x / 4.0) < 0.5)
+            Color.rgb = mix(Color.rgb, vec3(0.9, 0.1, 0.1), 0.4);
+        Color.rgb = mix(Color.rgb, vec3(0.25, 0.45, 0.85), 0.7 * clamp(fDepth / 40.0, 0.0, 1.0));
+    }
+    else if (scriptableInt1 == 3 && vUV.y > 0.9)
+    {
+        Color.rgb = PfxBytes(PfxReadout(int(floor(vUV.x * 32.0))));
+    }
+    gl_FragColor = vec4(Color.rgb, 1.0);
+}

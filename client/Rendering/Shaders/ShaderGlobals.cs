@@ -26,8 +26,9 @@ public static class ShaderGlobals
     public static void Register()
     {
         if (_registered) return;
-        _registered = true;
+        // Presets first: they are kept and applied as the globals are declared.
         Presets();
+        _registered = true;
         foreach (var g in EngineNames.Globals)
         {
             var (type, value) = g.Type switch
@@ -37,6 +38,7 @@ public static class ShaderGlobals
                 "vec3" => (RenderingServer.GlobalShaderParameterType.Vec3, (Variant)Vector3.Zero),
                 "vec4" => (RenderingServer.GlobalShaderParameterType.Vec4, (Variant)Vector4.Zero),
                 "ivec2" => (RenderingServer.GlobalShaderParameterType.Ivec2, (Variant)Vector2I.Zero),
+                "mat4" => (RenderingServer.GlobalShaderParameterType.Mat4, (Variant)Projection.Identity),
                 _ => (RenderingServer.GlobalShaderParameterType.Float, (Variant)0f),
             };
             RenderingServer.GlobalShaderParameterAdd(g.Name, type, Script.TryGetValue(g.Name, out var set) ? set : value);
@@ -104,6 +106,71 @@ public static class ShaderGlobals
     /// <summary>Aurora (Z-up) coordinates of a point in Godot's world.</summary>
     static Vector3 Aurora(Vector3 g) => new(g.X, -g.Z, g.Y);
 
+    /// <summary>Aurora world space to Godot's (x, y, z) to (x, z, -y).</summary>
+    static readonly Transform3D AuroraToGodot = new(new Basis(new Vector3(1, 0, 0), new Vector3(0, 0, -1), new Vector3(0, 1, 0)), Vector3.Zero);
+
+    /// <summary>
+    /// The area's wind: SetAreaWind's direction times its magnitude, as given (a direction of length 3 triples it);
+    /// the area's own wind power blows diagonally at its magnitude (medium (0.707, 0.707, 0), strong twice that).
+    /// Measured: parity/visual, scene postfx.
+    /// </summary>
+    public static void SetWind(Vector3 direction, float magnitude, bool scripted)
+    {
+        var d = scripted || direction.LengthSquared() < 1e-8f ? direction : direction.Normalized();
+        _wind = d * magnitude;
+    }
+
+    static Vector3 _wind;
+
+    /// <summary>The spell targeting shape of a script's targeting mode (SetEnterTargetingModeData).</summary>
+    public sealed record TargetingShape(int Shape, float SizeX, float SizeY, int Flags, float Range, int Spell, int Feat);
+
+    static TargetingShape? _target;
+    static Func<bool>? _targetActive;
+    static Func<System.Numerics.Vector3?>? _targetPoint;
+    static bool _targetShown;
+
+    /// <summary>A targeting mode starts (shape null: none); it lasts while <paramref name="active"/> says so.</summary>
+    public static void SetTargeting(TargetingShape? shape, Func<bool> active, Func<System.Numerics.Vector3?> point)
+    {
+        _target = shape is { Shape: > 0 } or { Range: > 0 } ? shape : null;
+        _targetActive = active;
+        _targetPoint = point;
+    }
+
+    /// <summary>The weather the area shows (WEATHER_* 0 clear, 1 rain, 2 snow) and how far it has faded in (0 to 1).</summary>
+    public static Func<(int Type, float Density)>? Weather;
+    static int _lastWeather;
+
+    static void UpdateTargeting()
+    {
+        var shape = _target;
+        if (shape != null && _targetActive?.Invoke() != true) { shape = _target = null; _targetActive = null; _targetPoint = null; }
+        if (shape == null)
+        {
+            if (!_targetShown) return;
+            _targetShown = false;
+            Set("targetShape", 0);
+            Set("targetShapeSpellRange", 0f);
+            Set("targetShapeSizeX", 0f);
+            Set("targetShapeSizeY", 0f);
+            return;
+        }
+        _targetShown = true;
+        Set("targetShape", shape.Shape);
+        Set("targetShapeSizeX", shape.SizeX);
+        Set("targetShapeSizeY", shape.SizeY);
+        Set("targetShapeSpellRange", shape.Range);
+        Set("targetShapeSpellId", shape.Spell);
+        Set("targetShapeFeatId", shape.Feat);
+        Set("targetShapeHarmsEnemies", (shape.Flags & 1) != 0 ? 1 : 0);
+        Set("targetShapeHarmsAllies", (shape.Flags & 2) != 0 ? 1 : 0);
+        Set("targetShapeHelpsAllies", (shape.Flags & 4) != 0 ? 1 : 0);
+        Set("targetShapeIgnoresSelf", (shape.Flags & 8) != 0 ? 1 : 0);
+        Set("targetShapeOriginOnSelf", (shape.Flags & 16) != 0 ? 1 : 0);
+        if (_targetPoint?.Invoke() is { } p) Set("targetWorldCoords", new Vector3(p.X, p.Y, p.Z));
+    }
+
     /// <summary>Updates the world state for this frame.</summary>
     public static void Update(ClientSession session, Camera3D? camera)
     {
@@ -114,13 +181,24 @@ public static class ShaderGlobals
             Set("playerPosition", Aurora(pc.GlobalPosition));
         if (camera != null && camera.IsInsideTree())
         {
+            // The post-process pass's view and GL projection (Aurora coordinates).
+            var view = new Projection(camera.GlobalTransform.AffineInverse() * AuroraToGodot);
+            var proj = camera.GetCameraProjection();
+            Set(EngineNames.PostView, view);
+            Set(EngineNames.PostViewInv, view.Inverse());
+            Set(EngineNames.PostProj, proj);
+            Set(EngineNames.PostProjInv, proj.Inverse());
+            // Pixels, as FRAGCOORD counts them (the interface's scale factor doesn't apply).
+            var viewport = camera.GetViewport();
+            Set(EngineNames.PostSize, viewport is Window window ? (Vector2)window.Size : viewport.GetVisibleRect().Size);
             var eye = camera.GlobalPosition;
             Set("cameraPosition", Aurora(eye));
             Set("clipParams", new Vector3(camera.Near, camera.Far, 1f - camera.Near / camera.Far));
             Set("cameraViewAngle", camera.Fov);
             if (camera is OrbitCamera orbit)
             {
-                Set("cameraPitch", Mathf.RadToDeg(orbit.Pitch));
+                // Degrees from straight down, as SetCameraFacing's pitch (scene postfx).
+                Set("cameraPitch", 90f + Mathf.RadToDeg(orbit.Pitch));
                 Set("cameraYaw", Mathf.RadToDeg(orbit.Yaw));
                 if (orbit.Target is { } target && GodotObject.IsInstanceValid(target))
                 {
@@ -129,6 +207,15 @@ public static class ShaderGlobals
                 }
             }
         }
+        Set("areaGlobalWind", _wind);
+        if (Weather?.Invoke() is { } weather)
+        {
+            // Density runs from 0 to 100 as the weather fades in; the type is kept while it fades out (scene postfx).
+            if (weather.Type != 0) _lastWeather = weather.Type;
+            Set("areaWeatherType", weather.Type != 0 || weather.Density > 0 ? _lastWeather : 0);
+            Set("areaWeatherDensity", weather.Density * 100f);
+        }
+        UpdateTargeting();
         if (session.Area is not { } area || !GodotObject.IsInstanceValid(area)) return;
         var info = area.Info;
         Set("areaFlags", (info.IsInterior ? 1 : 0) | (info.IsUnderground ? 2 : 0) | (info.IsNatural ? 4 : 0));
@@ -150,5 +237,8 @@ public static class ShaderGlobals
         }
         double hours = area.ClockMinutes / 60.0;
         Set("moduleHour", (int)hours % 24);
+        Set("moduleMinutesPerHour", area.MinutesPerHour);
+        Set("moduleDawnHour", area.DawnHour);
+        Set("moduleDuskHour", area.DuskHour);
     }
 }

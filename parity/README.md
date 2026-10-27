@@ -214,7 +214,10 @@ How it works:
 
 Scenes: `calib` (camera calibration), `lightcal` (ground under known ambient and diffuse colours), `shaders` (the
 ground drawn with the scene's own shader through an MTR, changed by the SetShaderUniform* banks; docs/SHADERS.md;
-a scene's `.shd` and `.mtr` files go into its hak), `tilelight`
+a scene's `.shd` and `.mtr` files go into its hak), `postfx` (the scene's own post-process pass: a colour grade,
+depth bands and haze, and a readout of engine values that `python tools/visual/postfx_readout.py` decodes for
+both engines), `waterfx` (the scene's own water program on a river tile: the engine's noise texture, the view
+behind the water by its depth, the water's texture, which meshes are water), `tilelight`
 (a castle floor lit only by tile main lights of known lightcolor.2da rows), `placelight` / `placelight3` (a dark
 floor lit by script-made braziers and a lamp post; `python tools/visual/lightprofile.py nwn|openwinter` prints the
 falloff), `throne` (the HotU throne room, lit only by static braziers), `fogcalnight` (moon fog), `lightcalnight` (moonlight,

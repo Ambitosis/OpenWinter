@@ -233,6 +233,7 @@ public partial class Main : Node3D
         _camera = new OrbitCamera { Current = true };
         AddChild(_camera);
         AddChild(new Rendering.HiliteGlow { Camera = _camera });
+        AddChild(new Rendering.Shaders.PostProcess { Session = _session, Camera = _camera });
         _input = new PlayerInput { Session = _session, Camera = _camera };
         AddChild(_input);
         var hudState = _hudState = new UI.HudParts.HudState(_session);

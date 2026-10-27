@@ -1,0 +1,2 @@
+{ "tileset": "ttr01", "tile": 6, "size": 3, "pc": [15, 17.5, 0], "facing": 270, "seconds": 60,
+  "are": { "SunShadows": 0, "SunFogAmount": 0, "IsNight": 0, "SunAmbientColor": 6316128, "SunDiffuseColor": 12632256, "WindPower": 1 } }

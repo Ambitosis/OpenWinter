@@ -25,6 +25,19 @@ public static class EngineNames
     public const string AuroraToGodot = "mat4(vec4(1.0, 0.0, 0.0, 0.0), vec4(0.0, 0.0, -1.0, 0.0), vec4(0.0, 1.0, 0.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))";
     public const string GodotToAurora = "mat4(vec4(1.0, 0.0, 0.0, 0.0), vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, -1.0, 0.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))";
 
+    /// <summary>
+    /// Godot's clip space (y down, depth 1 at the near plane and 0 at the far one) to GL's (y up, depth -1 to 1), and
+    /// back: the projection matrices given to shaders are GL's, as in the original, and gl_Position is turned back.
+    /// </summary>
+    public const string GlFromGodotClip = "mat4(vec4(1.0, 0.0, 0.0, 0.0), vec4(0.0, -1.0, 0.0, 0.0), vec4(0.0, 0.0, -2.0, 0.0), vec4(0.0, 0.0, 1.0, 1.0))";
+    public const string GodotFromGlClip = "mat4(vec4(1.0, 0.0, 0.0, 0.0), vec4(0.0, -1.0, 0.0, 0.0), vec4(0.0, 0.0, -0.5, 0.0), vec4(0.0, 0.0, 0.5, 1.0))";
+
+    /// <summary>
+    /// The full-screen post-process pass's own globals (the client sets them every frame): the camera's view and GL
+    /// projection matrices in Aurora coordinates, and the viewport size in pixels.
+    /// </summary>
+    public const string PostView = "ow_pp_view", PostViewInv = "ow_pp_view_inv", PostProj = "ow_pp_proj", PostProjInv = "ow_pp_proj_inv", PostSize = "ow_pp_size";
+
     public static readonly IReadOnlyDictionary<string, EngineName> All = Build();
 
     /// <summary>The global parameters every translated shader may use; the client registers them all at start-up.</summary>
@@ -39,6 +52,32 @@ public static class EngineNames
         "int" => $"scriptableInt{index + 1}",
         "vec4" or "vec" => $"scriptableVec{index + 1}",
         _ => null,
+    };
+
+    /// <summary>
+    /// The built-in values of the full-screen post-process pass (a canvas item drawn over the 3D view): a quad
+    /// covering the screen with GL texture coordinates (origin at the bottom left), and the camera's matrices.
+    /// Null when the name isn't available in that stage.
+    /// </summary>
+    public static string? PostProcessBuiltin(string name, int stage) => name switch
+    {
+        "vPos" => stage == 1 ? "vec4(UV.x * 2.0 - 1.0, 1.0 - UV.y * 2.0, 0.0, 1.0)" : null,
+        "vTcIn" => stage == 1 ? "vec2(UV.x, 1.0 - UV.y)" : null,
+        "vNormal" => stage == 1 ? "vec3(0.0, 0.0, 1.0)" : null,
+        "vColor" => stage == 1 ? "vec4(1.0)" : null,
+        "vTangent" => stage == 1 ? "vec3(1.0, 0.0, 0.0)" : null,
+        "m_mv" or "m_mvp" => "mat4(1.0)",
+        "ow_normal_matrix" => "mat3(1.0)",
+        "m_view" => PostView,
+        "m_view_inv" => PostViewInv,
+        "m_proj" => PostProj,
+        "m_proj_inv" => PostProjInv,
+        "m_vp_inv" => PostViewInv + " * " + PostProjInv,
+        "screenParams" => PostSize,
+        "pixelParams" => $"vec3(1.0 / {PostSize}, {PostSize}.x / max({PostSize}.y, 1.0))",
+        "gl_FragCoord" => stage == 2 ? $"vec4(FRAGCOORD.x, {PostSize}.y - FRAGCOORD.y, 0.0, 1.0)" : null,
+        "gl_FrontFacing" => stage == 2 ? "true" : null,
+        _ => All.TryGetValue(name, out var n) && n.Source == EngineSource.Builtin ? (stage == 1 ? n.Vertex : n.Fragment) : null,
     };
 
     static Dictionary<string, EngineName> Build()
@@ -70,6 +109,8 @@ public static class EngineNames
             "lightAreaDiffuseDirection", "clipParams", "targetWorldCoords");
         G("vec4", "fogColor", "fogParams", "targetShapeColour");
         G("ivec2", "userinputMousePosition");
+        G("mat4", PostView, PostViewInv, PostProj, PostProjInv);
+        G("vec2", PostSize);
 
         const string colour = "hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable";
         for (int i = 0; i <= 5; i++)
@@ -101,12 +142,13 @@ public static class EngineNames
         B("vWeight", "vec4", "vec4(1.0, 0.0, 0.0, 0.0)", null);
         B("vStaticLightDir", "vec3", "vec3(0.0, 0.0, 1.0)", null);
         B("m_mv", "mat4", "MODELVIEW_MATRIX", "VIEW_MATRIX * MODEL_MATRIX");
-        B("m_mvp", "mat4", "PROJECTION_MATRIX * MODELVIEW_MATRIX", "PROJECTION_MATRIX * VIEW_MATRIX * MODEL_MATRIX");
+        B("m_mvp", "mat4", GlFromGodotClip + " * PROJECTION_MATRIX * MODELVIEW_MATRIX", GlFromGodotClip + " * PROJECTION_MATRIX * VIEW_MATRIX * MODEL_MATRIX");
         B("m_view", "mat4", "VIEW_MATRIX * " + AuroraToGodot, "VIEW_MATRIX * " + AuroraToGodot);
         B("m_view_inv", "mat4", GodotToAurora + " * INV_VIEW_MATRIX", GodotToAurora + " * INV_VIEW_MATRIX");
-        B("m_proj", "mat4", "PROJECTION_MATRIX", "PROJECTION_MATRIX");
-        B("m_proj_inv", "mat4", "INV_PROJECTION_MATRIX", "INV_PROJECTION_MATRIX");
-        B("m_vp_inv", "mat4", GodotToAurora + " * INV_VIEW_MATRIX * INV_PROJECTION_MATRIX", GodotToAurora + " * INV_VIEW_MATRIX * INV_PROJECTION_MATRIX");
+        B("m_proj", "mat4", GlFromGodotClip + " * PROJECTION_MATRIX", GlFromGodotClip + " * PROJECTION_MATRIX");
+        B("m_proj_inv", "mat4", "INV_PROJECTION_MATRIX * " + GodotFromGlClip, "INV_PROJECTION_MATRIX * " + GodotFromGlClip);
+        B("m_vp_inv", "mat4", GodotToAurora + " * INV_VIEW_MATRIX * INV_PROJECTION_MATRIX * " + GodotFromGlClip,
+            GodotToAurora + " * INV_VIEW_MATRIX * INV_PROJECTION_MATRIX * " + GodotFromGlClip);
         B("ow_normal_matrix", "mat3", "MODELVIEW_NORMAL_MATRIX", "mat3(VIEW_MATRIX * MODEL_MATRIX)");
         B("screenParams", "vec2", "VIEWPORT_SIZE", "VIEWPORT_SIZE");
         B("pixelParams", "vec3", "vec3(1.0 / VIEWPORT_SIZE, VIEWPORT_SIZE.x / VIEWPORT_SIZE.y)", "vec3(1.0 / VIEWPORT_SIZE, VIEWPORT_SIZE.x / VIEWPORT_SIZE.y)");

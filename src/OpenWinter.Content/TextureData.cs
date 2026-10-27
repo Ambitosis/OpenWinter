@@ -26,6 +26,10 @@ public sealed class TextureInfo
     public string EnvironmentMap = "";
     public string BumpMap = "";
     public int ProcedureType;
+    /// <summary>The TXI's proceduretype as written ("cycle", "arturo" for water, ...); empty when not set.</summary>
+    public string Procedure = "";
+    /// <summary>The TXI's bumpyshinytexture: the environment map of a bump-mapped surface (water).</summary>
+    public string BumpyShiny = "";
     public int NumX = 1;
     public int NumY = 1;
     public float Fps;

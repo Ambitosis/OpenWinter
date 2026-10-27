@@ -30,6 +30,8 @@ public partial class Main
         if (_session.Content?.Materials.Shaders is { } shaders)
             foreach (var (program, status) in shaders.Programs.OrderBy(p => p.Key)) lines.Add($"{program}: {status}");
         lines.AddRange(Rendering.Shaders.ShaderGlobals.History.Select(h => "uniform " + h));
+        if (_session.Controlled is { } pc && IsInstanceValid(pc))
+            lines.Add($"player {pc.GlobalPosition.X:0.00} {-pc.GlobalPosition.Z:0.00} {pc.GlobalPosition.Y:0.00} (area coordinates)");
         System.IO.File.WriteAllLines(System.IO.Path.Combine(dir, "shaders.txt"), lines);
         GetTree().Quit();
     }

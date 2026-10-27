@@ -483,5 +483,12 @@ public partial class PlayerFx : CanvasLayer
             var at = ground ?? (target != null ? Rendering.Convert.N(target.Position) : System.Numerics.Vector3.Zero);
             Session.Request("target", new { @object = target?.ObjectId ?? 0x7F000000u, position = new[] { at.X, at.Y, at.Z } });
         };
+        // SetEnterTargetingModeData's shape, for shaders that draw it (targetShape*), while the mode lasts.
+        var handler = Interaction.Targeting;
+        int I(string name, int fallback) => d.TryGetProperty(name, out var v) && v.TryGetInt32(out var n) ? n : fallback;
+        float F(string name) => d.TryGetProperty(name, out var v) && v.TryGetSingle(out var f) ? f : 0f;
+        Rendering.Shaders.ShaderGlobals.SetTargeting(
+            new Rendering.Shaders.ShaderGlobals.TargetingShape(I("shape", 0), F("sizeX"), F("sizeY"), I("flags", 0), F("range"), I("spell", -1), I("feat", -1)),
+            () => Interaction.Targeting == handler, () => Interaction.PickGround(Interaction.GetViewport().GetMousePosition()));
     }
 }

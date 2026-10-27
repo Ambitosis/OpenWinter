@@ -88,17 +88,22 @@ fogged colour back (to mix in fog by hand, say) works on the unlit colour instea
 | Name | Meaning in OpenWinter |
 | --- | --- |
 | `vPos`, `vNormal`, `vTcIn`, `vColor` | The vertex in the mesh's space (skinned meshes arrive skinned) |
-| `m_mv`, `m_mvp`, `m_proj`, `m_proj_inv`, `m_view`, `m_view_inv`, `m_vp_inv`, `m_texture` | As in the original; world space is Z-up |
-| `gl_FragCoord`, `gl_FrontFacing`, `screenParams`, `pixelParams`, `clipParams` | As in the original (origin at the bottom left, depth growing away from the camera) |
+| `m_mv`, `m_mvp`, `m_proj`, `m_proj_inv`, `m_view`, `m_view_inv`, `m_vp_inv`, `m_texture` | As in the original: world space is Z-up, projections are GL's (y up, depth -1 to 1) |
+| `gl_FragCoord`, `gl_FrontFacing`, `screenParams`, `pixelParams`, `clipParams` | As in the original (origin at the bottom left, depth growing away from the camera); `clipParams` are OpenWinter's camera planes |
+| `texFBColor`, `texFBDepth` | What was drawn before, read at GL screen coordinates: for a surface the opaque scene, for the post-process pass the finished view (see below) |
 | `scriptableFloat1..16`, `scriptableInt1..16`, `scriptableVec1..16` | Set by SetShaderUniformFloat / Int / Vec for this player |
-| `worldtimerTimeOfDay`, `sceneCurrentFrame`, `moduleHour` | Milliseconds of real time (wrapping daily), frame count, game hour |
-| `playerPosition`, `cameraPosition`, `cameraFocus`, `cameraPitch`, `cameraYaw`, `cameraViewAngle`, `playerCameraDist` | Kept up to date every frame |
+| `worldtimerTimeOfDay`, `sceneCurrentFrame`, `moduleHour`, `moduleMinutesPerHour`, `moduleDawnHour`, `moduleDuskHour` | Milliseconds of real time (not the game clock: SetTime doesn't change it), frame count, game hour, the module's minutes per hour, dawn and dusk hours |
+| `playerPosition`, `cameraPosition`, `cameraFocus`, `cameraPitch`, `cameraYaw`, `cameraViewAngle`, `playerCameraDist` | Kept up to date every frame; `cameraPitch` in degrees from straight down, as SetCameraFacing's |
 | `areaFlags`, `fogColor`, `fogParams`, `lightAreaAmbient`, `lightAreaDiffuse`, `lightAreaDiffuseDirection` | The area's flags, fog and sun or moon |
-| `materialFrontDiffuse`, `fAlphaDiscardValue`, `texUnitEnv` | From the mesh and its texture |
+| `areaGlobalWind` | SetAreaWind's direction times its magnitude, as given; the area's own wind blows diagonally at its strength (medium (0.707, 0.707, 0)) |
+| `areaWeatherType`, `areaWeatherDensity` | WEATHER_* shown, and how far it has faded in, from 0 to 100; after SetWeather clear the type stays while it fades out (the original was still at full density three seconds after clearing, OpenWinter fades over the weather's fade time) |
+| `targetShape...`, `targetWorldCoords` | While a script's targeting mode with SetEnterTargetingModeData lasts: its shape, sizes, flags, range, spell and feat, and the ground under the mouse |
+| `materialFrontDiffuse`, `fAlphaDiscardValue`, `texUnitEnv`, `texUnitNoise` | From the mesh and its texture; the noise is the game's `solid_noise` |
 
 Not provided yet (they read as zero): the per-light arrays (`lightPosition` ...), `bboxMin` / `bboxMax`, the wind
-point sources, `areaGlobalWind`, `areaWeatherType` and `areaWeatherDensity`, and the spell targeting shape.
-Writes to `gl_Position` are ignored: the vertex is placed from `vPosView`.
+point sources (`windPointSourcesCount` is 0) and the targeting shape of spells cast from the spellbook. A module's own vertex code that writes `gl_Position` places
+the vertex; the installed library's placement is OpenWinter's own. A module's own fragment code that writes
+`gl_FragDepth` sets the depth.
 
 ## Script uniforms
 
@@ -125,10 +130,36 @@ In the client, `--shader-uniforms "int9=65280;float1=0.5;vec2=1,0,0,1"` holds sc
 (scripts can't change them) to preview a shader, `--module-shaders off` draws every mesh with its normal
 material, and `--capture-shaders <dir>` takes a few views of the area and writes which programs were used.
 
+## Replacing the engine's own programs
+
+A module can replace two of the engine's programs by name.
+
+**The post-process pass** (`fsfbpostpr`, with `vsfbpostpr`): a module that ships either draws it as a full-screen
+pass over the finished 3D view and under the interface, every frame. `texFBColor` is the view as shown
+(gamma-encoded), `texFBDepth` its depth: water writes its surface's depth, translucent surfaces only where they are
+solid (as in the original, scenes waterfx and postfx); the library's `GetDepth`,
+`GetViewPositionFromDepth` and `m_view_inv` give back world positions, and the colour the shader writes is what
+the player sees. The original's own post-processing options (sharpen, depth of field, vibrance ...) are not part
+of it: `FS_PostProcess()` returns the view's colour. Without a module pass, the view is drawn as usual.
+`clipParams` and the depth are OpenWinter's camera planes (near 0.05, far 4000 m); the original's are near 0.1 and
+far at the area's fog clip distance (45 m by default), so a shader that compares a depth with `farClip` to find
+the sky sees the sky much further away. The darkening drawn while the player is blind is part of the view the
+pass reads (where the original draws it relative to the pass is not measured).
+
+**Water** (`fswater`, `vswater`): when a module ships either, meshes whose texture is the original's water (TXI
+`proceduretype arturo`) are drawn with `vswater` and `fswater` (the module's, or the installed game's for the
+other stage). Water's colour is taken as already lit (it is built from the view behind it): the renderer adds only
+highlights and fog. `texFBColor` and `texFBDepth` are the opaque scene behind the water; the water writes its
+surface's depth, as the original's does. `texUnitNoise` is the game's `solid_noise`, and `texUnitEnv` the water
+texture's `bumpyshinytexture`.
+
+(`parity/visual/scenes/postfx` and `waterfx` have test shaders for both; they draw the same on OpenWinter and on
+the original, except where the water itself differs, below.)
+
 ## Not supported yet
 
-- Replacing the engine's own programs by name: the post-process pass (`fsfbpostpr`) and water (`fswater`,
-  `vswater`). These are reported by `shader-check` and drawn the usual way.
+- Water past the area's edge: the original continues the water of the edge tiles beyond the area (with its own
+  water as with a module's, scenes watershadow and waterfx); OpenWinter draws water only on the area's tiles.
 - The game's own MTRs (stock ice, some heads).
 - Geometry shaders (`customshaderGS`).
 - `ReplaceObjectTexture` on meshes drawn with a custom shader.
