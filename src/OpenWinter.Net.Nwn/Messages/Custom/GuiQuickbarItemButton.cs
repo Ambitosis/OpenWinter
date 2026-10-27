@@ -5,9 +5,10 @@ namespace OpenWinter.Net.Nwn.Messages;
 public static partial class GuiQuickbarMessages
 {
     /// <summary>
-    /// The client setting a quickbar button to an item: unlike the server's item buttons, which describe the item in
-    /// full, it names only the item and its property field (measured: a bool-prefixed or fully described item is
-    /// refused or breaks the message, the item's id and property alone are stored as the server's own).
+    /// The client setting a quickbar button to an item. Unlike the server's item buttons, which describe each item in
+    /// full, it names the item and its property field, then a flag and, when set, the off-hand item of a main/off-hand
+    /// pair (measured: without the flag the server reports the message short; with it a single item or a pair is
+    /// stored and comes back as the server's own button).
     /// </summary>
     public sealed class GuiQuickbarSetItemButton : NwnMessage
     {
@@ -27,6 +28,9 @@ public static partial class GuiQuickbarMessages
         public uint Item { get; set; }
         [NwnField("property_id")]
         public int PropertyId { get; set; }
+        /// <summary>The off-hand item of a main/off-hand pair; null for a single item.</summary>
+        [NwnField("secondary_item")]
+        public uint? SecondaryItem { get; set; }
 
         public override void Read(NwnReader r)
         {
@@ -34,6 +38,8 @@ public static partial class GuiQuickbarMessages
             r.ReadInteger(NwnWireType.Byte);
             Item = r.ReadObjectId();
             PropertyId = r.ReadInt();
+            // Frames recorded before the flag was known end here.
+            SecondaryItem = !r.AtEnd && r.ReadBool() ? r.ReadObjectId() : null;
         }
 
         public override void Write(NwnWriter w)
@@ -42,6 +48,8 @@ public static partial class GuiQuickbarMessages
             w.WriteInteger(NwnWireType.Byte, (long)ButtonObjectType.Item);
             w.WriteObjectId(Item);
             w.WriteInt(PropertyId);
+            w.WriteBool(SecondaryItem != null);
+            if (SecondaryItem is { } offHand) w.WriteObjectId(offHand);
         }
     }
 }

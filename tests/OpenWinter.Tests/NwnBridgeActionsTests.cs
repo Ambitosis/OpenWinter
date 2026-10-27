@@ -202,6 +202,8 @@ public class NwnBridgeActionsTests
         all.Slots.Add(new NwnTagged((long)ButtonObjectType.Item, new ButtonItem { Primary = new ButtonItem.PrimaryItem { ObjectId = 5316, PropertyId = 0xFF0000, Item = dust } }));
         all.Slots.Add(new NwnTagged((long)ButtonObjectType.Spell, new ButtonSpell { MultiClass = 0, SpellId = 6 }));
         all.Slots.Add(new NwnTagged((long)ButtonObjectType.Feat, new ButtonFeat { FeatId = 294 }));
+        all.Slots.Add(new NwnTagged(0, new ButtonEmpty()));
+        all.Slots.Add(new NwnTagged((long)ButtonObjectType.Item, new ButtonItem { Primary = new ButtonItem.PrimaryItem { ObjectId = 5317, PropertyId = 0xFF0000, Item = dust } }));
         b.Abilities.Quickbar(all);
         b.Abilities.FromClient("quickbar", "{}");
         var bar = b.Last("quickbar");
@@ -214,19 +216,20 @@ public class NwnBridgeActionsTests
         Assert.Equal(("spell", 6, 2), (slots[2].GetProperty("Kind").GetString(), slots[2].GetProperty("Id").GetInt32(), slots[2].GetProperty("Class").GetInt32()));
         Assert.Equal(JsonValueKind.Null, slots[4].ValueKind);
 
-        // An item is set by its id and property field alone (the server stored it as its own); other buttons in full.
+        // An item is set by its id and property field and a no-pair flag (the server stored it as its own); other
+        // buttons in full.
         b.Abilities.FromClient("quickbar-set", """{"creature":2147483647,"index":11,"slot":{"Kind":"item","Item":5316,"Prop":0}}""");
-        Assert.Equal("030B0301" + "11C4140000" + "080000FF00", Hex(b.Sent[^1]));
+        Assert.Equal("030B0301" + "11C4140000" + "080000FF00" + "0200", Hex(b.Sent[^1]));
         b.Abilities.FromClient("quickbar-set", """{"index":10,"slot":{"Kind":"mode","Id":0}}""");
         var mode = Assert.IsType<GuiQuickbarSetButton>(b.Sent[^1]);
         Assert.Equal((10, 0), (mode.Button, Assert.IsType<ButtonModeToggle>(mode.Slot.Value).Mode));
         b.Abilities.FromClient("quickbar-set", """{"index":10,"slot":null}""");
         Assert.IsType<ButtonEmpty>(Assert.IsType<GuiQuickbarSetButton>(b.Sent[^1]).Slot.Value);
-        // A domain spell's level goes back as it came; a main/off-hand pair can't be stored, so the button empties.
+        // A domain spell's level goes back as it came; a main/off-hand pair names its off-hand item after the flag.
         b.Abilities.FromClient("quickbar-set", """{"index":12,"slot":{"Kind":"spell","Id":6,"Class":2,"Meta":0,"Sub":1}}""");
         Assert.Equal(1, Assert.IsType<ButtonSpell>(Assert.IsType<GuiQuickbarSetButton>(b.Sent[^1]).Slot.Value).DomainLevel);
         b.Abilities.FromClient("quickbar-set", """{"index":13,"slot":{"Kind":"item","Paired":true,"Item":5316,"SecondaryItem":5317,"Prop":-1}}""");
-        Assert.IsType<ButtonEmpty>(Assert.IsType<GuiQuickbarSetButton>(b.Sent[^1]).Slot.Value);
+        Assert.Equal("030D0301" + "11C4140000" + "080000FF00" + "0201" + "11C5140000", Hex(b.Sent[^1]));
         // The server empties the used-up item's button: the client takes it as an update.
         Assert.False(bar.GetProperty("update").GetBoolean());
         b.Abilities.QuickbarButton(new GuiQuickbarSetButton { Button = 1, Slot = new NwnTagged(0, new ButtonEmpty()) });
@@ -237,6 +240,52 @@ public class NwnBridgeActionsTests
         // The quickbar's item is the player's to use: its property's place among the usable ones, on herself.
         b.Abilities.FromClient("use-item", """{"item":5316,"prop":0}""");
         Assert.Equal("11C4140000" + "0300" + "0200" + "020111FFFFFF7F" + "0200", Hex(b.Sent[^1]));
+    }
+
+    [Fact]
+    public void AnItemButtonEndsWithItsPairFlagAndAButtonTheServerSetIsNotSentBack()
+    {
+        // The server setting button 11 to a flask with property field 0, as recorded on a live server.
+        var context = new NwnSessionContext(_ => 0, (_, _, _) => "");
+        var flask = new ItemAppearanceAndProps
+        {
+            BaseItemId = 79, Identified = true, StackSize = 1, Name = new NwnTagged(1, new OriginalItemName { Name = NwnLocString.FromText("Fabella Flask") }),
+        };
+        var set = new GuiQuickbarSetButton
+        {
+            Button = 11,
+            Slot = new NwnTagged((long)ButtonObjectType.Item, new ButtonItem { Primary = new ButtonItem.PrimaryItem { ObjectId = 61744, PropertyId = 0, Item = flask } }),
+        };
+
+        // The client's item button as the bridge used to send it: the server reported it short of its pair flag.
+        var old = new GuiQuickbarSetItemButton();
+        old.Read(new NwnWsReader(Convert.FromHexString("030B03011130F10000080000FF00"), context));
+        Assert.Equal((11, 61744u, 0xFF0000, (uint?)null), (old.Button, old.Item, old.PropertyId, old.SecondaryItem));
+        // The forms the server stored without complaint: a single item, then a main/off-hand pair.
+        var single = new GuiQuickbarSetItemButton();
+        single.Read(new NwnWsReader(Convert.FromHexString("0314030111C0140000080000FF000200"), context));
+        Assert.Equal((20, 5312u, (uint?)null), (single.Button, single.Item, single.SecondaryItem));
+        Assert.Equal("0314030111C0140000080000FF000200", Hex(single));
+        var pair = new GuiQuickbarSetItemButton();
+        pair.Read(new NwnWsReader(Convert.FromHexString("0315030111C0140000080000FF00020111C5140000"), context));
+        Assert.Equal((21, 5312u, (uint?)5317), (pair.Button, pair.Item, pair.SecondaryItem));
+        Assert.Equal("0315030111C0140000080000FF00020111C5140000", Hex(pair));
+
+        var b = new Bridge();
+        b.Abilities.ObjectList(Cleric());
+        b.Abilities.QuickbarButton(set);
+        b.Abilities.FromClient("quickbar", "{}");
+        var shown = b.Last("quickbar").GetProperty("slots")[11];
+        Assert.Equal(("item", 61744u), (shown.GetProperty("Kind").GetString(), shown.GetProperty("Item").GetUInt32()));
+        // The client hands the slot back as it was shown (with what it remembers of the item): nothing is sent, as
+        // the original client sends a button only when the player changes it.
+        var echo = JsonNode.Parse(shown.GetRawText())!.AsObject();
+        echo["ItemKey"] = "flask";
+        b.Abilities.FromClient("quickbar-set", new JsonObject { ["creature"] = Player, ["index"] = 11, ["slot"] = echo }.ToJsonString());
+        Assert.Empty(b.Sent);
+        // Moving it to another button is a change.
+        b.Abilities.FromClient("quickbar-set", new JsonObject { ["index"] = 5, ["slot"] = echo.DeepClone() }.ToJsonString());
+        Assert.Equal("0305030111" + "30F10000" + "080000FF00" + "0200", Hex(Assert.Single(b.Sent)));
     }
 
     static GameObjUpdateMessages.GameObjUpdateObjList MainPanel(sbyte fortitude) => List(new GameObjUpdateMessages.ObjListGuiEntry('S', '\0', new GuiCharacterSheet
