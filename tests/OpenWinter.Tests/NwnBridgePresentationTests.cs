@@ -165,16 +165,10 @@ public class NwnBridgePresentationTests
         var conjuring = bridge.Feed(126147);
         var conjure = Animation(conjuring, C);
         Assert.Equal((C, "conjure1", 1.5f), (conjure.ObjectId, conjure.Animation, conjure.Duration));
-        var (_, caster, c) = Notice(conjuring, "spell-conjure");
-        Assert.Equal(C, caster);
-        Assert.Equal((58, "vco_mehanfire03", "vs_chant_evoc_lm"), (c.GetProperty("spell").GetInt32(), c.GetProperty("handVfx").GetString(), c.GetProperty("voice").GetString()));
-
         // The release ends the held conjure, then casts.
         var casting = bridge.Feed(127715);
         var released = casting.Where(r => r.Type == MessageType.PlayAnimation).Select(PlayAnimationMessage.Read).Where(a => a.ObjectId == C).Select(a => a.Animation);
         Assert.Equal(["pause1", "castarea"], released);
-        var (_, _, cast) = Notice(casting, "spell-cast");
-        Assert.Equal("[20,5,0]", cast.GetProperty("pos").GetRawText());
 
         var (_, from, flight) = Notice(bridge.Feed(128070), "spell-projectile");
         Assert.Equal(C, from);

@@ -29,6 +29,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly INwnBridgeData _data;
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
+    readonly NwnAbilities _abilities;
     readonly NwnInventory _inventory;
     readonly NwnDialog _dialog;
     readonly NwnCombat _combat;
@@ -53,11 +54,16 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _data = data;
         _context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
+        _abilities = new NwnAbilities(data, m => _toClient.Enqueue(m), ToServer);
         _inventory = new NwnInventory(data, new NwnInventoryHost(ToServer, m => _toClient.Enqueue(m), () => _world.Controlled,
             () => _world.TryPose(_world.Controlled, out var p, out _, out _, out _) ? p : default, _world.NameOf));
         _dialog = new NwnDialog(_world, data, m => _toClient.Enqueue(m));
         _combat = new NwnCombat(data, _world, m => _toClient.Enqueue(m));
         _presentation = new NwnPresentation(data, _world, m => _toClient.Enqueue(m));
+        // Using an item's power is the abilities' (an item they don't know is left to the inventory); the inventory
+        // knows every item the player has and the HUD is the combat bridge's, fed with the action queue.
+        _abilities.Carried = _inventory.Items;
+        _abilities.QueueChanged = _combat.ActionQueue;
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -89,7 +95,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 Action(ActionRequestMessage.Read(r));
                 break;
             case MessageType.ClientRequest:
-                Request(ClientRequestMessage.Read(r));
+                // A request the bridge can't read is dropped; the session goes on.
+                try { Request(ClientRequestMessage.Read(r)); }
+                catch (Exception e) when (e is JsonException or InvalidOperationException or FormatException or KeyNotFoundException) { }
                 break;
             case MessageType.DriveInput:
                 _drive = DriveInputMessage.Read(r);
@@ -250,6 +258,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
             ToServer(handled);
             return;
         }
+        if (_abilities.FromClient(request.Kind, request.Json)) return;
         if (_inventory.FromClient(request.Kind, request.Json)) return;
         switch (request.Kind)
         {
@@ -321,22 +330,34 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 _world.Area(area);
                 _presentation.Area(area);
                 _inventory.AreaChanged();
+                _abilities.AreaChanged();
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
                 _combat.ObjectList(list, l => _presentation.ObjectList(l, _world.ObjectList));
                 _inventory.ObjectList(list);
+                _abilities.ObjectList(list);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
+                _abilities.Player = control.ObjectId;
+                break;
+            case GuiQuickbarMessages.GuiQuickbarSetAllButtons quickbar:
+                _abilities.Quickbar(quickbar);
+                break;
+            case GuiQuickbarMessages.GuiQuickbarSetButton button:
+                _abilities.QuickbarButton(button);
                 break;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
                 if (!_combat.Feedback(feedback)) NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
                 _inventory.Feedback(feedback);
+                _abilities.Feedback(feedback);
                 break;
             case LoginMessages.LoginDeny or LoginMessages.LoginCharacterFail:
                 Tell("The server refused the character.");
                 break;
             default:
+                // The abilities only watch these (the rest bar, item uses), so the others still see them.
+                _abilities.ToClient(message);
                 if (_inventory.ToClient(message)) break;
                 if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !_presentation.ToClient(message) && !_combat.ToClient(message))
                     NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));

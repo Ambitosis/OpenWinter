@@ -15,8 +15,8 @@ namespace OpenWinter.Net.Nwn.Bridge;
 
 /// <summary>
 /// How the world looks and sounds, as OpenWinter's own server presents it: creature animations become PlayAnimation
-/// (script animations, emotes, conjuring and casting with the "spell-conjure", "spell-cast" and "spell-projectile"
-/// notifies), knockdowns a condition flag; visual effects at places and on objects "vfx", beams "beam", areas of
+/// (script animations, emotes, conjuring and casting; the spell's conjure and cast effects are NwnAbilities'), spell
+/// projectiles "spell-projectile", knockdowns a condition flag; visual effects at places and on objects "vfx", beams "beam", areas of
 /// effect "aoe-created" and "aoe-moved"; visual transforms and highlights "visual-transform" and "hilite-color";
 /// PlaySound, voice chat, sound objects, music and ambience "play-sound", "voice-chat", "sound-object" and
 /// "area-audio". The client's emotes go back as the animation input nwmain sends.
@@ -313,50 +313,21 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
     void Play(uint id, string clip, float speed, float duration, bool gesture) =>
         emit(new PlayAnimationMessage { ObjectId = id, Animation = clip, Speed = speed > 0 && float.IsFinite(speed) ? speed : 1, Duration = duration, Gesture = gesture }.Write());
 
-    /// <summary>Conjuring: the conjure animation, and for a spell its head, hand and ground visuals, sound and chant.</summary>
+    /// <summary>Conjuring: the conjure animation for the spell (spells.2da ConjAnim), for its conjure time.</summary>
     void Conjure(uint id, Creature c, ushort code, GameObjUpdateAnimationMessages.CastAnimData? cast, float speed)
     {
         c.Holding = true;
-        if (cast is not { SpellId: not NoSpell } s)
-        {
-            Play(id, NwnAnimations.ConjureClip("", code), speed, UntilReplaced, false);
-            return;
-        }
-        int spell = (int)s.SpellId;
-        float seconds = Int(Spell(spell, "ConjTime")) / 1000f;
-        Play(id, NwnAnimations.ConjureClip(Spell(spell, "ConjAnim"), code), speed, seconds > 0 ? seconds : UntilReplaced, false);
-        world.TryPose(id, out var at, out _, out _, out _);
-        Notify("spell-conjure", id, new JsonObject
-        {
-            ["spell"] = spell, ["presentation"] = 0, ["target"] = InvalidObject, ["pos"] = Vec(at), ["duration"] = seconds,
-            ["conjureLifetime"] = null, ["animation"] = Spell(spell, "ConjAnim"), ["headVfx"] = Spell(spell, "ConjHeadVisual"),
-            ["handVfx"] = Spell(spell, "ConjHandVisual"), ["groundVfx"] = Spell(spell, "ConjGrndVisual"),
-            ["sound"] = Spell(spell, "ConjSoundVFX"),
-            ["voice"] = s.Silent ? "" : Spell(spell, c.Gender == 1 ? "ConjSoundFemale" : "ConjSoundMale"),
-            ["metaMagic"] = 0, ["fake"] = false,
-        });
+        int spell = cast is { SpellId: not NoSpell } s ? (int)s.SpellId : -1;
+        float seconds = spell >= 0 ? Int(Spell(spell, "ConjTime")) / 1000f : 0;
+        Play(id, NwnAnimations.ConjureClip(spell >= 0 ? Spell(spell, "ConjAnim") : "", code), speed, seconds > 0 ? seconds : UntilReplaced, false);
     }
 
-    /// <summary>A spell's release: the cast animation and the spell's cast visuals and sound, towards its target.</summary>
+    /// <summary>A spell's release: the cast animation for the spell (spells.2da CastAnim) until the server's next code.</summary>
     void Cast(uint id, Creature c, ushort code, AnimTypeData anim, float speed)
     {
         c.Holding = true;
-        int spell = anim.Spell is { SpellId: not NoSpell } s ? (int)s.SpellId : -1;
-        string style = spell >= 0 ? Spell(spell, "CastAnim") : "";
+        string style = anim.Spell is { SpellId: not NoSpell } s ? Spell((int)s.SpellId, "CastAnim") : "";
         Play(id, NwnAnimations.CastClip(style, code), speed, UntilReplaced, false);
-        if (spell < 0) return;
-        uint target = anim.CastTarget?.TargetOid ?? InvalidObject;
-        Vector3 aim = anim.CastTarget?.TargetPosition is { } p ? V(p)
-            : world.TryPose(target, out var on, out _, out _, out _) ? on
-            : world.TryPose(id, out var self, out _, out _, out _) ? self : default;
-        Notify("spell-cast", id, new JsonObject
-        {
-            ["spell"] = spell, ["presentation"] = 0, ["target"] = target, ["pos"] = Vec(aim),
-            ["duration"] = Int(Spell(spell, "CastTime")) / 1000f, ["recovery"] = 0f, ["animation"] = style, ["attackAnimation"] = "",
-            ["headVfx"] = Spell(spell, "CastHeadVisual"), ["handVfx"] = Spell(spell, "CastHandVisual"),
-            ["groundVfx"] = Spell(spell, "CastGrndVisual"), ["sound"] = Spell(spell, "CastSound"),
-            ["item"] = anim.Spell!.CastItemId, ["fake"] = false,
-        });
     }
 
     /// <summary>A spell's projectile, sent as it flies: the spells.2da model, path and sound, with its flight time.</summary>

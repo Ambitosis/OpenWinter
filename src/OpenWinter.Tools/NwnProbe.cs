@@ -150,7 +150,11 @@ static class NwnRecordingDump
             if (frame.Length >= 3 && frame[0] is (byte)'P' or (byte)'p')
             {
                 var direction = frame[0] == (byte)'P' ? NwnDirection.ServerToClient : NwnDirection.ClientToServer;
-                var m = NwnMessageRegistry.Create(frame[1], frame[2], direction);
+                // The client's item quickbar button differs from the schema's (Messages/Custom).
+                var m = direction == NwnDirection.ClientToServer && frame[1] == GuiQuickbarMessages.GuiQuickbarSetButton.MajorId
+                    && frame[2] == GuiQuickbarMessages.GuiQuickbarSetButton.MinorId && GuiQuickbarMessages.GuiQuickbarSetItemButton.Sets(frame.AsSpan(3))
+                    ? new GuiQuickbarMessages.GuiQuickbarSetItemButton()
+                    : NwnMessageRegistry.Create(frame[1], frame[2], direction);
                 if (m == null)
                 {
                     name = $"unknown {frame[1]:X2}.{frame[2]:X2}";
@@ -201,11 +205,13 @@ static class NwnRecordingDump
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
 ///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS]
-///              [--emote KEY,... [--emote-gap SECONDS]] [--do STEP;...] [--player NAME] [--record FILE]
+///              [--emote KEY,... [--emote-gap SECONDS]] [--do STEP;...] [--request KIND=JSON|KIND=JSON...] [--player NAME] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
-/// once the list is used up; open the journal; play each emote, five seconds (--emote-gap) apart from six seconds in)
+/// once the list is used up; open the journal; play each emote, five seconds (--emote-gap) apart from six seconds in;
+/// send each client request four seconds apart from six seconds in (a "+SECONDS:" prefix
+/// sends one that long after the one before; "say=TEXT" talks), where "@self" is the player's creature and "@NAME" the nearest object whose name contains NAME)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -236,6 +242,8 @@ static class NwnBridgeProbe
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
+        var requests = new Queue<string>(Opt("--request", "").Split('|', StringSplitOptions.RemoveEmptyEntries));
+        var nextRequest = 6.0;
         var steps = new NwnBridgeSteps(Opt("--do", ""));
         var replies = new Queue<string>(Opt("--replies", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         if (replies.FirstOrDefault(r => r != "esc" && !(int.TryParse(r, out var n) && n >= 1)) is { } bad)
@@ -352,6 +360,20 @@ static class NwnBridgeProbe
                     bridge.Send((talk
                         ? new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Talk, Target = target, Argument = OpenWinter.Net.ActionRequestMessage.TalkCommand }
                         : new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }).Write());
+            }
+            if (walked && requests.Count > 0 && clock.Elapsed.TotalSeconds > nextRequest && requests.Dequeue().Split('=', 2) is [var kind, var body])
+            {
+                // "+SECONDS:" before the next request sends it that soon instead of four seconds later.
+                nextRequest = clock.Elapsed.TotalSeconds + (requests.TryPeek(out var next) && next.StartsWith('+') ? double.Parse(next[1..next.IndexOf(':')]) : 4);
+                if (kind.StartsWith('+')) kind = kind[(kind.IndexOf(':') + 1)..];
+                var here = at;
+                body = System.Text.RegularExpressions.Regex.Replace(body, "\"@([^\"]*)\"", m => m.Groups[1].Value == "self" ? controlled.ToString()
+                    : objects.Where(kv => kv.Value.Name.Contains(m.Groups[1].Value, StringComparison.OrdinalIgnoreCase))
+                        .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault().ToString());
+                // "say=TEXT" talks instead (test modules take commands in chat).
+                bridge.Send(kind == "say" ? new OpenWinter.Net.ChatSendMessage { Channel = OpenWinter.Net.ChatChannel.Talk, Text = body }.Write()
+                    : new OpenWinter.Net.ClientRequestMessage { Kind = kind, Json = body }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} request {kind} {body}");
             }
             if (walked && attacks.Count > 0 && clock.Elapsed.TotalSeconds > attackAt)
             {

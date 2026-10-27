@@ -139,6 +139,14 @@ Supported so far:
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
+- the player's abilities (`Bridge/NwnAbilities*.cs`): the quickbar the server keeps with the character (edits are
+  stored on the server), the spellbook (prepared and known spells, slots and uses left, preparing and emptying
+  slots), casting at a creature, an object or the ground (spontaneous casts too), feats and their uses, skills,
+  items' cast-spell properties (potions, wands, scrolls), combat and stealth/detect modes, resting, cancelling a
+  queued action, the radial menu's use of all of these, and the character sheet (abilities, saves, base attack,
+  armour class, hit points, skills, feats, experience) as the server sends it; spells' conjure and cast effects.
+  Using an item's power is the abilities' (an item they haven't seen is left to the inventory), with the items as
+  the inventory knows them; the action queue goes into the combat bridge's HUD
 - conversations: the speaker's line, name, portrait and voice-over, the answers, picking one, Esc and the end
   choice, the lines in the chat window, and one-liners spoken over the talker. The server sends text as written or
   as a talk table reference, with the creature its tokens describe, and leaves the tokens (names, race, class,
@@ -168,8 +176,7 @@ Supported so far:
   until the server sends the next code, as it does when the script's time is up. A knockdown lays the creature
   down; placeables switch on and off, open and close, and doors and placeables show their destroyed state. The
   client's emotes go to the server as the animation input, which plays them for everyone.
-- spells: conjuring and casting carry the spell, so its hand, head and ground visuals, sounds and chant play
-  (spells.2da), and its projectile flies when the server sends it, for the flight time the server gives
+- spell projectiles fly when the server sends them, for the flight time it gives (spells.2da model, path and sound)
 - visual effects at a place, beams (lasting or instant), projectile-style effects, lasting effects on placeables
   and doors (with removal), areas of effect (vfx_persistent.2da), visual transforms and highlight colours
 - sounds: PlaySound (a message the definitions lack, 0x09 0x07: the object and the sound's resref), voice chat and
@@ -188,19 +195,38 @@ armour, properties, size, slots) come from the item's appearance and the client'
 The server names neither swing clips nor weapon sounds; the bridge picks them from what the attacker holds, as the
 client does on its own server. NWSync and character creation are still to come.
 
+What the server accepts, as measured against it:
+
+- A cast names the class by its place in the character's class list and the spell's spells.2da TargetType as its
+  target type; the server refuses a cast with any other target type. A special ability is cast with its own
+  message at the caster level it was given; a polymorph form's ability as an ordinary cast with class 255.
+- The player state's mode bits are detect 0x1, stealth 0x2, parry 0x4, power attack 0x8, improved power attack
+  0x10, flurry of blows 0x20, counterspell 0x200, expertise 0x2000, improved expertise 0x4000, defensive casting
+  0x8000, dirty fighting 0x10000 and defensive stance 0x40000 (detect and stealth also set 0x80). Rapid shot's isn't
+  known (the server refuses it without a bow), so it is toggled whenever the client asks.
+- The character sheet is filled for the panel the client has active and only that one: the main panel (0) brings
+  abilities, saves, base attack, combat figures and experience, the skills panel (1) each skill's total, and
+  switching back to a panel brings all its figures again. While the client polls an open sheet the bridge switches
+  between the two every few seconds, and sends the sheet only in answer to those polls.
+- The client sets an item quickbar button with only the item's id and property field, not the full item
+  description the server's own item buttons carry (`Messages/Custom/GuiQuickbarItemButton.cs`). How it names a
+  main/off-hand pair isn't known: the bridge empties the server's button and the pair stays on the client's bar.
+
 Testing:
 
 - `NwnCodecConformanceTests` decodes frames encoded by nwn-message.py and re-encodes them to the same bytes.
 - `NwnSessionTests` covers the login against a scripted server; `NwnBridgeTests` covers the translation.
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
-  connections, so it never contacts the master server.
+  connections, so it never contacts the master server. `--nwnx CREATURE,...` loads more plugins, for a test module
+  (built with `parity-build`) whose scripts call them.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
-  click NUI elements, attack, respawn, play emotes and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`,
-  `--drive`, `--nui-click`, `--attack`, `--respawn-at`, `--emote`, `--record`), and run a script of client
-  requests as another player (`--player`; `--do "use:Chest;req:container-take {\"item\":\"@c:Arrow\"}"`, items
-  named from the last inventory, container or store contents); it prints the animations it passes on. `nwn-dump`
-  reads 2DAs with the haks the recorded server named, since some fields' presence depends on them.
+  click NUI elements, attack, respawn, send any client request, play emotes and record (`--say`, `--use`,
+  `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`, `--attack`, `--respawn-at`,
+  `--request kind=json|...`, `--emote`, `--record`), and run a script of client requests as another player
+  (`--player`; `--do "use:Chest;req:container-take {\"item\":\"@c:Arrow\"}"`, items named from the last
+  inventory, container or store contents); it prints the animations it passes on. `nwn-dump` reads 2DAs with the
+  haks the recorded server named, since some fields' presence depends on them.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
 - `parity/suites/bridge_inventory` builds a test module with a chest, a body bag, a store opened by using a
@@ -210,6 +236,8 @@ Testing:
 - The visual scene `bridgecombat` (`visual-build bridgecombat`) is a fight to run on that server: goblins attack,
   effects, spells and saves, dying, death and respawn, each announced in chat. The client's `--capture-nwn-combat`
   follows it and takes shots; `NwnBridgeCombatTests` replays frames recorded from it.
+- The client's `--capture-nwn-actions` takes shots of the quickbar, character sheet and spellbook, then of a mode, a
+  cast, a feat and a rest.
 - The visual scene `bridgefx` (parity/visual/scenes) runs animations, conditions, placeable and door states, visual
   effects, spells, sounds and music by script, announcing each step in chat; `openwinter-tools visual-build
   bridgefx` makes its module for `nwnws.py start --module`. The client's `--capture-nwn-fx` takes shots along its
