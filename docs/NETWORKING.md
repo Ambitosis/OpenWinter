@@ -120,7 +120,8 @@ no scripts, settings or other plugins.
   [nwn-message.py](https://github.com/niv/nwn-message.py) (GPL-3.0); the types that library codes by hand are written
   by hand in `Messages/Custom`. Where recorded traffic differs from those definitions, the generator corrects them
   (`apply_corrections`): NUI windows, binds, events and layouts carry JSON fields (type byte, length, text) rather
-  than length-prefixed blobs, and a NUI bind entry ends after its value. A body bag's creature is an object id,
+  than length-prefixed blobs, and a NUI bind entry from the server ends after its value, while one from the client
+  carries an array index after it (the client's NuiBinds is its own message, `NuiClientBinds`). A body bag's creature is an object id,
   not a dword. The player's level-up information has one starting package (a dword) before its
   multiclass level, not two.
 - **Session.** It handles login, keep-alives and echoes.
@@ -139,7 +140,9 @@ Supported so far:
   locked doors, script messages)
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
-- script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
+- script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back (an
+  edited value goes back whole, with the row whose array element changed or -1, which the server's watch event
+  reports as its array index)
 - the player's abilities (`Bridge/NwnAbilities*.cs`): the quickbar the server keeps with the character (edits are
   stored on the server), the spellbook (prepared and known spells, slots and uses left, preparing and emptying
   slots), casting at a creature, an object or the ground (spontaneous casts too), feats and their uses, skills,
@@ -158,7 +161,8 @@ Supported so far:
 - the journal: opening its window opens the quest screen, and the server sends the whole journal (it sends it only
   then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
   and flashes the button.
-- cutscene mode and fades
+- cutscene mode and fades; Esc in cutscene mode sends the cutscene's cancel, also while a conversation is shown,
+  which it leaves open (docs/CONVERSATION_ENDINGS.md)
 - the player's items (`NwnInventory`, `NwnItems`): the backpack, bags and equipment with icons, stacks, charges,
   identified state, names, weight and gold; equipping, unequipping, dropping, splitting, using and moving items, into
   and out of bags; examining items; placeable containers and body bags (open, take, take all, put, close); stores
@@ -279,3 +283,7 @@ Testing:
   character; with the server's `--elc 1`, logging in again checks the result. The client's `--capture-nwn-levelup
   dir [--levelup-class N] [--levelups N]` takes levels in the level-up window (the classic one with `--ui classic`)
   and `--capture-nwn-chargen dir` creates a character from the character list, with a shot at each step.
+- `parity/suites/bridge_nui` builds a test module whose window has a text field bound to a single value and a list
+  bound to an array, both watched; its event script reports each watch (index and value) in chat, so
+  `nwn-bridge --request 'nui-bind={"token":1,"bind":"rows","value":[...],"index":1}'` shows what the server made of
+  an edit.

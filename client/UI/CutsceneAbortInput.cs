@@ -3,7 +3,10 @@ using Godot;
 
 namespace OpenWinter.Client.UI;
 
-/// <summary>Escape asks the module to cancel a cutscene; normal dialogue Escape remains with DialogPanel.</summary>
+/// <summary>
+/// Escape in cutscene mode asks the module to cancel the cutscene, also while a conversation is shown (which
+/// Escape then leaves open); outside cutscene mode a conversation's Escape stays with DialogPanel.
+/// </summary>
 public partial class CutsceneAbortInput : Node
 {
     public ClientSession Session = null!;
