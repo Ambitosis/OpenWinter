@@ -39,8 +39,11 @@ public partial class NuiWindowView : Control
     NuiRect? SizeConstraint => Binds.Rect(Json["size_constraint"]);
     NuiRect? EdgeConstraint => Binds.Rect(Json["edge_constraint"]);
 
-    /// <summary>Title bar hidden: title false, collapsing disabled and not closable.</summary>
-    public bool HasTitleBar => !(Binds.Resolve(Json["title"]) is JsonValue t && t.TryGetValue<bool>(out var b) && !b && !CanCollapse && !Closable);
+    /// <summary>
+    /// Title bar hidden: title false or an empty string (bound or not; a space shows the bar), collapsing disabled
+    /// and not closable (visual scene nuititle).
+    /// </summary>
+    public bool HasTitleBar => !(Binds.Resolve(Json["title"]) is JsonValue t && (t.TryGetValue<bool>(out var b) && !b || t.TryGetValue<string>(out var text) && text.Length == 0) && !CanCollapse && !Closable);
 
     float TitleH => HasTitleBar ? NuiStyle.TitleHeight : 0;
     public NuiRect Rect => _rect;
@@ -105,6 +108,8 @@ public partial class NuiWindowView : Control
             MouseFilter = AcceptsInput ? MouseFilterEnum.Stop : MouseFilterEnum.Ignore;
             if (!AcceptsInput) IgnoreInput(this);
         }
+        // A bound title can show or hide the title bar, which moves the content.
+        if (NuiBinds.IsBind(Json["title"], out var t) && t == name) ApplyRect();
         QueueRedraw();
     }
 
