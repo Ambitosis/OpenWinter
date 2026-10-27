@@ -1,0 +1,11 @@
+{ "tileset": "ttr01", "tile": 109, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 130,
+  "are": { "DayNightCycle": 1, "SunShadows": 0, "MoonShadows": 0, "SunFogAmount": 0, "MoonFogAmount": 0, "IsNight": 0,
+           "SunAmbientColor": 6316128, "SunDiffuseColor": 12632256, "MoonAmbientColor": 2105376, "MoonDiffuseColor": 6316160 },
+  "variants": {
+    "ext": { "are": { "Flags": 0 } },
+    "nat": { "are": { "Flags": 4 } },
+    "int": { "are": { "Flags": 1 } },
+    "und": { "are": { "Flags": 6 } },
+    "fixday": { "are": { "Flags": 4, "DayNightCycle": 0, "IsNight": 0 } },
+    "fixnight": { "are": { "Flags": 4, "DayNightCycle": 0, "IsNight": 1 } }
+  } }

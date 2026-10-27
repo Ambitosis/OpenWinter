@@ -1,0 +1,62 @@
+// Visual scene "sundir" (part of OpenWinter, MIT licence): the ground, unlit, as a readout of the area's light.
+// The screen (1280 pixels wide) is cut into eight columns of 160 pixels, each one flat colour:
+//   0, 1  the direction towards the sun or moon in world space (m_view_inv * lightAreaDiffuseDirection) as
+//         v = 0.5 + 0.5 * xyz: column 0 floor(v * 255) / 255, column 1 the rest (fract(v * 255))
+//   2, 3  the same for lightAreaDiffuseDirection as given (view space)
+//   4     lightAreaDiffuse
+//   5     lightAreaAmbient
+//   6     moduleHour / 255 in red (inc_uniforms declares it)
+//   7     check colour (0.2, 0.4, 0.6)
+#define SHADER_TYPE 2
+#define FOG 0
+#define KEYHOLING 0
+#define LIGHTING 0
+#define NORMAL_MAP 0
+#define SPECULAR_MAP 0
+#define ROUGHNESS_MAP 0
+#define HEIGHT_MAP 0
+#define SELF_ILLUMINATION_MAP 0
+#define ENVIRONMENT_MAP 0
+
+#include "inc_standard"
+#include "inc_uniforms"
+
+uniform vec3 lightAreaDiffuseDirection;
+uniform vec3 lightAreaDiffuse;
+uniform vec3 lightAreaAmbient;
+
+vec3 Coarse(vec3 d)
+{
+    vec3 v = clamp(0.5 + 0.5 * d, 0.0, 1.0) * 255.0;
+    return min(floor(v), vec3(254.0)) / 255.0;
+}
+
+vec3 Fine(vec3 d)
+{
+    vec3 v = clamp(0.5 + 0.5 * d, 0.0, 1.0) * 255.0;
+    return v - min(floor(v), vec3(254.0));
+}
+
+void main()
+{
+    FragmentColor = vec4(1.0);
+    SetupStandardShaderInputs();
+    vec3 vWorld = normalize((m_view_inv * vec4(lightAreaDiffuseDirection, 0.0)).xyz);
+    int nCol = int(gl_FragCoord.x / 160.0);
+    vec3 vOut = vec3(0.2, 0.4, 0.6);
+    if (nCol == 0)
+        vOut = Coarse(vWorld);
+    else if (nCol == 1)
+        vOut = Fine(vWorld);
+    else if (nCol == 2)
+        vOut = Coarse(lightAreaDiffuseDirection);
+    else if (nCol == 3)
+        vOut = Fine(lightAreaDiffuseDirection);
+    else if (nCol == 4)
+        vOut = lightAreaDiffuse;
+    else if (nCol == 5)
+        vOut = lightAreaAmbient;
+    else if (nCol == 6)
+        vOut = vec3(float(moduleHour) / 255.0, 0.0, 0.0);
+    gl_FragColor = vec4(vOut, 1.0);
+}

@@ -218,7 +218,10 @@ a scene's `.shd` and `.mtr` files go into its hak), `shaderplt` (a palette-textu
 shader: the tinted texture, its alpha, mesh-space `vPos`, the bounding box, the area light values), `shaderlit` and
 `shaderlitplain` (the ground through a lit test shader with the specularity and roughness overridden, and without
 it; variants `amb` and `dif` light it by ambient or sun alone), `shadertex` (ReplaceObjectTexture on meshes with
-module shaders), `stockmtr` (the game's own MTRs: tti01 ice, the old heads), `postfx` (the scene's own post-process pass: a colour grade,
+module shaders), `stockmtr` (the game's own MTRs: tti01 ice, the old heads), `sundir` (the ground drawn as a readout of
+`lightAreaDiffuseDirection` in world and view space, the light colours and the hour after SetTime to each hour, in
+exterior, natural, interior and underground areas, with and without a day/night cycle; `python
+tools/visual/sundir_readout.py` decodes them), `sunshadow` (an obelisk's shadow from straight above through the day), `postfx` (the scene's own post-process pass: a colour grade,
 depth bands and haze, and a readout of engine values that `python tools/visual/postfx_readout.py` decodes for
 both engines), `waterfx` (the scene's own water program on a river tile: the engine's noise texture, the view
 behind the water by its depth, the water's texture, which meshes are water), `tilelight`
