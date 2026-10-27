@@ -841,6 +841,8 @@ public sealed partial class GameServer : IWorldOutput
         // An entry point off the walkable ground (inside a building's footprint) moves to the nearest ground, as in the original.
         else if (area.Walkmesh.NearestWalkable(pos) is { } ground) pos = ground;
         World.Register(creature);
+        // The module's SetTlkOverride strings so far (nwserver sends its list as the player logs in).
+        foreach (var (strref, text) in World.TlkOverrides) World.Output?.Notify("tlk-override", creature, new { strref, text }, creature);
         World.RunEvent(World.Module, "Mod_OnClientEntr", new Scripting.EventContext().Set("Entering", creature.Id));
         // A spot a script chose for this player (NWNX_Player_SetSpawnLocation / SetPersistentLocation).
         if (Nwnx.Plugins.PlayerPlugin.SpawnOverride(World, s, creature) is { } spot) (area, pos, facing) = spot;

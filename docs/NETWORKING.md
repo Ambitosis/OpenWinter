@@ -265,6 +265,16 @@ What the server accepts, as measured against it:
   (`Messages/Custom/GuiQuickbarItemButton.cs`). Without the flag WSNetLayer logs the message as short ("desync at
   stream pos 4: expected BOOL"). A button is sent only when the player changes it, never back to the server after
   the server set it.
+- The server's changes to the player's game data: SetTextureOverride arrives as a resource override of type 2001
+  (RESTYPE_TEX) and becomes the client's texture override; NWNX_Player_SetResManOverride's other types replace that
+  resource (a removal clears it). SetTlkOverride strings come as one list at login and singly after; the client and
+  the bridge's own text (feedback, names) both read them. SetPanelButtonFlash is passed on as OpenWinter's server
+  sends it.
+- A pump stops after the server's module-running message, so the haks it names decide the 2DAs the following
+  messages decode by.
+- Not used yet: the player list, disabled GUI panels, an area renamed while the player is in it (the area message
+  carries the name otherwise) and the login's waypoint request (no answer is sent; the server goes on without it).
+  The client logs the first message of each type no part of the bridge uses (`[nwn] not used: ...`).
 
 Testing:
 
@@ -281,6 +291,9 @@ Testing:
   (`--player`; `--do "use:Chest;req:container-take {\"item\":\"@c:Arrow\"}"`, items named from the last
   inventory, container or store contents); it prints the animations it passes on. `nwn-dump` reads 2DAs with the
   haks the recorded server named, since some fields' presence depends on them.
+- `openwinter-tools nwn-unused recording.jsonl.gz` replays a recording's server frames through the bridge, without
+  a server, and lists the messages nothing used and the frames that didn't decode; `nwn-bridge` prints the same
+  list when it ends.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
 - `parity/suites/bridge_inventory` builds a test module with a chest, a body bag, a store opened by using a

@@ -283,6 +283,12 @@ public partial class ClientSession : Node3D
                     UI.Classic.ClassicSounds.Play(UI.Classic.ClassicAssets.For(Content), data.RootElement.GetProperty("sound").GetString() ?? "");
                 }
                 if (notice.Kind == "nwnx-player") ApplyResourceOverride(notice);
+                if (notice.Kind == "tlk-override" && Content != null)
+                {
+                    // SetTlkOverride: every string the client reads from the talk table follows it from now on.
+                    using var tlk = System.Text.Json.JsonDocument.Parse(notice.Json);
+                    Content.Resources.Talk.SetOverride(unchecked((uint)tlk.RootElement.GetProperty("strref").GetInt32()), tlk.RootElement.GetProperty("text").GetString() ?? "");
+                }
                 NotifyReceived?.Invoke(notice);
                 break;
         }

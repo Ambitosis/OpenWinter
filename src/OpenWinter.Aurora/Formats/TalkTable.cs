@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 
 namespace OpenWinter.Aurora.Formats;
 
@@ -12,6 +13,7 @@ public sealed class TalkTable
 
     readonly byte[]? _base;
     readonly byte[]? _custom;
+    ConcurrentDictionary<uint, string>? _overrides;
 
     public TalkTable(byte[]? baseTable, byte[]? customTable)
     {
@@ -24,9 +26,20 @@ public sealed class TalkTable
     public string Get(uint strref)
     {
         if (strref == 0xFFFFFFFF) return "";
+        if (_overrides != null && _overrides.TryGetValue(strref, out var text)) return text;
         if ((strref & CustomFlag) != 0) return Lookup(_custom, strref & 0x00FFFFFF);
         return Lookup(_base, strref);
     }
+
+    /// <summary>SetTlkOverride: <paramref name="strref"/> reads <paramref name="text"/> instead; "" removes the override.</summary>
+    public void SetOverride(uint strref, string text)
+    {
+        if (text.Length > 0) (_overrides ??= new())[strref] = text;
+        else _overrides?.TryRemove(strref, out _);
+    }
+
+    /// <summary>The strings overridden with <see cref="SetOverride"/>.</summary>
+    public IEnumerable<KeyValuePair<uint, string>> Overrides => _overrides ?? [];
 
     /// <summary>Sound resref attached to an entry, if any.</summary>
     public string Sound(uint strref)

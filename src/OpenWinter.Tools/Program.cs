@@ -323,6 +323,9 @@ switch (cmd)
     case "nwn-dump":
         Environment.ExitCode = NwnRecordingDump.Run(paths, args);
         break;
+    case "nwn-unused":
+        Environment.ExitCode = NwnUnusedReport.Run(paths, args);
+        break;
     case "nwn-bridge":
         Environment.ExitCode = NwnBridgeProbe.Run(paths, args);
         break;

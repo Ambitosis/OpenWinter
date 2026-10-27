@@ -57,6 +57,22 @@ public class MultiplayerTests
         return new TestClient { Connection = client };
     }
 
+    /// <summary>SetTlkOverride strings set before a player joins reach her as she enters (nwserver sends its list at login).</summary>
+    [DataFact]
+    public void AJoiningPlayerGetsTheTalkTableOverridesSetBefore()
+    {
+        var world = new World(TestData.Module);
+        world.LoadModule();
+        world.TlkOverrides[5213] = "Berserker";
+        var server = new GameServer(world, new ServerOptions { StartArea = "ss_town" });
+        var a = Join(server, "Alice");
+        for (int i = 0; i < 3; i++) server.Tick(1f / 30);
+        var notices = new List<NotifyMessage>();
+        while (a.Connection.TryReceive(out var m))
+            if (new MessageReader(m) is { Type: MessageType.Notify } r) notices.Add(NotifyMessage.Read(r));
+        Assert.Equal("""{"strref":5213,"text":"Berserker"}""", Assert.Single(notices, n => n.Kind == "tlk-override").Json);
+    }
+
     /// <summary>Two players on one server: each sees the other arrive, move, talk and leave.</summary>
     [DataFact]
     public void PlayersSeeEachOtherMoveTalkAndLeave()
