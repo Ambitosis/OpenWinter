@@ -39,9 +39,7 @@ public static class NwnAnimations
             [39] = Loop("tlkplead", true), [40] = Loop("tlkforce", true), [41] = Loop("tlklaugh", true),
             [59] = Loop("getlowlp"), [60] = Loop("getmidlp"), [57] = Loop("pausetrd"), [58] = Loop("pausedrnk"),
             [93] = Loop("spasm"), [97] = Loop("custom1"), [98] = Loop("custom2"),
-            [101] = Loop("castout"), [102] = Loop("castpoint"), [103] = Loop("castup"), [104] = Loop("castself"),
-            [105] = Loop("castarea"), [106] = Loop("closeh"), [107] = Loop("kdbck"), [108] = Loop("kdfnt"),
-            [109] = Loop("sitdown"), [119] = Loop("mount1"), [120] = Loop("dismount1"),
+            [119] = Loop("mount1"), [120] = Loop("dismount1"),
             // ANIMATION_FIREFORGET_*
             [53] = Once("hturnl", true), [54] = Once("hturnr", true), [55] = Once("pausesh"), [56] = Once("pausebrd"),
             [34] = Once("salute", true), [35] = Once("bow"), [37] = Once("steal"), [29] = Once("greeting", true),
@@ -49,8 +47,8 @@ public static class NwnAnimations
             [71] = Once("read", true), [70] = Once("drink", true), [90] = Once("dodges"), [91] = Once("dodgelr"),
             [23] = Once("spasm"),
         };
-        // ANIMATION_LOOPING_CUSTOM12-20 and CUSTOM21-57 run on in one block.
-        for (int i = 12; i <= 20; i++) map[(ushort)(98 + i)] = Loop("custom" + i);
+        // ANIMATION_LOOPING_CUSTOM3-20 and CUSTOM21-57 run on in one block.
+        for (int i = 3; i <= 20; i++) map[(ushort)(98 + i)] = Loop("custom" + i);
         for (int i = 21; i <= 57; i++) map[(ushort)(100 + i)] = Loop("custom" + i);
         return map;
     }
