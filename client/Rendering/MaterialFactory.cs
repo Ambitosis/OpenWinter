@@ -29,6 +29,8 @@ public sealed class MaterialFactory
         // A bitmap that names an MTR: its custom shaders, or else the texture it names. A palette texture (PLT) names
         // the MTR of its resref; its shaders get the tinted texture as texture 0.
         string mtrName = PltTinter.Resref(texName) ?? texName;
+        // A part whose own bitmap names no texture keeps that name's material (scene handbitmapmtr).
+        if (textureOverride == null && mesh.Bitmap.Length > 0 && Shaders?.Material(mesh.Bitmap) != null) mtrName = mesh.Bitmap;
         if (Shaders != null && mtrName.Length is > 0 and <= 16 && !mtrName.Contains(':') && Shaders.Material(mtrName) is { } mtr)
         {
             if (moduleShaders && Shaders.For(mesh, mtr, texName, kind) is { } custom) return custom;

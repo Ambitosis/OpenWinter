@@ -205,8 +205,14 @@ public static partial class PartBasedBuilder
             if (mesh != null)
             {
                 if (scale != 1) mesh.Vertices = mesh.Vertices.Select(v => v * scale).ToArray();
-                // Only palette meshes: a part's plain-textured pieces (glows, gems) keep their own.
-                if (texture != null && (mesh.Texture.Length == 0 || tinter.IsPalette(mesh.Texture))) mesh.Texture = texture;
+                // Palette meshes, and meshes whose bitmap names no texture at all (right hand 186's "hand": the original
+                // draws its part PLT, scene handbitmap); a part's plain-textured pieces (glows, gems) keep their own.
+                if (texture != null && tinter.IsMissing(mesh.Texture))
+                {
+                    if (mesh.Texture.Length > 0) mesh.Bitmap = mesh.Texture;
+                    mesh.Texture = texture;
+                }
+                else if (texture != null && tinter.IsPalette(mesh.Texture)) mesh.Texture = texture;
                 Texture(mesh, tinter, layers, fallbackTexture);
             }
             var emitter = equipped ? Equipped(part, src) : src.Emitter;
@@ -243,7 +249,11 @@ public static partial class PartBasedBuilder
             }
             else
             {
-                model.Parts.Add(new ModelPart { Name = src.Name + "_part", Parent = parent, Position = Vector3.Zero, Rotation = Quaternion.Identity, Mesh = mesh });
+                // A mesh on a node the skeleton lacks (a robe's belt pieces) rides its nearest ancestor that the skeleton
+                // has, keeping its offset from it (scene robenode).
+                var (bone, offset) = WorldFx.Logic.PartPlacement.RigidPlace(part, map, globals, i);
+                Matrix4x4.Decompose(offset, out _, out var r, out var p);
+                model.Parts.Add(new ModelPart { Name = src.Name + "_part", Parent = bone, Position = p, Rotation = r, Mesh = mesh });
             }
         }
     }

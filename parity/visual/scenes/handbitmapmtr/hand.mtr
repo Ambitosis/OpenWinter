@@ -1,0 +1,4 @@
+// Visual scene "handbitmapmtr": the female elf's right hand 186 (bitmap "hand") drawn with the scene's test shader.
+customshaderVS ow_pltv
+customshaderFS ow_plt
+parameter int owMode 0
