@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using OpenWinter.Net;
 using OpenWinter.Net.Nwn.Bridge;
 using OpenWinter.Net.Nwn.Messages;
@@ -468,5 +469,39 @@ public class NwnBridgeActionsTests
             conjure.GetProperty("duration").GetSingle()));
         var cast = b.Last("spell-cast");
         Assert.Equal((Player, "up"), (cast.GetProperty("target").GetUInt32(), cast.GetProperty("animation").GetString()));
+    }
+
+    [Fact]
+    public void ItemsComeFromTheInventoryAndTheQueueGoesToTheHud()
+    {
+        var b = new Bridge();
+        var wand = new ItemAppearanceAndProps
+        {
+            BaseItemId = 46, Identified = true, StackSize = 1, Name = new NwnTagged(1, new OriginalItemName { Name = NwnLocString.FromText("Wand") }),
+            Properties = [new ItemPropertyEntry { Name = 44 }, new ItemPropertyEntry { Name = 15, Subtype = 68 }],
+            UsesLeft = new ItemUsesLeft { UseableProperties = 1, Uses = [5] },
+        };
+        b.Abilities.Carried = () => [(900u, wand)];
+        JsonArray? queue = null;
+        b.Abilities.QueueChanged = q => queue = q;
+        b.Abilities.ObjectList(Cleric());
+        b.Abilities.FromClient("abilities", "{}");
+        var item = Assert.Single(b.Last("abilities").GetProperty("items").EnumerateArray());
+        Assert.Equal((900u, 1), (item.GetProperty("item").GetUInt32(), item.GetProperty("props")[0].GetProperty("index").GetInt32()));
+        // Its power is used here, by its place among the usable properties; an item nobody has described is left to
+        // the inventory (not handled, not sent).
+        Assert.True(b.Abilities.FromClient("use-item", """{"item":900,"prop":1,"target":19}"""));
+        Assert.Equal((900u, 0), (Assert.IsType<InputMessages.InputUseItem>(b.Sent[^1]).Item, Assert.IsType<InputMessages.InputUseItem>(b.Sent[^1]).ActivePropertyIndex));
+        int sent = b.Sent.Count;
+        Assert.False(b.Abilities.FromClient("use-item", """{"item":901,"prop":0}"""));
+        Assert.False(b.Abilities.FromClient("item-info", """{"item":900}"""));
+        Assert.Equal(sent, b.Sent.Count);
+        b.Abilities.ObjectList(List(new GameObjUpdateObjListPlayerInfo
+        {
+            ObjectId = Player, Flags = UpdatePlayerCreatureFlags.ActionQueue,
+            ActionQueue = new ActionQueueChanges { Entries = [new NwnTagged('A', new ActionQueueAdd { ActionId = 4, GroupId = 2, TargetObjectId = 96, SpellId = 6 })] },
+        }));
+        var entry = Assert.Single(queue!);
+        Assert.Equal((NwnAbilities.QueueId((4, 2)), 6, "is_bless"), (entry!["id"]!.GetValue<uint>(), entry["spell"]!.GetValue<int>(), entry["icon"]!.GetValue<string>()));
     }
 }

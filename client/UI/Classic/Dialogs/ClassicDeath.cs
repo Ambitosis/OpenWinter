@@ -26,6 +26,8 @@ public partial class ClassicDeath : Control
         _defaultMessage = Panel.Get<GuiLabel>("Message")?.Text ?? "";
         if (Panel.Get<GuiLabel>("Message") is { } msg) msg.Wrap = true;
         Resized += Center;
+        // The server closes the panel (a respawn or a raise).
+        Ctx.Session.NotifyReceived += m => { if (m.Kind == "gui-death-close" && IsInstanceValid(this)) Visible = _sawDead = false; };
         Panel.ButtonPressed += tag =>
         {
             switch (tag)

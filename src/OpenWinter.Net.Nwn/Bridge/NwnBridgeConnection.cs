@@ -30,7 +30,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly ConcurrentQueue<byte[]> _toClient = new();
     readonly NwnWorldMirror _world;
     readonly NwnAbilities _abilities;
+    readonly NwnInventory _inventory;
     readonly NwnDialog _dialog;
+    readonly NwnCombat _combat;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -52,7 +54,14 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
         _world = new NwnWorldMirror(data, m => _toClient.Enqueue(m));
         _abilities = new NwnAbilities(data, m => _toClient.Enqueue(m), ToServer);
+        _inventory = new NwnInventory(data, new NwnInventoryHost(ToServer, m => _toClient.Enqueue(m), () => _world.Controlled,
+            () => _world.TryPose(_world.Controlled, out var p, out _, out _, out _) ? p : default, _world.NameOf));
         _dialog = new NwnDialog(_world, data, m => _toClient.Enqueue(m));
+        _combat = new NwnCombat(data, _world, m => _toClient.Enqueue(m));
+        // Using an item's power is the abilities' (an item they don't know is left to the inventory); the inventory
+        // knows every item the player has and the HUD is the combat bridge's, fed with the action queue.
+        _abilities.Carried = _inventory.Items;
+        _abilities.QueueChanged = _combat.ActionQueue;
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -158,12 +167,12 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case ActionKind.PickUp or ActionKind.Use when _world.KindOf(a.Target) == ObjectKind.Item:
                 // Into the backpack wherever it fits: no container, no grid position.
-                ToServer(new InventoryMessages.InventoryPickupC2S { Item = a.Target, TargetRepository = GameObjUpdateMessages.InvalidObjectId, X = 255, Y = 255 });
+                _inventory.FromClient("pickup", $"{{\"item\":{a.Target}}}");
                 break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
-                ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use)));
+                ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use), _combat.Click(a.Target)));
                 break;
-            case ActionKind.Attack:
+            case ActionKind.Attack when a.Target != 0:
                 ToServer(new InputMessages.InputAttack { Target = a.Target });
                 break;
         }
@@ -216,12 +225,15 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     /// <summary>
     /// What a click, use or Talk sends. The Talk command (radial menu, quickbar) on a creature asks for a
-    /// conversation; a click on a creature (also Talk, without the command) is a use, for which the server picks the
-    /// default action (talk, attack). Doors change state; everything else is used. The server walks the player there.
+    /// conversation, hostile or not. A click on a creature hostile to the player (<paramref name="hostileAttack"/>,
+    /// <see cref="NwnCombat.Click"/>) attacks it, as nwmain does; a click on any other creature (also Talk, without
+    /// the command) is a use, for which the server picks the default action. Doors change state; everything else is
+    /// used. The server walks the player there.
     /// </summary>
-    public static NwnMessage UseOrTalk(ActionRequestMessage a, ObjectKind? kind, NwnMessage? doorRequest) =>
+    public static NwnMessage UseOrTalk(ActionRequestMessage a, ObjectKind? kind, NwnMessage? doorRequest, NwnMessage? hostileAttack = null) =>
         a.Action == ActionKind.Talk && a.Argument == ActionRequestMessage.TalkCommand && kind == ObjectKind.Creature
             ? new InputMessages.InputDialog { Target = a.Target }
+            : a.Action is ActionKind.Use or ActionKind.Talk && hostileAttack != null ? hostileAttack
             : doorRequest ?? new InputMessages.InputUseObject { Target = a.Target, LeftClick = true };
 
     /// <summary>A facing as the drive message's bearing: tenths of a degree counter-clockwise from +X.</summary>
@@ -236,12 +248,13 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void Request(ClientRequestMessage request)
     {
-        if ((NwnNui.FromClient(request.Kind, request.Json) ?? _dialog.FromClient(request.Kind, request.Json)) is { } handled)
+        if ((NwnNui.FromClient(request.Kind, request.Json) ?? _dialog.FromClient(request.Kind, request.Json) ?? _combat.FromClient(request.Kind, request.Json)) is { } handled)
         {
             ToServer(handled);
             return;
         }
         if (_abilities.FromClient(request.Kind, request.Json)) return;
+        if (_inventory.FromClient(request.Kind, request.Json)) return;
         switch (request.Kind)
         {
             case "area-ready":
@@ -276,9 +289,15 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         }
         // Moving creatures report ten times a second; the client interpolates between.
         var now = _clock.Elapsed.TotalSeconds;
+        try { _inventory.Tick(now); }
+        catch (Exception e) when (e is not OutOfMemoryException)
+        {
+            _session.DecodeErrors.Add(new NwnDecodeError([], $"inventory not updated: {e.Message}"));
+        }
         if (now - _lastTick < 0.1) return;
         var dt = (float)Math.Min(0.25, now - _lastTick);
         _world.Tick(dt);
+        _combat.Tick(dt);
         Drive(dt);
         _lastTick = now;
     }
@@ -304,10 +323,12 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case AreaMessages.AreaClientArea area:
                 _world.Area(area);
+                _inventory.AreaChanged();
                 _abilities.AreaChanged();
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
-                _world.ObjectList(list);
+                _combat.ObjectList(list, _world.ObjectList);
+                _inventory.ObjectList(list);
                 _abilities.ObjectList(list);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
@@ -321,20 +342,18 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 _abilities.QuickbarButton(button);
                 break;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
-                NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
+                if (!_combat.Feedback(feedback)) NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
+                _inventory.Feedback(feedback);
                 _abilities.Feedback(feedback);
-                break;
-            case GuiTimingEventMessages.GuiTimingEventInfo timing:
-                _abilities.TimingEvent(timing);
-                break;
-            case ItemPropertyMessages.ItemPropertyUpdateUses uses:
-                _abilities.ItemUses(uses);
                 break;
             case LoginMessages.LoginDeny or LoginMessages.LoginCharacterFail:
                 Tell("The server refused the character.");
                 break;
             default:
-                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)))
+                // The abilities only watch these (the rest bar, item uses), so the others still see them.
+                _abilities.ToClient(message);
+                if (_inventory.ToClient(message)) break;
+                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !_combat.ToClient(message))
                     NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
                 break;
         }

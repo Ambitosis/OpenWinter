@@ -238,7 +238,7 @@ public sealed partial class NwnAbilities
     JsonArray ItemList()
     {
         var list = new JsonArray();
-        foreach (var (id, item) in _items)
+        foreach (var (id, item) in KnownItems())
         {
             var props = new JsonArray();
             int active = 0;
@@ -281,7 +281,7 @@ public sealed partial class NwnAbilities
             {
                 ["item"] = id,
                 ["name"] = ItemName(item),
-                ["icon"] = Icon(item),
+                ["icon"] = new JsonArray(NwnItems.Icon(data, item, _gender == 1).Select(i => (JsonNode)i).ToArray()),
                 ["key"] = $"{item.BaseItemId}:{ItemName(item)}",
                 ["stack"] = item.StackSize,
                 ["charges"] = 0,
@@ -293,44 +293,6 @@ public sealed partial class NwnAbilities
             });
         }
         return list;
-    }
-
-    /// <summary>
-    /// An item's inventory icon: "i" + its baseitems.2da ItemClass and model number (three parts for composite
-    /// models), a spell scroll's spell (its first cast-spell property's iprp_spells.2da Icon), or the base item's
-    /// DefaultIcon for armour.
-    /// </summary>
-    JsonArray Icon(ItemAppearanceAndProps item)
-    {
-        int baseItem = (int)item.BaseItemId;
-        if (baseItem == 75 && item.Properties.FirstOrDefault(p => p.Name == PropCastSpell) is { } scroll
-            && data.TwoDA("iprp_spells", scroll.Subtype, "Icon") is { Length: > 0 } spell)
-            return [Lower(spell)];
-        string cls = Lower(data.TwoDA("baseitems", baseItem, "ItemClass"));
-        string fallback = Lower(data.TwoDA("baseitems", baseItem, "DefaultIcon"));
-        return item.ModelData?.Value switch
-        {
-            _ when cls.Length == 0 => fallback.Length > 0 ? [fallback] : [],
-            SimpleModel m => [$"i{cls}_{m.Part1:000}"],
-            LayeredModel m => [$"i{cls}_{m.Part1:000}"],
-            CompositeModel m => [$"i{cls}_b_{m.Part1:000}", $"i{cls}_m_{m.Part2:000}", $"i{cls}_t_{m.Part3:000}"],
-            _ => fallback.Length > 0 ? [fallback] : [],
-        };
-    }
-
-    /// <summary>item-info {item}: the name and icon of one of the player's items the server has described.</summary>
-    bool ItemInfo(JsonObject d)
-    {
-        var id = Id(d, "item");
-        if (!_items.TryGetValue(id, out var item)) return false;
-        int slot = _equipped.TryGetValue(id, out var s) ? s : -1;
-        int slots = Hex(data.TwoDA("baseitems", (int)item.BaseItemId, "EquipableSlots"));
-        Notify("item-info", new JsonObject
-        {
-            ["item"] = id, ["name"] = ItemName(item), ["icon"] = Icon(item), ["stack"] = item.StackSize,
-            ["equippable"] = slots != 0, ["equipped"] = slot >= 0, ["slot"] = slot, ["equipSlots"] = slots,
-        });
-        return true;
     }
 
     // -- using them ---------------------------------------------------------
@@ -363,7 +325,7 @@ public sealed partial class NwnAbilities
         if (skill is SkillSearch or SkillSpot or SkillListen) { ToggleMode(ModeDetect); return; }
         if (skill < 0) return;
         // A healer's kit, thieves' tools or trap kit is used through the item.
-        if (Id(d, "item") is var item && item != GameObjUpdateMessages.InvalidObjectId && _items.ContainsKey(item))
+        if (Id(d, "item") is var item && item != GameObjUpdateMessages.InvalidObjectId && Look(item) != null)
         {
             UseItem(new JsonObject { ["item"] = item, ["target"] = d["target"]?.DeepClone() }, firstProperty: true);
             return;
@@ -377,12 +339,13 @@ public sealed partial class NwnAbilities
     /// use-item {item, prop (its index in the item's properties), target or pos}; item-use {item, target} uses the
     /// first property. The server is given the property's place among the item's usable ones.
     /// </summary>
-    void UseItem(JsonObject d, bool firstProperty)
+    bool UseItem(JsonObject d, bool firstProperty)
     {
         var id = Id(d, "item");
-        if (!_items.TryGetValue(id, out var item)) return;
-        int prop = firstProperty ? item.Properties.FindIndex(Activatable) : Int(d, "prop", -1);
-        if (prop < 0 || prop >= item.Properties.Count || !Activatable(item.Properties[prop])) return;
+        // An item this area hasn't seen is left to the inventory.
+        if (Look(id) is not { } item) return false;
+        int prop = firstProperty || Int(d, "prop", -1) < 0 ? item.Properties.FindIndex(Activatable) : Int(d, "prop", -1);
+        if (prop < 0 || prop >= item.Properties.Count || !Activatable(item.Properties[prop])) return true;
         int active = item.Properties.Take(prop).Count(Activatable);
         var target = Id(d, "target");
         var pos = Pos(d);
@@ -393,5 +356,6 @@ public sealed partial class NwnAbilities
             Target = target == GameObjUpdateMessages.InvalidObjectId ? null : target,
             Position = target == GameObjUpdateMessages.InvalidObjectId ? pos : null,
         });
+        return true;
     }
 }

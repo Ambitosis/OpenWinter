@@ -66,7 +66,13 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     string _subrace = "", _deity = "", _portrait = "";
     GuiCharacterSheet? _sheet;
     readonly Dictionary<int, (int Ranks, bool Usable)> _skillRanks = [];
-    readonly List<(ushort Action, ushort Group)> _queue = [];
+    readonly List<(ushort Action, ushort Group, int Spell)> _queue = [];
+
+    /// <summary>The player's items as the inventory knows them (all it carries and wears); null without one.</summary>
+    public Func<IEnumerable<(uint Id, ItemAppearanceAndProps Look)>>? Carried { get; set; }
+
+    /// <summary>The action queue as the HUD shows it ({id, action, spell, icon, name}), whenever it changes.</summary>
+    public Action<JsonArray>? QueueChanged { get; set; }
     /// <summary>The player's items the server has described (on the quickbar or in an open inventory), by object id.</summary>
     readonly Dictionary<uint, ItemAppearanceAndProps> _items = [];
     /// <summary>Equipped items and their INVENTORY_SLOT_*.</summary>
@@ -120,6 +126,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         (_walkRate, _runRate) = (0, 0);
         _skillRanks.Clear();
         _queue.Clear();
+        QueueChanged?.Invoke([]);
         _items.Clear();
         _equipped.Clear();
         _quickbar = [];
@@ -132,6 +139,7 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     public void AreaChanged()
     {
         _queue.Clear();
+        QueueChanged?.Invoke([]);
         if (_resting) RestEnded("cancelled");
     }
 
@@ -361,9 +369,28 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         {
             switch (e.Value)
             {
-                case ActionQueueAdd a: _queue.Add((a.ActionId, a.GroupId)); break;
+                case ActionQueueAdd a: _queue.Add((a.ActionId, a.GroupId, a.SpellId is { } s ? (int)s : -1)); break;
                 case ActionQueueDelete d: _queue.RemoveAll(q => q.Group == d.GroupId && q.Action == d.Id); break;
             }
+        }
+        var shown = new JsonArray();
+        foreach (var q in _queue)
+            shown.Add(new JsonObject
+            {
+                ["id"] = QueueId((q.Action, q.Group)), ["action"] = q.Action, ["spell"] = q.Spell,
+                ["icon"] = q.Spell >= 0 ? Lower(data.TwoDA("spells", q.Spell, "IconResRef")) : "",
+                ["name"] = q.Spell >= 0 ? Tlk("spells", q.Spell, "Name") : "",
+            });
+        QueueChanged?.Invoke(shown);
+    }
+
+    /// <summary>Messages the abilities watch without taking: the rest's progress bar and items' uses left.</summary>
+    public void ToClient(NwnMessage message)
+    {
+        switch (message)
+        {
+            case GuiTimingEventMessages.GuiTimingEventInfo timing: TimingEvent(timing); break;
+            case ItemPropertyMessages.ItemPropertyUpdateUses uses: ItemUses(uses); break;
         }
     }
 
@@ -495,9 +522,10 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
             case "use-skill":
                 UseSkill(d);
                 return true;
+            // Using an item's power (a potion, wand or scroll, on a target) is this area's; anything else about items
+            // is the inventory's.
             case "use-item" or "item-use":
-                UseItem(d, kind == "item-use");
-                return true;
+                return UseItem(d, kind == "item-use");
             case "action-mode":
                 // A mode whose state bit is known is toggled only when it isn't already as asked.
                 if (Int(d, "mode", -1) is var mode and >= 0 && (!ModeBits.ContainsKey(mode) || Bool(d, "on") != ModeOn(mode))) ToggleMode(mode);
@@ -518,8 +546,6 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
             case "spell-memorize":
                 Memorize(d);
                 return true;
-            case "item-info":
-                return ItemInfo(d);
         }
         return false;
     }
@@ -530,10 +556,10 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
     /// </summary>
     void ClearActions(JsonObject d)
     {
-        IEnumerable<(ushort Action, ushort Group)> which = d["id"] != null
-            ? _queue.Where(q => QueueId(q) == Id(d, "id"))
+        IEnumerable<(ushort Action, ushort Group, int Spell)> which = d["id"] != null
+            ? _queue.Where(q => QueueId((q.Action, q.Group)) == Id(d, "id"))
             : Int(d, "index", -1) is var index and >= 0 ? _queue.Skip(index).Take(1) : _queue;
-        foreach (var (action, group) in which.ToArray()) send(new InputMessages.InputCancelAction { ActionId = action, GroupId = group });
+        foreach (var (action, group, _) in which.ToArray()) send(new InputMessages.InputCancelAction { ActionId = action, GroupId = group });
     }
 
     public static uint QueueId((ushort Action, ushort Group) q) => (uint)q.Action << 16 | q.Group;
@@ -565,10 +591,15 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
 
     string Text(NwnLocString l) => l.IsStrRef ? data.Text(l.StrRef, l.Gender) : l.Text;
 
-    string ItemName(ItemAppearanceAndProps item) => item.Name?.Value switch
+    string ItemName(ItemAppearanceAndProps item) => NwnItems.Name(data, item);
+
+    /// <summary>The player's items: the inventory's when it has looked, otherwise those seen on the bar and worn.</summary>
+    IEnumerable<(uint Id, ItemAppearanceAndProps Look)> KnownItems()
     {
-        OriginalItemName o => Text(o.Name),
-        DisplayItemName n => n.Name,
-        _ => Tlk("baseitems", (int)item.BaseItemId, "Name"),
-    };
+        var carried = Carried?.Invoke().ToList() ?? [];
+        return carried.Count > 0 ? carried : _items.Select(kv => (kv.Key, kv.Value));
+    }
+
+    ItemAppearanceAndProps? Look(uint id) =>
+        Carried?.Invoke().Where(i => i.Id == id).Select(i => i.Look).FirstOrDefault() ?? _items.GetValueOrDefault(id);
 }
