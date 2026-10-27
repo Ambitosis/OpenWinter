@@ -143,6 +143,12 @@ Supported so far:
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back (an
   edited value goes back whole, with the row whose array element changed or -1, which the server's watch event
   reports as its array index)
+- built-in panels (`Bridge/NwnGuiEvents.cs`): SetGuiPanelDisabled and PopUpGUIPanel become the same `gui-disable`
+  and `gui-panel` notices OpenWinter's server sends (a disable's target is the object, the player's own creature
+  as its client id), and the client's `gui-event` requests go back as the GUI event message, which the server
+  raises the module's OnPlayerGuiEvent from as sent, for every event type. Examining creatures, placeables and
+  doors (`Bridge/NwnExamine.cs`), as asked and by ActionExamine, without the creature's health, reaction and
+  challenge rating lines yet.
 - the player's abilities (`Bridge/NwnAbilities*.cs`): the quickbar the server keeps with the character (edits are
   stored on the server), the spellbook (prepared and known spells, slots and uses left, preparing and emptying
   slots), casting at a creature, an object or the ground (spontaneous casts too), feats and their uses, skills,
@@ -316,6 +322,11 @@ Testing:
   character; with the server's `--elc 1`, logging in again checks the result. The client's `--capture-nwn-levelup
   dir [--levelup-class N] [--levelups N]` takes levels in the level-up window (the classic one with `--ui classic`)
   and `--capture-nwn-chargen dir` creates a character from the character list, with a shot at each step.
+- `parity/suites/bridge_gui` builds a test module whose OnPlayerGuiEvent reports every GUI event in chat and opens
+  a window naming the panel for an attempt to open a disabled one; chat commands drive the panels (`dis N [TAG]`,
+  `en N [TAG]`, `pop N`, `exam TAG`, `flip N`, `flipd N`; TAG an object's tag, `pc` or `item`). The client's
+  `--capture-nwn-gui dir` (either interface) disables, forces and opens panels and examines, with a shot after
+  each step. `nwn-bridge --do` takes `say:TEXT` and `gap:SECONDS` steps for such scripts.
 - `parity/suites/bridge_nui` builds a test module whose window has a text field bound to a single value and a list
   bound to an array, both watched; its event script reports each watch (index and value) in chat, so
   `nwn-bridge --request 'nui-bind={"token":1,"bind":"rows","value":[...],"index":1}'` shows what the server made of

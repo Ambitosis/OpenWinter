@@ -62,6 +62,33 @@ reworked screen should use it so the game looks like one product.
 - Autowrapping labels need a `CustomMinimumSize.X`, and `OptionButton`s `FitToLongestItem = false`, or they
   stretch their window.
 
+## Panels scripts control
+
+`UI/GuiPanels.cs` applies SetGuiPanelDisabled and PopUpGUIPanel to both interfaces and sends the built-in GUI
+events (the module's OnPlayerGuiEvent) as `gui-event` requests (`type`, `integer`, `object`, `vector`). It watches
+the panel windows themselves, so every way of opening one (key, HUD button, portrait, radial entry) is covered.
+Measured on the original in the visual scene `guipanels` (run with `--only nwn`):
+
+- A disabled panel (inventory, character sheet, journal, map, spell book, player list) closes at once if open
+  and stays shut; trying to open it raises GUIEVENT_DISABLED_PANEL_ATTEMPT_OPEN (14) with the panel, and for the
+  character sheet its owner. A target given to SetGuiPanelDisabled limits it to that object: the character sheet
+  disabled for another creature still opens the player's own. Disabling and enabling in one script closes the
+  panel and leaves it free to open again (the spell book's force-close). The level-up and gold panels are not
+  closed.
+- PopUpGUIPanel opens a disabled panel anyway; its key then closes it as usual.
+- Examining a creature, item, placeable or door whose examine panel is disabled shows nothing and raises 14 with
+  the panel and the object. ActionExamine still shows the window.
+- A disabled compass is still drawn but its clicks do nothing.
+- Other events: 17 (area load screen finished) once each area has been handed over; 10 / 11 as the journal opens
+  and closes and 8 / 9 for the map (also when a disable closes them or PopUpGUIPanel opens them); 1 / 2 as the
+  chat line takes and loses focus, with the selected channel (0 shout, 1 whisper, 2 talk, 3 party, 4 DM); 24 / 25
+  for the game menu; 15 for a click on the (classic) compass; 26 with 1 and the point for a radial menu opened on
+  the ground.
+
+Not raised yet, not having been measured: object radials, skill and feat clicks on the character sheet, effect
+icon, party bar and chat portrait clicks, creature selection, examine (23) and a cancelled level-up. Disabling the
+radial and quickbar panels is not applied.
+
 ## Drag and drop onto the action bar
 
 Anything a window lets the player drag returns a Godot `Dictionary` from `_GetDragData` with a `"kind"` and that
