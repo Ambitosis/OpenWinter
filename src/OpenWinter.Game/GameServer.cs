@@ -209,6 +209,7 @@ public sealed partial class GameServer : IWorldOutput
     double _running;
 
     double _nextClock;
+    long? _lastClockMs;
 
     TimeMessage Clock() => new()
     {
@@ -219,6 +220,11 @@ public sealed partial class GameServer : IWorldOutput
     public void Tick(float dt)
     {
         _running += dt;
+        // A clock that jumped (SetTime, SetCalendar) reaches players at once: the original's client shows the new
+        // hour's light within a few seconds (scene sundir).
+        long clockMs = World.Clock.TotalMs;
+        if (_lastClockMs is { } last && clockMs - last > (long)(dt * 1000) + 1000) _nextClock = 0;
+        _lastClockMs = clockMs;
         if (World.Time >= _nextClock)
         {
             _nextClock = World.Time + 10;
