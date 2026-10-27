@@ -1,0 +1,21 @@
+{
+  "seconds": 600,
+  "tile": 4,
+  "nwnx": true,
+  "events": {
+    "OnClientEntr": "bt_enter",
+    "OnPlrChat": "bt_chat"
+  },
+  "journal": [
+    { "tag": "bt_quest", "name": "Taken Away", "priority": 1,
+      "entries": [ { "id": 1, "text": "The quest begins." }, { "id": 2, "text": "The quest goes on." } ] }
+  ],
+  "templates": {
+    "bt_pin": {
+      "from": "nw_mapnote001",
+      "type": "utw",
+      "set": { "Tag": "BT_PIN", "MapNote": "Test pin" }
+    }
+  },
+  "instances": [ { "from": "bt_pin", "x": 18, "y": 18 } ]
+}

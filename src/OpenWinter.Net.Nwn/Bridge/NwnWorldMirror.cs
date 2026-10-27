@@ -75,7 +75,10 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
     int _minutesPerHour = 2;
 
     int _areaWidth, _areaHeight;
-    AreaMapPin[] _pins = [];
+    /// <summary>The area's map notes, shown or not (SetMapPinEnabled switches them), and the tiles explored so far.</summary>
+    readonly List<(uint Id, AreaMapPin Pin, bool Enabled)> _notes = [];
+    char[] _explored = [];
+    AreaMapPin[] Pins => [.. _notes.Where(n => n.Enabled).Select(n => n.Pin)];
 
     public uint AreaId { get; private set; }
     /// <summary>The creature the player controls (0 until the server names it).</summary>
@@ -120,8 +123,10 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         _touched.Clear();
         AreaId = a.ObjectId;
         (_areaWidth, _areaHeight) = (a.Width, a.Height);
-        _pins = a.MapNotes.Where(n => n.Enabled)
-            .Select(n => new AreaMapPin(n.ObjectId.ToString(), Text(n.Note), n.Position.Item1, n.Position.Item2, false)).ToArray();
+        _notes.Clear();
+        foreach (var n in a.MapNotes)
+            _notes.Add((n.ObjectId, new AreaMapPin(n.ObjectId.ToString(), Text(n.Note), n.Position.Item1, n.Position.Item2, false), n.Enabled));
+        _explored = new string('0', a.Width * a.Height).ToCharArray();
         AreaStart = new Vector3(a.Location.Item1, a.Location.Item2, a.Location.Item3);
         LoadToken++;
         var ambient = a.AmbientSound;
@@ -367,8 +372,10 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         if (g.Name is NwnLocString loc) m.Name = Text(loc);
         else if (g.Name is string s) m.Name = s;
         if (g.Locked is { } locked) m.Flags = locked ? m.Flags | ObjectFlags.Locked : m.Flags & ~ObjectFlags.Locked;
+        // A placeable made unusable can't be selected either, as one added unusable (SetUseableFlag, and back).
         if (g.Useable is { } useable)
-            m.Flags = useable ? m.Flags | ObjectFlags.Useable | ObjectFlags.Selectable : m.Flags & ~ObjectFlags.Useable;
+            m.Flags = useable ? m.Flags | ObjectFlags.Useable | ObjectFlags.Selectable
+                : m.Flags & ~(ObjectFlags.Useable | (m.Kind == ObjectKind.Placeable ? ObjectFlags.Selectable : 0));
         if (g.Animation is { } anim && m.Kind == ObjectKind.Door) DoorAnim(m, anim);
         else if (g.Animation is { } state && m.Kind == ObjectKind.Placeable) PlaceableAnim(m, state);
         if (g.PortraitId is { } portrait) SetPortrait(m, PortraitResRef(portrait, g.CustomPortrait));
@@ -410,22 +417,36 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
             emit(new NotifyMessage { Kind = kind, Subject = AreaId, Json = JsonSerializer.Serialize(payload) }.Write());
         if (map.Bitstream && map.RawBytes is { } bits)
         {
-            var mask = new char[_areaWidth * _areaHeight];
-            for (int i = 0; i < mask.Length; i++) mask[i] = i / 8 < bits.Length && ((bits[i / 8] >> (i % 8)) & 1) != 0 ? '1' : '0';
-            Notify("area-map", new AreaMapNotice(AreaId, new string(mask), _pins));
+            for (int i = 0; i < _explored.Length; i++) _explored[i] = i / 8 < bits.Length && ((bits[i / 8] >> (i % 8)) & 1) != 0 ? '1' : '0';
+            Notify("area-map", new AreaMapNotice(AreaId, new string(_explored), Pins));
             return;
         }
         if (map.ExploreAll && map.TileCoords.Count == 0)
         {
+            Array.Fill(_explored, '1');
             Notify("map-explored", new MapExploredNotice(AreaId, true));
             return;
         }
         foreach (var t in map.TileCoords)
         {
-            if (map.ExploreAll) Notify("tile-explored", new TileExploredNotice(AreaId, (byte)t[0]!, (byte)t[1]!, true));
-            else Notify("tile-explored", new TileExploredNotice(AreaId, (byte)t[1]!, (byte)t[2]!, (bool)t[0]!));
+            var tile = map.ExploreAll ? new TileExploredNotice(AreaId, (byte)t[0]!, (byte)t[1]!, true) : new TileExploredNotice(AreaId, (byte)t[1]!, (byte)t[2]!, (bool)t[0]!);
+            if (tile.Y * _areaWidth + tile.X is var i && tile.X < _areaWidth && i < _explored.Length) _explored[i] = tile.Explored ? '1' : '0';
+            Notify("tile-explored", tile);
         }
     }
+
+    /// <summary>A map note shown or hidden (SetMapPinEnabled): the map is described again with the pins now shown.</summary>
+    public void MapPin(MapPinMessages.MapPinPinEnabled m)
+    {
+        int at = _notes.FindIndex(n => n.Id == m.MapPin);
+        if (at < 0 || _notes[at].Enabled == m.Enabled) return;
+        _notes[at] = _notes[at] with { Enabled = m.Enabled };
+        SendMap();
+    }
+
+    /// <summary>The area map as the bridge knows it: the tiles explored and the pins shown (the client asks when its map opens).</summary>
+    public void SendMap() =>
+        emit(new NotifyMessage { Kind = "area-map", Subject = AreaId, Json = JsonSerializer.Serialize(new AreaMapNotice(AreaId, new string(_explored), Pins)) }.Write());
 
     void Delete(uint id)
     {

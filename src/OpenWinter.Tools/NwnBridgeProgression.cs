@@ -7,12 +7,12 @@ using OpenWinter.Net;
 /// taken last) the way the level-up window does: opens it, asks for the class's choices completed from its package
 /// ("Recommended"), and takes them. CLASS+sN also raises skill N by a rank, with points taken from the package's
 /// skills. Each step's answer is printed: the classes on offer, the plan's errors and the choices, and the server's
-/// verdict.
+/// verdict. The first level starts nine seconds in, or at --levelup-at SECONDS.
 /// </summary>
-sealed class NwnBridgeLevelUp(string classes)
+sealed class NwnBridgeLevelUp(string classes, double start = 9)
 {
     readonly Queue<string> _levels = new(classes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-    double _next = 9;
+    double _next = start;
     string _waiting = "";
     int _lastClass = -1;
     JsonNode? _choice;

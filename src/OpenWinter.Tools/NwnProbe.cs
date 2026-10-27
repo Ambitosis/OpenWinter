@@ -206,8 +206,9 @@ static class NwnRecordingDump
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
 ///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS]
 ///              [--emote KEY,... [--emote-gap SECONDS]] [--do STEP;...] [--request KIND=JSON|KIND=JSON...] [--player NAME]
-///              [--levelup CLASS,...] [--new-character FIRST[,CLASS]] [--record FILE]
-/// (CHARACTER "-" with --new-character creates one)
+///              [--levelup CLASS,... [--levelup-at SECONDS]] [--new-character FIRST[,CLASS]] [--record FILE] [--trace FILE]
+/// (CHARACTER "-" with --new-character creates one; --trace writes every message for the client in full, one a line,
+/// all but creature movement updates)
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
@@ -257,11 +258,12 @@ static class NwnBridgeProbe
         OpenWinter.Net.DialogMessage? step = null;
         var answerAt = 0.0;
         var journalAt = double.Parse(Opt("--journal", "0"));
-        var levelUp = Opt("--levelup", "") is { Length: > 0 } levels ? new NwnBridgeLevelUp(levels) : null;
+        var levelUp = Opt("--levelup", "") is { Length: > 0 } levels ? new NwnBridgeLevelUp(levels, double.Parse(Opt("--levelup-at", "9"), System.Globalization.CultureInfo.InvariantCulture)) : null;
         var newCharacter = Opt("--new-character", "") is { Length: > 0 } spec ? new NwnBridgeNewCharacter(spec) : null;
         void Request(string kind, object data) => bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = kind, Json = System.Text.Json.JsonSerializer.Serialize(data) }.Write());
         var objects = new Dictionary<uint, (string Name, OpenWinter.Net.ObjectKind Kind, System.Numerics.Vector3 At)>();
         var counts = new SortedDictionary<string, int>();
+        using var trace = Opt("--trace", "") is { Length: > 0 } tracePath ? new StreamWriter(tracePath) : null;
         uint controlled = 0;
         System.Numerics.Vector3 at = default;
         bool walked = false;
@@ -272,6 +274,7 @@ static class NwnBridgeProbe
                 var r = new OpenWinter.Net.MessageReader(bytes);
                 var type = r.Type.ToString();
                 counts[type] = counts.GetValueOrDefault(type) + 1;
+                if (trace != null) Trace(trace, clock.ElapsedMilliseconds, bytes);
                 switch (r.Type)
                 {
                     case OpenWinter.Net.MessageType.Welcome:
@@ -443,12 +446,37 @@ static class NwnBridgeProbe
             Thread.Sleep(16);
         }
         Console.WriteLine(bridge.FailureReason is { } why ? $"failed: {why}" : "done");
+        trace?.Flush();
         foreach (var (name, n) in counts) Console.WriteLine($"  {n,6}  {name}");
         foreach (var (type, n) in bridge.Unused) Console.WriteLine($"  not used: {n,6}  {type}");
         Console.WriteLine($"{bridge.Session?.DecodeErrors.Count ?? 0} frames didn't decode");
         foreach (var e in bridge.Session?.DecodeErrors.Take(10) ?? []) Console.WriteLine($"  {e.Error}");
         bridge.Disconnect();
         return 0;
+    }
+
+    static readonly System.Text.Json.JsonSerializerOptions TraceJson = new() { IncludeFields = true };
+
+    /// <summary>One message for the client as a line: milliseconds, type, and the message's fields (a notify's payload as sent).</summary>
+    static void Trace(TextWriter to, long ms, byte[] bytes)
+    {
+        var r = new OpenWinter.Net.MessageReader(bytes);
+        object? m = r.Type switch
+        {
+            OpenWinter.Net.MessageType.Notify => OpenWinter.Net.NotifyMessage.Read(r),
+            OpenWinter.Net.MessageType.Chat => OpenWinter.Net.ChatMessage.Read(r),
+            OpenWinter.Net.MessageType.Dialog => OpenWinter.Net.DialogMessage.Read(r),
+            OpenWinter.Net.MessageType.Spawn => OpenWinter.Net.SpawnMessage.Read(r),
+            OpenWinter.Net.MessageType.Despawn => OpenWinter.Net.DespawnMessage.Read(r),
+            OpenWinter.Net.MessageType.Appearance => OpenWinter.Net.AppearanceMessage.Read(r),
+            OpenWinter.Net.MessageType.ControlObject => OpenWinter.Net.ControlObjectMessage.Read(r),
+            OpenWinter.Net.MessageType.PlayAnimation => OpenWinter.Net.PlayAnimationMessage.Read(r),
+            OpenWinter.Net.MessageType.Update => OpenWinter.Net.UpdateMessage.Read(r) is { Mode: OpenWinter.Net.MovementMode.Stand } u ? u : null,
+            _ => "",
+        };
+        if (m == null) return;
+        if (m is OpenWinter.Net.NotifyMessage n) to.WriteLine($"{ms} Notify {n.Kind} {n.Subject:X} {n.Json}");
+        else to.WriteLine($"{ms} {r.Type} {(m is string ? "" : System.Text.Json.JsonSerializer.Serialize(m, m.GetType(), TraceJson))}");
     }
 }
 

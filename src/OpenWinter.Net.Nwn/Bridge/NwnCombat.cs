@@ -196,7 +196,8 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
 
     void Forget(uint id)
     {
-        _creatures.Remove(id);
+        // A party member or the target the server removes (a henchman destroyed, a summons dismissed) leaves the HUD.
+        if (_creatures.Remove(id, out var gone)) _hudDirty |= gone.Master == world.Controlled || id == _target;
         _swingEnds.Remove(id);
         foreach (var key in _pendingHits.Keys.Where(k => k.Item1 == id || k.Item2 == id).ToList()) _pendingHits.Remove(key);
     }
@@ -514,6 +515,8 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
             if (c.DamageLevel < 0 || world.KindOf(id) != ObjectKind.Creature) continue;
             var label = (Name(id), c.DamageLevel);
             if (_labelsSent.TryGetValue(id, out var sent) && sent == label) continue;
+            // A name the server changes (SetName, and back) is the HUD's too.
+            if (sent.Item1 is { } before && before != label.Item1) _hudDirty |= id == world.Controlled || c.Master == world.Controlled || id == _target;
             _labelsSent[id] = label;
             changes[id.ToString()] = new JsonObject { ["name"] = label.Item1, ["playerName"] = "", ["damageLevel"] = label.DamageLevel };
         }
