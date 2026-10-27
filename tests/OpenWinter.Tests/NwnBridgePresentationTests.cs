@@ -169,8 +169,10 @@ public class NwnBridgePresentationTests
         Assert.Equal(C, caster);
         Assert.Equal((58, "vco_mehanfire03", "vs_chant_evoc_lm"), (c.GetProperty("spell").GetInt32(), c.GetProperty("handVfx").GetString(), c.GetProperty("voice").GetString()));
 
+        // The release ends the held conjure, then casts.
         var casting = bridge.Feed(127715);
-        Assert.Equal("castarea", Animation(casting, C).Animation);
+        var released = casting.Where(r => r.Type == MessageType.PlayAnimation).Select(PlayAnimationMessage.Read).Where(a => a.ObjectId == C).Select(a => a.Animation);
+        Assert.Equal(["pause1", "castarea"], released);
         var (_, _, cast) = Notice(casting, "spell-cast");
         Assert.Equal("[20,5,0]", cast.GetProperty("pos").GetRawText());
 
@@ -193,7 +195,7 @@ public class NwnBridgePresentationTests
         Assert.Equal(D, target);
         Assert.Equal((73, C), (beam.GetProperty("vfx").GetInt32(), beam.GetProperty("from").GetUInt32()));
         long id = beam.GetProperty("id").GetInt64();
-        Assert.Equal(NwnPresentation.EffectId(D, 73), id);
+        Assert.NotEqual(0, id);
         Assert.Equal(id, Notice(bridge.Feed(83777), "effect-removed").Json.GetProperty("id").GetInt64());
         // An instant beam back the other way.
         var (_, back, instant) = Notice(bridge.Feed(85735), "beam");
@@ -256,6 +258,124 @@ public class NwnBridgePresentationTests
         var emote = Assert.IsType<InputMessages.InputPlayAnimation>(bridge.Presentation.Emote("worship"));
         Assert.Equal((33, 7f, GameObjUpdateMessages.InvalidObjectId), ((int)emote.Animation, emote.Duration, emote.Target));
         Assert.Null(bridge.Presentation.Emote("no-such-emote"));
+    }
+
+    static GameObjUpdateMessages.GameObjUpdateObjList List(params object[] entries) => new() { Entries = [.. entries] };
+
+    static GameObjUpdateUpdateMessages.GameObjUpdateObjListUpdateCreature Anim(uint id, ushort code) =>
+        new() { ObjectId = id, AnimSpeed = 1, AnimTypeData = new GameObjUpdateAnimationMessages.AnimTypeData { AnimType = code } };
+
+    static List<MessageReader> Send(Bridge bridge, params object[] entries)
+    {
+        int before = bridge.Output.Count;
+        bridge.Presentation.ObjectList(List(entries), bridge.World.ObjectList);
+        return bridge.Output.Skip(before).Select(b => new MessageReader(b)).ToList();
+    }
+
+    [Fact]
+    public void AHeldLoopEndsWhateverComesNext()
+    {
+        var bridge = new Bridge();
+        Assert.True(Animation(Send(bridge, Anim(A, 40))).Gesture);
+        // Walking (a code the mirror plays) ends the forceful talk first; an unknown code does too.
+        Assert.Equal("pause1", Animation(Send(bridge, Anim(A, 2))).Animation);
+        Send(bridge, Anim(A, 33));
+        Assert.Equal("pause1", Animation(Send(bridge, Anim(A, 250))).Animation);
+        // Nothing held: an unknown code and standing play nothing.
+        Assert.DoesNotContain(Send(bridge, Anim(A, 251), Anim(A, 0)), r => r.Type == MessageType.PlayAnimation);
+        // The same looping code again doesn't restart it.
+        Send(bridge, Anim(A, 33));
+        Assert.DoesNotContain(Send(bridge, Anim(A, 33)), r => r.Type == MessageType.PlayAnimation);
+    }
+
+    [Fact]
+    public void ALivingCreaturePlaysAScriptsDeadPose()
+    {
+        var bridge = new Bridge();
+        var pose = Animation(Send(bridge, Anim(A, NwnAnimations.DeadFront)));
+        Assert.Equal(("deadfnt", true), (pose.Animation, pose.Duration > 1000));
+        Assert.Equal("pause1", Animation(Send(bridge, Anim(A, 0))).Animation);
+        // One that is dead (combat's flag) lies as combat shows it.
+        bridge.World.SetFlags(B, ObjectFlags.Dead, ObjectFlags.Dead);
+        Assert.DoesNotContain(Send(bridge, Anim(B, NwnAnimations.DeadBack)), r => r.Type == MessageType.PlayAnimation);
+    }
+
+    static GameObjUpdateSharedMessages.VisualEffectUpdate Effect(char change, ushort row, uint? creator) =>
+        new() { ChangeType = (byte)change, EffectId = row, CreatorId = creator, BodyNode = creator == null ? null : (byte)0 };
+
+    static List<long> Ids(List<MessageReader> output) =>
+        output.Where(r => r.Type == MessageType.Notify).Select(NotifyMessage.Read)
+            .Select(n => JsonDocument.Parse(n.Json).RootElement.GetProperty("id").GetInt64()).ToList();
+
+    [Fact]
+    public void EachBeamOrEffectApplicationIsItsOwn()
+    {
+        var bridge = new Bridge();
+        GameObjUpdateUpdateMessages.GameObjUpdateObjListUpdateCreature On(params GameObjUpdateSharedMessages.VisualEffectUpdate[] e) =>
+            new() { ObjectId = D, Effects = [.. e] };
+        var ids = Ids(Send(bridge, On(Effect('A', 73, C), Effect('A', 73, A))));
+        Assert.Equal(2, ids.Distinct().Count());
+        // The beam from C ends: its own id, not the one from A.
+        Assert.Equal(ids[0], Notice(Send(bridge, On(Effect('D', 73, C))), "effect-removed").Json.GetProperty("id").GetInt64());
+        // A removal nothing matches sends nothing.
+        Assert.DoesNotContain(Send(bridge, On(Effect('D', 73, B))), r => r.Type == MessageType.Notify);
+        // The same lasting effect twice on a placeable: two ids, removed latest first.
+        var placed = new GameObjUpdateUpdateMessages.ObjListUpdatePlaceable { ObjectId = Chest, Flags = 8, Effects = [Effect('A', 411, null), Effect('A', 411, null)] };
+        var both = Ids(Send(bridge, placed).Where(r => r.Type == MessageType.Notify).ToList());
+        Assert.Equal(2, both.Distinct().Count());
+        var removed = new GameObjUpdateUpdateMessages.ObjListUpdatePlaceable { ObjectId = Chest, Flags = 8, Effects = [Effect('D', 411, null)] };
+        Assert.Equal(both[1], Notice(Send(bridge, removed), "effect-removed").Json.GetProperty("id").GetInt64());
+    }
+
+    [Fact]
+    public void AMovingAreaOfEffectIsCreatedOnceThenMoved()
+    {
+        var bridge = new Bridge();
+        Send(bridge, new GameObjUpdateAddMessages.GameObjUpdateObjListAddAOE { ObjectId = 40, AreaEffectId = 0, TargetOid = A },
+            new GameObjUpdateUpdateMessages.ObjListUpdateAOE { ObjectId = 40, Flags = 1, Position = (18, 17, 0) });
+        var moved = Send(bridge, new GameObjUpdateUpdateMessages.ObjListUpdateAOE { ObjectId = 40, Flags = 1, Position = (19, 17, 0) })
+            .Where(r => r.Type == MessageType.Notify).Select(NotifyMessage.Read).ToList();
+        var move = Assert.Single(moved);
+        Assert.Equal("aoe-moved", move.Kind);
+        Assert.Equal("[19,17,0]", JsonDocument.Parse(move.Json).RootElement.GetProperty("pos").GetRawText());
+    }
+
+    [Fact]
+    public void ServerFloatsThatArentNumbersDontStopTheList()
+    {
+        var bridge = new Bridge();
+        var transform = new NetTypesMessages.VisualTransformData
+        {
+            TotalUpdates = [new NetTypesMessages.VisualTransformData.Update
+            {
+                Scale = new NetTypesMessages.LerpVector { X = new NetTypesMessages.LerpFloat { ValueTo = float.NaN } },
+                Rotate = new NetTypesMessages.LerpVector
+                {
+                    Z = new NetTypesMessages.LerpFloat { ValueTo = 30, ValueFrom = float.PositiveInfinity, LerpType = NetTypesMessages.LerpType.Linear, Duration = float.NaN },
+                },
+            }],
+        };
+        var output = Send(bridge,
+            new GameObjUpdateUpdateMessages.GameObjUpdateObjListUpdateCreature { ObjectId = D, VisualTransform = transform, HiliteR = float.NaN },
+            new GameObjUpdateAddMessages.GameObjUpdateObjListAddAOE { ObjectId = 41, AreaEffectId = 0, TargetOid = GameObjUpdateMessages.InvalidObjectId },
+            new GameObjUpdateUpdateMessages.ObjListUpdateAOE { ObjectId = 41, Flags = 1, Position = (float.NaN, 1, 0) });
+        var rotate = output.Where(r => r.Type == MessageType.Notify).Select(NotifyMessage.Read).Where(n => n.Kind == "visual-transform")
+            .Select(n => JsonDocument.Parse(n.Json).RootElement).Single(j => j.GetProperty("transform").GetInt32() == 23);
+        Assert.Equal((23, 30f, 0f), (rotate.GetProperty("transform").GetInt32(), rotate.GetProperty("value").GetSingle(), rotate.GetProperty("duration").GetSingle()));
+        int before = bridge.Output.Count;
+        Assert.True(bridge.Presentation.ToClient(new AreaMessages.AreaVisualEffect { AnimId = 22, Position = (float.NaN, float.NegativeInfinity, 0) }));
+        var place = Notice(bridge.Output.Skip(before).Select(b => new MessageReader(b)).ToList(), "vfx").Json;
+        Assert.Equal("[0,0,0]", place.GetProperty("pos").GetRawText());
+    }
+
+    [Fact]
+    public void ADeletedObjectGetsItsHighlightAgainWhenItReturns()
+    {
+        var bridge = new Bridge();
+        var lit = new GameObjUpdateUpdateMessages.GameObjUpdateObjListUpdateCreature { ObjectId = D, HiliteR = 1, HiliteG = 0, HiliteB = 0 };
+        Notice(Send(bridge, lit), "hilite-color");
+        Send(bridge, new GameObjUpdateDeleteMessages.ObjListDeleteCreature { ObjectId = D });
+        Notice(Send(bridge, lit), "hilite-color");
     }
 
     [Theory]

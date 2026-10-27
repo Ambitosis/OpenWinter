@@ -5,7 +5,9 @@ using OpenWinter.Net.Nwn.Messages;
 using OpenWinter.Net.Nwn.Wire;
 using static OpenWinter.Net.Nwn.Messages.GameObjUpdateAddMessages;
 using static OpenWinter.Net.Nwn.Messages.GameObjUpdateAppearanceMessages;
+using static OpenWinter.Net.Nwn.Messages.GameObjUpdateDeleteMessages;
 using static OpenWinter.Net.Nwn.Messages.GameObjUpdateUpdateMessages;
+using AnimTypeData = OpenWinter.Net.Nwn.Messages.GameObjUpdateAnimationMessages.AnimTypeData;
 using VisualEffectUpdate = OpenWinter.Net.Nwn.Messages.GameObjUpdateSharedMessages.VisualEffectUpdate;
 using VisualTransformData = OpenWinter.Net.Nwn.Messages.NetTypesMessages.VisualTransformData;
 
@@ -15,9 +17,9 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// How the world looks and sounds, as OpenWinter's own server presents it: creature animations become PlayAnimation
 /// (script animations, emotes, conjuring and casting with the "spell-conjure", "spell-cast" and "spell-projectile"
 /// notifies), knockdowns a condition flag; visual effects at places and on objects "vfx", beams "beam", areas of
-/// effect "aoe-created"; visual transforms and highlights "visual-transform" and "hilite-color"; PlaySound, voice
-/// chat, sound objects, music and ambience "play-sound", "voice-chat", "sound-object" and "area-audio". The client's
-/// emotes go back as the animation input nwmain sends.
+/// effect "aoe-created" and "aoe-moved"; visual transforms and highlights "visual-transform" and "hilite-color";
+/// PlaySound, voice chat, sound objects, music and ambience "play-sound", "voice-chat", "sound-object" and
+/// "area-audio". The client's emotes go back as the animation input nwmain sends.
 /// </summary>
 public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, Action<byte[]> emit)
 {
@@ -35,17 +37,28 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
         public ushort Anim = NwnAnimations.Ready;
         /// <summary>The animation shown loops (or is a cast) and has to be ended when the code changes.</summary>
         public bool Holding;
-        public ushort? Pending;
+        /// <summary>The latest animation of a creature not shown yet, played once it is.</summary>
+        public (AnimTypeData Anim, float Speed)? Pending;
         public int SoundSet = -1;
         public byte Gender;
     }
 
+    /// <summary>What the bridge has shown of one object: highlight, transform channels and lasting effects.</summary>
+    sealed class Shown
+    {
+        public int? Hilite;
+        public readonly Dictionary<(int Scope, int Transform), (float To, int Lerp, float Duration)> Transforms = [];
+        /// <summary>Lasting effects by row and creator, the ids given to each application (latest last).</summary>
+        public readonly Dictionary<(ushort Row, uint Creator), Stack<long>> Effects = [];
+    }
+
     readonly Dictionary<uint, Creature> _creatures = [];
-    readonly Dictionary<uint, int> _hilites = [];
-    readonly Dictionary<(uint, int, int), (float To, int Lerp, float Duration)> _transforms = [];
-    readonly Dictionary<uint, (int Row, uint Host)> _aoes = [];
+    readonly HashSet<uint> _pending = [];
+    readonly Dictionary<uint, Shown> _shown = [];
+    readonly Dictionary<uint, (int Row, uint Host, Vector3? At)> _aoes = [];
     readonly HashSet<uint> _sounds = [];
     readonly Dictionary<string, SoundSet?> _soundSets = [];
+    long _nextEffect;
 
     // -- client to server ---------------------------------------------------
 
@@ -70,8 +83,11 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
         switch (message)
         {
             case AreaMessages.AreaVisualEffect v:
-                var vfx = new JsonObject { ["vfx"] = (int)v.AnimId, ["miss"] = false, ["scale"] = Scale(v.Vt), ["pos"] = Vec(v.Position), ["facing"] = 0f, ["duration"] = 0f, ["id"] = 0L };
-                Notify("vfx", world.AreaId, vfx);
+                Notify("vfx", world.AreaId, new JsonObject
+                {
+                    ["vfx"] = (int)v.AnimId, ["miss"] = false, ["scale"] = Scale(v.Vt), ["pos"] = Vec(v.Position), ["facing"] = 0f,
+                    ["duration"] = 0f, ["id"] = 0L,
+                });
                 return true;
             case GameObjUpdateMessages.GameObjUpdateVisEffect v:
                 return VisualEffect(v);
@@ -136,9 +152,9 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
     /// <summary>A new area: what was known of the last one is dropped, and the area's sound objects are placed.</summary>
     public void Area(AreaMessages.AreaClientArea area)
     {
-        _creatures.Keys.Where(id => id != world.Controlled).ToList().ForEach(id => _creatures.Remove(id));
-        _hilites.Clear();
-        _transforms.Clear();
+        foreach (var id in _creatures.Keys.Where(id => id != world.Controlled).ToList()) _creatures.Remove(id);
+        _pending.Clear();
+        _shown.Clear();
         _aoes.Clear();
         _sounds.Clear();
         foreach (var s in area.Sounds)
@@ -154,12 +170,18 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
     public void ObjectList(GameObjUpdateMessages.GameObjUpdateObjList list, Action<GameObjUpdateMessages.GameObjUpdateObjList> mirror)
     {
         foreach (var entry in list.Entries)
-            if (entry is GameObjUpdateObjListUpdateCreature { AnimTypeData: { } knock } k && world.KindOf(k.ObjectId) != null)
+        {
+            (uint id, ushort code) = entry switch
             {
-                bool down = knock.AnimType == KnockedDown;
-                if (down || (_creatures.TryGetValue(k.ObjectId, out var was) && was.Anim == KnockedDown))
-                    world.SetFlags(k.ObjectId, down ? ObjectFlags.KnockedDown : 0, ObjectFlags.KnockedDown);
-            }
+                GameObjUpdateObjListAddCreature add => (add.ObjectId, add.Anim),
+                GameObjUpdateObjListUpdateCreature { AnimTypeData: { } anim } u => (u.ObjectId, anim.AnimType),
+                _ => (0u, (ushort)0),
+            };
+            if (id == 0) continue;
+            bool down = code == KnockedDown;
+            if (down || (_creatures.TryGetValue(id, out var was) && was.Anim == KnockedDown))
+                world.SetFlags(id, down ? ObjectFlags.KnockedDown : 0, ObjectFlags.KnockedDown);
+        }
         mirror(list);
         foreach (var entry in list.Entries)
         {
@@ -168,10 +190,10 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
                 case GameObjUpdateObjListAddCreature add:
                 {
                     var c = Of(add.ObjectId);
-                    c.Anim = NwnAnimations.Ready;
-                    c.Holding = false;
+                    (c.Anim, c.Holding, c.Pending) = (NwnAnimations.Ready, false, null);
                     // A creature that arrives sitting, kneeling or lying plays that once it is shown.
-                    if (add.Anim is not (NwnAnimations.Pause or NwnAnimations.Ready)) c.Pending = add.Anim;
+                    if (add.Anim is not (NwnAnimations.Pause or NwnAnimations.Ready))
+                        Animate(add.ObjectId, new AnimTypeData { AnimType = add.Anim }, 1);
                     break;
                 }
                 case GameObjUpdateObjListAppearanceCreature a:
@@ -188,50 +210,88 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
                     if (u.HiliteR is { } r) Hilite(u.ObjectId, r, u.HiliteG ?? -1, u.HiliteB ?? -1);
                     break;
                 case GameObjUpdateObjListAddAOE aoe:
-                    _aoes[aoe.ObjectId] = (aoe.AreaEffectId, aoe.TargetOid);
+                    _aoes[aoe.ObjectId] = (aoe.AreaEffectId, aoe.TargetOid, null);
                     break;
-                case ObjListUpdateAOE { Position: { } at } aoe when _aoes.TryGetValue(aoe.ObjectId, out var shape):
-                    AreaOfEffect(aoe.ObjectId, shape.Row, shape.Host, at, aoe.Orientation);
+                case ObjListUpdateAOE { Position: { } at } aoe when _aoes.ContainsKey(aoe.ObjectId):
+                    AreaOfEffect(aoe.ObjectId, V(at), aoe.Orientation);
                     break;
                 case GameObjUpdateObjListUpdateGeneric g:
                     if (g.Effects is { } placed) Effects(g.ObjectId, placed, creature: false);
                     if (g.VisualTransform is { } gvt) Transform(g.ObjectId, gvt);
                     if (g.HiliteR is { } gr) Hilite(g.ObjectId, gr, g.HiliteG ?? -1, g.HiliteB ?? -1);
                     break;
-                case GameObjUpdateDeleteMessages.ObjListDeleteAOE d:
+                case ObjListDeleteAOE d:
                     if (_aoes.Remove(d.ObjectId)) Notify("aoe-removed", world.AreaId, new JsonObject { ["id"] = d.ObjectId });
+                    Forget(d.ObjectId);
                     break;
-                case GameObjUpdateDeleteMessages.ObjListDeleteCreature d:
-                    _creatures.Remove(d.ObjectId);
+                case ObjListDeleteGeneric or ObjListDeleteCreature or ObjListDeleteDoor or ObjListDeletePlaceable or ObjListDeleteItem
+                    or ObjListDeleteTrigger:
+                    Forget(DeletedId(entry));
                     break;
             }
         }
         // Animations of creatures the mirror has shown by now.
-        foreach (var (id, c) in _creatures)
-            if (c.Pending is { } pending && world.TryPose(id, out _, out _, out _, out _))
+        foreach (var id in _pending.ToList())
+        {
+            if (!world.TryPose(id, out _, out _, out _, out _)) continue;
+            _pending.Remove(id);
+            if (_creatures.TryGetValue(id, out var c) && c.Pending is var (anim, speed))
             {
                 c.Pending = null;
-                Animate(id, new GameObjUpdateAnimationMessages.AnimTypeData { AnimType = pending }, 1);
+                Animate(id, anim, speed);
             }
+        }
+    }
+
+    static uint DeletedId(object entry) => entry switch
+    {
+        ObjListDeleteGeneric e => e.ObjectId,
+        ObjListDeleteCreature e => e.ObjectId,
+        ObjListDeleteDoor e => e.ObjectId,
+        ObjListDeletePlaceable e => e.ObjectId,
+        ObjListDeleteItem e => e.ObjectId,
+        ObjListDeleteTrigger e => e.ObjectId,
+        _ => 0,
+    };
+
+    /// <summary>A deleted object: everything shown of it starts again if it comes back.</summary>
+    void Forget(uint id)
+    {
+        if (id != world.Controlled) _creatures.Remove(id);
+        _pending.Remove(id);
+        _shown.Remove(id);
     }
 
     // -- animations ---------------------------------------------------------
 
-    void Animate(uint id, GameObjUpdateAnimationMessages.AnimTypeData anim, float speed)
+    void Animate(uint id, AnimTypeData anim, float speed)
     {
         var c = Of(id);
+        if (!world.TryPose(id, out _, out _, out _, out _))
+        {
+            // Not shown yet: the latest animation plays once it is.
+            c.Pending = (anim, speed);
+            c.Anim = anim.AnimType;
+            _pending.Add(id);
+            return;
+        }
         ushort code = anim.AnimType;
+        if (c.Holding && code == c.Anim && !IsSpell(code)) return;
         bool held = c.Holding;
         c.Anim = code;
         c.Holding = false;
+        // A looping animation (a gesture included) lasts until replaced: whatever comes next ends it first.
+        if (held) Play(id, Idle, speed, 0, false);
         switch (code)
         {
-            case NwnAnimations.Pause or NwnAnimations.Ready:
-                // The script's time is up: back to standing.
-                if (held) Play(id, Idle, speed, 0, false);
+            case NwnAnimations.Pause or NwnAnimations.Ready or KnockedDown:
+                // Standing, or lying knocked down (a condition flag, set before the mirror described the list).
                 return;
-            case KnockedDown:
-                // A condition flag, set before the mirror described the list.
+            case NwnAnimations.DeadFront or NwnAnimations.DeadBack:
+                // The dead lie as combat shows them; a living creature plays the script's dead pose.
+                if ((world.FlagsOf(id) & (ObjectFlags.Dead | ObjectFlags.Dying)) != 0) return;
+                c.Holding = true;
+                Play(id, code == NwnAnimations.DeadFront ? "deadfnt" : "deadbck", speed, UntilReplaced, false);
                 return;
             case NwnAnimations.Conjure1 or NwnAnimations.Conjure2:
                 Conjure(id, c, code, anim.Spell, speed);
@@ -242,16 +302,16 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
             Cast(id, c, code, anim, speed);
             return;
         }
-        // Walking, attacks, hit reactions and death are the mirror's and combat's; anything else unknown stays still.
+        // Walking, attacks and hit reactions are the mirror's and combat's; anything else unknown stays still.
         if (NwnAnimations.For(code) is not { } clip) return;
-        // A gesture plays over the body's animation: a looping one it replaces has to end first.
-        if (held && clip.Gesture) Play(id, Idle, speed, 0, false);
         c.Holding = clip.Looping;
         Play(id, clip.Name, speed, clip.Looping ? UntilReplaced : 0, clip.Gesture);
     }
 
+    static bool IsSpell(ushort code) => code is NwnAnimations.Conjure1 or NwnAnimations.Conjure2 || NwnAnimations.Casts.Contains(code);
+
     void Play(uint id, string clip, float speed, float duration, bool gesture) =>
-        emit(new PlayAnimationMessage { ObjectId = id, Animation = clip, Speed = speed > 0 ? speed : 1, Duration = duration, Gesture = gesture }.Write());
+        emit(new PlayAnimationMessage { ObjectId = id, Animation = clip, Speed = speed > 0 && float.IsFinite(speed) ? speed : 1, Duration = duration, Gesture = gesture }.Write());
 
     /// <summary>Conjuring: the conjure animation, and for a spell its head, hand and ground visuals, sound and chant.</summary>
     void Conjure(uint id, Creature c, ushort code, GameObjUpdateAnimationMessages.CastAnimData? cast, float speed)
@@ -278,7 +338,7 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
     }
 
     /// <summary>A spell's release: the cast animation and the spell's cast visuals and sound, towards its target.</summary>
-    void Cast(uint id, Creature c, ushort code, GameObjUpdateAnimationMessages.AnimTypeData anim, float speed)
+    void Cast(uint id, Creature c, ushort code, AnimTypeData anim, float speed)
     {
         c.Holding = true;
         int spell = anim.Spell is { SpellId: not NoSpell } s ? (int)s.SpellId : -1;
@@ -326,17 +386,28 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
             ["model"] = Spell(spell, "ProjModel"), ["path"] = kind, ["showModel"] = Int(Spell(spell, "HasProjectile")) != 0,
             ["spawnPoint"] = Spell(spell, "ProjSpwnPoint"), ["sound"] = Spell(spell, "ProjSound"),
             ["orientation"] = Spell(spell, "ProjOrientation"), ["delay"] = 0f,
-            ["travel"] = p.DeltaTime > 1 ? p.DeltaTime / 1000f : FlightTime(Vector3.Distance(from, to)),
+            ["travel"] = p.DeltaTime > 1 ? p.DeltaTime / 1000f : FlightTime(Vector3.Distance(from, to), kind),
         });
     }
 
-    /// <summary>A projectile's flight when the server leaves it to the client: distance over 3 ln(d) + 2 metres a second.</summary>
-    static float FlightTime(float distance) => distance <= 1 ? 0.001f : distance / (3 * MathF.Log(distance) + 2);
+    /// <summary>
+    /// A spell projectile's flight when the server leaves it to the client (OpenWinter's own timing, measured by the
+    /// projectile_paths suites): distance over 3 ln(d) + 2 metres a second, doubled for homing, x1.5 accelerating,
+    /// x0.8 bounce; high ballistic and linked a flat 2 s, spiral 2.5 s more.
+    /// </summary>
+    static float FlightTime(float distance, string path)
+    {
+        const float Immediate = 0.001f;
+        if (path == "highballistic" || path == "linked") return 2f;
+        if (!float.IsFinite(distance) || distance <= 0) return Immediate;
+        float speed = (3f * MathF.Log(distance) + 2f) * path switch { "homing" => 2f, "accelerating" => 1.5f, "bounce" => 0.8f, _ => 1f };
+        if (!(speed > 0)) return Immediate;
+        float ms = MathF.Floor(distance / speed * 1000f);
+        if (!float.IsFinite(ms)) return Immediate;
+        return ms / 1000f + (path == "spiral" ? 2.5f : 0);
+    }
 
     // -- visual effects -----------------------------------------------------
-
-    /// <summary>The effect id the bridge gives a lasting beam, or a lasting visual effect on a placeable or door.</summary>
-    public static long EffectId(uint target, ushort effect) => (2L << 40) | ((long)target << 16) | effect;
 
     /// <summary>A beam (visualeffects.2da Type_FD "B"): drawn between two objects, sent as "beam".</summary>
     public static bool IsBeam(INwnBridgeData data, int row) => data.TwoDA("visualeffects", row, "Type_FD").Equals("B", StringComparison.OrdinalIgnoreCase);
@@ -362,7 +433,7 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
             var json = new JsonObject { ["vfx"] = (int)v.VisualEffectId, ["creator"] = v.SourceId, ["miss"] = false, ["scale"] = Scale(v.Vt), ["duration"] = 0f, ["id"] = 0L };
             if (world.KindOf(v.TargetId) is null)
             {
-                json["pos"] = Vec(V(v.TargetLocation));
+                json["pos"] = Vec(v.TargetLocation);
                 Notify("vfx", world.AreaId, json);
             }
             else Notify("vfx", v.TargetId, json);
@@ -373,7 +444,8 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
 
     /// <summary>
     /// Lasting visual effects coming ('A') and going ('D'): beams on any object, the rest on placeables and doors
-    /// (a creature's are combat's).
+    /// (a creature's are combat's). Each application gets its own id; a removal ends the latest one of that effect
+    /// from that creator.
     /// </summary>
     void Effects(uint id, List<VisualEffectUpdate> effects, bool creature)
     {
@@ -381,13 +453,19 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
         {
             bool beam = IsBeam(data, e.EffectId);
             if (creature && !beam) continue;
-            long effect = EffectId(id, e.EffectId);
+            var key = (e.EffectId, e.CreatorId ?? InvalidObject);
+            var shown = ShownOf(id);
             if (e.ChangeType == 'D')
             {
-                Notify("effect-removed", id, new JsonObject { ["id"] = effect, ["type"] = 0, ["linkId"] = "", ["icon"] = 0 });
+                if (!shown.Effects.TryGetValue(key, out var applied) || !applied.TryPop(out var ended)) continue;
+                if (applied.Count == 0) shown.Effects.Remove(key);
+                Notify("effect-removed", id, new JsonObject { ["id"] = ended, ["type"] = 0, ["linkId"] = "", ["icon"] = 0 });
                 continue;
             }
             if (e.ChangeType != 'A') continue;
+            long effect = (2L << 48) | ++_nextEffect;
+            if (!shown.Effects.TryGetValue(key, out var stack)) shown.Effects[key] = stack = new();
+            stack.Push(effect);
             if (beam)
                 Notify("beam", id, new JsonObject
                 {
@@ -403,19 +481,30 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
         }
     }
 
-    /// <summary>An area of effect: vfx_persistent.2da's shape and size, where the server placed it.</summary>
-    void AreaOfEffect(uint id, int row, uint host, (float, float, float) at, OrientationUpdate? facing)
+    /// <summary>
+    /// An area of effect: vfx_persistent.2da's shape and size where the server first places it; later positions (one
+    /// that moves with its creature) move it.
+    /// </summary>
+    void AreaOfEffect(uint id, Vector3 at, OrientationUpdate? facing)
     {
+        var (row, host, placed) = _aoes[id];
+        if (!Finite(at)) return;
+        _aoes[id] = (row, host, at);
+        if (placed is { } before)
+        {
+            if (before != at) Notify("aoe-moved", world.AreaId, new JsonObject { ["id"] = id, ["pos"] = Vec(at) });
+            return;
+        }
         string Cell(string column) => data.TwoDA("vfx_persistent", row, column) is var v && v != "****" ? v : "";
-        float F(string column) => float.TryParse(Cell(column), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var f) ? f : 0;
+        float F(string column) => float.TryParse(Cell(column), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var f) && float.IsFinite(f) ? f : 0;
         // A bearing counts from +Y (as the mirror reads facings); the client's facing from +X.
         float degrees = facing is { Full: true } o ? MathF.Atan2(o.Oy ?? 0, o.Ox ?? 1) * 180f / MathF.PI
             : facing?.Bearing is { } bearing ? (bearing + 90f) % 360f : 0;
         Notify("aoe-created", world.AreaId, new JsonObject
         {
             ["id"] = id, ["aoe"] = row, ["shape"] = Cell("SHAPE").ToUpperInvariant() == "R" ? "R" : "C", ["radius"] = F("RADIUS"),
-            ["width"] = F("WIDTH"), ["length"] = F("LENGTH"), ["pos"] = Vec(V(at)), ["facing"] = degrees,
-            ["attachedTo"] = host == InvalidObject ? InvalidObject : host,
+            ["width"] = F("WIDTH"), ["length"] = F("LENGTH"), ["pos"] = Vec(at), ["facing"] = Finite(degrees),
+            ["attachedTo"] = host,
         });
     }
 
@@ -427,59 +516,63 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
     /// </summary>
     void Transform(uint id, VisualTransformData vt)
     {
+        var shown = ShownOf(id);
         foreach (var u in vt.TotalUpdates)
         {
             if (u.Identity)
             {
-                bool had = _transforms.Keys.Any(k => k.Item1 == id && k.Item2 == u.Scope);
-                foreach (var k in _transforms.Keys.Where(k => k.Item1 == id && k.Item2 == u.Scope).ToList()) _transforms.Remove(k);
-                if (had) Notify("visual-transform-clear", id, new JsonObject { ["scope"] = u.Scope });
+                var cleared = shown.Transforms.Keys.Where(k => k.Scope == u.Scope).ToList();
+                foreach (var k in cleared) shown.Transforms.Remove(k);
+                if (cleared.Count > 0) Notify("visual-transform-clear", id, new JsonObject { ["scope"] = u.Scope });
                 continue;
             }
-            Channel(id, u.Scope, 10, u.Scale?.X, 1);
-            Channel(id, u.Scope, 21, u.Rotate?.X, 0);
-            Channel(id, u.Scope, 22, u.Rotate?.Y, 0);
-            Channel(id, u.Scope, 23, u.Rotate?.Z, 0);
-            Channel(id, u.Scope, 31, u.Translate?.X, 0);
-            Channel(id, u.Scope, 32, u.Translate?.Y, 0);
-            Channel(id, u.Scope, 33, u.Translate?.Z, 0);
-            Channel(id, u.Scope, 40, u.AnimationSpeed, 1);
+            Channel(id, shown, u.Scope, 10, u.Scale?.X, 1);
+            Channel(id, shown, u.Scope, 21, u.Rotate?.X, 0);
+            Channel(id, shown, u.Scope, 22, u.Rotate?.Y, 0);
+            Channel(id, shown, u.Scope, 23, u.Rotate?.Z, 0);
+            Channel(id, shown, u.Scope, 31, u.Translate?.X, 0);
+            Channel(id, shown, u.Scope, 32, u.Translate?.Y, 0);
+            Channel(id, shown, u.Scope, 33, u.Translate?.Z, 0);
+            Channel(id, shown, u.Scope, 40, u.AnimationSpeed, 1);
         }
     }
 
-    void Channel(uint id, int scope, int transform, NetTypesMessages.LerpFloat? f, float identity)
+    void Channel(uint id, Shown shown, int scope, int transform, NetTypesMessages.LerpFloat? f, float identity)
     {
-        if (f == null) return;
-        var key = (id, scope, transform);
-        var now = (f.ValueTo, (int)f.LerpType, f.Duration);
-        if (_transforms.TryGetValue(key, out var known) ? known == now : f.ValueTo == identity && f.LerpType == NetTypesMessages.LerpType.None) return;
-        _transforms[key] = now;
+        if (f == null || !float.IsFinite(f.ValueTo)) return;
+        var key = (scope, transform);
+        float duration = Finite(f.Duration);
+        var now = (f.ValueTo, (int)f.LerpType, duration);
+        if (shown.Transforms.TryGetValue(key, out var known) ? known == now : f.ValueTo == identity && f.LerpType == NetTypesMessages.LerpType.None) return;
+        shown.Transforms[key] = now;
         Notify("visual-transform", id, new JsonObject
         {
-            ["transform"] = transform, ["scope"] = scope, ["from"] = f.LerpType == NetTypesMessages.LerpType.None ? f.ValueTo : f.ValueFrom,
-            ["value"] = f.ValueTo, ["lerp"] = (int)f.LerpType, ["duration"] = f.Duration, ["pauseWithGame"] = f.TimerType == NetTypesMessages.LerpTimerType.WorldTime,
+            ["transform"] = transform, ["scope"] = scope, ["from"] = f.LerpType == NetTypesMessages.LerpType.None ? f.ValueTo : Finite(f.ValueFrom, f.ValueTo),
+            ["value"] = f.ValueTo, ["lerp"] = (int)f.LerpType, ["duration"] = duration, ["pauseWithGame"] = f.TimerType == NetTypesMessages.LerpTimerType.WorldTime,
             ["behavior"] = (f.Flags & NetTypesMessages.LerpFlags.Bounce) != 0 ? 1 : 0, ["repeats"] = f.RepeatsRemaining,
-            ["elapsed"] = f.Progress * f.Duration,
+            ["elapsed"] = Finite(f.Progress * duration),
         });
     }
 
     /// <summary>SetObjectHiliteColor: a colour (0xRRGGBB) for the object's highlight, or -1 for its own.</summary>
     void Hilite(uint id, float r, float g, float b)
     {
-        int color = r < 0 ? -1 : (Byte(r) << 16) | (Byte(g) << 8) | Byte(b);
-        if (_hilites.TryGetValue(id, out var known) ? known == color : color == -1) return;
-        _hilites[id] = color;
+        int color = !(r >= 0) ? -1 : (Byte(r) << 16) | (Byte(g) << 8) | Byte(b);
+        var shown = ShownOf(id);
+        if (shown.Hilite is { } known ? known == color : color == -1) return;
+        shown.Hilite = color;
         Notify("hilite-color", id, new JsonObject { ["color"] = color });
     }
 
-    static int Byte(float channel) => Math.Clamp((int)MathF.Round(channel * 255), 0, 255);
+    static int Byte(float channel) => float.IsFinite(channel) ? Math.Clamp((int)MathF.Round(channel * 255), 0, 255) : 0;
 
     // -- sounds -------------------------------------------------------------
 
+    /// <summary>PlaySound at its object; from one the client doesn't know, where the player stands.</summary>
     void PlaySound(uint source, string resref)
     {
         if (resref.Length == 0) return;
-        world.TryPose(source, out var at, out _, out _, out _);
+        if (!world.TryPose(source, out var at, out _, out _, out _)) world.TryPose(world.Controlled, out at, out _, out _, out _);
         Notify("play-sound", source, new JsonObject { ["resref"] = resref, ["position"] = Vec(at), ["strref"] = -1 });
     }
 
@@ -500,7 +593,7 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
         if (_soundSets.TryGetValue(resref, out var known)) return known;
         SoundSet? set = null;
         try { set = data.Resource(resref, "ssf") is { } bytes ? SoundSet.Read(bytes) : null; }
-        catch (InvalidDataException) { }
+        catch (Exception e) when (e is InvalidDataException or EndOfStreamException or ArgumentException) { }
         return _soundSets[resref] = set;
     }
 
@@ -517,9 +610,9 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
             {
                 ["sounds"] = new JsonArray(sounds.Select(s => (JsonNode)s).ToArray()), ["active"] = active, ["continuous"] = continuous,
                 ["looping"] = looping, ["positional"] = positional, ["random"] = random, ["randomPosition"] = randomPosition,
-                ["rangeX"] = rangeX, ["rangeY"] = rangeY, ["elevation"] = 0f, ["interval"] = (int)interval,
-                ["intervalVariation"] = (int)intervalVariation, ["pitchVariation"] = pitchVariation, ["volume"] = (int)volume,
-                ["volumeVariation"] = (int)volumeVariation, ["minDistance"] = minDistance, ["maxDistance"] = maxDistance,
+                ["rangeX"] = Finite(rangeX), ["rangeY"] = Finite(rangeY), ["elevation"] = 0f, ["interval"] = (int)interval,
+                ["intervalVariation"] = (int)intervalVariation, ["pitchVariation"] = Finite(pitchVariation), ["volume"] = (int)volume,
+                ["volumeVariation"] = (int)volumeVariation, ["minDistance"] = Finite(minDistance), ["maxDistance"] = Finite(maxDistance),
                 ["times"] = (int)times, ["hours"] = hours,
             }.ToJsonString(),
         }.Write());
@@ -536,17 +629,29 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
         return c;
     }
 
+    Shown ShownOf(uint id)
+    {
+        if (!_shown.TryGetValue(id, out var s)) _shown[id] = s = new Shown();
+        return s;
+    }
+
     string Spell(int spell, string column) => data.TwoDA("spells", spell, column) is var v && v != "****" ? v : "";
 
     static int Int(string s) => int.TryParse(s, out var i) ? i : 0;
 
-    static float Scale(VisualTransformData? vt) => vt?.TotalUpdates.FirstOrDefault(u => u.Scope == 0 && !u.Identity)?.Scale?.X.ValueTo ?? 1f;
+    /// <summary>A float the server sent, as one JSON can carry: anything not finite becomes <paramref name="fallback"/>.</summary>
+    static float Finite(float v, float fallback = 0) => float.IsFinite(v) ? v : float.IsFinite(fallback) ? fallback : 0;
 
-    static Vector3 V((float, float, float) v) => new(v.Item1, v.Item2, v.Item3);
+    static bool Finite(Vector3 v) => float.IsFinite(v.X) && float.IsFinite(v.Y) && float.IsFinite(v.Z);
 
-    static JsonArray Vec(Vector3 v) => new(v.X, v.Y, v.Z);
+    static float Scale(VisualTransformData? vt) =>
+        Finite(vt?.TotalUpdates.FirstOrDefault(u => u.Scope == 0 && !u.Identity)?.Scale?.X.ValueTo ?? 1f, 1f);
 
-    static JsonArray Vec((float, float, float) v) => new(v.Item1, v.Item2, v.Item3);
+    static Vector3 V((float, float, float) v) => new(Finite(v.Item1), Finite(v.Item2), Finite(v.Item3));
+
+    static JsonArray Vec(Vector3 v) => new(Finite(v.X), Finite(v.Y), Finite(v.Z));
+
+    static JsonArray Vec((float, float, float) v) => Vec(V(v));
 
     void Notify(string kind, uint subject, JsonObject json) =>
         emit(new NotifyMessage { Kind = kind, Subject = subject, Json = json.ToJsonString() }.Write());

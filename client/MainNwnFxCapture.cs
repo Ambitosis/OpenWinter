@@ -42,9 +42,15 @@ public partial class Main
         foreach (var shot in _args.GetValueOrDefault("fx-shots", Default).Split(',', StringSplitOptions.RemoveEmptyEntries))
         {
             var p = shot.Split('@');
-            double wait = start + double.Parse(p[1], System.Globalization.CultureInfo.InvariantCulture) - Time.GetTicksMsec() / 1000.0;
+            if (p.Length != 2 || p[0].Trim().Length == 0
+                || !double.TryParse(p[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var at))
+            {
+                GD.PrintErr($"[nwn-fx] skipping \"{shot}\": expected name@seconds");
+                continue;
+            }
+            double wait = start + at - Time.GetTicksMsec() / 1000.0;
             if (wait > 0) await Wait(wait);
-            await Shot(dir, p[0]);
+            await Shot(dir, p[0].Trim());
         }
         GetTree().Quit();
     }

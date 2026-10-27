@@ -18,6 +18,8 @@ public partial class EffectPlayer : Node
     public ClientSession Session = null!;
     readonly Dictionary<long, List<Node3D>> _byEffect = new();
     readonly Dictionary<uint, List<Node3D>> _aoes = new();
+    /// <summary>Where each area of effect was placed, so a move shifts it.</summary>
+    readonly Dictionary<uint, Vector3> _aoeAt = new();
     readonly Dictionary<long, Action> _cessations = new();
     readonly Dictionary<uint, long> _appearanceChanges = new();
     long _appearanceSerial;
@@ -40,6 +42,7 @@ public partial class EffectPlayer : Node
         _byEffect.Clear();
         _stunVisuals.Clear();
         _aoes.Clear();
+        _aoeAt.Clear();
         _alphaEffects.Clear();
         _cessations.Clear();
         _appearanceChanges.Clear();
@@ -94,8 +97,19 @@ public partial class EffectPlayer : Node
                 break;
             case "aoe-created": AoeCreated(d); break;
             case "aoe-removed":
+                _aoeAt.Remove(d.GetProperty("id").GetUInt32());
                 if (_aoes.Remove(d.GetProperty("id").GetUInt32(), out var aoe))
                     foreach (var n in aoe) End(n);
+                break;
+            case "aoe-moved":
+                // An area of effect that follows its creature: its models move with it.
+                if (_aoes.TryGetValue(d.GetProperty("id").GetUInt32(), out var moving) && _aoeAt.TryGetValue(d.GetProperty("id").GetUInt32(), out var from)
+                    && d.TryGetProperty("pos", out var to))
+                {
+                    var now = new Vector3(to[0].GetSingle(), to[1].GetSingle(), to[2].GetSingle());
+                    foreach (var n in moving) if (IsInstanceValid(n)) n.Position += now - from;
+                    _aoeAt[d.GetProperty("id").GetUInt32()] = now;
+                }
                 break;
             case "disappear":
                 Appearance(m.Subject, d, appearing: false);
@@ -483,6 +497,10 @@ public partial class EffectPlayer : Node
                 break;
             }
         }
-        _aoes[d.GetProperty("id").GetUInt32()] = nodes;
+        uint id = d.GetProperty("id").GetUInt32();
+        // The same area of effect announced again replaces the models shown for it.
+        if (_aoes.Remove(id, out var shown)) foreach (var n in shown) End(n);
+        _aoes[id] = nodes;
+        _aoeAt[id] = at;
     }
 }

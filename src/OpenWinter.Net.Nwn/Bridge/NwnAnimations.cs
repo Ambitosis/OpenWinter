@@ -10,18 +10,17 @@ public static class NwnAnimations
 {
     /// <summary>Standing: the plain pause and the pose a creature arrives in.</summary>
     public const ushort Pause = 0, Ready = 1;
-    public const ushort Walk = 2, Run = 4;
-    /// <summary>Lying dead (ANIMATION_LOOPING_DEAD_FRONT, and a creature killed outright) and dead on its back.</summary>
+    /// <summary>
+    /// Lying dead: ANIMATION_LOOPING_DEAD_FRONT and DEAD_BACK, which a creature killed also shows. Walking (2, 4),
+    /// attacks (9) and hit reactions (77, 99, 100) are the world mirror's and combat's.
+    /// </summary>
     public const ushort DeadFront = 6, DeadBack = 8;
-    public const ushort Attack = 9;
     public const ushort Conjure1 = 15, Conjure2 = 16;
     /// <summary>The cast animations a spell's release plays: spells.2da CastAnim "out", "self", "up", "area" and "touch".</summary>
     public static readonly ushort[] Casts = [17, 18, 19, 20, 61];
-    /// <summary>Hit reactions, part of an attack.</summary>
-    public static readonly ushort[] Reactions = [77, 99, 100];
 
-    /// <summary>Placeable and door states: destroyed, switched on, off, open, closed; a door also opened (51) or closed (22).</summary>
-    public const ushort Destroyed = 72, On = 73, Off = 74, Open = 75, Close = 76, DoorOpened = 51, DoorClosed = 22;
+    /// <summary>Placeable states: destroyed (doors too; a door's open and closed codes are the mirror's), on, off, open, closed.</summary>
+    public const ushort Destroyed = 72, On = 73, Off = 74, Open = 75, Close = 76;
 
     /// <summary>A creature animation: the model animation, upper body only, and whether it loops.</summary>
     public readonly record struct Clip(string Name, bool Gesture, bool Looping);

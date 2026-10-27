@@ -201,11 +201,11 @@ static class NwnRecordingDump
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
 ///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS]
-///              [--emote KEY,...] [--do STEP;...] [--player NAME] [--record FILE]
+///              [--emote KEY,... [--emote-gap SECONDS]] [--do STEP;...] [--player NAME] [--record FILE]
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
-/// once the list is used up; open the journal; play each emote, five seconds apart from six seconds in)
+/// once the list is used up; open the journal; play each emote, five seconds (--emote-gap) apart from six seconds in)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -232,6 +232,7 @@ static class NwnBridgeProbe
         var nextUse = 6.0;
         var emotes = new Queue<string>(Opt("--emote", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var nextEmote = 6.0;
+        var emoteGap = double.Parse(Opt("--emote-gap", "5"), System.Globalization.CultureInfo.InvariantCulture);
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
@@ -331,7 +332,7 @@ static class NwnBridgeProbe
             }
             if (walked && emotes.Count > 0 && clock.Elapsed.TotalSeconds > nextEmote)
             {
-                nextEmote = clock.Elapsed.TotalSeconds + 5;
+                nextEmote = clock.Elapsed.TotalSeconds + emoteGap;
                 var emote = emotes.Dequeue();
                 Console.WriteLine($"{clock.ElapsedMilliseconds,6} emote {emote}");
                 bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Emote, Argument = emote }.Write());
