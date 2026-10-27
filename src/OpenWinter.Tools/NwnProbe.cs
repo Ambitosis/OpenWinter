@@ -205,12 +205,14 @@ static class NwnRecordingDump
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
 ///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS]
-///              [--do STEP;...] [--request KIND=JSON|KIND=JSON...] [--player NAME] [--levelup CLASS,...] [--new-character FIRST[,CLASS]] [--record FILE]
+///              [--emote KEY,... [--emote-gap SECONDS]] [--do STEP;...] [--request KIND=JSON|KIND=JSON...] [--player NAME]
+///              [--levelup CLASS,...] [--new-character FIRST[,CLASS]] [--record FILE]
 /// (CHARACTER "-" with --new-character creates one)
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
-/// once the list is used up; open the journal; send each client request four seconds apart from six seconds in (a "+SECONDS:" prefix
+/// once the list is used up; open the journal; play each emote, five seconds (--emote-gap) apart from six seconds in;
+/// send each client request four seconds apart from six seconds in (a "+SECONDS:" prefix
 /// sends one that long after the one before; "say=TEXT" talks), where "@self" is the player's creature and "@NAME" the nearest object whose name contains NAME)
 /// </summary>
 static class NwnBridgeProbe
@@ -236,6 +238,9 @@ static class NwnBridgeProbe
         var attackAt = double.Parse(Opt("--attack-at", "10"));
         var respawnAt = double.Parse(Opt("--respawn-at", "0"));
         var nextUse = 6.0;
+        var emotes = new Queue<string>(Opt("--emote", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var nextEmote = 6.0;
+        var emoteGap = double.Parse(Opt("--emote-gap", "5"), System.Globalization.CultureInfo.InvariantCulture);
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
@@ -303,6 +308,10 @@ static class NwnBridgeProbe
                         else if (u.Mode != OpenWinter.Net.MovementMode.Stand || counts[type] < 5)
                             Console.WriteLine($"{clock.ElapsedMilliseconds,6} Update {u.ObjectId:X} {u.Mode} at {u.Position} facing {u.Facing:0.00} speed {u.Speed}");
                         break;
+                    case OpenWinter.Net.MessageType.PlayAnimation:
+                        var pa = OpenWinter.Net.PlayAnimationMessage.Read(r);
+                        Console.WriteLine($"{clock.ElapsedMilliseconds,6} PlayAnimation {pa.ObjectId:X} {pa.Animation} speed {pa.Speed} for {pa.Duration}{(pa.Gesture ? " gesture" : "")}");
+                        break;
                     case OpenWinter.Net.MessageType.Despawn:
                         objects.Remove(OpenWinter.Net.DespawnMessage.Read(r).ObjectId);
                         break;
@@ -336,6 +345,13 @@ static class NwnBridgeProbe
                     bridge.Send(new OpenWinter.Net.ChatSendMessage { Channel = OpenWinter.Net.ChatChannel.Talk, Text = say }.Write());
                     Console.WriteLine($"{clock.ElapsedMilliseconds,6} said \"{say}\"");
                 }
+            }
+            if (walked && emotes.Count > 0 && clock.Elapsed.TotalSeconds > nextEmote)
+            {
+                nextEmote = clock.Elapsed.TotalSeconds + emoteGap;
+                var emote = emotes.Dequeue();
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} emote {emote}");
+                bridge.Send(new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Emote, Argument = emote }.Write());
             }
             if (walked && uses.Count == 0)
                 steps.Step(bridge, clock.Elapsed.TotalSeconds, name => objects.Where(kv => kv.Key != controlled && kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))

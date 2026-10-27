@@ -19,6 +19,8 @@ public interface INwnBridgeData
     string Text(uint strRef, byte gender);
     /// <summary>The server's haks and custom talk table, once it has named them.</summary>
     void UseContent(IReadOnlyList<string> haks, string customTlk);
+    /// <summary>A resource's bytes (a voice set's .ssf); null when there is none.</summary>
+    byte[]? Resource(string resref, string extension) => null;
     /// <summary>Whether a resource of this type (ResType) is installed.</summary>
     bool HasResource(string resref, ushort type) => false;
     /// <summary>The game data itself, for the character rules (level-up, character creation); null without it.</summary>
@@ -212,6 +214,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
                     m.Appearance = new Appearance { Type = p.Appearance };
                     m.Flags = (p.Useable ? ObjectFlags.Useable | ObjectFlags.Selectable : 0) | (p.Locked ? ObjectFlags.Locked : 0)
                         | (p.Plot ? ObjectFlags.Plot : 0) | (p.LightIsOn ? ObjectFlags.Activated : 0);
+                    PlaceableAnim(m, p.Animation);
                     m.HasAppearance = true;
                     break;
                 }
@@ -365,12 +368,25 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
         if (g.Useable is { } useable)
             m.Flags = useable ? m.Flags | ObjectFlags.Useable | ObjectFlags.Selectable : m.Flags & ~ObjectFlags.Useable;
         if (g.Animation is { } anim && m.Kind == ObjectKind.Door) DoorAnim(m, anim);
+        else if (g.Animation is { } state && m.Kind == ObjectKind.Placeable) PlaceableAnim(m, state);
         if (g.PortraitId is { } portrait) SetPortrait(m, PortraitResRef(portrait, g.CustomPortrait));
         m.StateChanged = true;
     }
 
     static void DoorAnim(Mirror m, ushort anim) =>
-        m.Flags = anim == DoorClosed ? m.Flags & ~ObjectFlags.Open : m.Flags | ObjectFlags.Open;
+        m.Flags = anim == NwnAnimations.Destroyed ? m.Flags | ObjectFlags.Dead
+            : anim == DoorClosed ? m.Flags & ~ObjectFlags.Open : m.Flags | ObjectFlags.Open;
+
+    /// <summary>A placeable's state: switched on or off, open or closed, destroyed (other codes keep the state).</summary>
+    static void PlaceableAnim(Mirror m, ushort anim) => m.Flags = anim switch
+    {
+        NwnAnimations.On => m.Flags | ObjectFlags.Activated,
+        NwnAnimations.Off => m.Flags & ~ObjectFlags.Activated,
+        NwnAnimations.Open => m.Flags | ObjectFlags.Open,
+        NwnAnimations.Close => m.Flags & ~ObjectFlags.Open,
+        NwnAnimations.Destroyed => m.Flags | ObjectFlags.Dead,
+        _ => m.Flags,
+    };
 
     /// <summary>
     /// What clicking a door sends: a closed door is asked to open, an open one to close; null when the object isn't a known door, or is an open transition that a
@@ -448,6 +464,9 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
 
     /// <summary>A known creature's appearance and equipment; null when it isn't known.</summary>
     public Appearance? AppearanceOf(uint id) => _objects.TryGetValue(id, out var m) && m.HasAppearance ? m.Appearance : null;
+
+    /// <summary>A known object's flags (dead, dying, open ...); none when it isn't known.</summary>
+    public ObjectFlags FlagsOf(uint id) => _objects.TryGetValue(id, out var m) ? m.Flags : 0;
 
     /// <summary>Sets a creature's condition flags (dead, dying) within <paramref name="mask"/>; sent with the object list being read.</summary>
     public void SetFlags(uint id, ObjectFlags value, ObjectFlags mask)

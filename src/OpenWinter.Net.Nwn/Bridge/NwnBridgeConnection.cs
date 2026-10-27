@@ -33,6 +33,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly NwnInventory _inventory;
     readonly NwnDialog _dialog;
     readonly NwnCombat _combat;
+    readonly NwnPresentation _presentation;
     readonly NwnRules _rules;
     readonly NwnProgression _progression;
     readonly NwnCharacterCreation _creation;
@@ -64,6 +65,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         _progression = new NwnProgression(_rules, ToServer);
         _creation = new NwnCharacterCreation(_rules, ToServer);
         _combat = new NwnCombat(data, _world, m => _toClient.Enqueue(m));
+        _presentation = new NwnPresentation(data, _world, m => _toClient.Enqueue(m));
         // Using an item's power is the abilities' (an item they don't know is left to the inventory); the inventory
         // knows every item the player has and the HUD is the combat bridge's, fed with the action queue.
         _abilities.Carried = _inventory.Items;
@@ -196,6 +198,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case ActionKind.Use or ActionKind.Talk or ActionKind.OpenDoor or ActionKind.CloseDoor:
                 ToServer(UseOrTalk(a, _world.KindOf(a.Target), _world.DoorRequest(a.Target, a.Action == ActionKind.Use), _combat.Click(a.Target)));
+                break;
+            case ActionKind.Emote when _presentation.Emote(a.Argument) is { } emote:
+                ToServer(emote);
                 break;
             case ActionKind.Attack when a.Target != 0:
                 ToServer(new InputMessages.InputAttack { Target = a.Target });
@@ -349,11 +354,12 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 break;
             case AreaMessages.AreaClientArea area:
                 _world.Area(area);
+                _presentation.Area(area);
                 _inventory.AreaChanged();
                 _abilities.AreaChanged();
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
-                _combat.ObjectList(list, _world.ObjectList);
+                _combat.ObjectList(list, l => _presentation.ObjectList(l, _world.ObjectList));
                 _inventory.ObjectList(list);
                 _abilities.ObjectList(list);
                 _progression.ObjectList(list);
@@ -381,7 +387,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 // The abilities only watch these (the rest bar, item uses), so the others still see them.
                 _abilities.ToClient(message);
                 if (_inventory.ToClient(message)) break;
-                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !_combat.ToClient(message))
+                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !_presentation.ToClient(message) && !_combat.ToClient(message))
                     NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
                 break;
         }

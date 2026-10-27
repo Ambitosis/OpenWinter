@@ -172,6 +172,17 @@ Supported so far:
   corpses fading; the death panel (also shown to the living when a script asks, and closed when the server says)
   and respawn; battle music; impact visual effects and lasting ones on creatures. The HUD's experience comes from
   the server's character sheet updates; until one arrives the bar is empty.
+- animations: a creature's animation code becomes the animation OpenWinter's server plays for the same
+  ANIMATION_* constant (script animations, emotes, sitting, talking, conjuring and casting); a looping one plays
+  until the server sends the next code, as it does when the script's time is up. A knockdown lays the creature
+  down; placeables switch on and off, open and close, and doors and placeables show their destroyed state. The
+  client's emotes go to the server as the animation input, which plays them for everyone.
+- spell projectiles fly when the server sends them, for the flight time it gives (spells.2da model, path and sound)
+- visual effects at a place, beams (lasting or instant), projectile-style effects, lasting effects on placeables
+  and doors (with removal), areas of effect (vfx_persistent.2da), visual transforms and highlight colours
+- sounds: PlaySound (a message the definitions lack, 0x09 0x07: the object and the sound's resref), voice chat and
+  death cries from the creature's voice set, sound objects (placed with the area, played, stopped, moved and
+  turned up or down), and the area's music, its delay, battle track and ambience
 - levelling up (`NwnProgression`): an NWN client works out a level's options itself, so the bridge does with
   OpenWinter's own rules (`NwnRules`, a world without a module on the client's game data and the server's haks). The
   server's player information (classes, base abilities, feats, known spells, skill ranks, unspent points, associates,
@@ -240,11 +251,12 @@ Testing:
   (built with `parity-build`) whose scripts call them.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
-  click NUI elements, attack, respawn, send any client request and record (`--say`, `--use`, `--talk`,
-  `--replies`, `--journal`, `--drive`, `--nui-click`, `--attack`, `--respawn-at`, `--request kind=json|...`,
-  `--record`), and run a script of client requests as another player (`--player`; `--do "use:Chest;req:container-take
-  {\"item\":\"@c:Arrow\"}"`, items named from the last inventory, container or store contents). `nwn-dump` reads
-  2DAs with the haks the recorded server named, since some fields' presence depends on them.
+  click NUI elements, attack, respawn, send any client request, play emotes and record (`--say`, `--use`,
+  `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`, `--attack`, `--respawn-at`,
+  `--request kind=json|...`, `--emote`, `--record`), and run a script of client requests as another player
+  (`--player`; `--do "use:Chest;req:container-take {\"item\":\"@c:Arrow\"}"`, items named from the last
+  inventory, container or store contents); it prints the animations it passes on. `nwn-dump` reads 2DAs with the
+  haks the recorded server named, since some fields' presence depends on them.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
 - `parity/suites/bridge_inventory` builds a test module with a chest, a body bag, a store opened by using a
@@ -256,10 +268,14 @@ Testing:
   follows it and takes shots; `NwnBridgeCombatTests` replays frames recorded from it.
 - The client's `--capture-nwn-actions` takes shots of the quickbar, character sheet and spellbook, then of a mode, a
   cast, a feat and a rest.
+- The visual scene `bridgefx` (parity/visual/scenes) runs animations, conditions, placeable and door states, visual
+  effects, spells, sounds and music by script, announcing each step in chat; `openwinter-tools visual-build
+  bridgefx` makes its module for `nwnws.py start --module`. The client's `--capture-nwn-fx` takes shots along its
+  timeline, and `NwnBridgePresentationTests` replays frames recorded from it.
 - `parity/suites/bridge_progression` builds a test module that gives the entering player the experience for fifth
   level; saying "possess" possesses a goblin and "unpossess" returns (start the server with `--nwnx PLAYER`), and
   "dodgering" equips a ring granting Dodge. `nwn-bridge --levelup CLASS,...` takes a level in each class with its
   recommended choices (`CLASS+sN` also raises skill N), and `nwn-bridge URL - --new-character NAME[,CLASS]` creates a
-  character; with the server's `--elc 1`, logging in again checks the result. The client's `--capture-nwn-levelup dir [--levelup-class N] [--levelups N]` takes levels in the
-  level-up window (the classic one with `--ui classic`) and `--capture-nwn-chargen dir` creates a character from the
-  character list, with a shot at each step.
+  character; with the server's `--elc 1`, logging in again checks the result. The client's `--capture-nwn-levelup
+  dir [--levelup-class N] [--levelups N]` takes levels in the level-up window (the classic one with `--ui classic`)
+  and `--capture-nwn-chargen dir` creates a character from the character list, with a shot at each step.

@@ -452,6 +452,7 @@ public partial class Main : Node3D
         else if (_args.TryGetValue("capture-nwn-actions", out var nwnActionsDir)) _ = CaptureNwnActions(nwnActionsDir);
         else if (_args.TryGetValue("capture-nwn-inventory", out var nwnInvDir)) _ = CaptureNwnInventory(nwnInvDir);
         else if (_args.TryGetValue("capture-nwn-dialog", out var nwnDialogDir)) _ = CaptureNwnDialog(nwnDialogDir);
+        else if (_args.TryGetValue("capture-nwn-fx", out var nwnFxDir)) _ = CaptureNwnFx(nwnFxDir);
         else if (_args.TryGetValue("capture-nwn-play", out var nwnPlayDir)) _ = CaptureNwnPlay(nwnPlayDir);
         else if (_args.TryGetValue("capture-nwn-combat", out var nwnCombatDir)) _ = CaptureNwnCombat(nwnCombatDir);
         else if (_args.TryGetValue("capture-nwn-levelup", out var nwnLevelUpDir)) _ = CaptureNwnLevelUp(nwnLevelUpDir);

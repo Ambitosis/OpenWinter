@@ -13,6 +13,7 @@ public sealed class NwnResManData(GamePaths paths) : INwnBridgeData
     public ResMan Resources => _rm;
     public int TwoDARowCount(string table) => _rm.TwoDA(table).RowCount;
     public string TwoDA(string table, int row, string column) => _rm.TwoDA(table).Get(row, column);
+    public byte[]? Resource(string resref, string extension) => _rm.Read(resref, ResType.FromExtension(extension));
 
     /// <summary>
     /// Gender 1 reads the female talk tables (dialogf.tlk, and the custom table's "f" file) where the language has
