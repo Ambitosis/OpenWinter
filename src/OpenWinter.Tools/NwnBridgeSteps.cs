@@ -7,7 +7,7 @@ using OpenWinter.Net;
 ///   use:NAME            use the nearest object whose name contains NAME
 ///   req:KIND [JSON]     send a client request; "@NAME" in the JSON is the id of an item whose name contains NAME
 ///                       (from the last inventory, container or store contents; "@c:", "@s:" or "@i:" picks one),
-///                       "@o:NAME" the nearest other object whose name contains NAME
+///                       "@o:NAME" the nearest other object whose name contains NAME, "@o:me" the player's creature
 ///   say:TEXT            say a line in the talk channel
 ///   gap:SECONDS         the time between the steps after this one (four seconds at first)
 ///   wait                do nothing for a step
