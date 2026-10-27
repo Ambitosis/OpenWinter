@@ -32,7 +32,7 @@ public partial class ObjectFx : Node
         public readonly Dictionary<string, string> Animations = new(StringComparer.OrdinalIgnoreCase);
         /// <summary>Clips displaced by ReplaceObjectAnimation, to put back (null: the model had none).</summary>
         public readonly Dictionary<string, Godot.Animation?> Displaced = new(StringComparer.OrdinalIgnoreCase);
-        public readonly Dictionary<(string Material, string Param), float[]> Uniforms = new();
+        public readonly Dictionary<(string Material, string Param), (float[] Value, long? Exact)> Uniforms = new(Game.WorldObjects.MaterialUniformKeyComparer.Instance);
         public int Hilite = -1;
         public long Stamp;
         public bool ManualAnimation;
@@ -47,7 +47,6 @@ public partial class ObjectFx : Node
     /// <summary>Set when the texture overrides changed: every object is checked once, even with none left.</summary>
     bool _globalSweep;
     readonly Dictionary<(ulong Material, string Texture), Material> _swapped = new();
-    readonly float[]?[] _shaderUniforms = new float[16][];
     double _clock;
     Interaction? _interaction;
     /// <summary>Objects wearing the highlight overlay, with the colour it was drawn in.</summary>
@@ -119,7 +118,7 @@ public partial class ObjectFx : Node
                 break;
             }
             case "material-uniform":
-                For(subject).Uniforms[(J.S(d, "material"), J.S(d, "param"))] = J.Floats(d, "value");
+                For(subject).Uniforms[(J.S(d, "material"), J.S(d, "param"))] = (J.Floats(d, "value"), J.Has(d, "int") ? J.L(d, "int") : null);
                 For(subject).Stamp = 0;
                 break;
             case "material-uniform-reset":
@@ -128,10 +127,11 @@ public partial class ObjectFx : Node
                     string material = J.S(d, "material"), param = J.S(d, "param");
                     foreach (var key in us.Uniforms.Keys.Where(k => (material.Length == 0 || k.Material.Equals(material, StringComparison.OrdinalIgnoreCase)) && (param.Length == 0 || k.Param == param)).ToList())
                         us.Uniforms.Remove(key);
+                    us.Stamp = 0;
                 }
                 break;
             case "shader-uniform":
-                SetShaderUniform(J.I(d, "shader", -1), J.Floats(d, "value"));
+                Rendering.Shaders.ShaderGlobals.SetScriptUniform(J.S(d, "type", "vec4"), J.I(d, "shader", -1), J.Floats(d, "value"), J.Has(d, "int") ? J.L(d, "int") : null);
                 break;
             case "hilite-color":
                 For(subject).Hilite = J.I(d, "color", -1);
@@ -169,6 +169,7 @@ public partial class ObjectFx : Node
             }
         }
         UpdateHilite();
+        Rendering.Shaders.ShaderGlobals.Update(Session, GetViewport()?.GetCamera3D());
     }
 
     /// <summary>Changes whenever the object's model nodes are replaced.</summary>
@@ -333,38 +334,78 @@ public partial class ObjectFx : Node
 
     // ---- shader uniforms ----
 
-    /// <summary>SetMaterialShaderUniform*: sets the parameter on the object's shader materials that define it.</summary>
+    /// <summary>The material a surface had before it got its own copy for SetMaterialShaderUniform*.</summary>
+    const string UniformBase = "ow_uniform_base";
+    /// <summary>The parameters a surface's own copy overrides.</summary>
+    const string UniformParams = "ow_uniform_params";
+
+    /// <summary>
+    /// SetMaterialShaderUniform*: the object's surfaces drawn with that material (its MTR) get their own copy of it
+    /// with the parameter set; other objects with the same material are unchanged. Once no override is left the
+    /// surface goes back to the shared material.
+    /// </summary>
     static void ApplyUniforms(ObjectView view, State s)
     {
-        if (s.Uniforms.Count == 0) return;
-        foreach (var gi in view.FindChildren("*", "GeometryInstance3D", true, false).OfType<GeometryInstance3D>())
+        foreach (var mi in view.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
         {
-            if (gi is not MeshInstance3D { Mesh: { } mesh } mi) continue;
+            if (mi.Mesh is not { } mesh) continue;
             for (int i = 0; i < mesh.GetSurfaceCount(); i++)
-                if ((mi.GetSurfaceOverrideMaterial(i) ?? mesh.SurfaceGetMaterial(i)) is ShaderMaterial sm)
-                    foreach (var ((_, param), value) in s.Uniforms)
-                        if (sm.GetShaderParameter(param).VariantType != Variant.Type.Nil)
-                            sm.SetShaderParameter(param, value.Length >= 4 ? new Vector4(value[0], value[1], value[2], value[3]) : value.Length > 0 ? value[0] : 0f);
+            {
+                var current = mi.GetSurfaceOverrideMaterial(i);
+                bool ours = current != null && current.HasMeta(UniformBase);
+                var shared = ours ? current!.GetMeta(UniformBase).As<Material>() : current ?? mesh.SurfaceGetMaterial(i);
+                if (shared is not ShaderMaterial { Shader: { } shader } sm || !sm.HasMeta("ow_custom")) continue;
+                string material = sm.GetMeta("ow_mtr").AsString();
+                var types = Parameters(shader);
+                // Scripts name parameters as the shader source does; a few are renamed in the translation.
+                var mine = s.Uniforms.Select(u => (Name: Aurora.Shaders.ShaderTranslator.UniformName(u.Key.Param), u.Key.Material, u.Value))
+                    .Where(u => u.Material.Equals(material, StringComparison.OrdinalIgnoreCase) && types.ContainsKey(u.Name)).ToList();
+                if (mine.Count == 0)
+                {
+                    if (ours) mi.SetSurfaceOverrideMaterial(i, null);
+                    continue;
+                }
+                // The object's own copy, made once; parameters no longer overridden go back to the shared values.
+                var copy = ours ? (ShaderMaterial)current! : (ShaderMaterial)sm.Duplicate();
+                copy.SetMeta(UniformBase, sm);
+                var before = copy.HasMeta(UniformParams) ? copy.GetMeta(UniformParams).AsStringArray() : [];
+                foreach (var gone in before.Except(mine.Select(u => u.Name))) copy.SetShaderParameter(gone, sm.GetShaderParameter(gone));
+                copy.SetMeta(UniformParams, mine.Select(u => u.Name).ToArray());
+                foreach (var (param, _, (value, exact)) in mine)
+                {
+                    float V(int k) => k < value.Length ? value[k] : 0f;
+                    Variant v = types[param] switch
+                    {
+                        Variant.Type.Int => (int)(exact ?? (long)V(0)),
+                        Variant.Type.Bool => V(0) != 0,
+                        Variant.Type.Vector2 => new Vector2(V(0), V(1)),
+                        Variant.Type.Vector3 => new Vector3(V(0), V(1), V(2)),
+                        Variant.Type.Vector4 => new Vector4(V(0), V(1), V(2), V(3)),
+                        Variant.Type.Color => new Color(V(0), V(1), V(2), value.Length > 3 ? V(3) : 1f),
+                        _ => V(0),
+                    };
+                    copy.SetShaderParameter(param, v);
+                }
+                if (!ours) mi.SetSurfaceOverrideMaterial(i, copy);
+            }
         }
     }
 
-    /// <summary>SetShaderUniform*: global shader parameters openwinter_uniform_1..16 (vec4) for custom shaders.</summary>
-    void SetShaderUniform(int index, float[] value)
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Shader, Dictionary<string, Variant.Type>> ParameterTypes = new();
+
+    /// <summary>A shader's parameters and their types.</summary>
+    static Dictionary<string, Variant.Type> Parameters(Shader shader)
     {
-        if (index < 0 || index >= _shaderUniforms.Length) return;
-        _shaderUniforms[index] = value;
-        var name = $"openwinter_uniform_{index + 1}";
-        var v = new Vector4(value.ElementAtOrDefault(0), value.ElementAtOrDefault(1), value.ElementAtOrDefault(2), value.ElementAtOrDefault(3));
-        try
+        if (ParameterTypes.TryGetValue(shader, out var known)) return known;
+        var types = new Dictionary<string, Variant.Type>(StringComparer.Ordinal);
+        foreach (var u in shader.GetShaderUniformList())
         {
-            if (!RenderingServer.GlobalShaderParameterGetList().Contains(name))
-                RenderingServer.GlobalShaderParameterAdd(name, RenderingServer.GlobalShaderParameterType.Vec4, v);
-            else RenderingServer.GlobalShaderParameterSet(name, v);
+            var d = u.AsGodotDictionary();
+            types[d["name"].AsString()] = (Variant.Type)d["type"].AsInt32();
         }
-        catch (Exception e) { GD.PushWarning($"[worldfx] shader uniform {name}: {e.Message}"); }
+        ParameterTypes.AddOrUpdate(shader, types);
+        return types;
     }
-
-    public float[]? ShaderUniform(int index) => index >= 0 && index < _shaderUniforms.Length ? _shaderUniforms[index] : null;
 
     // ---- mouse-over highlight ----
 

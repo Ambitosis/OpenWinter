@@ -70,7 +70,7 @@ public partial class CommandReticle : Node3D
         var root = new Node3D { Name = name, Visible = false };
         var skeleton = ModelBuilder.BuildSkinned(data, content.Materials, part =>
         {
-            var material = (StandardMaterial3D)content.Materials.Get(part.Mesh!, MaterialKind.World)!.Duplicate();
+            var material = (StandardMaterial3D)content.Materials.Get(part.Mesh!, MaterialKind.World, moduleShaders: false)!.Duplicate();
             material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
             material.DisableReceiveShadows = true;
             return material;

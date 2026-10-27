@@ -1,0 +1,5 @@
+// Visual scene "shaders": the ground texture drawn with the scene's own test shader (ow_bands.shd).
+customshaderVS vslit
+customshaderFS ow_bands
+texture0 ttr01_grass02
+parameter float bandWidth 2.0

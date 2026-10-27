@@ -19,7 +19,7 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// projectiles "spell-projectile", knockdowns a condition flag; visual effects at places and on objects "vfx", beams "beam", areas of
 /// effect "aoe-created" and "aoe-moved"; visual transforms and highlights "visual-transform" and "hilite-color";
 /// PlaySound, voice chat, sound objects, music and ambience "play-sound", "voice-chat", "sound-object" and
-/// "area-audio". The client's emotes go back as the animation input nwmain sends.
+/// "area-audio"; script shader uniforms "shader-uniform". The client's emotes go back as the animation input nwmain sends.
 /// </summary>
 public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, Action<byte[]> emit)
 {
@@ -144,6 +144,16 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
                 return true;
             case AmbientMessages.AmbientSoundPlay m:
                 Audio("ambientPlaying", m.Play);
+                return true;
+            // SetShaderUniform*: the player's script uniform banks, as OpenWinter's server sends them.
+            case SetShaderUniformMessages.SetShaderUniformFloat u:
+                ShaderUniform(u.Index, "float", [u.Value]);
+                return true;
+            case SetShaderUniformMessages.SetShaderUniformInt u:
+                ShaderUniform(u.Index, "int", [u.Value], u.Value);
+                return true;
+            case SetShaderUniformMessages.SetShaderUniformVec u:
+                ShaderUniform(u.Index, "vec4", [u.X, u.Y, u.Z, u.W]);
                 return true;
         }
         return false;
@@ -587,6 +597,16 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
                 ["times"] = (int)times, ["hours"] = hours,
             }.ToJsonString(),
         }.Write());
+    }
+
+    /// <summary>A script shader uniform for the controlled player (one bank, index 0-15; ints exact).</summary>
+    void ShaderUniform(int index, string type, float[] value, int? exact = null)
+    {
+        var values = new JsonArray();
+        foreach (var v in value) values.Add(v);
+        var json = new JsonObject { ["shader"] = index, ["type"] = type, ["value"] = values };
+        if (exact is { } i) json["int"] = i;
+        Notify("shader-uniform", world.Controlled, json);
     }
 
     /// <summary>One area music or ambience setting changed (the client keeps the rest).</summary>

@@ -22,6 +22,7 @@ public sealed class ClientContent
         Textures = new TextureFactory(new TextureCache(rm));
         Materials = new MaterialFactory(Textures);
         Materials.Models = Models.Get;
+        Materials.Shaders = new Rendering.Shaders.ModuleShaders(rm, Textures);
         Tinter = new PltTinter(Textures);
         Audio = new Audio.AudioLoader(rm);
     }

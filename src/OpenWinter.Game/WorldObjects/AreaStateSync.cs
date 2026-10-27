@@ -59,6 +59,8 @@ public sealed class AreaStateSync : IWorldSystem
                 foreach (var (old, replacement) in o.TextureReplacements) output.Notify("object-texture", o, new { old, @new = replacement }, pc);
             if (o.AnimationReplacements != null)
                 foreach (var (old, replacement) in o.AnimationReplacements) output.Notify("object-animation", o, new { old, @new = replacement }, pc);
+            if (o.MaterialUniforms != null)
+                foreach (var ((material, param), u) in o.MaterialUniforms) output.Notify("material-uniform", o, u.Data(material, param), pc);
             // Traps this player sees: detected, flagged, or its own party's.
             if (o is ITrappable && TrapSystem.Shows(_world, o, pc))
                 output.Notify("trap-detected", o, TrapSystem.DetectedData(_world, o, pc, true), pc);

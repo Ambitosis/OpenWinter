@@ -106,6 +106,8 @@ public static class Keyhole
         {
             var current = mi.GetSurfaceOverrideMaterial(i) ?? mi.Mesh.SurfaceGetMaterial(i);
             if (current is StandardMaterial3D sm && Convert(sm) is { } cut) mi.SetSurfaceOverrideMaterial(i, cut);
+            // Module shaders that keyhole carry the cut themselves, switched on per instance.
+            else if (current is ShaderMaterial custom && custom.HasMeta("ow_keyhole")) mi.SetInstanceShaderParameter("ow_keyhole", 1f);
         }
     }
 

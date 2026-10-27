@@ -11,7 +11,7 @@ public static class ModuleClientResources
         ResType.Bmp or ResType.Tga or ResType.Wav or ResType.Plt or ResType.Bmu or
         ResType.Mdl or ResType.Set or ResType.Wok or ResType.TwoDA or ResType.Txi or
         ResType.Dds or ResType.Dft or ResType.Gui or ResType.Dwk or ResType.Pwk or
-        ResType.Jui or ResType.Ssf or ResType.Mtr or ResType.Ktx or ResType.Ttf or ResType.Png or ResType.Jpg;
+        ResType.Jui or ResType.Ssf or ResType.Mtr or ResType.Shd or ResType.Ktx or ResType.Ttf or ResType.Png or ResType.Jpg;
 
     /// <summary>Returns a deterministic presentation ERF in the server cache, or null for an empty module.</summary>
     public static string? Package(ResMan resources, string cache)

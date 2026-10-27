@@ -572,31 +572,45 @@ static class AreaFunctions
         return null;
     }
 
+    // Material uniforms stay on the object: players arriving later get them too (AreaStateSync).
     [NwFunc("SetMaterialShaderUniformInt")]
-    static object? MaterialUniformInt(Call c)
-    {
-        if (c.Obj(0) is { } o) c.World.Output?.Notify("material-uniform", o, new { material = c.S(1), param = c.S(2), type = "int", value = new[] { (float)c.I(3) } });
-        return null;
-    }
+    static object? MaterialUniformInt(Call c) => MaterialUniform(c, new MaterialUniform("int", [c.I(3)], c.I(3)));
     [NwFunc("SetMaterialShaderUniformVec4")]
-    static object? MaterialUniformVec4(Call c)
+    static object? MaterialUniformVec4(Call c) => MaterialUniform(c, new MaterialUniform("vec4", [c.F(3), c.F(4), c.F(5), c.F(6)], null));
+
+    static object? MaterialUniform(Call c, MaterialUniform u)
     {
-        if (c.Obj(0) is { } o) c.World.Output?.Notify("material-uniform", o, new { material = c.S(1), param = c.S(2), type = "vec4", value = new[] { c.F(3), c.F(4), c.F(5), c.F(6) } });
-        return null;
-    }
-    [NwFunc("ResetMaterialShaderUniforms")]
-    static object? ResetMaterialUniforms(Call c)
-    {
-        if (c.Obj(0) is { } o) c.World.Output?.Notify("material-uniform-reset", o, new { material = c.S(1), param = c.S(2) });
+        if (c.Obj(0) is not { } o || c.S(1).Length == 0 || c.S(2).Length == 0) return null;
+        (o.MaterialUniforms ??= new(WorldObjects.MaterialUniformKeyComparer.Instance))[(c.S(1), c.S(2))] = u;
+        c.World.Output?.Notify("material-uniform", o, u.Data(c.S(1), c.S(2)));
         return null;
     }
 
-    static object? ShaderUniform(Call c, string type, float[] value)
+    [NwFunc("ResetMaterialShaderUniforms")]
+    static object? ResetMaterialUniforms(Call c)
     {
-        if (c.Obj<Creature>(0) is { IsPC: true } pc) c.World.Output?.Notify("shader-uniform", pc, new { shader = c.I(1), type, value }, pc);
+        if (c.Obj(0) is not { } o) return null;
+        string material = c.S(1), param = c.S(2);
+        if (o.MaterialUniforms is { } set)
+            foreach (var key in set.Keys.Where(k => (material.Length == 0 || k.Material.Equals(material, StringComparison.OrdinalIgnoreCase)) && (param.Length == 0 || k.Param == param)).ToList())
+                set.Remove(key);
+        c.World.Output?.Notify("material-uniform-reset", o, new { material, param });
+        return null;
+    }
+
+    /// <summary>
+    /// SetShaderUniform*: one of three banks of 16 (float, int, vec4) for one player; the client hands them to
+    /// shaders as scriptableFloatN, scriptableIntN and scriptableVecN. Ints are sent exactly.
+    /// </summary>
+    static object? ShaderUniform(Call c, string type, float[] value, int? exact = null)
+    {
+        int index = c.I(1);
+        if (index is < 0 or > 15) return null;
+        if (c.Obj<Creature>(0) is { IsPC: true } pc)
+            c.World.Output?.Notify("shader-uniform", pc, exact is { } i ? new { shader = index, type, value, @int = i } : (object)new { shader = index, type, value }, pc);
         return null;
     }
     [NwFunc("SetShaderUniformFloat")] static object? ShaderFloat(Call c) => ShaderUniform(c, "float", new[] { c.F(2) });
-    [NwFunc("SetShaderUniformInt")] static object? ShaderInt(Call c) => ShaderUniform(c, "int", new[] { (float)c.I(2) });
+    [NwFunc("SetShaderUniformInt")] static object? ShaderInt(Call c) => ShaderUniform(c, "int", new[] { (float)c.I(2) }, c.I(2));
     [NwFunc("SetShaderUniformVec")] static object? ShaderVec(Call c) => ShaderUniform(c, "vec4", new[] { c.F(2), c.F(3), c.F(4), c.F(5) });
 }

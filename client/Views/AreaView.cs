@@ -204,6 +204,8 @@ public partial class AreaView : Node3D
                                 sky.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
                                 am.SurfaceSetMaterial(s, sky);
                             }
+                            else if (am.SurfaceGetMaterial(s) is ShaderMaterial custom && _content.Materials.Shaders?.Sky(custom) is { } sky)
+                                am.SurfaceSetMaterial(s, sky);
                 }
                 AddChild(_sky);
             }
