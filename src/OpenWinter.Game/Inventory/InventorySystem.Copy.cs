@@ -179,9 +179,10 @@ public sealed partial class InventorySystem
     /// Applies one appearance change to an item as CopyItemAndModify does; false when the original refuses the copy.
     /// Simple models take any value; weapon models need the part and an inventory icon, helmet models an icon; weapon colours outside 1-9
     /// become 1; armour parts past their parts_*.2da (negative parts are kept as a word) and colours above 175 leave the item unchanged (per-part
-    /// colours above 175 clear the override); negative colours wrap to a byte.
+    /// colours above 175 clear the override); negative colours wrap to a byte. <paramref name="anyColour"/> (NWNX_Item's
+    /// SetItemAppearance) takes armour colours up to 255 (per-part 255 clears the override): parity suite nwnx_item.
     /// </summary>
-    public bool SetAppearance(Item item, int type, int index, int value)
+    public bool SetAppearance(Item item, int type, int index, int value, bool anyColour = false)
     {
         var t = item.Template;
         int modelType = ModelType(item.BaseItem);
@@ -218,12 +219,12 @@ public sealed partial class InventorySystem
                 SetWide(t, ArmorModelFields[index], value & 0xFFFF);
                 return true;
             case ApprArmorColor when index is >= 0 and < 6:
-                if (value <= 175) t.SetByte(ArmorColorFields[index], (byte)value);
+                if (value <= 175 || (anyColour && value <= 255)) t.SetByte(ArmorColorFields[index], (byte)value);
                 return true;
             case ApprArmorColor when index >= 6:
                 // TODO(items): per-part colours are kept in memory only; the UTI fields for them aren't written yet.
                 if ((index - 6) / 6 >= ArmorModelFields.Length) return true;
-                if (value > 175) item.PartColorOverrides.Remove(index - 6);
+                if (value > 175 && !(anyColour && value < 255)) item.PartColorOverrides.Remove(index - 6);
                 else item.PartColorOverrides[index - 6] = (byte)value;
                 return true;
             case ApprWeaponModel when index == 3:

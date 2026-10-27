@@ -1,0 +1,5 @@
+// Visual scene "shadertex": the barrel's black cap, drawn with the rock texture tinted green.
+customshaderVS vslit
+customshaderFS ow_texs
+texture0 plc_rck
+parameter float owTint 0.35 1.0 0.35 1.0

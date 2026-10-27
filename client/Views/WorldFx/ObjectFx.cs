@@ -65,6 +65,7 @@ public partial class ObjectFx : Node
     {
         // Objects of the old area are gone; the server re-sends overrides of the new one.
         _states.Clear();
+        _uniformCopies.Clear();
         _globalStamps.Clear();
         _hilited.Clear();
         // SetTextureOverride is per player, not per area: it applies to the new area too.
@@ -74,7 +75,11 @@ public partial class ObjectFx : Node
     /// <summary>Re-applies texture overrides to the area's tiles (after loading or rebuilding tiles).</summary>
     public void RefreshArea()
     {
-        if (_global.Count > 0 && Session.Area is { } area) SwapTextures(area, Lookup(null));
+        if (_global.Count > 0 && Session.Area is { } area)
+        {
+            SwapTextures(area, Lookup(null));
+            ApplyModuleShaders(area, null, Lookup(null));
+        }
     }
 
     public void Handle(string kind, uint subject, JsonElement d)
@@ -114,7 +119,11 @@ public partial class ObjectFx : Node
                 _globalStamps.Clear();
                 _globalSweep = true;
                 foreach (var s in _states.Values) s.Stamp = 0;
-                if (Session.Area is { } area) SwapTextures(area, Lookup(null));
+                if (Session.Area is { } area)
+                {
+                    SwapTextures(area, Lookup(null));
+                    ApplyModuleShaders(area, null, Lookup(null));
+                }
                 break;
             }
             case "material-uniform":
@@ -151,8 +160,8 @@ public partial class ObjectFx : Node
             {
                 s.Stamp = stamp;
                 SwapTextures(view, Lookup(s));
+                ApplyModuleShaders(view, s, Lookup(s));
                 ApplyAnimations(view, s);
-                ApplyUniforms(view, s);
             }
             if (!s.Transform.IsEmpty || s.Bases.Count > 0 || s.ManualAnimation || s.AnimationSpeed != 1) ApplyTransform(view, s, delta);
         }
@@ -166,6 +175,7 @@ public partial class ObjectFx : Node
                 if (_globalStamps.GetValueOrDefault(id) == stamp) continue;
                 _globalStamps[id] = stamp;
                 SwapTextures(view, Lookup(null));
+                ApplyModuleShaders(view, null, Lookup(null));
             }
         }
         UpdateHilite();
@@ -266,6 +276,7 @@ public partial class ObjectFx : Node
             if (mi.Mesh == null) continue;
             for (int i = 0; i < mi.Mesh.GetSurfaceCount(); i++)
             {
+                // Module-shader surfaces: ApplyModuleShaders.
                 if (mi.Mesh.SurfaceGetMaterial(i) is not StandardMaterial3D original) continue;
                 var name = original.AlbedoTexture?.ResourceName ?? "";
                 var replacement = map(name);
@@ -332,63 +343,77 @@ public partial class ObjectFx : Node
         lib.SetMeta("openwinter_replaced", true);
     }
 
-    // ---- shader uniforms ----
+    // ---- module shader surfaces ----
 
-    /// <summary>The material a surface had before it got its own copy for SetMaterialShaderUniform*.</summary>
-    const string UniformBase = "ow_uniform_base";
-    /// <summary>The parameters a surface's own copy overrides.</summary>
+    /// <summary>The parameters an object's copy of a material overrides.</summary>
     const string UniformParams = "ow_uniform_params";
+    /// <summary>Each object's copy of a material for SetMaterialShaderUniform*, by the material it was made from.</summary>
+    readonly Dictionary<(ulong Material, uint Object), ShaderMaterial> _uniformCopies = new();
 
     /// <summary>
-    /// SetMaterialShaderUniform*: the object's surfaces drawn with that material (its MTR) get their own copy of it
-    /// with the parameter set; other objects with the same material are unchanged. Once no override is left the
-    /// surface goes back to the shared material.
+    /// Surfaces drawn with a module shader: retextured as the original does (ModuleShaders.Retextured, scene
+    /// shadertex), then given the object's SetMaterialShaderUniform* values on its own copy (other objects with the
+    /// same material are unchanged). Both are worked out from the surface's own material (Logic.SurfaceOverride), so
+    /// a texture swap keeps the uniforms and a uniform reset keeps the swap.
     /// </summary>
-    static void ApplyUniforms(ObjectView view, State s)
+    void ApplyModuleShaders(Node root, State? s, Func<string, string?> map)
     {
-        foreach (var mi in view.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
+        if (Session.Content?.Materials.Shaders is not { } shaders) return;
+        uint owner = root is ObjectView ov ? ov.ObjectId : 0;
+        foreach (var mi in root.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
         {
             if (mi.Mesh is not { } mesh) continue;
             for (int i = 0; i < mesh.GetSurfaceCount(); i++)
             {
-                var current = mi.GetSurfaceOverrideMaterial(i);
-                bool ours = current != null && current.HasMeta(UniformBase);
-                var shared = ours ? current!.GetMeta(UniformBase).As<Material>() : current ?? mesh.SurfaceGetMaterial(i);
-                if (shared is not ShaderMaterial { Shader: { } shader } sm || !sm.HasMeta("ow_custom")) continue;
-                string material = sm.GetMeta("ow_mtr").AsString();
-                var types = Parameters(shader);
-                // Scripts name parameters as the shader source does; a few are renamed in the translation.
-                var mine = s.Uniforms.Select(u => (Name: Aurora.Shaders.ShaderTranslator.UniformName(u.Key.Param), u.Key.Material, u.Value))
-                    .Where(u => u.Material.Equals(material, StringComparison.OrdinalIgnoreCase) && types.ContainsKey(u.Name)).ToList();
-                if (mine.Count == 0)
-                {
-                    if (ours) mi.SetSurfaceOverrideMaterial(i, null);
-                    continue;
-                }
-                // The object's own copy, made once; parameters no longer overridden go back to the shared values.
-                var copy = ours ? (ShaderMaterial)current! : (ShaderMaterial)sm.Duplicate();
-                copy.SetMeta(UniformBase, sm);
-                var before = copy.HasMeta(UniformParams) ? copy.GetMeta(UniformParams).AsStringArray() : [];
-                foreach (var gone in before.Except(mine.Select(u => u.Name))) copy.SetShaderParameter(gone, sm.GetShaderParameter(gone));
-                copy.SetMeta(UniformParams, mine.Select(u => u.Name).ToArray());
-                foreach (var (param, _, (value, exact)) in mine)
-                {
-                    float V(int k) => k < value.Length ? value[k] : 0f;
-                    Variant v = types[param] switch
-                    {
-                        Variant.Type.Int => (int)(exact ?? (long)V(0)),
-                        Variant.Type.Bool => V(0) != 0,
-                        Variant.Type.Vector2 => new Vector2(V(0), V(1)),
-                        Variant.Type.Vector3 => new Vector3(V(0), V(1), V(2)),
-                        Variant.Type.Vector4 => new Vector4(V(0), V(1), V(2), V(3)),
-                        Variant.Type.Color => new Color(V(0), V(1), V(2), value.Length > 3 ? V(3) : 1f),
-                        _ => V(0),
-                    };
-                    copy.SetShaderParameter(param, v);
-                }
-                if (!ours) mi.SetSurfaceOverrideMaterial(i, copy);
+                if (mesh.SurfaceGetMaterial(i) is not ShaderMaterial shared || !shared.HasMeta(Rendering.Shaders.ModuleShaders.BitmapMeta)) continue;
+                var replacement = map(shared.GetMeta(Rendering.Shaders.ModuleShaders.BitmapMeta).AsString());
+                var shown = Logic.SurfaceOverride.Resolve(shared, replacement, (m, r) => Retextured(shaders, m, r), m => Uniforms(m, s, owner));
+                if (mi.GetSurfaceOverrideMaterial(i) != shown) mi.SetSurfaceOverrideMaterial(i, shown);
             }
         }
+    }
+
+    ShaderMaterial? Retextured(Rendering.Shaders.ModuleShaders shaders, ShaderMaterial material, string replacement)
+    {
+        var key = (material.GetInstanceId(), replacement);
+        if (_swapped.TryGetValue(key, out var done)) return done as ShaderMaterial;
+        var made = shaders.Retextured(material, replacement);
+        if (made != null) _swapped[key] = made;
+        return made;
+    }
+
+    /// <summary>The object's copy of a material with its SetMaterialShaderUniform* values, or null when it has none for it.</summary>
+    ShaderMaterial? Uniforms(ShaderMaterial material, State? s, uint owner)
+    {
+        if (s == null || s.Uniforms.Count == 0 || material.Shader is not { } shader) return null;
+        string name = material.GetMeta("ow_mtr").AsString();
+        var types = Parameters(shader);
+        // Scripts name parameters as the shader source does; a few are renamed in the translation.
+        var mine = s.Uniforms.Select(u => (Name: Aurora.Shaders.ShaderTranslator.UniformName(u.Key.Param), u.Key.Material, u.Value))
+            .Where(u => u.Material.Equals(name, StringComparison.OrdinalIgnoreCase) && types.ContainsKey(u.Name)).ToList();
+        if (mine.Count == 0) return null;
+        var key = (material.GetInstanceId(), owner);
+        if (!_uniformCopies.TryGetValue(key, out var copy)) _uniformCopies[key] = copy = (ShaderMaterial)material.Duplicate();
+        // Parameters no longer overridden go back to the material's own values.
+        var before = copy.HasMeta(UniformParams) ? copy.GetMeta(UniformParams).AsStringArray() : [];
+        foreach (var gone in before.Except(mine.Select(u => u.Name))) copy.SetShaderParameter(gone, material.GetShaderParameter(gone));
+        copy.SetMeta(UniformParams, mine.Select(u => u.Name).ToArray());
+        foreach (var (param, _, (value, exact)) in mine)
+        {
+            float V(int k) => k < value.Length ? value[k] : 0f;
+            Variant v = types[param] switch
+            {
+                Variant.Type.Int => (int)(exact ?? (long)V(0)),
+                Variant.Type.Bool => V(0) != 0,
+                Variant.Type.Vector2 => new Vector2(V(0), V(1)),
+                Variant.Type.Vector3 => new Vector3(V(0), V(1), V(2)),
+                Variant.Type.Vector4 => new Vector4(V(0), V(1), V(2), V(3)),
+                Variant.Type.Color => new Color(V(0), V(1), V(2), value.Length > 3 ? V(3) : 1f),
+                _ => V(0),
+            };
+            copy.SetShaderParameter(param, v);
+        }
+        return copy;
     }
 
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Shader, Dictionary<string, Variant.Type>> ParameterTypes = new();

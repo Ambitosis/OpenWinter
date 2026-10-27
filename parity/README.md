@@ -214,7 +214,11 @@ How it works:
 
 Scenes: `calib` (camera calibration), `lightcal` (ground under known ambient and diffuse colours), `shaders` (the
 ground drawn with the scene's own shader through an MTR, changed by the SetShaderUniform* banks; docs/SHADERS.md;
-a scene's `.shd` and `.mtr` files go into its hak), `postfx` (the scene's own post-process pass: a colour grade,
+a scene's `.shd` and `.mtr` files go into its hak), `shaderplt` (a palette-textured head and torso through a test
+shader: the tinted texture, its alpha, mesh-space `vPos`, the bounding box, the area light values), `shaderlit` and
+`shaderlitplain` (the ground through a lit test shader with the specularity and roughness overridden, and without
+it; variants `amb` and `dif` light it by ambient or sun alone), `shadertex` (ReplaceObjectTexture on meshes with
+module shaders), `stockmtr` (the game's own MTRs: tti01 ice, the old heads), `postfx` (the scene's own post-process pass: a colour grade,
 depth bands and haze, and a readout of engine values that `python tools/visual/postfx_readout.py` decodes for
 both engines), `waterfx` (the scene's own water program on a river tile: the engine's noise texture, the view
 behind the water by its depth, the water's texture, which meshes are water), `tilelight`

@@ -24,6 +24,7 @@ public sealed class ClientContent
         Materials.Models = Models.Get;
         Materials.Shaders = new Rendering.Shaders.ModuleShaders(rm, Textures);
         Tinter = new PltTinter(Textures);
+        Materials.Shaders.PaletteAlpha = Tinter.WithAlpha;
         Audio = new Audio.AudioLoader(rm);
     }
 

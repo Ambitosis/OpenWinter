@@ -1,0 +1,55 @@
+// Visual scene "shaderplt" (part of OpenWinter, MIT licence): shows, unlit, what a palette-textured (PLT) body
+// part hands a module shader. owMode is set per creature with SetMaterialShaderUniformInt:
+//   0  texture 0 as sampled (the part's palette-tinted texture)
+//   1  texture 0's alpha as grey
+//   2  the vertex in its mesh's space: x > 0 red, bands of 0.2 m in z green, y > 0 blue
+//   3  the vertex within its mesh's bounding box (bboxMin to bboxMax as black to white per axis)
+//   4  texture0Bound in red, texture 0's width / 512 in green, height / 512 in blue
+//   5  the area's sun direction (lightAreaDiffuseDirection) as 0.5 + 0.5 * xyz
+//   6  the area's sun colour (lightAreaDiffuse)
+//   7  the area's ambient colour (lightAreaAmbient)
+#define SHADER_TYPE 2
+#define FOG 0
+#define KEYHOLING 0
+#define LIGHTING 0
+#define NORMAL_MAP 0
+#define SPECULAR_MAP 0
+#define ROUGHNESS_MAP 0
+#define HEIGHT_MAP 0
+#define SELF_ILLUMINATION_MAP 0
+#define ENVIRONMENT_MAP 0
+
+#include "inc_standard"
+#include "inc_uniforms"
+
+varying vec3 vOwMesh;
+uniform int owMode;
+uniform vec3 lightAreaDiffuseDirection;
+uniform vec3 lightAreaDiffuse;
+uniform vec3 lightAreaAmbient;
+
+void main()
+{
+    FragmentColor = vec4(1.0);
+    SetupStandardShaderInputs();
+    vec4 vTex = texture2D(texUnit0, vTexCoords);
+    vec3 vOut = vTex.rgb;
+    if (owMode == 1)
+        vOut = vec3(vTex.a);
+    else if (owMode == 2)
+        vOut = vec3(step(0.0, vOwMesh.x), fract(vOwMesh.z * 5.0), step(0.0, vOwMesh.y));
+    else if (owMode == 3)
+        vOut = clamp((vOwMesh - bboxMin) / max(bboxMax - bboxMin, vec3(0.0001)), 0.0, 1.0);
+    else if (owMode == 4)
+    {
+        ivec2 vSize = textureSize(texUnit0, 0);
+        vOut = vec3(float(texture0Bound), float(vSize.x) / 512.0, float(vSize.y) / 512.0);
+    }
+    else if (owMode == 5)
+        vOut = 0.5 + 0.5 * lightAreaDiffuseDirection;
+    else if (owMode == 6)
+        vOut = lightAreaDiffuse;
+    else if (owMode == 7)
+        vOut = lightAreaAmbient;
+    gl_FragColor = vec4(vOut, 1.0);
+}

@@ -1,0 +1,4 @@
+// Visual scene "shaderplt": the player's head (a palette texture) drawn with the scene's test shader.
+customshaderVS ow_pltv
+customshaderFS ow_plt
+parameter int owMode 0

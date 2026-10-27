@@ -1,0 +1,34 @@
+// Visual scene "shaderlit" (part of OpenWinter, MIT licence): the standard surface, lit by the engine, with the
+// material values the lighting reads overridden by script uniforms:
+//   scriptableInt1    1: the surface colour replaced by scriptableVec1 after SetupStandardShaderInputs
+//   scriptableInt2    1: specularity set to scriptableFloat1
+//   scriptableInt3    1: roughness set to scriptableFloat2
+#define SHADER_TYPE 2
+#define FOG 1
+#define KEYHOLING 1
+#define LIGHTING 1
+#define NORMAL_MAP 0
+#define SPECULAR_MAP 0
+#define ROUGHNESS_MAP 0
+#define HEIGHT_MAP 0
+#define SELF_ILLUMINATION_MAP 0
+#define ENVIRONMENT_MAP 0
+
+#include "inc_standard"
+#include "inc_scriptable"
+
+void main()
+{
+    FragmentColor = vec4(1.0);
+    SetupStandardShaderInputs();
+    if (scriptableInt1 == 1)
+        FragmentColor.rgb = ApplyColorSpace(scriptableVec1.rgb);
+#if SPECULAR_LIGHT == 1
+    if (scriptableInt2 == 1)
+        fSpecularity = scriptableFloat1;
+    if (scriptableInt3 == 1)
+        fRoughness = scriptableFloat2;
+#endif
+    ApplyStandardShader();
+    gl_FragColor = FragmentColor;
+}

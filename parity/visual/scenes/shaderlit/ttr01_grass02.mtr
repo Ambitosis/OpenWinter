@@ -1,0 +1,4 @@
+// Visual scene "shaderlit": the ground texture drawn with the scene's lighting test shader.
+customshaderVS vslit
+customshaderFS ow_lit
+texture0 ttr01_grass02

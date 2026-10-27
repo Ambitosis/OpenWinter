@@ -1,0 +1,4 @@
+// Visual scene "shadertex": the barrel's rock, tinted blue.
+customshaderVS vslit
+customshaderFS ow_texs
+parameter float owTint 0.35 0.35 1.0 1.0

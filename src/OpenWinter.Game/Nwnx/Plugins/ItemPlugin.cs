@@ -111,14 +111,17 @@ public static class ItemPlugin
         if (value > 255 || t.Has("x" + field)) t.SetWord("x" + field, value);
     }
 
-    /// <summary>One change, as CopyItemAndModify makes it, to the item itself; optionally shown on its wearer at once.</summary>
+    /// <summary>
+    /// One change, as CopyItemAndModify makes it, to the item itself (but armour colours may go past the palettes' 176
+    /// rows); optionally shown on its wearer at once.
+    /// </summary>
     [NwnxFunc(P, "SetItemAppearance")]
     static void SetAppearance(NwnxCall n)
     {
         var item = n.PopObject<Item>();
         int type = n.PopInt(), index = n.PopInt(), value = n.PopInt();
         bool update = n.PopInt() != 0;
-        if (item == null || !n.World.Inventory.SetAppearance(item, type, index, value)) return;
+        if (item == null || !n.World.Inventory.SetAppearance(item, type, index, value, anyColour: true)) return;
         n.World.MarkChanged(item);
         if (update && n.World.Inventory.Owner(item) is Creature c && c.Equipment.ContainsValue(item)) n.World.MarkChanged(c);
     }

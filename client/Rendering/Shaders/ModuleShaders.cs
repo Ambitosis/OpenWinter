@@ -37,23 +37,16 @@ public sealed class ModuleShaders
         _resources = resources;
         _textures = textures;
         _translator = new ShaderTranslator { ModuleSource = ShaderSources.Module(resources), InstalledSource = ShaderSources.Installed(resources) };
-        _own = resources.Sources.Where(s => !ShaderSources.IsInstalled(resources, s)).ToList();
     }
 
     /// <summary>
-    /// The module's MTR of this name (module, haks, override), or null. The game's own MTRs are left alone: meshes
-    /// that name them keep the material OpenWinter has always given them until they are measured against the original.
+    /// The MTR of this name: the module's (module, haks, override), else the game's own (the stock ice and old heads:
+    /// with theirs the ice's walls lose the streaks the plain material shows and the original doesn't, scene
+    /// stockmtr), or null.
     /// </summary>
     public MaterialData? Material(string resref) =>
         string.IsNullOrEmpty(resref) ? null : _materials.GetOrAdd(resref, r =>
-        {
-            var key = ResKey.Of(r, ResType.Mtr);
-            foreach (var s in _own)
-                if (s.Read(key) is { } b) return Mtr.Parse(b, r);
-            return null;
-        });
-
-    readonly List<IResourceSource> _own;
+            _resources.Read(r, ResType.Mtr) is { } b ? Mtr.Parse(b, r) : null);
 
     /// <summary>The shader material for a mesh drawn with this MTR, or null to keep the normal material.</summary>
     public ShaderMaterial? For(MeshData mesh, MaterialData mtr, string texture, MaterialKind kind)
@@ -69,6 +62,39 @@ public sealed class ModuleShaders
             return null;
         }
     }
+
+    /// <summary>Meta of a module shader material: the mesh's bitmap (or its tinted palette texture) it was made for.</summary>
+    public const string BitmapMeta = "ow_bitmap";
+
+    /// <summary>
+    /// ReplaceObjectTexture on a mesh drawn with a module shader, as the original does (scene shadertex): a replacement
+    /// that names an MTR with shaders draws the mesh with that material (its texture 0 still defaults to the mesh's
+    /// own bitmap); any other replacement keeps the material and becomes its texture 0. Null when it can't be made.
+    /// </summary>
+    public ShaderMaterial? Retextured(ShaderMaterial material, string replacement)
+    {
+        if (!_sources.TryGetValue(material, out var s)) return null;
+        if (Material(PltTinter.Resref(replacement) ?? replacement) is { HasCustomShader: true } other)
+        {
+            var made = For(s.Mesh, other, s.Texture, s.Kind);
+            // The mesh was built without the per-vertex data its new shader reads: vPos and m_mv are the model's.
+            if (made != null && made.HasMeta(MeshSpaceMeta) && !material.HasMeta(MeshSpaceMeta))
+                Log("retexture:" + other.Name, $"{other.Name}: put on a mesh by ReplaceObjectTexture, reads vPos in the model's space");
+            return made;
+        }
+        var tex = _textures.Get(PaletteAlpha?.Invoke(replacement) ?? replacement);
+        if (tex == null) return null;
+        var copy = (ShaderMaterial)material.Duplicate();
+        copy.SetShaderParameter("texUnit0", tex.Texture);
+        copy.SetShaderParameter("texture0Bound", 1);
+        copy.SetShaderParameter("m_texture", tex.FlipV ? FlipV : Projection.Identity);
+        if (tex.FlipV) copy.SetMeta("ow_uv_flip", true);
+        else if (copy.HasMeta("ow_uv_flip")) copy.RemoveMeta("ow_uv_flip");
+        return copy;
+    }
+
+    /// <summary>The texture matrix of a texture stored bottom-up.</summary>
+    static readonly Projection FlipV = new(new Vector4(1, 0, 0, 0), new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 1));
 
     (ShaderMaterial? Material, bool Done) _post;
 
@@ -150,9 +176,12 @@ public sealed class ModuleShaders
         return sky;
     }
 
+    /// <summary>A tinted palette texture's key with the palette's alpha kept (PltTinter.WithAlpha), or null.</summary>
+    public Func<string, string?>? PaletteAlpha { get; set; }
+
     ShaderMaterial? Build(MeshData mesh, MaterialData mtr, string texture, MaterialKind kind, ShaderOptions? overrides)
     {
-        string main = mtr.Textures[0].Length > 0 ? mtr.Textures[0] : texture;
+        string main = mtr.Textures[0].Length > 0 ? mtr.Textures[0] : PaletteAlpha?.Invoke(texture) ?? texture;
         var tex = _textures.Get(main);
         var options = overrides ?? Options(mesh, mtr, tex, kind, out _);
         Options(mesh, mtr, tex, kind, out float discard);
@@ -161,15 +190,19 @@ public sealed class ModuleShaders
         if (mtr.FragmentShader == "fswater") options = options with { Emissive = true, Transparent = true, DepthDrawAlways = true };
         string vs = mtr.VertexShader.Length > 0 ? mtr.VertexShader : mtr.RenderHint.Contains("Normal", StringComparison.OrdinalIgnoreCase) ? "vslit_nm" : "vslit";
         string fs = mtr.FragmentShader.Length > 0 ? mtr.FragmentShader : mtr.RenderHint.Contains("Normal", StringComparison.OrdinalIgnoreCase) ? "fslit_nm" : "fslit";
-        string key = $"{mtr.Name}|{texture}|{kind}|{mesh.Alpha}|{mesh.SelfIllumination}|{options}";
-        if (_cache.TryGetValue(key, out var cached)) return cached;
         var (shader, translation) = Compile(vs.ToLowerInvariant(), fs.ToLowerInvariant(), options, mtr.Name);
         if (shader == null) return null;
+        // A shader that reads its mesh's bounding box gets a material per mesh.
+        var bounds = translation.Bounds ? Bounds(mesh) : default;
+        string key = $"{mtr.Name}|{texture}|{kind}|{mesh.Alpha}|{mesh.SelfIllumination}|{options}" + (translation.Bounds ? $"|{bounds}" : "");
+        if (_cache.TryGetValue(key, out var cached)) return cached;
 
         var m = new ShaderMaterial { Shader = shader };
         m.SetMeta("ow_custom", true);
         m.SetMeta("ow_mtr", mtr.Name);
+        m.SetMeta(BitmapMeta, texture);
         if (translation.Keyholing) m.SetMeta("ow_keyhole", true);
+        if (translation.MeshSpace) m.SetMeta(MeshSpaceMeta, translation.PlacesVertex ? 2 : 1);
         var parameters = translation.Parameters.ToDictionary(p => p.Name, StringComparer.Ordinal);
         void Set(string name, Variant value)
         {
@@ -185,7 +218,7 @@ public sealed class ModuleShaders
         if (tex is { FlipV: true })
         {
             // Rows stored bottom-up: the texture matrix flips V, as the plain material's UV transform does.
-            Set("m_texture", new Projection(new Vector4(1, 0, 0, 0), new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 1)));
+            Set("m_texture", FlipV);
             m.SetMeta("ow_uv_flip", true);
         }
         // Water's environment map is its texture's bumpyshinytexture; other materials keep only envmaptexture.
@@ -195,6 +228,11 @@ public sealed class ModuleShaders
         {
             Set("texUnitEnv", env.Texture);
             Set("texEnvBound", 1);
+        }
+        if (translation.Bounds)
+        {
+            Set("bboxMin", bounds.Min);
+            Set("bboxMax", bounds.Max);
         }
         // The noise texture the engine gives shaders (water waves): the game's own solid_noise.
         if (parameters.ContainsKey("texUnitNoise") && _textures.Get(NoiseTexture) is { } noise)
@@ -212,6 +250,23 @@ public sealed class ModuleShaders
         _cache[key] = m;
         _sources.AddOrUpdate(m, new Source(mtr, mesh, texture, kind));
         return m;
+    }
+
+    /// <summary>Meta of materials whose meshes must give each vertex its mesh-space data (ModelBuilder).</summary>
+    public const string MeshSpaceMeta = "ow_mesh_space";
+
+    /// <summary>A mesh's bounding box in its own space.</summary>
+    static (Vector3 Min, Vector3 Max) Bounds(MeshData mesh)
+    {
+        if (mesh.Vertices.Length == 0) return (Vector3.Zero, Vector3.Zero);
+        var min = new System.Numerics.Vector3(float.MaxValue);
+        var max = new System.Numerics.Vector3(float.MinValue);
+        foreach (var v in mesh.Vertices)
+        {
+            min = System.Numerics.Vector3.Min(min, v);
+            max = System.Numerics.Vector3.Max(max, v);
+        }
+        return (Convert.V(min), Convert.V(max));
     }
 
     /// <summary>An MTR parameter as the type the shader declares it with.</summary>
