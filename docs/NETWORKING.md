@@ -222,11 +222,12 @@ Supported so far:
   wizard's spellbook does not, and the window says so. The server's copy has every field again (body parts and all)
   and passes enforce legal characters. The server says nothing about whether it takes new characters, so the
   character list always offers one.
-- walking: with WSNetLayer, a module that subscribes to NWNX_Events' walk-to-waypoint events
-  (`NWNX_ON_INPUT_WALK_TO_WAYPOINT_*`) makes the server crash inside NWNX_Events on the first click-to-move walk,
-  or keyboard drive the server accepts, from a websocket client (measured with NWNX:EE master and with a fork of
-  it; the same messages work without the subscription, and attacks, casts and pausing work with their own input
-  events subscribed). It is a server-side fault the client can't avoid: such servers can't be walked on through
+- walking: with WSNetLayer, the server crashes inside NWNX_Events on the first click-to-move walk from a websocket
+  client while the module subscribes `NWNX_ON_INPUT_WALK_TO_WAYPOINT_*`, and on the first keyboard drive while it
+  subscribes `NWNX_ON_INPUT_KEYBOARD_*` or `NWNX_ON_INPUT_TOGGLE_PAUSE_*` (measured with NWNX:EE master and with a
+  fork of it, with only Core, Events and WSNetLayer loaded too; the subscribed script never runs). Other input events
+  (attack, cast, drop, examine) don't trigger it, and the game's own client walks and drives over UDP on the same
+  server without a crash. It is a server-side fault the client can't avoid: such servers can't be walked on through
   WSNetLayer yet.
 - message size: WSNetLayer takes at most 4088 bytes of a message from a client and a bigger one stops the server
   (measured, with or without compression or fragments). The session never sends a message over 4064 bytes (it notes
