@@ -182,12 +182,31 @@ OpenWinter keeps the setting and the override as above.
   `partycontrol` (`python tools/visual/visual.py run <scene>`). See [MULTIPLAYER_HARNESS.md](MULTIPLAYER_HARNESS.md)
   for running two OpenWinter clients against one server.
 
+## Measured with a second player through the NWN bridge
+
+One original client on nwserver with NWNX WSNetLayer, and one or two more players joined through the NWN bridge
+([NETWORKING.md](NETWORKING.md)), so the original client could watch another player's party actions and take part:
+- Every line in the table above reached the players it names, with that text (the party lines in the feedback
+  colour; the join and leave lines in the server's). The joining player reads her own name in "X has joined the
+  party."; "Ignore" also refuses later invitations with "X is ignoring your Party Invitation." and no "sent" line.
+- **The invitation window** shows "You have been invited by X to join a party.", "Never show this again." and the
+  buttons **Accept, Reject and Ignore**. An unanswered invitation runs out after about 30 s: the invited player
+  reads 6468 "The Party Invitation from X has already expired." and the window closes by itself.
+- **The classic player list rows**: the character's name; the Attitude column reads **Party** for a member of your
+  party, otherwise Like or Dislike; the Reaction column "Friendly" in green; no mark for the party's leader. The list
+  updates while open. "PvP Zone" names the area's setting (No PvP in a No PvP area of a Party Protected server).
+- **Dislike** is mutual and each player reads "X now dislikes you!" about the other (the line ends in a line break,
+  shown as an empty line); **Like** changes only the liker's attitude.
+- **A leader leaving the server**: the others read only "X has left as a player..", no party line and no new leader
+  line.
+- The party bar shows the other players of the party.
+
 ## Not measured
 
-- Everything another player sees or does: the lines' recipients, the invitation window's look and buttons, the
-  radial's Party ring and its places, the expiry and ignore times, who leads after the leader leaves, the One Party
-  Only join, the kill-experience split between players, a second player commanding another's associates.
-- The original's classic player list rows (colours, how party members and leaders are marked).
+- The radial's Party ring and its places, the ignore time, who leads after the leader leaves (when three or more
+  remain), the One Party Only join, the kill-experience split between players, a second player commanding another's
+  associates.
+- The colour of a disliked player's row in the classic player list.
 - Creatures' spells cast at a target, for their casting lines (the test creatures never started such a cast).
 - Whether the single-player server reads `server.player-party-control` at all.
 - Encounter difficulty by the party's level (`EncounterSystem.PartyLevel`): see [ENCOUNTERS.md](ENCOUNTERS.md).

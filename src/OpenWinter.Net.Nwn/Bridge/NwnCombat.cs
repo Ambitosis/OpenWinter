@@ -205,7 +205,7 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
     void Update(GameObjUpdateObjListUpdateCreature u)
     {
         var c = Of(u.ObjectId);
-        bool watched = u.ObjectId == world.Controlled || c.Master == world.Controlled || u.ObjectId == _target;
+        bool watched = u.ObjectId == world.Controlled || c.Master == world.Controlled || u.ObjectId == _target || _partyPlayers.Any(p => p.Id == u.ObjectId);
         if (u.PcPartyStatus is { } status) c.IsPc = status.IsPc;
         if (u.HpCurrent is { } hp)
         {
@@ -398,6 +398,15 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
 
     JsonArray _queue = [];
 
+    /// <summary>The other players in the player's party (NwnParty), shown in the party bar before the associates.</summary>
+    public void PartyPlayers(IReadOnlyList<(uint Id, string Name, string Portrait)> players)
+    {
+        _partyPlayers = players;
+        _hudDirty = true;
+    }
+
+    IReadOnlyList<(uint Id, string Name, string Portrait)> _partyPlayers = [];
+
     public void Tick(float seconds)
     {
         _clock += seconds;
@@ -424,6 +433,9 @@ public sealed class NwnCombat(INwnBridgeData data, NwnWorldMirror world, Action<
         uint me = world.Controlled;
         var self = Of(me);
         var party = new JsonArray();
+        foreach (var (id, name, portrait) in _partyPlayers)
+            party.Add(_creatures.TryGetValue(id, out var pc) ? Member(id, pc)
+                : new JsonObject { ["id"] = id, ["name"] = name, ["portrait"] = portrait, ["hp"] = 0, ["maxHp"] = 0, ["dead"] = false, ["pc"] = true, ["associate"] = 0, ["master"] = InvalidObject });
         foreach (var (id, c) in _creatures)
             if (id != me && c.Master == me) party.Add(Member(id, c));
         // Experience as the character sheet last reported it, within its level's band of exptable.2da.
