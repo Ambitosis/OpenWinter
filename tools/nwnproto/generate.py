@@ -111,7 +111,8 @@ def apply_corrections():
     window definitions, bind values, event payloads and group layouts are JSON fields (type byte, length, text), not
     size-prefixed blobs, and a bind entry ends after its value. The reference reader and writer are corrected to
     match and keep JSON as its text, as the C# codec does. A body bag's creature is an object id (type byte 0x11),
-    not a dword. The player's level-up info ends after its two starting packages (no multiclass level follows)."""
+    not a dword. The player's level-up info has one
+    starting package (a dword) before its multiclass level, not two."""
     from nwn_message.message import _io
     from nwn_message.message import _message
     from nwn_message.messages import game_obj_update_add, game_obj_update_playerinfo, nui
@@ -137,7 +138,7 @@ def apply_corrections():
     del nui.NuiBindEntry.__dataclass_fields__["array_index"]
     bag = game_obj_update_add.GameObjUpdateObjListAddPlaceable.__dataclass_fields__["body_bag_creature_id"]
     bag.type = typing.Annotated[_message.ObjectId, *(a for a in typing.get_args(bag.type)[1:] if not isinstance(a, MessageType))]
-    del game_obj_update_playerinfo.LevelUpInfo.__dataclass_fields__["multiclass_level"]
+    del game_obj_update_playerinfo.LevelUpInfo.__dataclass_fields__["starting_package_old"]
 
 
 def git_commit() -> str:

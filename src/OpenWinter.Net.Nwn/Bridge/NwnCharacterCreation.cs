@@ -15,6 +15,10 @@ namespace OpenWinter.Net.Nwn.Bridge;
 public sealed class NwnCharacterCreation(NwnRules rules, Action<NwnMessage> send)
 {
     string _pendingName = "";
+    readonly System.Diagnostics.Stopwatch _sentAt = new();
+
+    /// <summary>How long the server's answer to a new character is waited for; a later refusal is a login's.</summary>
+    static readonly TimeSpan AnswerTime = TimeSpan.FromSeconds(30);
 
     /// <summary>The creation requests; true when the request was one.</summary>
     public bool FromClient(string kind, string json)
@@ -59,14 +63,15 @@ public sealed class NwnCharacterCreation(NwnRules rules, Action<NwnMessage> send
             return;
         }
         _pendingName = n.FullName;
+        _sentAt.Restart();
         send(new LoginMessages.LoginNewServerCharacter { CharacterData = file });
     }
 
     /// <summary>
-    /// The largest character file the server takes: a message from the client of about 4 KiB or more stops a server
-    /// running WSNetLayer (measured: a 4040-byte file goes through, a 4083-byte one stops it).
+    /// The largest character file sent: the largest message the session sends, less the message's header and the
+    /// file's two length fields (13 bytes; measured: a 4075-byte file goes through, a 4076-byte one stops the server).
     /// </summary>
-    public const int MaxFileBytes = 4040;
+    public const int MaxFileBytes = Session.NwnSession.MaxClientFrameBytes - 13;
 
     /// <summary>Fields left out of the file when zero or empty: the server reads them as that when absent.</summary>
     static readonly string[] Defaulted =
@@ -127,6 +132,11 @@ public sealed class NwnCharacterCreation(NwnRules rules, Action<NwnMessage> send
     public bool ToClient(NwnMessage message)
     {
         if (_pendingName.Length == 0) return false;
+        if (_sentAt.Elapsed > AnswerTime)
+        {
+            _pendingName = "";
+            return false;
+        }
         switch (message)
         {
             case LoginMessages.LoginCharacterFail fail:

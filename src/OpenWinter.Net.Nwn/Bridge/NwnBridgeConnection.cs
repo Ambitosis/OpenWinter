@@ -146,15 +146,34 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void Chat(ChatSendMessage chat)
     {
-        NwnMessage? m = chat.Channel switch
+        foreach (var part in ChatParts(chat.Text))
         {
-            ChatChannel.Talk => new ChatMessages.ChatTalkC2S { Message = chat.Text },
-            ChatChannel.Shout => new ChatMessages.ChatShoutC2S { Message = chat.Text },
-            ChatChannel.Whisper => new ChatMessages.ChatWhisperC2S { Message = chat.Text },
-            ChatChannel.Party => new ChatMessages.ChatPartyC2S { Message = chat.Text },
-            _ => null,
-        };
-        if (m != null) ToServer(m);
+            NwnMessage? m = chat.Channel switch
+            {
+                ChatChannel.Talk => new ChatMessages.ChatTalkC2S { Message = part },
+                ChatChannel.Shout => new ChatMessages.ChatShoutC2S { Message = part },
+                ChatChannel.Whisper => new ChatMessages.ChatWhisperC2S { Message = part },
+                ChatChannel.Party => new ChatMessages.ChatPartyC2S { Message = part },
+                _ => null,
+            };
+            if (m != null) ToServer(m);
+        }
+    }
+
+    /// <summary>The longest chat line sent as one message: well inside what the server takes from a client.</summary>
+    public const int MaxChatChars = 2000;
+
+    /// <summary>A chat line in pieces the server takes, broken at spaces where it can be.</summary>
+    public static IEnumerable<string> ChatParts(string text)
+    {
+        while (text.Length > MaxChatChars)
+        {
+            int cut = text.LastIndexOf(' ', MaxChatChars - 1, MaxChatChars / 2);
+            if (cut <= 0) cut = MaxChatChars;
+            yield return text[..cut];
+            text = text[cut..].TrimStart(' ');
+        }
+        if (text.Length > 0) yield return text;
     }
 
     void Action(ActionRequestMessage a)
@@ -337,12 +356,12 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 _combat.ObjectList(list, _world.ObjectList);
                 _inventory.ObjectList(list);
                 _abilities.ObjectList(list);
-                _world.ObjectList(list);
                 _progression.ObjectList(list);
                 break;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
                 _abilities.Player = control.ObjectId;
+                _progression.Player = control.ObjectId;
                 break;
             case GuiQuickbarMessages.GuiQuickbarSetAllButtons quickbar:
                 _abilities.Quickbar(quickbar);

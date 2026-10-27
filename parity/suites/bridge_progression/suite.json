@@ -1,5 +1,9 @@
 {
   "seconds": 600,
   "tile": 4,
-  "events": { "OnClientEntr": "br_enter" }
+  "nwnx": true,
+  "events": {
+    "OnClientEntr": "br_enter",
+    "OnPlrChat": "br_chat"
+  }
 }

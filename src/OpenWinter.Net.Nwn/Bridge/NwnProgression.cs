@@ -20,6 +20,12 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// itself. Opening the window asks the server which classes it allows (its answer lists them by classes.2da row);
 /// taking the level sends the choices as nwmain does, and the server confirms or refuses them.
 /// </summary>
+/// <remarks>
+/// The level-up needs more of the creature than the other bridges keep (the ranks and unspent points of the level-up
+/// information, known spells by class slot, the server's base scores), so it keeps its own copy, for each creature
+/// the player has controlled: the server describes a creature again in full when control of it begins, except for
+/// its ability scores, which it sends only when they change (measured: possessing a creature and returning).
+/// </remarks>
 public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
 {
     sealed class ClassSlot
@@ -27,33 +33,68 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
         public int Class, Level, School = -1, Domain1 = -1, Domain2 = -1;
     }
 
+    /// <summary>What the server's player info has said about one creature.</summary>
+    sealed class Described
+    {
+        public readonly int[] Abilities = [10, 10, 10, 10, 10, 10];
+        public readonly SortedSet<int> Feats = [];
+        public readonly HashSet<int>[] Known = Enumerable.Range(0, 8).Select(_ => new HashSet<int>()).ToArray();
+        public sbyte[] Ranks = [];
+        public int SkillPoints, Package = 255, Familiar = 255, Companion = 255;
+        public string FamiliarName = "", CompanionName = "";
+        public bool CanLevelUp, Complete;
+        public uint? Experience;
+    }
+
+    /// <summary>The highest skills.2da rows a level can raise: the level's skill list is flagged in a 32-bit field.</summary>
+    public const int SkillsInMessage = 32;
+
+    /// <summary>"Your character has gained enough experience to advance a level."</summary>
+    const uint LevelDue = 8302;
+
     /// <summary>The creatures' rules fields and names from their updates (the player's come before its player info).</summary>
     readonly Dictionary<uint, PrimaryAttributes> _attributes = [];
     readonly Dictionary<uint, string> _names = [];
+    /// <summary>The creatures the server has sent player info about (the ones the player has controlled).</summary>
+    readonly Dictionary<uint, Described> _described = [];
     readonly List<ClassSlot> _classes = [];
-    readonly int[] _abilities = [10, 10, 10, 10, 10, 10];
-    readonly SortedSet<int> _feats = [];
-    readonly HashSet<int>[] _known = Enumerable.Range(0, 8).Select(_ => new HashSet<int>()).ToArray();
-    sbyte[] _ranks = [];
-    int _skillPoints, _package = 255;
-    int _familiar = 255, _companion = 255;
-    string _familiarName = "", _companionName = "";
-    bool _canLevelUp;
-    uint? _experience;
-    uint _playerInfoFor = GameObjUpdateMessages.InvalidObjectId;
+    uint _player = GameObjUpdateMessages.InvalidObjectId;
 
     GameWorld? _world;
     Creature? _creature;
     bool _dirty = true;
     List<bool>? _validClasses;
     bool _awaitingClasses;
+    /// <summary>The character level of a level sent and not yet answered; -1 when none.</summary>
     int _pendingLevel = -1;
-
-    /// <summary>"Your character has gained enough experience to advance a level."</summary>
-    const uint LevelDue = 8302;
+    /// <summary>The character level a confirmed level brings, until the server's update shows it; -1 when none.</summary>
+    int _confirmedLevel = -1;
 
     /// <summary>Whether the server says a level is due (the level-up button).</summary>
-    public bool CanLevelUp => _canLevelUp;
+    public bool CanLevelUp => Me?.CanLevelUp == true;
+
+    /// <summary>What is known of the controlled creature; null before the server has described it.</summary>
+    Described? Me => _described.GetValueOrDefault(_player);
+
+    /// <summary>
+    /// The creature the player controls. Levels are planned for it alone: taking control of another (possessing a
+    /// familiar, and back) ends a level-up in progress.
+    /// </summary>
+    public uint Player
+    {
+        get => _player;
+        set
+        {
+            if (value == _player) return;
+            if (_awaitingClasses || _pendingLevel >= 0)
+                Refused([new RuleError("control", "Control of the character changed.")]);
+            _player = value;
+            rules.Subject = value;
+            (_validClasses, _awaitingClasses, _pendingLevel, _confirmedLevel) = (null, false, -1, -1);
+            _classes.Clear();
+            _dirty = true;
+        }
+    }
 
     // -- server to client ---------------------------------------------------
 
@@ -66,7 +107,7 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
             {
                 case GameObjUpdateObjListUpdateCreature { PrimaryAttributes: { } a } u:
                     Keep(_attributes, u.ObjectId, a);
-                    _dirty |= u.ObjectId == _playerInfoFor;
+                    _dirty |= u.ObjectId == _player;
                     break;
                 case GameObjUpdateObjListAppearanceCreature { Name.Value: OriginalCreatureName n } a:
                     Keep(_names, a.ObjectId, $"{Text(n.First)} {Text(n.Last)}".Trim());
@@ -74,56 +115,72 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
                 case GameObjUpdateObjListPlayerInfo p:
                     PlayerInfo(p);
                     break;
-                case GameObjUpdateMessages.ObjListGuiEntry { Value: GuiCharacterSheet { Experience: { } xp } s } when s.ObjectId == _playerInfoFor:
-                    _experience = xp;
+                case GameObjUpdateMessages.ObjListGuiEntry { Value: GuiCharacterSheet { Experience: { } xp } s } when _described.TryGetValue(s.ObjectId, out var d):
+                    d.Experience = xp;
                     _dirty = true;
                     break;
             }
         }
+        if (_confirmedLevel >= 0 && _attributes.GetValueOrDefault(_player) is { } shown && shown.Classes.Sum(k => k.Level) >= _confirmedLevel)
+            _confirmedLevel = -1;
+        AnswerOpen();
     }
 
     /// <summary>Keeps a creature's value; past a few hundred creatures only the player's are kept.</summary>
     void Keep<T>(Dictionary<uint, T> values, uint id, T value)
     {
         if (values.Count >= 512 && !values.ContainsKey(id))
-            foreach (var other in values.Keys.Where(k => k != _playerInfoFor).ToList()) values.Remove(other);
+            foreach (var other in values.Keys.Where(k => k != _player).ToList()) values.Remove(other);
         values[id] = value;
     }
 
     void PlayerInfo(GameObjUpdateObjListPlayerInfo p)
     {
-        _playerInfoFor = p.ObjectId;
-        rules.Subject = p.ObjectId;
         _dirty = true;
+        if (!_described.TryGetValue(p.ObjectId, out var d))
+        {
+            if (_described.Count >= 64) _described.Clear();
+            _described[p.ObjectId] = d = new Described();
+        }
+        // Control of a creature begins with its player info in full: its feats and known spells are additions to
+        // nothing. Its ability scores come only when they change.
+        if ((p.Flags & UpdatePlayerCreatureFlags.Newobject) != 0)
+        {
+            d.Feats.Clear();
+            foreach (var k in d.Known) k.Clear();
+            d.Complete = true;
+        }
         if (p.AcGoldWeightLevelup is { } agw)
         {
-            _canLevelUp = agw.CanLevelUp;
+            d.CanLevelUp = agw.CanLevelUp;
             if (agw.LevelUpInfo is { } info)
             {
-                _skillPoints = info.SkillPts;
-                _ranks = [.. info.SkillRanks];
-                (_familiar, _familiarName) = (info.FamiliarType, info.FamiliarName);
-                (_companion, _companionName) = (info.CompanionType, info.CompanionName);
-                _package = (int)info.StartingPackageNew;
+                d.SkillPoints = info.SkillPts;
+                d.Ranks = [.. info.SkillRanks];
+                (d.Familiar, d.FamiliarName) = (info.FamiliarType, info.FamiliarName);
+                (d.Companion, d.CompanionName) = (info.CompanionType, info.CompanionName);
+                d.Package = info.StartingPackageNew <= byte.MaxValue ? (int)info.StartingPackageNew : 255;
             }
         }
         if (p.AbilityScores?.Values is { } v)
         {
             int[] scores = [v.StrBase, v.DexBase, v.ConBase, v.IntBase, v.WisBase, v.ChaBase];
-            scores.CopyTo(_abilities, 0);
+            scores.CopyTo(d.Abilities, 0);
         }
+        // The creature's own feats. Bonus feats (from items and effects) are left out: enforce legal characters
+        // doesn't count them towards a level's feat prerequisites (measured).
         if (p.Feats is { } feats)
             foreach (var c in feats.Changes)
                 switch ((FeatChangeType)c.ChangeType)
                 {
-                    case FeatChangeType.Add: _feats.Add(c.FeatId); break;
-                    case FeatChangeType.Delete: _feats.Remove(c.FeatId); break;
+                    case FeatChangeType.Add: d.Feats.Add(c.FeatId); break;
+                    case FeatChangeType.Delete: d.Feats.Remove(c.FeatId); break;
                 }
         if (p.KnownSpells is { } known)
-            for (int slot = 0; slot < Math.Min(_known.Length, known.Count); slot++)
+            for (int slot = 0; slot < Math.Min(d.Known.Length, known.Count); slot++)
             {
-                foreach (var s in known[slot].SpellsToDelete) _known[slot].Remove((int)s);
-                foreach (var s in known[slot].SpellsToAdd) _known[slot].Add((int)s);
+                foreach (var s in known[slot].SpellsToDelete) d.Known[slot].Remove(unchecked((int)s));
+                foreach (var s in known[slot].SpellsToAdd) d.Known[slot].Add(unchecked((int)s));
             }
     }
 
@@ -134,21 +191,21 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
         {
             case LevelupMessages.LevelUpBeginS2C begin:
                 _validClasses = begin.ValidClasses;
-                if (_awaitingClasses)
-                {
-                    _awaitingClasses = false;
-                    if (Creature() is { } c) rules.Notify("levelup-data", Summary(rules.World!, c));
-                }
+                AnswerOpen();
                 return true;
             case LevelupMessages.LevelUpConfirm:
-                Result(ok: true, []);
+                if (_pendingLevel < 0) return true;
+                int level = _pendingLevel;
+                _confirmedLevel = level;
+                _pendingLevel = -1;
+                rules.Notify("levelup-result", new { ok = true, errors = Array.Empty<object>(), level });
                 return true;
             case LevelupMessages.LevelUpDeny:
                 _awaitingClasses = false;
-                Result(ok: false, [new RuleError("server", "The server refused the level.")]);
+                Refused([new RuleError("server", "The server refused the level.")]);
                 return true;
             case LevelupMessages.LevelUpButtonOn:
-                _canLevelUp = true;
+                if (Me is { } me) me.CanLevelUp = true;
                 return true;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback { Payload.Value: ClientSideMessageFeedbackMessages.FeedbackStatsLevelUp }:
                 // A level is due: the line the original writes for it.
@@ -159,16 +216,32 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
         return false;
     }
 
-    void Result(bool ok, List<RuleError> errors)
+    /// <summary>
+    /// Answers the opened window once the server has said which classes it allows and has shown the last level taken
+    /// (planning on the creature from before it would plan the same level again).
+    /// </summary>
+    void AnswerOpen()
     {
-        if (_pendingLevel < 0 && ok) return;
-        int level = ok ? _pendingLevel : _classes.Sum(c => c.Level);
+        if (!_awaitingClasses || _validClasses == null || LevelInFlight) return;
+        _awaitingClasses = false;
+        Guarded(() =>
+        {
+            if (Creature() is not { } c) throw new InvalidOperationException("the server hasn't described the character yet");
+            rules.Notify("levelup-data", Summary(rules.World!, c));
+        });
+    }
+
+    /// <summary>A level sent and not answered, or confirmed and not yet shown in the server's update.</summary>
+    bool LevelInFlight => _pendingLevel >= 0 || (_confirmedLevel >= 0 && _classes.Sum(c => c.Level) < _confirmedLevel);
+
+    void Refused(List<RuleError> errors)
+    {
         _pendingLevel = -1;
         rules.Notify("levelup-result", new
         {
-            ok,
+            ok = false,
             errors = errors.Select(e => new { code = e.Code, message = e.Message }).ToArray(),
-            level,
+            level = _classes.Sum(c => c.Level),
         });
     }
 
@@ -178,55 +251,80 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
     public bool FromClient(string kind, string json)
     {
         if (kind is not ("levelup-data" or "levelup-apply")) return false;
+        Guarded(() => Request(kind, json));
+        return true;
+    }
+
+    /// <summary>Runs a step; a failure ends the level-up with an error rather than leaving the window waiting.</summary>
+    void Guarded(Action run)
+    {
+        try { run(); }
+        catch (Exception e) when (e is not OutOfMemoryException)
+        {
+            _awaitingClasses = false;
+            Refused([new RuleError("bridge", $"The level can't be worked out here: {e.Message}")]);
+        }
+    }
+
+    void Request(string kind, string json)
+    {
         var data = json.Length == 0 ? default : JsonDocument.Parse(json).RootElement;
         var choice = data.ValueKind == JsonValueKind.Object && data.TryGetProperty("choice", out var ch) && ch.ValueKind == JsonValueKind.Object ? ch : (JsonElement?)null;
-        if (Creature() is not { } c) return true;
-        var w = rules.World!;
-        if (kind == "levelup-apply")
-        {
-            Apply(w, c, choice is { } chosen ? LevelChoice.FromJson(chosen) : new LevelChoice());
-            return true;
-        }
-        if (choice == null)
+        if (kind == "levelup-data" && choice == null)
         {
             // Opening the window: the server says which classes may be taken, and answers nothing while it keeps
             // the window shut.
             _awaitingClasses = true;
+            _validClasses = null;
             send(new LevelupMessages.LevelUpBegin());
-            return true;
+            return;
+        }
+        if (Creature() is not { } c) throw new InvalidOperationException("the server hasn't described the character yet");
+        var w = rules.World!;
+        if (kind == "levelup-apply")
+        {
+            Apply(w, c, choice is { } chosen ? LevelChoice.FromJson(chosen) : new LevelChoice());
+            return;
         }
         // A choice's options and errors (and the summary's hit points) come from the rules.
         OpenWinter.Game.Requests.ClientRequests.Handle(w, c, kind, json);
-        return true;
     }
 
     void Apply(GameWorld w, Creature c, LevelChoice ch)
     {
         var errors = new List<RuleError>();
-        if (!_canLevelUp) errors.Add(new("xp", "You don't have enough experience to gain a level."));
+        if (LevelInFlight) errors.Add(new("pending", "The server is still taking the last level."));
+        else if (!CanLevelUp) errors.Add(new("xp", "You don't have enough experience to gain a level."));
         else if (_validClasses is { } valid && (ch.Class < 0 || ch.Class >= valid.Count || !valid[ch.Class]))
             errors.Add(new("class", "The server does not allow that class."));
-        var plan = ProgressionRules.Plan(w, c, ch);
-        errors.AddRange(plan.Errors);
-        if (errors.Count > 0)
+        // The level's skill list is flagged in a 32-bit field: how a server with more skills takes the rest isn't known.
+        if (ch.Skills.Any(k => k.Key >= SkillsInMessage && k.Value != 0))
+            errors.Add(new("skills", "Skills past the 32nd can't be raised on this server yet."));
+        if (errors.Count == 0)
         {
-            rules.Notify("levelup-result", new { ok = false, errors = errors.Select(e => new { code = e.Code, message = e.Message }).ToArray(), level = c.TotalLevel });
-            return;
+            var plan = ProgressionRules.Plan(w, c, ch);
+            errors.AddRange(plan.Errors);
+            if (errors.Count == 0)
+            {
+                _pendingLevel = plan.NewCharacterLevel;
+                send(LevelUp(w, c, ch, plan));
+                return;
+            }
         }
-        _pendingLevel = plan.NewCharacterLevel;
-        send(LevelUp(w, c, ch, plan));
+        rules.Notify("levelup-result", new { ok = false, errors = errors.Select(e => new { code = e.Code, message = e.Message }).ToArray(), level = c.TotalLevel });
     }
 
     /// <summary>
     /// The level as nwmain sends it: the class, the raised ability when one is due, the hit points the level gives
     /// (the roll the summary showed, else rolled now), the ranks added to each skill raised, the skill points left,
-    /// the feats chosen, the spells learnt by spell level, the associates, and the class's domains or school.
+    /// the feats chosen and granted, the spells learnt by spell level, the associates, and the class's domains or school. A
+    /// sorcerer's or bard's exchange of a known spell is not offered (the window has none), so nothing is removed.
     /// </summary>
     public static LevelupMessages.LevelUpNull LevelUp(GameWorld w, Creature c, LevelChoice ch, LevelPlan plan)
     {
         int die = LevelUpRequests.HeldHitDie(c, ch.Class, plan.NewCharacterLevel)
             ?? LevelApplier.HitPointsForLevel(w, plan.NewCharacterLevel, plan.HitDie, w.System<ProgressionSystem>().AlwaysMaxHitPoints, w.System<ProgressionSystem>().Random);
-        int skills = w.Resources.TwoDA("skills").RowCount;
+        int skills = Math.Min(SkillsInMessage, w.Resources.TwoDA("skills").RowCount);
         var m = new LevelupMessages.LevelUpNull
         {
             ClassLeveledUpIn = (byte)ch.Class,
@@ -238,7 +336,9 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
                 Ranks = [.. Enumerable.Range(0, skills).Select(s => ch.SkillRanks(s) is var n and not 0 ? (sbyte?)n : null)],
             },
             SkillPointsRemaining = (ushort)Math.Max(0, plan.SkillPointsLeft),
-            Feats = [.. ch.Feats.Select(f => (ushort)f)],
+            // The feats chosen, then those the class grants at the level: the server adds only the feats it is sent
+            // (measured: a rogue's second level without Evasion stays without it).
+            Feats = [.. ch.Feats.Concat(plan.GrantedFeats).Distinct().Select(f => (ushort)f)],
             SpellChanges = [.. Enumerable.Range(0, LevelupMessages.SpellLevels).Select(l => new LevelupMessages.LevelUpSpellLevelChanges
             {
                 Added = [.. ch.Spells.GetValueOrDefault(l, []).Select(s => (uint)s)],
@@ -271,7 +371,7 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
                 cls["available"] = allowed;
                 cls["reasons"] = allowed ? new JsonArray() : new JsonArray("The server does not allow this class.");
             }
-        summary["canLevelUp"] = _canLevelUp;
+        summary["canLevelUp"] = CanLevelUp;
         return summary.ToJsonString();
     }
 
@@ -280,7 +380,7 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
     /// <summary>The player's creature as the rules see it, brought up to date; null before the server describes it.</summary>
     Creature? Creature()
     {
-        if (_playerInfoFor == GameObjUpdateMessages.InvalidObjectId || rules.World is not { } w) return null;
+        if (Me is not { Complete: true } || rules.World is not { } w) return null;
         if (_creature == null || !ReferenceEquals(w, _world))
         {
             _world = w;
@@ -288,16 +388,16 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
             CreatureRules.EnsureInit(w, _creature);
             _dirty = true;
         }
-        if (_dirty) Sync(w, _creature);
+        if (_dirty) Sync(w, _creature, Me!);
         _dirty = false;
         return _creature;
     }
 
-    void Sync(GameWorld w, Creature c)
+    void Sync(GameWorld w, Creature c, Described d)
     {
-        if (_attributes.GetValueOrDefault(_playerInfoFor) is { } a)
+        if (_attributes.GetValueOrDefault(_player) is { } a)
         {
-            c.Race = (byte)a.Race;
+            c.Race = (byte)Math.Min(a.Race, (ushort)byte.MaxValue);
             c.Gender = a.Gender is 0 or 1 ? a.Gender : (byte)0;
             c.Subrace = a.Subrace;
             c.Deity = a.Deity;
@@ -311,33 +411,33 @@ public sealed class NwnProgression(NwnRules rules, Action<NwnMessage> send)
                     Domain1 = k.Domain1 ?? -1, Domain2 = k.Domain2 ?? -1,
                 });
         }
-        c.Name = new OpenWinter.Aurora.Formats.LocString(_names.GetValueOrDefault(_playerInfoFor, ""));
+        c.Name = new OpenWinter.Aurora.Formats.LocString(_names.GetValueOrDefault(_player, ""));
         // The server's base scores are the stored ones, before racial adjustments, as the creature keeps them.
-        _abilities.CopyTo(c.Abilities, 0);
+        d.Abilities.CopyTo(c.Abilities, 0);
         c.Classes.Clear();
         for (int i = 0; i < _classes.Count; i++)
         {
             var s = _classes[i];
             var cc = new CreatureClass { Class = s.Class, Level = s.Level, Domain1 = s.Domain1, Domain2 = s.Domain2, School = s.School };
             // Known spells come by class slot, without their levels: the class's spell table gives them.
-            if (i < _known.Length)
-                foreach (var spell in _known[i])
+            if (i < d.Known.Length)
+                foreach (var spell in d.Known[i])
                     if (CreatureRules.SpellLevelForClass(w, s.Class, spell) is var level and >= 0 and < 10) cc.KnownSpells[level].Add(spell);
             c.Classes.Add(cc);
         }
         c.Feats.Clear();
-        c.Feats.AddRange(_feats);
-        c.Skills = new int[Math.Max(32, _ranks.Length)];
-        for (int i = 0; i < _ranks.Length; i++) c.Skills[i] = _ranks[i];
-        c.Template.SetWord("SkillPoints", _skillPoints);
-        c.StartingPackage = _package;
-        (c.FamiliarType, c.FamiliarName) = (_familiar, _familiarName);
-        (c.CompanionType, c.CompanionName) = (_companion, _companionName);
+        c.Feats.AddRange(d.Feats);
+        c.Skills = new int[Math.Max(32, d.Ranks.Length)];
+        for (int i = 0; i < d.Ranks.Length; i++) c.Skills[i] = d.Ranks[i];
+        c.Template.SetWord("SkillPoints", d.SkillPoints);
+        c.StartingPackage = d.Package;
+        (c.FamiliarType, c.FamiliarName) = (d.Familiar, d.FamiliarName);
+        (c.CompanionType, c.CompanionName) = (d.Companion, d.CompanionName);
         // The experience shows only on the character sheet; a level that is due needs at least the next level's.
         int total = c.TotalLevel;
         int next = total < CreatureRules.MaxLevel ? CreatureRules.XPForLevel(w, total + 1) : int.MaxValue;
-        int xp = _experience is { } known ? (int)Math.Min(known, int.MaxValue) : CreatureRules.XPForLevel(w, Math.Max(1, total));
-        c.Experience = _canLevelUp ? Math.Max(xp, next) : Math.Min(xp, next - 1);
+        int xp = d.Experience is { } known ? (int)Math.Min(known, (uint)int.MaxValue) : CreatureRules.XPForLevel(w, Math.Max(1, total));
+        c.Experience = d.CanLevelUp ? Math.Max(xp, next) : Math.Min(xp, next - 1);
     }
 
     string Text(NwnLocString s) => s.IsStrRef ? (rules.World?.Resources.TlkString(s.StrRef) ?? "") : s.Text;

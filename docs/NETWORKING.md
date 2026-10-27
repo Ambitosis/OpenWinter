@@ -121,7 +121,8 @@ no scripts, settings or other plugins.
   by hand in `Messages/Custom`. Where recorded traffic differs from those definitions, the generator corrects them
   (`apply_corrections`): NUI windows, binds, events and layouts carry JSON fields (type byte, length, text) rather
   than length-prefixed blobs, and a NUI bind entry ends after its value. A body bag's creature is an object id,
-  not a dword. The player's level-up information ends after its two starting packages (no multiclass level follows).
+  not a dword. The player's level-up information has one starting package (a dword) before its
+  multiclass level, not two.
 - **Session.** It handles login, keep-alives and echoes.
 - **Bridge.** `NwnBridgeConnection` is an `IConnection` that turns NWN messages into the OpenWinter messages the client
   already understands, and the client's requests into NWN input. NWN sends a walking creature's path once; the bridge
@@ -174,20 +175,32 @@ Supported so far:
 - levelling up (`NwnProgression`): an NWN client works out a level's options itself, so the bridge does with
   OpenWinter's own rules (`NwnRules`, a world without a module on the client's game data and the server's haks). The
   server's player information (classes, base abilities, feats, known spells, skill ranks, unspent points, associates,
-  whether a level is due) is kept as an OpenWinter creature. Opening the level-up window asks the server which classes
-  it allows (by classes.2da row) and shows those; taking the level sends the choices as nwmain does: the class, the
-  raised ability every fourth level, the hit points the level gives (in full to the third level, then rolled, the
-  figure the classic summary showed), the ranks added to each raised skill, the points left, the chosen feats, the
-  spells learnt by spell level, the associates and the class's domains or school. The server confirms or refuses it.
-  It applies what it is sent without checking it; enforce legal characters checks the character at its next login,
-  and levels taken through the bridge pass (fighter, wizard, sorcerer, cleric then wizard, to fifth level).
+  whether a level is due) is kept as an OpenWinter creature for each creature the player has controlled: the server
+  describes a creature in full when control of it begins (possessing a creature and returning), except its ability
+  scores, which come only when they change. Bonus feats from items and effects are left out, since enforce legal
+  characters doesn't count them as prerequisites. Opening the level-up window asks the server which classes it allows
+  (by classes.2da row) and shows those; the server doesn't answer while it keeps the window shut (a possessed
+  creature). Taking the level sends the choices as nwmain does: the class, the raised ability every fourth level, the
+  hit points the level gives (in full to the third level, then rolled, the figure the classic summary showed), the
+  ranks added to each raised skill (one rank of a cross-class skill for two points), the points left, the chosen
+  feats and those the class grants at the level (the server adds only the feats it is sent), the spells learnt by
+  spell level, the associates and the class's domains or school. The server confirms or refuses it; another level
+  waits until the server's update shows the last one. The server applies what it is sent without checking it, and
+  enforce legal characters checks the character at its next login: levels taken through the bridge pass (fighter,
+  wizard, sorcerer, rogue with a cross-class skill, cleric then wizard, to fifth level, and after possession). A
+  level's skill list is flagged in a 32-bit field, so skills past the 32nd row aren't raised yet. A sorcerer's or
+  bard's exchange of a known spell isn't offered.
 - creating characters (`NwnCharacterCreation`): the creation window's races, classes, portraits and checks come from
   the rules too, and the new character goes to the server as a character file for its vault, as nwmain's New button
-  sends it; the server logs the player in with it or says why not. WSNetLayer reads at most about 4 KiB of a message
-  from a client and a bigger one stops the server (measured), while a new character's file is about 5 KiB, so the
-  bridge leaves out the fields that are zero or empty, the unranked skills at the end of the skill lists and, if still
-  needed, the prepared spells. Most first-level characters fit; a wizard's spellbook does not, and the window says so.
-  The server's copy has every field again and passes enforce legal characters.
+  sends it; the server logs the player in with it or says why not. A new character's file is about 5 KiB, more than
+  the server takes in one message (below), so the bridge leaves out the fields that are zero or empty, the unranked
+  skills at the end of the skill lists and, if still needed, the prepared spells. Most first-level characters fit; a
+  wizard's spellbook does not, and the window says so. The server's copy has every field again (body parts and all)
+  and passes enforce legal characters. The server says nothing about whether it takes new characters, so the
+  character list always offers one.
+- message size: WSNetLayer takes at most 4088 bytes of a message from a client and a bigger one stops the server
+  (measured, with or without compression or fragments). The session never sends a message over 4064 bytes (it notes
+  it in `NwnSession.Unsent` instead), and long chat lines go in pieces of up to 2000 characters.
 
 The server shows the client only the panels an NWN client has open: the equipment and the shown backpack page while
 the inventory is open, one container or bag at a time, and a store's shown category and page. OpenWinter's windows
@@ -244,8 +257,9 @@ Testing:
 - The client's `--capture-nwn-actions` takes shots of the quickbar, character sheet and spellbook, then of a mode, a
   cast, a feat and a rest.
 - `parity/suites/bridge_progression` builds a test module that gives the entering player the experience for fifth
-  level. `nwn-bridge --levelup CLASS,...` takes a level in each class with its recommended choices, and
-  `nwn-bridge URL - --new-character NAME[,CLASS]` creates a character; with the server's `--elc 1`, logging in again
-  checks the result. The client's `--capture-nwn-levelup dir [--levelup-class N] [--levelups N]` takes levels in the
+  level; saying "possess" possesses a goblin and "unpossess" returns (start the server with `--nwnx PLAYER`), and
+  "dodgering" equips a ring granting Dodge. `nwn-bridge --levelup CLASS,...` takes a level in each class with its
+  recommended choices (`CLASS+sN` also raises skill N), and `nwn-bridge URL - --new-character NAME[,CLASS]` creates a
+  character; with the server's `--elc 1`, logging in again checks the result. The client's `--capture-nwn-levelup dir [--levelup-class N] [--levelups N]` takes levels in the
   level-up window (the classic one with `--ui classic`) and `--capture-nwn-chargen dir` creates a character from the
   character list, with a shot at each step.

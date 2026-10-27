@@ -17,10 +17,10 @@ public class NwnBridgeProgressionTests
     static NwnSessionContext Context(Func<string, int> rows) => new(rows, (_, _, _) => "");
 
     [Fact]
-    public void ThePlayersLevelUpInfoEndsAfterItsStartingPackages()
+    public void ThePlayersLevelUpInfoHasOneStartingPackageThenTheMulticlassLevel()
     {
         // As recorded for a first-level human fighter given the experience for a level: unspent skill points, the
-        // ranks of all 28 skills, the associates (none), the starting package (4) and one more byte; nothing follows.
+        // ranks of all 28 skills, the associates (none), the starting package (4) and the multiclass level (0).
         var frame = Convert.FromHexString("500501044911FFFFFF7F050100060B00073200000008C20000000201050000040004000400040404000400040004000400040004040400040004000400040004000400040204000400040004000400040004000400040008000000000E0000000008000000000E0000000007040000000300");
         var list = new GameObjUpdateMessages.GameObjUpdateObjList();
         list.Read(new NwnWsReader(frame.AsMemory(3), Context(t => t == "skills" ? 28 : 0)));
@@ -30,14 +30,32 @@ public class NwnBridgeProgressionTests
         Assert.Equal(28, levelUp.SkillRanks.Count);
         Assert.Equal([3, 10, 18], levelUp.SkillRanks.Select((rank, skill) => (rank, skill)).Where(x => x.rank != 0).Select(x => x.skill));
         Assert.Equal(4u, levelUp.StartingPackageNew);
+        Assert.Equal(0, levelUp.MulticlassLevel);
+    }
+
+    [DataFact]
+    public void AMulticlassCharactersLevelUpInfoNamesItsSecondClass()
+    {
+        // As recorded for an elf cleric 3 / wizard 1 due a level: the starting package is the cleric's (2), and the
+        // byte after it is 1 once the second class is taken (0 for the cleric levels before). Which class fields
+        // follow depends on classes.2da (domains, school), so this reads the game's.
+        var frame = Convert.FromHexString("5005010455030511FFFFFF7F0700140000061C00061C00060000061C000501000E0400000044726F770E000000000301060F00065500020102000302030203030313030E030A03010300044911FFFFFF7F059508060C00074B000000081C0100000201050000040004070400040004060400040004000400040004060400040204000400040004070400040004000400040004000400040004000400040008000000000E0000000008000000000E00000000070200000003010301030105030003030302050000050000050000050500076600000007AE000000076B000000075600000007A500000005000005000005000005000005000005000005000005000005000005000005000005000005030004410533000441052F01044105B10305030005260103080544010301052F01030102010308030C030C030F031203080308030E030A030F03120308");
+        var list = new GameObjUpdateMessages.GameObjUpdateObjList();
+        var data = new NwnResManData(TestData.Paths);
+        list.Read(new NwnWsReader(frame.AsMemory(3), new NwnSessionContext(data.TwoDARowCount, data.TwoDA)));
+        var info = Assert.Single(list.Entries.OfType<GameObjUpdateObjListPlayerInfo>()).AcGoldWeightLevelup!.LevelUpInfo!;
+        Assert.Equal(2u, info.StartingPackageNew);
+        Assert.Equal(1, info.MulticlassLevel);
+        var classes = Assert.Single(list.Entries.OfType<GameObjUpdateUpdateMessages.GameObjUpdateObjListUpdateCreature>()).PrimaryAttributes!.Classes;
+        Assert.Equal([(2, 3), (10, 1)], classes.Select(c => ((int)c.ClassId, (int)c.Level)));
     }
 
     sealed record Frame(bool Sent, NwnMessage Message, byte[] Bytes);
 
     /// <summary>A recorded level-up of a first-level human wizard given 10000 experience (parity/suites/bridge_progression).</summary>
-    static List<Frame> Recording(NwnSessionContext context)
+    static List<Frame> Recording(NwnSessionContext context, string name = "nwn-levelup-wizard")
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Data", "nwn-levelup-wizard.jsonl.gz");
+        var path = Path.Combine(AppContext.BaseDirectory, "Data", name + ".jsonl.gz");
         using var lines = new StreamReader(new GZipStream(File.OpenRead(path), CompressionMode.Decompress));
         var frames = new List<Frame>();
         while (lines.ReadLine() is { } line)
@@ -63,6 +81,7 @@ public class NwnBridgeProgressionTests
         var progression = new NwnProgression(rules, sent.Add);
         var frames = Recording(context);
         NotifyMessage Note(string kind) => Assert.Single(notes, n => n.Kind == kind);
+        progression.Player = 0x7FFFFFFF;
 
         // The server describes the player's creature, and that a level is due.
         foreach (var f in frames.TakeWhile(f => f.Message is not LevelupMessages.LevelUpBeginS2C))
@@ -93,11 +112,85 @@ public class NwnBridgeProgressionTests
         // Second level: the hit die in full; the package's skills, its two spells, the school kept.
         Assert.Equal(Convert.ToHexString(recorded[3..]), Convert.ToHexString(w.ToArray()));
 
+        // A second level can't go while the first is unanswered.
+        progression.FromClient("levelup-apply", JsonSerializer.Serialize(new { choice = plan.GetProperty("auto") }));
+        Assert.Single(sent, m => m is LevelupMessages.LevelUpNull);
+        Assert.Equal("pending", JsonDocument.Parse(Note("levelup-result").Json).RootElement.GetProperty("errors")[0].GetProperty("code").GetString());
+        notes.Clear();
+
         // The server's confirmation closes the window.
         Assert.True(progression.ToClient(new LevelupMessages.LevelUpConfirm()));
         var result = JsonDocument.Parse(Note("levelup-result").Json).RootElement;
         Assert.True(result.GetProperty("ok").GetBoolean());
         Assert.Equal(2, result.GetProperty("level").GetInt32());
+        notes.Clear();
+
+        // Opened again before the server's update shows the new level, the window waits for it.
+        progression.FromClient("levelup-data", "{}");
+        progression.ToClient(frames.Single(f => f.Message is LevelupMessages.LevelUpBeginS2C).Message);
+        Assert.Empty(notes);
+        foreach (var f in frames.SkipWhile(f => f.Message is not LevelupMessages.LevelUpConfirm))
+            if (f.Message is GameObjUpdateMessages.GameObjUpdateObjList list) progression.ObjectList(list);
+        Assert.Equal(2, JsonDocument.Parse(Note("levelup-data").Json).RootElement.GetProperty("level").GetInt32());
+    }
+
+    [DataFact]
+    public void ALevelPlannedAfterPossessingACreatureIsTheCharactersOwn()
+    {
+        // As recorded: a level-1 wizard (Int 16) possesses a goblin and returns. The server describes each creature
+        // in full when control of it begins, but sends the wizard's ability scores only the first time.
+        var data = new NwnResManData(TestData.Paths);
+        var context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
+        var notes = new List<NotifyMessage>();
+        var sent = new List<NwnMessage>();
+        var progression = new NwnProgression(new NwnRules(data, b => notes.Add(NotifyMessage.Read(new MessageReader(b)))), sent.Add);
+        var controls = new List<uint>();
+        foreach (var f in Recording(context, "nwn-levelup-possession"))
+        {
+            switch (f.Message)
+            {
+                case GameObjUpdateMessages.GameObjUpdateObjControl control:
+                    progression.Player = control.ObjectId;
+                    controls.Add(control.ObjectId);
+                    break;
+                case GameObjUpdateMessages.GameObjUpdateObjList list:
+                    progression.ObjectList(list);
+                    break;
+                case LevelupMessages.LevelUpBeginS2C begin:
+                    progression.FromClient("levelup-data", "{}");
+                    progression.ToClient(begin);
+                    break;
+            }
+        }
+        Assert.Equal([0x7FFFFFFFu, 15u, 0x7FFFFFFFu], controls);
+        var summary = JsonDocument.Parse(Assert.Single(notes, n => n.Kind == "levelup-data").Json).RootElement;
+        Assert.Equal([10, 14, 14, 16, 12, 10], summary.GetProperty("abilities").EnumerateArray().Select(a => a.GetInt32()));
+        Assert.Equal([(10, 1)], summary.GetProperty("classLevels").EnumerateArray().Select(c => (c.GetProperty("id").GetInt32(), c.GetProperty("level").GetInt32())));
+    }
+
+    [DataFact]
+    public void ALevelThatCantBeWorkedOutEndsWithAnError()
+    {
+        var data = new NwnResManData(TestData.Paths);
+        var context = new NwnSessionContext(data.TwoDARowCount, data.TwoDA);
+        var notes = new List<NotifyMessage>();
+        var sent = new List<NwnMessage>();
+        var progression = new NwnProgression(new NwnRules(data, b => notes.Add(NotifyMessage.Read(new MessageReader(b)))), sent.Add);
+        string Code() => JsonDocument.Parse(notes[^1].Json).RootElement.GetProperty("errors")[0].GetProperty("code").GetString()!;
+
+        // Before the server has described the character, and with a request that isn't JSON.
+        Assert.True(progression.FromClient("levelup-apply", """{"choice":{"class":10}}"""));
+        Assert.Equal("bridge", Code());
+        Assert.True(progression.FromClient("levelup-data", "{not json"));
+        Assert.Equal("bridge", Code());
+
+        progression.Player = 0x7FFFFFFF;
+        foreach (var f in Recording(context).TakeWhile(f => f.Message is not LevelupMessages.LevelUpBeginS2C))
+            if (f.Message is GameObjUpdateMessages.GameObjUpdateObjList list) progression.ObjectList(list);
+        // A skill past the 32 the level's skill list can name.
+        progression.FromClient("levelup-apply", """{"choice":{"class":10,"skills":{"40":1}}}""");
+        Assert.Equal("skills", Code());
+        Assert.Empty(sent);
     }
 
     [DataFact]

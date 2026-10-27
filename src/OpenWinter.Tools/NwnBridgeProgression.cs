@@ -5,8 +5,9 @@ using OpenWinter.Net;
 /// <summary>
 /// nwn-bridge --levelup CLASS,CLASS,...: takes a level in each class in turn (classes.2da rows, or "last" for the class
 /// taken last) the way the level-up window does: opens it, asks for the class's choices completed from its package
-/// ("Recommended"), and takes them. Each step's answer is printed: the classes on offer, the plan's errors and the
-/// choices, and the server's verdict.
+/// ("Recommended"), and takes them. CLASS+sN also raises skill N by a rank, with points taken from the package's
+/// skills. Each step's answer is printed: the classes on offer, the plan's errors and the choices, and the server's
+/// verdict.
 /// </summary>
 sealed class NwnBridgeLevelUp(string classes)
 {
@@ -15,6 +16,27 @@ sealed class NwnBridgeLevelUp(string classes)
     string _waiting = "";
     int _lastClass = -1;
     JsonNode? _choice;
+    int _raise = -1;
+
+    /// <summary>Raises a skill by one rank, taking its cost from the skills the choice raised most; false when it can't.</summary>
+    static bool RaiseSkill(JsonNode plan, JsonNode choice, int skill)
+    {
+        var costs = plan["skills"]!.AsArray().ToDictionary(x => x!["id"]!.GetValue<int>(), x => x!["cost"]!.GetValue<int>());
+        if (!costs.TryGetValue(skill, out int cost)) return false;
+        var skills = choice["skills"] as JsonObject ?? new JsonObject();
+        choice["skills"] = skills;
+        int freed = 0;
+        while (freed < cost)
+        {
+            var most = skills.Where(k => k.Key != skill.ToString() && k.Value!.GetValue<int>() > 0)
+                .OrderByDescending(k => k.Value!.GetValue<int>()).FirstOrDefault();
+            if (most.Key == null) return false;
+            skills[most.Key] = most.Value!.GetValue<int>() - 1;
+            freed += costs.GetValueOrDefault(int.Parse(most.Key), 1);
+        }
+        skills[skill.ToString()] = (skills[skill.ToString()]?.GetValue<int>() ?? 0) + 1;
+        return true;
+    }
 
     /// <summary>Adds the first offered spells for each spell level the choice is short of; false when none was.</summary>
     static bool FillSpells(JsonNode plan, JsonNode choice)
@@ -59,8 +81,9 @@ sealed class NwnBridgeLevelUp(string classes)
                 _lastClass = d["lastClass"]?.GetValue<int>() ?? -1;
                 var offered = d["classes"]!.AsArray().Where(c => c!["available"]!.GetValue<bool>()).Select(c => c!["id"]!.GetValue<int>());
                 Console.WriteLine($"{ms,6} levelup-data level {d["level"]} canLevelUp {d["canLevelUp"]} last class {_lastClass} offered [{string.Join(",", offered)}]");
-                var pick = _levels.Peek();
-                int cls = pick == "last" ? _lastClass : int.Parse(pick);
+                var pick = _levels.Peek().Split("+s");
+                int cls = pick[0] == "last" ? _lastClass : int.Parse(pick[0]);
+                _raise = pick.Length > 1 ? int.Parse(pick[1]) : -1;
                 _waiting = "levelup-plan";
                 request("levelup-data", new { choice = new { @class = cls }, auto = true });
                 break;
@@ -80,6 +103,14 @@ sealed class NwnBridgeLevelUp(string classes)
                 if (errors.Count > 0 && _choice == null && FillSpells(d, choice))
                 {
                     // The package leaves spells to choose (a sorcerer's past its list): the first ones offered.
+                    _choice = choice;
+                    request("levelup-data", new { choice });
+                    return;
+                }
+                if (_raise >= 0 && _choice == null)
+                {
+                    if (!RaiseSkill(d, choice, _raise)) Console.WriteLine($"{ms,6} skill {_raise} can't be raised");
+                    _raise = -1;
                     _choice = choice;
                     request("levelup-data", new { choice });
                     return;
