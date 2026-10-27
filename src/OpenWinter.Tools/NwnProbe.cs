@@ -150,7 +150,11 @@ static class NwnRecordingDump
             if (frame.Length >= 3 && frame[0] is (byte)'P' or (byte)'p')
             {
                 var direction = frame[0] == (byte)'P' ? NwnDirection.ServerToClient : NwnDirection.ClientToServer;
-                var m = NwnMessageRegistry.Create(frame[1], frame[2], direction);
+                // The client's item quickbar button differs from the schema's (Messages/Custom).
+                var m = direction == NwnDirection.ClientToServer && frame[1] == GuiQuickbarMessages.GuiQuickbarSetButton.MajorId
+                    && frame[2] == GuiQuickbarMessages.GuiQuickbarSetButton.MinorId && GuiQuickbarMessages.GuiQuickbarSetItemButton.Sets(frame.AsSpan(3))
+                    ? new GuiQuickbarMessages.GuiQuickbarSetItemButton()
+                    : NwnMessageRegistry.Create(frame[1], frame[2], direction);
                 if (m == null)
                 {
                     name = $"unknown {frame[1]:X2}.{frame[2]:X2}";
@@ -200,12 +204,14 @@ static class NwnRecordingDump
 /// nwn-bridge: drives the client's NWN bridge without the client (hello, then a named server-vault character) and
 /// prints the OpenWinter messages it produces, as the client would receive them.
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
-///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--levelup CLASS,...] [--new-character FIRST[,CLASS]] [--record FILE]
+///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS]
+///              [--do STEP;...] [--request KIND=JSON|KIND=JSON...] [--player NAME] [--levelup CLASS,...] [--new-character FIRST[,CLASS]] [--record FILE]
 /// (CHARACTER "-" with --new-character creates one)
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
 /// then give the Talk command to each --talk NAME; click each NUI element three seconds apart once its window is open; answer each
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
-/// once the list is used up; open the journal)
+/// once the list is used up; open the journal; send each client request four seconds apart from six seconds in (a "+SECONDS:" prefix
+/// sends one that long after the one before; "say=TEXT" talks), where "@self" is the player's creature and "@NAME" the nearest object whose name contains NAME)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -215,7 +221,7 @@ static class NwnBridgeProbe
         var bridge = new OpenWinter.Net.Nwn.Bridge.NwnBridgeConnection(
             new OpenWinter.Net.Nwn.Bridge.NwnBridgeOptions(new Uri(args[1]), NwnCdKey.Generate()) { RecordTo = Opt("--record", "") is { Length: > 0 } rec ? rec : null },
             new OpenWinter.Net.Nwn.Bridge.NwnResManData(paths));
-        bridge.Send(new OpenWinter.Net.HelloMessage { PlayerName = "probe", CharacterResRef = args[2] == "-" ? "" : args[2], AreaReadyHandshake = true }.Write());
+        bridge.Send(new OpenWinter.Net.HelloMessage { PlayerName = Opt("--player", "probe"), CharacterResRef = args[2] == "-" ? "" : args[2], AreaReadyHandshake = true }.Write());
         var clock = Stopwatch.StartNew();
         var seconds = double.Parse(Opt("--seconds", "10"));
         var walk = Opt("--walk", "");
@@ -226,10 +232,16 @@ static class NwnBridgeProbe
         var driveState = 0;
         var uses = new Queue<(string Name, bool Talk)>(Opt("--use", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => (n, false))
             .Concat(Opt("--talk", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(n => (n, true))));
+        var attacks = new Queue<string>(Opt("--attack", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var attackAt = double.Parse(Opt("--attack-at", "10"));
+        var respawnAt = double.Parse(Opt("--respawn-at", "0"));
         var nextUse = 6.0;
         var clicks = new Queue<string>(Opt("--nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
+        var requests = new Queue<string>(Opt("--request", "").Split('|', StringSplitOptions.RemoveEmptyEntries));
+        var nextRequest = 6.0;
+        var steps = new NwnBridgeSteps(Opt("--do", ""));
         var replies = new Queue<string>(Opt("--replies", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         if (replies.FirstOrDefault(r => r != "esc" && !(int.TryParse(r, out var n) && n >= 1)) is { } bad)
         {
@@ -267,7 +279,7 @@ static class NwnBridgeProbe
                         break;
                     case OpenWinter.Net.MessageType.Notify:
                         var n = OpenWinter.Net.NotifyMessage.Read(r);
-                        Console.WriteLine($"{clock.ElapsedMilliseconds,6} Notify {n.Kind} {(n.Json.Length > 300 ? n.Json[..300] + "..." : n.Json)}");
+                        if (!steps.Observe(n, clock.ElapsedMilliseconds)) Console.WriteLine($"{clock.ElapsedMilliseconds,6} Notify {n.Kind} {(n.Json.Length > 300 ? n.Json[..300] + "..." : n.Json)}");
                         levelUp?.Observe(n, clock.ElapsedMilliseconds, clock.Elapsed.TotalSeconds, Request);
                         newCharacter?.Observe(n, clock.ElapsedMilliseconds, Request);
                         if (n.Kind == "nui-open" && System.Text.Json.JsonDocument.Parse(n.Json).RootElement is var open)
@@ -325,6 +337,9 @@ static class NwnBridgeProbe
                     Console.WriteLine($"{clock.ElapsedMilliseconds,6} said \"{say}\"");
                 }
             }
+            if (walked && uses.Count == 0)
+                steps.Step(bridge, clock.Elapsed.TotalSeconds, name => objects.Where(kv => kv.Key != controlled && kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, at)).Select(kv => kv.Key).FirstOrDefault());
             if (walked && uses.Count > 0 && clock.Elapsed.TotalSeconds > nextUse)
             {
                 nextUse = clock.Elapsed.TotalSeconds + 5;
@@ -337,6 +352,37 @@ static class NwnBridgeProbe
                     bridge.Send((talk
                         ? new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Talk, Target = target, Argument = OpenWinter.Net.ActionRequestMessage.TalkCommand }
                         : new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }).Write());
+            }
+            if (walked && requests.Count > 0 && clock.Elapsed.TotalSeconds > nextRequest && requests.Dequeue().Split('=', 2) is [var kind, var body])
+            {
+                // "+SECONDS:" before the next request sends it that soon instead of four seconds later.
+                nextRequest = clock.Elapsed.TotalSeconds + (requests.TryPeek(out var next) && next.StartsWith('+') ? double.Parse(next[1..next.IndexOf(':')]) : 4);
+                if (kind.StartsWith('+')) kind = kind[(kind.IndexOf(':') + 1)..];
+                var here = at;
+                body = System.Text.RegularExpressions.Regex.Replace(body, "\"@([^\"]*)\"", m => m.Groups[1].Value == "self" ? controlled.ToString()
+                    : objects.Where(kv => kv.Value.Name.Contains(m.Groups[1].Value, StringComparison.OrdinalIgnoreCase))
+                        .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault().ToString());
+                // "say=TEXT" talks instead (test modules take commands in chat).
+                bridge.Send(kind == "say" ? new OpenWinter.Net.ChatSendMessage { Channel = OpenWinter.Net.ChatChannel.Talk, Text = body }.Write()
+                    : new OpenWinter.Net.ClientRequestMessage { Kind = kind, Json = body }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} request {kind} {body}");
+            }
+            if (walked && attacks.Count > 0 && clock.Elapsed.TotalSeconds > attackAt)
+            {
+                // Attack the nearest living creature whose name contains each NAME, the next one five seconds later.
+                attackAt = clock.Elapsed.TotalSeconds + 5;
+                var name = attacks.Dequeue();
+                var here = at;
+                var target = objects.Where(kv => kv.Value.Kind == OpenWinter.Net.ObjectKind.Creature && kv.Key != controlled && kv.Value.Name.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(kv => System.Numerics.Vector3.Distance(kv.Value.At, here)).Select(kv => kv.Key).FirstOrDefault();
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} attacking \"{name}\": {target:X}");
+                if (target != 0) bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "attack", Json = $"{{\"target\":{target}}}" }.Write());
+            }
+            if (respawnAt > 0 && clock.Elapsed.TotalSeconds > respawnAt)
+            {
+                respawnAt = 0;
+                bridge.Send(new OpenWinter.Net.ClientRequestMessage { Kind = "respawn", Json = "{}" }.Write());
+                Console.WriteLine($"{clock.ElapsedMilliseconds,6} respawn pressed");
             }
             if (clicks.Count > 0 && nextClick > 0 && clock.Elapsed.TotalSeconds > nextClick && clicks.Peek().Split(':') is [var window, var element] && windows.TryGetValue(window, out var token))
             {
@@ -383,6 +429,7 @@ static class NwnBridgeProbe
         Console.WriteLine(bridge.FailureReason is { } why ? $"failed: {why}" : "done");
         foreach (var (name, n) in counts) Console.WriteLine($"  {n,6}  {name}");
         Console.WriteLine($"{bridge.Session?.DecodeErrors.Count ?? 0} frames didn't decode");
+        foreach (var e in bridge.Session?.DecodeErrors.Take(10) ?? []) Console.WriteLine($"  {e.Error}");
         bridge.Disconnect();
         return 0;
     }

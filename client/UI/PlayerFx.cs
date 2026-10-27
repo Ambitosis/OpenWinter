@@ -42,6 +42,7 @@ public partial class PlayerFx : CanvasLayer
     ColorRect _fade = null!;
     float _fadeAlpha, _fadeTarget, _fadeStep;
     Control _death = null!;
+    bool _sawDead;
     Label _deathText = null!;
     Button _respawn = null!, _wait = null!;
     Control _strings = null!;
@@ -115,6 +116,9 @@ public partial class PlayerFx : CanvasLayer
             case "fade": Fade(d); break;
             case "gui-death":
                 ShowDeath(d.GetProperty("respawn").GetBoolean(), d.GetProperty("waitForHelp").GetBoolean(), d.TryGetProperty("help", out var help) ? help.GetString() ?? "" : "");
+                break;
+            case "gui-death-close":
+                _death.Visible = _sawDead = false;
                 break;
             case "gui-panel" when d.GetProperty("panel").GetInt32() == 0: // GUI_PANEL_PLAYER_DEATH
                 ShowDeath(true, true, "");
@@ -234,8 +238,13 @@ public partial class PlayerFx : CanvasLayer
             if (now > until) { label.QueueFree(); _posted.Remove(id); }
         foreach (var (id, icon) in _effectIcons)
             icon.Modulate = new Color(1, 1, 1, _flashingIcons.Contains(id) ? 0.5f + 0.5f * MathF.Sin((float)now * MathF.Tau) : 1);
-        // The death panel goes away once the player is alive again.
-        if (_death.Visible && Session.Controlled is { } me && (me.Flags & ObjectFlags.Dead) == 0) _death.Visible = false;
+        // The death panel goes away once the player is alive again; a script may show it to the living too, who keep it.
+        if (_death.Visible && Session.Controlled is { } me)
+        {
+            bool dead = (me.Flags & ObjectFlags.Dead) != 0;
+            if (dead) _sawDead = true;
+            else if (_sawDead) _death.Visible = _sawDead = false;
+        }
     }
 
     // ----- death -----
@@ -247,6 +256,7 @@ public partial class PlayerFx : CanvasLayer
         _wait.Visible = wait;
         _deathText.Text = help.Length > 0 ? help : "Your journey is not over. Return to the living, or wait for an ally to raise you.";
         if (_death.Visible) return;
+        _sawDead = false;
         _death.Visible = true;
         _death.Modulate = _death.Modulate with { A = 0 };
         _death.CreateTween().TweenProperty(_death, "modulate:a", 1f, 1.2).SetEase(Tween.EaseType.Out);

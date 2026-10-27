@@ -120,8 +120,8 @@ no scripts, settings or other plugins.
   [nwn-message.py](https://github.com/niv/nwn-message.py) (GPL-3.0); the types that library codes by hand are written
   by hand in `Messages/Custom`. Where recorded traffic differs from those definitions, the generator corrects them
   (`apply_corrections`): NUI windows, binds, events and layouts carry JSON fields (type byte, length, text) rather
-  than length-prefixed blobs, and a NUI bind entry ends after its value; the player's level-up information ends after
-  its two starting packages (no multiclass level follows).
+  than length-prefixed blobs, and a NUI bind entry ends after its value. A body bag's creature is an object id,
+  not a dword. The player's level-up information ends after its two starting packages (no multiclass level follows).
 - **Session.** It handles login, keep-alives and echoes.
 - **Bridge.** `NwnBridgeConnection` is an `IConnection` that turns NWN messages into the OpenWinter messages the client
   already understands, and the client's requests into NWN input. NWN sends a walking creature's path once; the bridge
@@ -139,17 +139,38 @@ Supported so far:
 - click-to-move walking, keyboard driving and walking towards a held mouse button; other creatures' walks
 - opening and closing doors, using placeables and picking up ground items
 - script-built NUI windows: opening, closing, binds and group layouts, with clicks and edited values sent back
+- the player's abilities (`Bridge/NwnAbilities*.cs`): the quickbar the server keeps with the character (edits are
+  stored on the server), the spellbook (prepared and known spells, slots and uses left, preparing and emptying
+  slots), casting at a creature, an object or the ground (spontaneous casts too), feats and their uses, skills,
+  items' cast-spell properties (potions, wands, scrolls), combat and stealth/detect modes, resting, cancelling a
+  queued action, the radial menu's use of all of these, and the character sheet (abilities, saves, base attack,
+  armour class, hit points, skills, feats, experience) as the server sends it; spells' conjure and cast effects.
+  Using an item's power is the abilities' (an item they haven't seen is left to the inventory), with the items as
+  the inventory knows them; the action queue goes into the combat bridge's HUD
 - conversations: the speaker's line, name, portrait and voice-over, the answers, picking one, Esc and the end
   choice, the lines in the chat window, and one-liners spoken over the talker. The server sends text as written or
   as a talk table reference, with the creature its tokens describe, and leaves the tokens (names, race, class,
   gender words, custom tokens) to the client; the bridge fills them in. Text for a female character comes from the
   female talk tables (dialogf.tlk and the custom table's "f" file) where the language has them; English has none.
-- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature, as
-  on any object, is a use, and the server picks the default action (talking, attacking).
+- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature is
+  an attack when the creature is hostile to the player, otherwise a use, and the server picks the default action.
 - the journal: opening its window opens the quest screen, and the server sends the whole journal (it sends it only
   then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
   and flashes the button.
 - cutscene mode and fades
+- the player's items (`NwnInventory`, `NwnItems`): the backpack, bags and equipment with icons, stacks, charges,
+  identified state, names, weight and gold; equipping, unequipping, dropping, splitting, using and moving items, into
+  and out of bags; examining items; placeable containers and body bags (open, take, take all, put, close); stores
+  (every category, buying, selling, identifying, the store's prices and gold); barter between players (asking starts
+  it for both at once, as the server does; offers of items and gold, locking, accepting, cancelling)
+- combat: attacking (the attack command, and a click on a hostile creature), each attack's swing, weapon sounds,
+  the target's reaction and the damage floating over it; the combat log (attack rolls, damage by type, kills,
+  initiative, saving throws, spell resistance, damage immunity, resistance and reduction, immunities, healing,
+  experience); hit points, temporary hit points and effect icons in the HUD, the selected target's health and
+  attitude, health bars over creatures, hostile creatures coloured as such; dead and dying creatures lying down and
+  corpses fading; the death panel (also shown to the living when a script asks, and closed when the server says)
+  and respawn; battle music; impact visual effects and lasting ones on creatures. The HUD's experience comes from
+  the server's character sheet updates; until one arrives the bar is empty.
 - levelling up (`NwnProgression`): an NWN client works out a level's options itself, so the bridge does with
   OpenWinter's own rules (`NwnRules`, a world without a module on the client's game data and the server's haks). The
   server's player information (classes, base abilities, feats, known spells, skill ranks, unspent points, associates,
@@ -168,21 +189,60 @@ Supported so far:
   needed, the prepared spells. Most first-level characters fit; a wizard's spellbook does not, and the window says so.
   The server's copy has every field again and passes enforce legal characters.
 
-Inventory, combat feedback and NWSync are still to come.
+The server shows the client only the panels an NWN client has open: the equipment and the shown backpack page while
+the inventory is open, one container or bag at a time, and a store's shown category and page. OpenWinter's windows
+list everything, so the bridge keeps the inventory open and shows the server each backpack page in turn, then each
+bag (only while no container is open, since opening a bag closes it), and each store category and page, and looks
+again after every change the server confirms; what a look doesn't see again is gone. A page's answer comes with the
+server's next update, so the pages are shown one at a time. An inventory the server closes stays closed until the
+player opens it, and a new area closes the open container, store and barter. Item tooltips (category, damage,
+armour, properties, size, slots) come from the item's appearance and the client's 2DAs.
+
+The server names neither swing clips nor weapon sounds; the bridge picks them from what the attacker holds, as the
+client does on its own server. NWSync is still to come.
+
+What the server accepts, as measured against it:
+
+- A cast names the class by its place in the character's class list and the spell's spells.2da TargetType as its
+  target type; the server refuses a cast with any other target type. A special ability is cast with its own
+  message at the caster level it was given; a polymorph form's ability as an ordinary cast with class 255.
+- The player state's mode bits are detect 0x1, stealth 0x2, parry 0x4, power attack 0x8, improved power attack
+  0x10, flurry of blows 0x20, counterspell 0x200, expertise 0x2000, improved expertise 0x4000, defensive casting
+  0x8000, dirty fighting 0x10000 and defensive stance 0x40000 (detect and stealth also set 0x80). Rapid shot's isn't
+  known (the server refuses it without a bow), so it is toggled whenever the client asks.
+- The character sheet is filled for the panel the client has active and only that one: the main panel (0) brings
+  abilities, saves, base attack, combat figures and experience, the skills panel (1) each skill's total, and
+  switching back to a panel brings all its figures again. While the client polls an open sheet the bridge switches
+  between the two every few seconds, and sends the sheet only in answer to those polls.
+- The client sets an item quickbar button with only the item's id and property field, not the full item
+  description the server's own item buttons carry (`Messages/Custom/GuiQuickbarItemButton.cs`). How it names a
+  main/off-hand pair isn't known: the bridge empties the server's button and the pair stays on the client's bar.
 
 Testing:
 
 - `NwnCodecConformanceTests` decodes frames encoded by nwn-message.py and re-encodes them to the same bytes.
 - `NwnSessionTests` covers the login against a scripted server; `NwnBridgeTests` covers the translation.
 - `tools/nwnws/nwnws.py` runs a sandboxed Linux nwserver with NWNX and the plugin in WSL. It can't open outbound
-  connections, so it never contacts the master server.
+  connections, so it never contacts the master server. `--nwnx CREATURE,...` loads more plugins, for a test module
+  (built with `parity-build`) whose scripts call them.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
-  click NUI elements and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`, `--nui-click`,
-  `--record`). `nwn-dump` reads 2DAs with the haks the recorded server named, since some fields' presence depends
-  on them.
+  click NUI elements, attack, respawn, send any client request and record (`--say`, `--use`, `--talk`,
+  `--replies`, `--journal`, `--drive`, `--nui-click`, `--attack`, `--respawn-at`, `--request kind=json|...`,
+  `--record`), and run a script of client requests as another player (`--player`; `--do "use:Chest;req:container-take
+  {\"item\":\"@c:Arrow\"}"`, items named from the last inventory, container or store contents). `nwn-dump` reads
+  2DAs with the haks the recorded server named, since some fields' presence depends on them.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
+- `parity/suites/bridge_inventory` builds a test module with a chest, a body bag, a store opened by using a
+  barrel and a chair to a second area with another chest; the entering player is given weapons, armour, stacks, a
+  wand, an unidentified ring, a bag and gold. The client's `--capture-nwn-inventory dir` opens the inventory, equips
+  a weapon, loots the chest, buys, sells and examines, with a shot after each step.
+- The visual scene `bridgecombat` (`visual-build bridgecombat`) is a fight to run on that server: goblins attack,
+  effects, spells and saves, dying, death and respawn, each announced in chat. The client's `--capture-nwn-combat`
+  follows it and takes shots; `NwnBridgeCombatTests` replays frames recorded from it.
+- The client's `--capture-nwn-actions` takes shots of the quickbar, character sheet and spellbook, then of a mode, a
+  cast, a feat and a rest.
 - `parity/suites/bridge_progression` builds a test module that gives the entering player the experience for fifth
   level. `nwn-bridge --levelup CLASS,...` takes a level in each class with its recommended choices, and
   `nwn-bridge URL - --new-character NAME[,CLASS]` creates a character; with the server's `--elc 1`, logging in again

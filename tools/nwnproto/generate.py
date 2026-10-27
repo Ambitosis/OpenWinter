@@ -109,11 +109,12 @@ def module_class(module_name: str) -> str:
 def apply_corrections():
     """Fields the server encodes differently from their declaration, measured from recorded WSNetLayer traffic. NUI
     window definitions, bind values, event payloads and group layouts are JSON fields (type byte, length, text), not
-    size-prefixed blobs, and a bind entry ends after its value. The player's level-up info ends after its two
-    starting packages (no multiclass level follows). The reference reader and writer are corrected to match and keep
-    JSON as its text, as the C# codec does."""
+    size-prefixed blobs, and a bind entry ends after its value. The reference reader and writer are corrected to
+    match and keep JSON as its text, as the C# codec does. A body bag's creature is an object id (type byte 0x11),
+    not a dword. The player's level-up info ends after its two starting packages (no multiclass level follows)."""
     from nwn_message.message import _io
-    from nwn_message.messages import game_obj_update_playerinfo, nui
+    from nwn_message.message import _message
+    from nwn_message.messages import game_obj_update_add, game_obj_update_playerinfo, nui
 
     def read_json(self, **_):
         self._read_canary(MessageType.JSON)
@@ -134,6 +135,8 @@ def apply_corrections():
     nui.NuiBindEntry.__dataclass_fields__["value"].type = json_field
     nui.NuiSetLayout.__dataclass_fields__["data"].type = json_field
     del nui.NuiBindEntry.__dataclass_fields__["array_index"]
+    bag = game_obj_update_add.GameObjUpdateObjListAddPlaceable.__dataclass_fields__["body_bag_creature_id"]
+    bag.type = typing.Annotated[_message.ObjectId, *(a for a in typing.get_args(bag.type)[1:] if not isinstance(a, MessageType))]
     del game_obj_update_playerinfo.LevelUpInfo.__dataclass_fields__["multiclass_level"]
 
 

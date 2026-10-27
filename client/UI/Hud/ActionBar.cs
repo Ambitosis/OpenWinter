@@ -300,9 +300,15 @@ public partial class ActionBar : Control
             return;
         }
         if (m.Kind == "spellbook") Redraw();
-        if (m.Kind != "quickbar" || !_awaitingServer) return;
+        if (m.Kind != "quickbar") return;
         using var doc = JsonDocument.Parse(m.Json);
         var data = doc.RootElement;
+        if (!_awaitingServer)
+        {
+            // A server that keeps the bar may change it later (an item used up): it is taken as sent, not sent back.
+            if (_loaded && data.TryGetProperty("update", out var update) && update.GetBoolean()) ApplyServerUpdate(data);
+            return;
+        }
         var slots = data.GetProperty("slots").ValueKind == JsonValueKind.Array
             ? data.GetProperty("slots").Deserialize<BarSlot?[]>() ?? [] : [];
         _localCache = !data.TryGetProperty("localCache", out var cacheScope) || cacheScope.GetBoolean();
@@ -335,6 +341,14 @@ public partial class ActionBar : Control
             OnBookChanged(); // the abilities may already have arrived before the quickbar reply
             if (_fillDefaults) Book.Refresh();
         }
+    }
+
+    void ApplyServerUpdate(JsonElement data)
+    {
+        var slots = data.GetProperty("slots").Deserialize<BarSlot?[]>() ?? [];
+        for (int i = 0; i < Pages * Slots; i++) _bars[i / Slots][i % Slots] = i < slots.Length ? slots[i] : null;
+        _sync.Receive(slots);
+        Redraw();
     }
 
     void Redraw()

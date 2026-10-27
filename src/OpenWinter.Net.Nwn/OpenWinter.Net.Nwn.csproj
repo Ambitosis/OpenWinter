@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../OpenWinter.Aurora/OpenWinter.Aurora.csproj" />
+    <ProjectReference Include="../OpenWinter.Content/OpenWinter.Content.csproj" />
     <ProjectReference Include="../OpenWinter.Net/OpenWinter.Net.csproj" />
     <!-- The character rules for level-up and character creation, which an NWN client works out itself. -->
     <ProjectReference Include="../OpenWinter.Game/OpenWinter.Game.csproj" />
