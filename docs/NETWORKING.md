@@ -120,7 +120,8 @@ no scripts, settings or other plugins.
   [nwn-message.py](https://github.com/niv/nwn-message.py) (GPL-3.0); the types that library codes by hand are written
   by hand in `Messages/Custom`. Where recorded traffic differs from those definitions, the generator corrects them
   (`apply_corrections`): NUI windows, binds, events and layouts carry JSON fields (type byte, length, text) rather
-  than length-prefixed blobs, and a NUI bind entry ends after its value.
+  than length-prefixed blobs, and a NUI bind entry ends after its value. A body bag's creature is an object id,
+  not a dword.
 - **Session.** It handles login, keep-alives and echoes.
 - **Bridge.** `NwnBridgeConnection` is an `IConnection` that turns NWN messages into the OpenWinter messages the client
   already understands, and the client's requests into NWN input. NWN sends a walking creature's path once; the bridge
@@ -143,12 +144,25 @@ Supported so far:
   as a talk table reference, with the creature its tokens describe, and leaves the tokens (names, race, class,
   gender words, custom tokens) to the client; the bridge fills them in. Text for a female character comes from the
   female talk tables (dialogf.tlk and the custom table's "f" file) where the language has them; English has none.
-- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature, as
-  on any object, is a use, and the server picks the default action (talking, attacking).
+- talking: the Talk command (radial menu, quickbar) asks the server for a conversation; a click on a creature is
+  an attack when the creature is hostile to the player, otherwise a use, and the server picks the default action.
 - the journal: opening its window opens the quest screen, and the server sends the whole journal (it sends it only
   then); closing the window closes the quest screen. The server's journal-updated message prints the journal line
   and flashes the button.
 - cutscene mode and fades
+- the player's items (`NwnInventory`, `NwnItems`): the backpack, bags and equipment with icons, stacks, charges,
+  identified state, names, weight and gold; equipping, unequipping, dropping, splitting, using and moving items, into
+  and out of bags; examining items; placeable containers and body bags (open, take, take all, put, close); stores
+  (every category, buying, selling, identifying, the store's prices and gold); barter between players (asking starts
+  it for both at once, as the server does; offers of items and gold, locking, accepting, cancelling)
+- combat: attacking (the attack command, and a click on a hostile creature), each attack's swing, weapon sounds,
+  the target's reaction and the damage floating over it; the combat log (attack rolls, damage by type, kills,
+  initiative, saving throws, spell resistance, damage immunity, resistance and reduction, immunities, healing,
+  experience); hit points, temporary hit points and effect icons in the HUD, the selected target's health and
+  attitude, health bars over creatures, hostile creatures coloured as such; dead and dying creatures lying down and
+  corpses fading; the death panel (also shown to the living when a script asks, and closed when the server says)
+  and respawn; battle music; impact visual effects and lasting ones on creatures. The HUD's experience comes from
+  the server's character sheet updates; until one arrives the bar is empty.
 - animations: a creature's animation code becomes the animation OpenWinter's server plays for the same
   ANIMATION_* constant (script animations, emotes, sitting, talking, conjuring and casting); a looping one plays
   until the server sends the next code, as it does when the script's time is up. A knockdown lays the creature
@@ -162,7 +176,17 @@ Supported so far:
   death cries from the creature's voice set, sound objects (placed with the area, played, stopped, moved and
   turned up or down), and the area's music, its delay, battle track and ambience
 
-Inventory, combat feedback, NWSync and character creation are still to come.
+The server shows the client only the panels an NWN client has open: the equipment and the shown backpack page while
+the inventory is open, one container or bag at a time, and a store's shown category and page. OpenWinter's windows
+list everything, so the bridge keeps the inventory open and shows the server each backpack page in turn, then each
+bag (only while no container is open, since opening a bag closes it), and each store category and page, and looks
+again after every change the server confirms; what a look doesn't see again is gone. A page's answer comes with the
+server's next update, so the pages are shown one at a time. An inventory the server closes stays closed until the
+player opens it, and a new area closes the open container, store and barter. Item tooltips (category, damage,
+armour, properties, size, slots) come from the item's appearance and the client's 2DAs.
+
+The server names neither swing clips nor weapon sounds; the bridge picks them from what the attacker holds, as the
+client does on its own server. NWSync and character creation are still to come.
 
 Testing:
 
@@ -172,11 +196,20 @@ Testing:
   connections, so it never contacts the master server.
 - `openwinter-tools nwn-probe`, `nwn-dump` and `nwn-bridge` record and inspect sessions against it. `nwn-bridge`
   can also say a line, use or talk to objects, answer conversations, open the journal, drive with the keyboard,
-  click NUI elements, play emotes and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`, `--drive`,
-  `--nui-click`, `--emote`, `--record`); it prints the animations it passes on. `nwn-dump` reads 2DAs with the haks the recorded server named, since some fields' presence depends
-  on them.
+  click NUI elements, attack, respawn, play emotes and record (`--say`, `--use`, `--talk`, `--replies`, `--journal`,
+  `--drive`, `--nui-click`, `--attack`, `--respawn-at`, `--emote`, `--record`), and run a script of client
+  requests as another player (`--player`; `--do "use:Chest;req:container-take {\"item\":\"@c:Arrow\"}"`, items
+  named from the last inventory, container or store contents); it prints the animations it passes on. `nwn-dump`
+  reads 2DAs with the haks the recorded server named, since some fields' presence depends on them.
 - The client's `--capture-nwn-dialog` talks to a creature, answers each line with a number key and takes a shot of
   every line, then opens the journal.
+- `parity/suites/bridge_inventory` builds a test module with a chest, a body bag, a store opened by using a
+  barrel and a chair to a second area with another chest; the entering player is given weapons, armour, stacks, a
+  wand, an unidentified ring, a bag and gold. The client's `--capture-nwn-inventory dir` opens the inventory, equips
+  a weapon, loots the chest, buys, sells and examines, with a shot after each step.
+- The visual scene `bridgecombat` (`visual-build bridgecombat`) is a fight to run on that server: goblins attack,
+  effects, spells and saves, dying, death and respawn, each announced in chat. The client's `--capture-nwn-combat`
+  follows it and takes shots; `NwnBridgeCombatTests` replays frames recorded from it.
 - The visual scene `bridgefx` (parity/visual/scenes) runs animations, conditions, placeable and door states, visual
   effects, spells, sounds and music by script, announcing each step in chat; `openwinter-tools visual-build
   bridgefx` makes its module for `nwnws.py start --module`. The client's `--capture-nwn-fx` takes shots along its

@@ -1,4 +1,4 @@
-namespace OpenWinter.Game.Inventory;
+namespace OpenWinter.Net;
 
 /// <summary>
 /// How the original builds body armour's inventory icon from the armour's parts (measured on nwmain, visual scenes

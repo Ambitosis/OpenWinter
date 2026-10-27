@@ -21,6 +21,8 @@ public sealed class NwnResManData(GamePaths paths) : INwnBridgeData
     public string Text(uint strRef, byte gender) =>
         gender == 1 && _female?.Get(strRef) is { Length: > 0 } female ? female : _rm.Talk.Get(strRef);
 
+    public bool HasResource(string resref, ushort type) => _rm.Contains(resref, type);
+
     public void UseContent(IReadOnlyList<string> haks, string customTlk)
     {
         _rm = ResMan.ForClient(paths, haks, customTlk);

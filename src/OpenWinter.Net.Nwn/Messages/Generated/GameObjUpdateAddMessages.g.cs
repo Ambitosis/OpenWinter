@@ -323,7 +323,7 @@ public static partial class GameObjUpdateAddMessages
             IsBodyBag = r.ReadBool();
             if (NwnCond.L(IsBodyBag) == 1L)
             {
-                BodyBagCreatureId = r.ReadDword();
+                BodyBagCreatureId = r.ReadObjectId();
             }
             else BodyBagCreatureId = null;
             Plot = r.ReadBool();
@@ -356,7 +356,7 @@ public static partial class GameObjUpdateAddMessages
             w.WriteBool(IsBodyBag);
             if (NwnCond.L(IsBodyBag) == 1L)
             {
-                w.WriteDword(BodyBagCreatureId.GetValueOrDefault());
+                w.WriteObjectId(BodyBagCreatureId.GetValueOrDefault());
             }
             w.WriteBool(Plot);
             w.WriteBool(Useable);

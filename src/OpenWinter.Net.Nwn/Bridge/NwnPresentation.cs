@@ -335,10 +335,11 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
 
     // -- visual effects -----------------------------------------------------
 
-    /// <summary>The effect id the bridge gives a lasting visual effect on an object (its object and visualeffects.2da row).</summary>
-    public static long EffectId(uint target, ushort effect) => (1L << 40) | ((long)target << 16) | effect;
+    /// <summary>The effect id the bridge gives a lasting beam, or a lasting visual effect on a placeable or door.</summary>
+    public static long EffectId(uint target, ushort effect) => (2L << 40) | ((long)target << 16) | effect;
 
-    bool IsBeam(int row) => data.TwoDA("visualeffects", row, "Type_FD").Equals("B", StringComparison.OrdinalIgnoreCase);
+    /// <summary>A beam (visualeffects.2da Type_FD "B"): drawn between two objects, sent as "beam".</summary>
+    public static bool IsBeam(INwnBridgeData data, int row) => data.TwoDA("visualeffects", row, "Type_FD").Equals("B", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// A visual effect the server plays once: a beam between two objects, or a projectile-style effect (Magic
@@ -378,7 +379,7 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
     {
         foreach (var e in effects)
         {
-            bool beam = IsBeam(e.EffectId);
+            bool beam = IsBeam(data, e.EffectId);
             if (creature && !beam) continue;
             long effect = EffectId(id, e.EffectId);
             if (e.ChangeType == 'D')
