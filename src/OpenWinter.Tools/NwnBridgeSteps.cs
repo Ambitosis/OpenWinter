@@ -8,6 +8,8 @@ using OpenWinter.Net;
 ///   req:KIND [JSON]     send a client request; "@NAME" in the JSON is the id of an item whose name contains NAME
 ///                       (from the last inventory, container or store contents; "@c:", "@s:" or "@i:" picks one),
 ///                       "@o:NAME" the nearest other object whose name contains NAME
+///   say:TEXT            say a line in the talk channel
+///   gap:SECONDS         the time between the steps after this one (four seconds at first)
 ///   wait                do nothing for a step
 /// Inventory, container and store contents are printed one item a line.
 /// </summary>
@@ -15,7 +17,7 @@ sealed class NwnBridgeSteps(string script)
 {
     readonly Queue<string> _steps = new(script.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
     readonly Dictionary<string, List<(uint Id, string Name)>> _items = new() { ["i"] = [], ["c"] = [], ["s"] = [] };
-    double _next = 6;
+    double _next = 6, _gap = 4;
 
     public bool Done => _steps.Count == 0;
 
@@ -68,8 +70,9 @@ sealed class NwnBridgeSteps(string script)
     public void Step(IConnection bridge, double seconds, Func<string, uint> nearest)
     {
         if (_steps.Count == 0 || seconds < _next) return;
-        _next = seconds + 4;
         var step = _steps.Dequeue();
+        if (step.StartsWith("gap:")) _gap = double.Parse(step[4..], System.Globalization.CultureInfo.InvariantCulture);
+        _next = seconds + _gap;
         Console.WriteLine($"{(long)(seconds * 1000),6} step {step}");
         if (step.StartsWith("use:"))
         {
@@ -77,6 +80,8 @@ sealed class NwnBridgeSteps(string script)
             if (target != 0) bridge.Send(new ActionRequestMessage { Action = ActionKind.Use, Target = target }.Write());
             else Console.WriteLine("         nothing by that name");
         }
+        else if (step.StartsWith("say:"))
+            bridge.Send(new ChatSendMessage { Channel = ChatChannel.Talk, Text = step[4..] }.Write());
         else if (step.StartsWith("req:"))
         {
             var body = step[4..];

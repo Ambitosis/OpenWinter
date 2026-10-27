@@ -284,13 +284,14 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void Request(ClientRequestMessage request)
     {
-        if ((NwnNui.FromClient(request.Kind, request.Json) ?? _dialog.FromClient(request.Kind, request.Json) ?? _combat.FromClient(request.Kind, request.Json)) is { } handled)
+        if ((NwnNui.FromClient(request.Kind, request.Json) ?? NwnGuiEvents.FromClient(request.Kind, request.Json) ?? _dialog.FromClient(request.Kind, request.Json) ?? _combat.FromClient(request.Kind, request.Json)) is { } handled)
         {
             ToServer(handled);
             return;
         }
         if (_abilities.FromClient(request.Kind, request.Json)) return;
         if (_inventory.FromClient(request.Kind, request.Json)) return;
+        if (NwnExamine.FromClient(request.Kind, request.Json) is { } examine) { ToServer(examine); return; }
         if (_progression.FromClient(request.Kind, request.Json) || _creation.FromClient(request.Kind, request.Json)) return;
         switch (request.Kind)
         {
@@ -406,7 +407,8 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 // The abilities only watch these (the rest bar, item uses), so the others still see them.
                 bool watched = _abilities.ToClient(message);
                 if (_inventory.ToClient(message)) return true;
-                return NwnNui.ToClient(message, m => _toClient.Enqueue(m)) || NwnCamera.ToClient(message, _world.Controlled, m => _toClient.Enqueue(m))
+                return NwnNui.ToClient(message, m => _toClient.Enqueue(m)) || NwnGuiEvents.ToClient(message, m => _toClient.Enqueue(m))
+                    || NwnExamine.ToClient(message, _world, _data, m => _toClient.Enqueue(m)) || NwnCamera.ToClient(message, _world.Controlled, m => _toClient.Enqueue(m))
                     || NwnResourceOverrides.ToClient(message, _world.Controlled, _data, m => _toClient.Enqueue(m))
                     || _presentation.ToClient(message) || _combat.ToClient(message)
                     || NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m)) || watched;
