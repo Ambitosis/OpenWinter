@@ -1,0 +1,42 @@
+// Visual scene "waterfx" (part of OpenWinter, MIT licence): the post-process pass shows what the depth buffer holds
+// over the water when SetShaderUniformInt bank 2 is 1: grey contours of the depth every metre, and a readout of
+// the depth at 16 points (two columns of eight, at x 0.5 and 0.3, y 0.15 to 0.85) in cells along the top
+// (tools/visual/postfx_readout.py waterfx). Otherwise the view is shown as it is.
+#define SHADER_TYPE 2
+
+#include "inc_postpr"
+#include "inc_scriptable"
+
+vec3 WfxBytes(int n)
+{
+    float fValue = float(n);
+    float fHigh = floor(fValue / 65536.0);
+    float fMiddle = floor((fValue - fHigh * 65536.0) / 256.0);
+    return vec3(fHigh, fMiddle, fValue - fHigh * 65536.0 - fMiddle * 256.0) / 255.0;
+}
+
+vec2 WfxProbe(int nProbe)
+{
+    float fColumn = nProbe < 8 ? 0.5 : 0.3;
+    float fRow = float(nProbe < 8 ? nProbe : nProbe - 8);
+    return vec2(fColumn, 0.15 + 0.1 * fRow);
+}
+
+void main()
+{
+    vec2 vUV = vVertexTexCoords;
+    vec4 Color = FS_PostProcess();
+    if (scriptableInt2 == 1)
+    {
+        float fDepth = GetDepth(vUV);
+        Color.rgb = mix(Color.rgb, vec3(fract(fDepth)), 0.85);
+        if (vUV.y > 0.9)
+        {
+            int nCell = int(floor(vUV.x * 32.0));
+            if (nCell == 0) Color.rgb = WfxBytes(3368601);
+            else if (nCell == 1) Color.rgb = WfxBytes(13369429);
+            else if (nCell < 18) Color.rgb = WfxBytes(int(floor(GetDepth(WfxProbe(nCell - 2)) * 100.0 + 0.5)) + 8388608);
+        }
+    }
+    gl_FragColor = vec4(Color.rgb, 1.0);
+}

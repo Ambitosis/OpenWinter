@@ -314,7 +314,7 @@ static class AreaFunctions
         // Measured through NWNX_Area (nwnx_area_props): the area's wind power then reads 3, a custom wind.
         env.WindPower = 3;
         env.WindScripted = true;
-        c.World.Output?.Notify("area-wind", a, new { direction = Vec(env.WindDirection), magnitude = env.WindMagnitude, yaw = env.WindYaw, pitch = env.WindPitch });
+        c.World.Output?.Notify("area-wind", a, new { direction = Vec(env.WindDirection), magnitude = env.WindMagnitude, yaw = env.WindYaw, pitch = env.WindPitch, scripted = true });
         return null;
     }
 

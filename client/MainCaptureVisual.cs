@@ -504,6 +504,6 @@ public partial class Main
     void HideOverlays()
     {
         foreach (var layer in GetTree().Root.FindChildren("*", "CanvasLayer", true, false).OfType<CanvasLayer>())
-            layer.Visible = false;
+            if (!layer.HasMeta(Rendering.Shaders.PostProcess.SceneLayerMeta)) layer.Visible = false;
     }
 }

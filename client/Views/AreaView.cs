@@ -83,6 +83,10 @@ public partial class AreaView : Node3D
 
     /// <summary>Game time of day in minutes since midnight (advances between server updates).</summary>
     public double ClockMinutes => _minuteClock;
+    /// <summary>The module's clock settings (minutes per hour, dawn and dusk) from the server.</summary>
+    public int MinutesPerHour => _time.MinutesPerHour;
+    public int DawnHour => _time.DawnHour;
+    public int DuskHour => _time.DuskHour;
     public bool IsDaytime => Daylight() >= 0.5f;
 
     public void SetTime(TimeMessage t)

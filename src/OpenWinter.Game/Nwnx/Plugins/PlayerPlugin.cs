@@ -324,7 +324,7 @@ public static class PlayerPlugin
     static void UpdateWind(NwnxCall n)
     {
         var pc = Pc(n); var direction = n.PopVector(); float magnitude = n.PopFloat(), yaw = n.PopFloat(), pitch = n.PopFloat();
-        if (pc?.Area is { } area) n.World.Output?.Notify("area-wind", area, new { direction = Vec(direction), magnitude, yaw, pitch }, pc);
+        if (pc?.Area is { } area) n.World.Output?.Notify("area-wind", area, new { direction = Vec(direction), magnitude, yaw, pitch, scripted = true }, pc);
     }
 
     [NwnxFunc(P, "UpdateSkyBox")]

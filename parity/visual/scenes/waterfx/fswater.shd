@@ -1,0 +1,35 @@
+// Visual scene "waterfx" (part of OpenWinter, MIT licence): the module's own water program (fswater), drawn
+// unlit so both engines can be compared directly. SetShaderUniformInt bank 1 picks what it draws:
+//   0  the noise texture the engine binds (texUnitNoise), at world coordinates
+//   1  the view behind the water (texFBColor at the pixel), darkened and tinted by the water's depth (texFBDepth)
+//   2  the water's own texture (texUnit0)
+//   3  flat red: which meshes are water
+#define SHADER_TYPE 2
+
+#include "inc_water"
+#include "inc_scriptable"
+
+void main()
+{
+    vec2 vScreen = vec2(gl_FragCoord.x * invScreenWidth, gl_FragCoord.y * invScreenHeight);
+    vec3 vColor;
+    if (scriptableInt1 == 0)
+    {
+        vColor = vec3(texture2D(texUnitNoise, vPosWorld.xy * 0.05).r);
+    }
+    else if (scriptableInt1 == 1)
+    {
+        float fThickness = max(GetDepth(vScreen) + vPosView.z, 0.0);
+        vec3 vBehind = texture2D(texFBColor, vScreen).rgb;
+        vColor = mix(vBehind, vec3(0.05, 0.25, 0.35), clamp(fThickness / 2.0, 0.0, 1.0));
+    }
+    else if (scriptableInt1 == 2)
+    {
+        vColor = texture2D(texUnit0, vVertexTexCoords.xy).rgb;
+    }
+    else
+    {
+        vColor = vec3(1.0, 0.0, 0.0);
+    }
+    gl_FragColor = vec4(vColor, 1.0);
+}

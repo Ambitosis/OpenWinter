@@ -22,6 +22,10 @@ public partial class WeatherFx : Node
     /// <summary>The area's ChanceLightning (percent), or -1 when the server didn't say.</summary>
     public int LightningChance { get; private set; } = -1;
     public int Flashes { get; private set; }
+    /// <summary>
+    /// How far the current weather has faded in (0 to 1); after it clears, how much of the old one is left.
+    /// </summary>
+    public float Density => _layers.Count == 0 ? 0f : Current != 0 ? _layers[^1].Level : _layers.Max(l => l.Level);
 
     sealed class Layer
     {

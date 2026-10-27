@@ -128,6 +128,10 @@ public static class TextureDecoder
         string fourcc = System.Text.Encoding.ASCII.GetString(b, 84, 4);
         if ((pfFlags & 0x4) != 0)
         {
+            if (fourcc is "ATI1" or "BC4U") return SingleChannel(b.AsSpan(128), w, h);
+            // The extended header: DXGI_FORMAT_BC4_UNORM (80) or BC4_TYPELESS (79), data after 20 more bytes.
+            if (fourcc == "DX10" && b.Length > 148 && BinaryPrimitives.ReadUInt32LittleEndian(b.AsSpan(128)) is 79 or 80)
+                return SingleChannel(b.AsSpan(148), w, h);
             var fmt = fourcc switch { "DXT1" => TextureFormat.Dxt1, "DXT3" => TextureFormat.Dxt3, "DXT5" => TextureFormat.Dxt5, _ => (TextureFormat?)null };
             return fmt == null ? null : Compressed(b.AsSpan(128), w, h, fmt.Value, mips, fmt != TextureFormat.Dxt1);
         }
@@ -147,6 +151,44 @@ public static class TextureDecoder
             if (outp[i * 4 + 3] < 255) alpha = true;
         }
         return new TextureData { Width = w, Height = h, Format = TextureFormat.Rgba8, Data = outp, HasAlpha = alpha, FlipV = true };
+    }
+
+    /// <summary>One-channel block compression (BC4, "ATI1"): level 0 as grey, opaque pixels.</summary>
+    static TextureData? SingleChannel(ReadOnlySpan<byte> data, int w, int h)
+    {
+        int bw = (w + 3) / 4, bh = (h + 3) / 4;
+        if (data.Length < bw * bh * 8) return null;
+        var outp = new byte[w * h * 4];
+        Span<byte> values = stackalloc byte[8];
+        for (int by = 0; by < bh; by++)
+            for (int bx = 0; bx < bw; bx++)
+            {
+                var block = data.Slice((by * bw + bx) * 8, 8);
+                int a0 = block[0], a1 = block[1];
+                values[0] = (byte)a0;
+                values[1] = (byte)a1;
+                if (a0 > a1)
+                    for (int i = 1; i < 7; i++) values[i + 1] = (byte)(((7 - i) * a0 + i * a1) / 7);
+                else
+                {
+                    for (int i = 1; i < 5; i++) values[i + 1] = (byte)(((5 - i) * a0 + i * a1) / 5);
+                    values[6] = 0;
+                    values[7] = 255;
+                }
+                ulong bits = 0;
+                for (int i = 0; i < 6; i++) bits |= (ulong)block[2 + i] << (8 * i);
+                for (int py = 0; py < 4; py++)
+                    for (int px = 0; px < 4; px++)
+                    {
+                        int x = bx * 4 + px, y = by * 4 + py;
+                        if (x >= w || y >= h) continue;
+                        byte v = values[(int)((bits >> (3 * (py * 4 + px))) & 7)];
+                        int o = (y * w + x) * 4;
+                        outp[o] = outp[o + 1] = outp[o + 2] = v;
+                        outp[o + 3] = 255;
+                    }
+            }
+        return new TextureData { Width = w, Height = h, Format = TextureFormat.Rgba8, Data = outp, FlipV = true };
     }
 
     static byte Channel(uint v, uint mask)
@@ -255,7 +297,8 @@ public static class TextureDecoder
                 case "decal": info.Decal = v != "0"; break;
                 case "envmaptexture": info.EnvironmentMap = v; break;
                 case "bumpmaptexture": info.BumpMap = v; break;
-                case "proceduretype": info.ProcedureType = v.Equals("cycle", StringComparison.OrdinalIgnoreCase) ? 1 : int.TryParse(v, out int pt) ? pt : 0; break;
+                case "proceduretype": info.Procedure = v.ToLowerInvariant(); info.ProcedureType = v.Equals("cycle", StringComparison.OrdinalIgnoreCase) ? 1 : int.TryParse(v, out int pt) ? pt : 0; break;
+                case "bumpyshinytexture": info.BumpyShiny = v; break;
                 case "numx": info.NumX = int.TryParse(v, out int nx) ? nx : 1; break;
                 case "numy": info.NumY = int.TryParse(v, out int ny) ? ny : 1; break;
                 case "fps": info.Fps = float.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out float f) ? f : 0; break;

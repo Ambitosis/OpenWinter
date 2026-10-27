@@ -14,15 +14,19 @@ using OpenWinter.Content;
 /// </summary>
 static class ShaderCheck
 {
-    /// <summary>Shaders a later phase handles (post-processing, water): reported, not translated.</summary>
-    static readonly Dictionary<string, string> Special = new(StringComparer.OrdinalIgnoreCase)
+    /// <summary>
+    /// The engine's own programs a module can replace by name, with the stage they go with: the post-process pass
+    /// (drawn over the finished view) and water.
+    /// </summary>
+    static readonly Dictionary<string, string> Engine = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["fsfbpostpr"] = "the post-process pass is not supported yet",
-        ["vsfbpostpr"] = "the post-process pass is not supported yet",
-        ["fswater"] = "the water material is not supported yet",
-        ["vswater"] = "the water material is not supported yet",
-        ["vswaterc"] = "the water material is not supported yet",
+        ["fsfbpostpr"] = "vsfbpostpr",
+        ["vsfbpostpr"] = "fsfbpostpr",
+        ["fswater"] = "vswater",
+        ["vswater"] = "fswater",
     };
+
+    static bool IsPostProcess(string fs) => fs.Equals("fsfbpostpr", StringComparison.OrdinalIgnoreCase);
 
     public static int Run(LocalConfig cfg, ResMan rm, string[] args)
     {
@@ -52,13 +56,15 @@ static class ShaderCheck
             var source = translator.ModuleSource(name) ?? "";
             int type = ShaderType(source);
             if (type == 0) continue; // an include file
-            pairs.TryAdd(type == 1 ? (name, "fslit") : ("vslit", name), 0);
+            if (Engine.TryGetValue(name, out var partner)) pairs.TryAdd(type == 1 ? (name, partner) : (partner, name), 0);
+            else pairs.TryAdd(type == 1 ? (name, "fslit") : ("vslit", name), 0);
         }
 
         if (show != null)
         {
             var parts = show.Split(',');
-            var t = translator.Translate(parts[0], parts.Length > 1 ? parts[1] : "fslit");
+            string fsName = parts.Length > 1 ? parts[1] : "fslit";
+            var t = translator.Translate(parts[0], fsName, new ShaderOptions { PostProcess = IsPostProcess(fsName) });
             Console.WriteLine(t.Ok ? t.Code : "fallback: " + t.Reason);
             foreach (var n in t.Notes) Console.WriteLine("note: " + n);
             return t.Ok ? 0 : 1;
@@ -67,12 +73,7 @@ static class ShaderCheck
         var results = new List<(string Vs, string Fs, int Materials, ShaderTranslation? T, string Status)>();
         foreach (var ((vs, fs), count) in pairs.OrderByDescending(p => p.Value).ThenBy(p => p.Key.Vs).ThenBy(p => p.Key.Fs))
         {
-            if (Special.TryGetValue(vs, out var why) || Special.TryGetValue(fs, out why))
-            {
-                results.Add((vs, fs, count, null, "later: " + why));
-                continue;
-            }
-            var t = translator.Translate(vs, fs);
+            var t = translator.Translate(vs, fs, new ShaderOptions { PostProcess = IsPostProcess(fs) });
             results.Add((vs, fs, count, t, t.Ok ? "ok" : "fallback: " + t.Reason));
         }
 
@@ -96,9 +97,9 @@ static class ShaderCheck
             if (r.T != null)
                 foreach (var note in r.T.Notes.Distinct()) Console.WriteLine($"{"",34}note: {note}");
         }
-        int ok = results.Count(r => r.Status == "ok"), later = results.Count(r => r.Status.StartsWith("later")), failed = results.Count - ok - later;
+        int ok = results.Count(r => r.Status == "ok"), failed = results.Count - ok;
         int okMaterials = results.Where(r => r.Status == "ok").Sum(r => r.Materials);
-        Console.WriteLine($"programs: {ok} ok, {failed} fall back, {later} for a later phase; materials drawn with their shaders: {okMaterials} of {custom.Count}");
+        Console.WriteLine($"programs: {ok} ok, {failed} fall back; materials drawn with their shaders: {okMaterials} of {custom.Count}");
         return failed == 0 ? 0 : 1;
     }
 
@@ -149,9 +150,12 @@ static class ShaderCheck
         foreach (var a in new[] { "--headless", "--path", dir, "--log-file", log, "--script", "res://validate.gd" }) psi.ArgumentList.Add(a);
         using (var p = Process.Start(psi)!)
         {
-            p.StandardOutput.ReadToEnd();
-            p.StandardError.ReadToEnd();
-            p.WaitForExit(300_000);
+            // Godot can stall after some shader errors: give up on it after five minutes.
+            p.OutputDataReceived += (_, _) => { };
+            p.ErrorDataReceived += (_, _) => { };
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            if (!p.WaitForExit(300_000)) p.Kill(true);
         }
         string? current = null;
         var errors = new StringBuilder();
