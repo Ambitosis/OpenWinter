@@ -17,6 +17,8 @@ public interface INwnBridgeData
     int TwoDARowCount(string table);
     string TwoDA(string table, int row, string column);
     string Text(uint strRef, byte gender);
+    /// <summary>SetTlkOverride from the server: <see cref="Text"/> returns <paramref name="text"/> for this strref ("" removes it).</summary>
+    void SetText(uint strRef, string text) { }
     /// <summary>The server's haks and custom talk table, once it has named them.</summary>
     void UseContent(IReadOnlyList<string> haks, string customTlk);
     /// <summary>A resource's bytes (a voice set's .ssf); null when there is none.</summary>

@@ -91,6 +91,8 @@ public sealed class NwnSession(INwnTransport transport, NwnLogin login, NwnSessi
             else if (frame[0] is (byte)'B' or (byte)'G') HandlePacket(frame);
             else DecodeErrors.Add(new NwnDecodeError(frame, $"unknown frame type {frame[0]}"));
             if (State == NwnSessionState.Failed) return;
+            // The server's haks change the 2DAs that later messages decode by: the owner applies them first.
+            if (received.Count > 0 && received.Last() is ServerStatusMessages.ServerStatusModuleRunning) return;
         }
         if (!transport.IsOpen && transport.CloseReason is { } reason) Fail(reason);
     }

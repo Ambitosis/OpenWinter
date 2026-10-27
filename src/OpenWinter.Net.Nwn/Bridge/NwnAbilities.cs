@@ -385,14 +385,15 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
         QueueChanged?.Invoke(shown);
     }
 
-    /// <summary>Messages the abilities watch without taking: the rest's progress bar and items' uses left.</summary>
-    public void ToClient(NwnMessage message)
+    /// <summary>Messages the abilities watch without taking: the rest's progress bar and items' uses left (true for those).</summary>
+    public bool ToClient(NwnMessage message)
     {
         switch (message)
         {
-            case GuiTimingEventMessages.GuiTimingEventInfo timing: TimingEvent(timing); break;
-            case ItemPropertyMessages.ItemPropertyUpdateUses uses: ItemUses(uses); break;
+            case GuiTimingEventMessages.GuiTimingEventInfo timing: TimingEvent(timing); return true;
+            case ItemPropertyMessages.ItemPropertyUpdateUses uses: ItemUses(uses); return true;
         }
+        return false;
     }
 
     /// <summary>

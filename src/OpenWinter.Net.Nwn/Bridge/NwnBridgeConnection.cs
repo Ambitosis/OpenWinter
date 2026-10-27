@@ -13,6 +13,9 @@ public sealed record NwnBridgeOptions(Uri Server, NwnCdKey Key, string Password 
     /// <summary>Records every frame (direction, milliseconds, hex) to this gzipped JSON-lines file.</summary>
     public string? RecordTo { get; init; }
 
+    /// <summary>Diagnostics: the first server message of each type the bridge doesn't use.</summary>
+    public Action<string>? Log { get; init; }
+
     /// <summary>Opens the transport; tests replace it with an in-memory one.</summary>
     public Func<Uri, INwnTransport> Connect { get; init; } = NwnWebSocketTransport.Connect;
 }
@@ -79,6 +82,9 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     public bool Joined => _session?.State == NwnSessionState.Ready;
     /// <summary>The session, once the client has said hello (diagnostics).</summary>
     public NwnSession? Session => _session;
+    /// <summary>Server messages no part of the bridge used, by type, with how many came (diagnostics).</summary>
+    public IReadOnlyDictionary<string, int> Unused => _unused;
+    readonly Dictionary<string, int> _unused = [];
 
     public void Send(byte[] message, bool reliable = true)
     {
@@ -335,62 +341,76 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
 
     void FromServer(NwnMessage message)
     {
-        if (_dialog.ToClient(message) || _progression.ToClient(message) || _creation.ToClient(message)) return;
+        // The login's acknowledgement and the session's keep-alive need nothing more.
+        if (Translate(message) || message is LoginMessages.LoginConfirm or DeviceMessages.DeviceEchoRequest) return;
+        var type = message.GetType().Name;
+        _unused[type] = _unused.GetValueOrDefault(type) + 1;
+        if (_unused[type] > 1 || _options.Log is not { } log) return;
+        var json = NwnDump.ToJson(message)?.ToJsonString() ?? "";
+        log($"[nwn] not used: {(json.Length > 300 ? json[..300] + "..." : json)}");
+    }
+
+    /// <summary>Hands a server message to the part of the bridge that translates it; false when none used it.</summary>
+    bool Translate(NwnMessage message)
+    {
+        if (_dialog.ToClient(message) || _progression.ToClient(message) || _creation.ToClient(message)) return true;
         switch (message)
         {
             case ServerStatusMessages.ServerStatusModuleRunning status:
                 Welcome(status);
-                break;
+                return true;
             case CharListMessages.CharListListResponse list:
                 if (_welcomed) Characters(list);
                 else _heldCharacters = list;
-                break;
+                return true;
             case ModuleMessages.ModuleInfo info:
                 _world.ModuleInfo(info);
                 ToServer(new ModuleMessages.ModuleLoaded());
-                break;
+                return true;
             case ModuleMessages.ModuleTime time:
                 _world.Time(time);
-                break;
+                return true;
             case AreaMessages.AreaClientArea area:
                 _world.Area(area);
                 _presentation.Area(area);
                 _inventory.AreaChanged();
                 _abilities.AreaChanged();
-                break;
+                return true;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
                 _combat.ObjectList(list, l => _presentation.ObjectList(l, _world.ObjectList));
                 _inventory.ObjectList(list);
                 _abilities.ObjectList(list);
                 _progression.ObjectList(list);
-                break;
+                return true;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
                 _abilities.Player = control.ObjectId;
                 _progression.Player = control.ObjectId;
-                break;
+                return true;
             case GuiQuickbarMessages.GuiQuickbarSetAllButtons quickbar:
                 _abilities.Quickbar(quickbar);
-                break;
+                return true;
             case GuiQuickbarMessages.GuiQuickbarSetButton button:
                 _abilities.QuickbarButton(button);
-                break;
+                return true;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
                 if (!_combat.Feedback(feedback)) NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
                 _inventory.Feedback(feedback);
                 _abilities.Feedback(feedback);
-                break;
+                return true;
             case LoginMessages.LoginDeny or LoginMessages.LoginCharacterFail:
                 Tell("The server refused the character.");
-                break;
+                return true;
             default:
+            {
                 // The abilities only watch these (the rest bar, item uses), so the others still see them.
-                _abilities.ToClient(message);
-                if (_inventory.ToClient(message)) break;
-                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !NwnCamera.ToClient(message, _world.Controlled, m => _toClient.Enqueue(m))
-                    && !_presentation.ToClient(message) && !_combat.ToClient(message))
-                    NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
-                break;
+                bool watched = _abilities.ToClient(message);
+                if (_inventory.ToClient(message)) return true;
+                return NwnNui.ToClient(message, m => _toClient.Enqueue(m)) || NwnCamera.ToClient(message, _world.Controlled, m => _toClient.Enqueue(m))
+                    || NwnResourceOverrides.ToClient(message, _world.Controlled, _data, m => _toClient.Enqueue(m))
+                    || _presentation.ToClient(message) || _combat.ToClient(message)
+                    || NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m)) || watched;
+            }
         }
     }
 

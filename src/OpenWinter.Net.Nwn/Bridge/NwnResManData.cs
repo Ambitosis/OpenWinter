@@ -20,13 +20,25 @@ public sealed class NwnResManData(GamePaths paths) : INwnBridgeData
     /// them, falling back to the default text.
     /// </summary>
     public string Text(uint strRef, byte gender) =>
-        gender == 1 && _female?.Get(strRef) is { Length: > 0 } female ? female : _rm.Talk.Get(strRef);
+        _overrides.TryGetValue(strRef, out var text) ? text
+        : gender == 1 && _female?.Get(strRef) is { Length: > 0 } female ? female : _rm.Talk.Get(strRef);
+
+    /// <summary>The server's talk table overrides, kept across <see cref="UseContent"/>.</summary>
+    readonly Dictionary<uint, string> _overrides = [];
+
+    public void SetText(uint strRef, string text)
+    {
+        if (text.Length > 0) _overrides[strRef] = text;
+        else _overrides.Remove(strRef);
+        _rm.Talk.SetOverride(strRef, text);
+    }
 
     public bool HasResource(string resref, ushort type) => _rm.Contains(resref, type);
 
     public void UseContent(IReadOnlyList<string> haks, string customTlk)
     {
         _rm = ResMan.ForClient(paths, haks, customTlk);
+        foreach (var (strRef, text) in _overrides) _rm.Talk.SetOverride(strRef, text);
         _female = Female(paths, customTlk);
     }
 

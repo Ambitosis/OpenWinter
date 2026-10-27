@@ -17,7 +17,9 @@ public class NwnBridgeConnectionTests
     {
         public int TwoDARowCount(string table) => 0;
         public string TwoDA(string table, int row, string column) => "";
-        public string Text(uint strRef, byte gender) => "";
+        public readonly Dictionary<uint, string> Overrides = [];
+        public string Text(uint strRef, byte gender) => Overrides.GetValueOrDefault(strRef, "");
+        public void SetText(uint strRef, string text) => Overrides[strRef] = text;
         public void UseContent(IReadOnlyList<string> haks, string customTlk) { }
     }
 
@@ -36,10 +38,10 @@ public class NwnBridgeConnectionTests
     static readonly NwnSessionContext Context = new(_ => 0, (_, _, _) => "");
 
     /// <summary>A bridge logged in to the scripted server.</summary>
-    static (NwnBridgeConnection, Transport) Joined()
+    static (NwnBridgeConnection, Transport) Joined(Data? data = null, Action<string>? log = null)
     {
         var t = new Transport();
-        var bridge = new NwnBridgeConnection(new NwnBridgeOptions(new Uri("ws://test"), NwnCdKey.Generate(new Random(1))) { Connect = _ => t }, new Data());
+        var bridge = new NwnBridgeConnection(new NwnBridgeOptions(new Uri("ws://test"), NwnCdKey.Generate(new Random(1))) { Connect = _ => t, Log = log }, data ?? new Data());
         bridge.Send(new HelloMessage { PlayerName = "probe", AreaReadyHandshake = true }.Write());
         for (int i = 0; i < 20 && !bridge.Joined; i++)
         {
@@ -142,5 +144,51 @@ public class NwnBridgeConnectionTests
         Assert.Contains("NuiClientBinds", Assert.Single(bridge.Session!.Unsent));
         bridge.Send(new ClientRequestMessage { Kind = "nui-bind", Json = """{"token":1,"bind":"text","value":"short"}""" }.Write());
         Assert.Single(t.FromClient);
+    }
+
+    static List<NotifyMessage> Notices(IEnumerable<byte[]> got) =>
+        got.Select(b => new MessageReader(b)).Where(r => r.Type == MessageType.Notify).Select(NotifyMessage.Read).ToList();
+
+    [Fact]
+    public void TextureAndResourceOverridesReachTheClientAsTheServerSendsThem()
+    {
+        var (bridge, t) = Joined();
+        // SetTextureOverride travels as an override of RESTYPE_TEX (2001); NWNX_Player_SetResManOverride as its own type.
+        t.ToClient.Enqueue(Frame(new ResmanMessages.ResmanOverride { Action = ResmanMessages.ResmanOverrideAction.Store, Restype = 2001, Name = "gui_loadwell", NewName = "gui_replace01" }));
+        t.ToClient.Enqueue(Frame(new ResmanMessages.ResmanOverride { Action = ResmanMessages.ResmanOverrideAction.Remove, Restype = 2002, Name = "c_spidgiant" }));
+        var notices = Notices(Drain(bridge));
+
+        Assert.Equal("""{"old":"gui_loadwell","new":"gui_replace01"}""", Assert.Single(notices, n => n.Kind == "texture-override").Json);
+        Assert.Equal("""{"op":"resman-override","type":2002,"from":"c_spidgiant","to":""}""", Assert.Single(notices, n => n.Kind == "nwnx-player").Json);
+        Assert.Empty(bridge.Unused);
+    }
+
+    [Fact]
+    public void TalkTableOverridesChangeTheBridgesTextAndTheClients()
+    {
+        var data = new Data();
+        var (bridge, t) = Joined(data);
+        t.ToClient.Enqueue(Frame(new ResmanMessages.ResmanTlkOverrideList { Overrides = [(85561u, "Damage Immunity Decreased"), (16777300u, "Custom")] }));
+        t.ToClient.Enqueue(Frame(new ResmanMessages.ResmanTlkOverride { Strref = 85561, Value = "" }));
+        var notices = Notices(Drain(bridge)).Where(n => n.Kind == "tlk-override").Select(n => n.Json).ToList();
+
+        Assert.Equal(["""{"strref":85561,"text":"Damage Immunity Decreased"}""", """{"strref":16777300,"text":"Custom"}""", """{"strref":85561,"text":""}"""], notices);
+        Assert.Equal("Custom", data.Text(16777300, 0));
+        Assert.Equal("", data.Overrides[85561]);
+    }
+
+    [Fact]
+    public void MessagesNothingUsesAreCountedAndLoggedOnce()
+    {
+        var logged = new List<string>();
+        var (bridge, t) = Joined(log: logged.Add);
+        t.ToClient.Enqueue(Frame(new LoginMessages.LoginGetWaypoint()));
+        t.ToClient.Enqueue(Frame(new LoginMessages.LoginGetWaypoint()));
+        t.ToClient.Enqueue(Frame(new LoginMessages.LoginConfirm()));
+        Drain(bridge);
+
+        Assert.Equal(2, bridge.Unused["LoginGetWaypoint"]);
+        Assert.False(bridge.Unused.ContainsKey("LoginConfirm"));
+        Assert.Contains("LoginGetWaypoint", Assert.Single(logged));
     }
 }

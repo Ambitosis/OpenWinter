@@ -444,9 +444,57 @@ static class NwnBridgeProbe
         }
         Console.WriteLine(bridge.FailureReason is { } why ? $"failed: {why}" : "done");
         foreach (var (name, n) in counts) Console.WriteLine($"  {n,6}  {name}");
+        foreach (var (type, n) in bridge.Unused) Console.WriteLine($"  not used: {n,6}  {type}");
         Console.WriteLine($"{bridge.Session?.DecodeErrors.Count ?? 0} frames didn't decode");
         foreach (var e in bridge.Session?.DecodeErrors.Take(10) ?? []) Console.WriteLine($"  {e.Error}");
         bridge.Disconnect();
+        return 0;
+    }
+}
+
+/// <summary>
+/// nwn-unused: replays a recording's server frames through the bridge, without a server, and lists the messages no
+/// part of the bridge used (type, count, the first one).
+///   nwn-unused out/nwn/probe-*.jsonl.gz
+/// </summary>
+static class NwnUnusedReport
+{
+    sealed class Replay(IEnumerable<byte[]> frames) : INwnTransport
+    {
+        readonly IEnumerator<byte[]> _next = frames.GetEnumerator();
+        public bool Done { get; private set; }
+        public bool IsOpen => !Done;
+        public string? CloseReason => Done ? "end of recording" : null;
+        public void Send(byte[] frame) { }
+        public bool TryReceive(out byte[] frame)
+        {
+            frame = [];
+            if (Done || !_next.MoveNext()) { Done = true; return false; }
+            frame = _next.Current;
+            return true;
+        }
+        public void Close(string reason) => Done = true;
+        public void Dispose() => _next.Dispose();
+    }
+
+    public static int Run(GamePaths paths, string[] args)
+    {
+        var replay = new Replay(NwnRecording.Read(args[1]).Where(f => !f.Sent).Select(f => f.Frame).ToList());
+        var firsts = new List<string>();
+        var data = new OpenWinter.Net.Nwn.Bridge.NwnResManData(paths);
+        var bridge = new OpenWinter.Net.Nwn.Bridge.NwnBridgeConnection(new OpenWinter.Net.Nwn.Bridge.NwnBridgeOptions(new Uri("ws://replay"), NwnCdKey.Generate())
+        {
+            Connect = _ => replay,
+            Log = firsts.Add,
+        }, data);
+        bridge.Send(new OpenWinter.Net.HelloMessage { PlayerName = "probe", AreaReadyHandshake = true }.Write());
+        while (!replay.Done) while (bridge.TryReceive(out _)) { }
+        foreach (var (type, n) in bridge.Unused.OrderByDescending(u => u.Value)) Console.WriteLine($"{n,6}  {type}");
+        foreach (var line in firsts) Console.WriteLine(line);
+        Console.WriteLine($"{bridge.Session?.DecodeErrors.Count ?? 0} frames didn't decode");
+        var at = NwnRecording.Read(args[1]).Where(f => !f.Sent).DistinctBy(f => Convert.ToHexString(f.Frame)).ToDictionary(f => Convert.ToHexString(f.Frame), f => f.Ms, StringComparer.Ordinal);
+        foreach (var e in bridge.Session?.DecodeErrors.Take(10) ?? [])
+            Console.WriteLine($"  {(at.TryGetValue(Convert.ToHexString(e.Frame), out var ms) ? ms : -1),7} ms  {e.Error}");
         return 0;
     }
 }

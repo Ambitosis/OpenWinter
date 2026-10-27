@@ -156,6 +156,30 @@ public class NwnSessionTests
     }
 
     [Fact]
+    public void APumpStopsAfterTheModuleRunningMessageSoItsHaksApplyToTheRest()
+    {
+        var (s, t) = ToChallenge(new NwnLogin("Tester", Key));
+        t.Reply(new BncrPacket(BncrPacket.Accepted, NwnAuthResult.Ok, [], [2], [3]));
+        s.Pump([]);
+        t.Reply(new BnvrPacket(true, NwnAuthResult.Ok, 1, 8193, 37, 17));
+        s.Pump([]);
+
+        byte[] Frame(NwnMessage m)
+        {
+            var w = new NwnWsWriter(s.Context);
+            m.Write(w);
+            return [(byte)'P', m.Major, m.Minor, .. w.ToArray()];
+        }
+        t.ToClient.Enqueue(Frame(new ServerStatusMessages.ServerStatusModuleRunning()));
+        t.ToClient.Enqueue(Frame(new DeviceMessages.DeviceEchoRequest { Data = [1] }));
+        var got = new List<NwnMessage>();
+        s.Pump(got);
+        Assert.IsType<ServerStatusMessages.ServerStatusModuleRunning>(Assert.Single(got));
+        s.Pump(got);
+        Assert.IsType<DeviceMessages.DeviceEchoRequest>(got[1]);
+    }
+
+    [Fact]
     public void ProtocolFlagsAreAddedToTheUri()
     {
         Assert.Equal("ws://localhost:5121/?proto_flags=0x100", NwnWebSocketTransport.WithProtocolFlags(new Uri("ws://localhost:5121")).ToString());

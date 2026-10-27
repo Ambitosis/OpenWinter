@@ -187,6 +187,7 @@ public partial class Main : Node3D
             client = new NwnBridgeConnection(new NwnBridgeOptions(new Uri(nwnServer), key, _args.GetValueOrDefault("password", ""))
             {
                 RecordTo = _args.GetValueOrDefault("nwn-record"), // every frame, for diagnostics and replay tests
+                Log = GD.Print,
             }, new NwnResManData(paths));
             GD.Print($"[client] connecting to NWN server {nwnServer} with CD key {key.PublicKey}");
         }

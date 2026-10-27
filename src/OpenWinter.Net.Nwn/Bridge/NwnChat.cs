@@ -7,7 +7,7 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// <summary>NWN chat messages as OpenWinter chat: channel, speaker and text (talk table references resolved).</summary>
 static class NwnChat
 {
-    public static void ToClient(NwnMessage message, INwnBridgeData data, Action<byte[]> emit)
+    public static bool ToClient(NwnMessage message, INwnBridgeData data, Action<byte[]> emit)
     {
         string Ref(uint strRef) => data.Text(strRef, 0);
         string Loc(NwnLocString s) => s.IsStrRef ? data.Text(s.StrRef, s.Gender) : s.Text;
@@ -39,5 +39,6 @@ static class NwnChat
             _ => null,
         };
         if (chat != null) emit(chat.Write());
+        return chat != null;
     }
 }
