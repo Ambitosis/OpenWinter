@@ -334,12 +334,17 @@ public partial class PlayerFx : CanvasLayer
         {
             case "facing":
             {
-                // NWN: direction the camera looks (0 = east, counter-clockwise), pitch 0 = straight down.
+                // NWN: direction the camera looks (0 = east, counter-clockwise), pitch 0 = straight down; -1 keeps one.
                 float dir = d.GetProperty("direction").GetSingle(), dist = d.GetProperty("distance").GetSingle(), pitch = d.GetProperty("pitch").GetSingle();
-                if (dir >= 0) Camera.Yaw = Mathf.DegToRad(dir - 90);
-                if (pitch >= 0) Camera.Pitch = -Mathf.DegToRad(Math.Clamp(90 - pitch, 5, 90));
-                if (dist >= 0) Camera.Distance = Math.Clamp(dist, Camera.MinDistance, Camera.MaxDistance);
-                if (d.TryGetProperty("transition", out var t) && t.GetInt32() == 0) Camera.Snap();
+                float? yaw = dir >= 0 ? Mathf.DegToRad(dir - 90) : null;
+                float? tilt = pitch >= 0 ? -Mathf.DegToRad(Math.Clamp(90 - pitch, 5, 90)) : null;
+                float? arm = dist >= 0 ? Math.Clamp(dist, Camera.MinDistance, Camera.MaxDistance) : null;
+                int transition = d.TryGetProperty("transition", out var t) ? t.GetInt32() : 0;
+                if (transition > 0) { Camera.GlideTo(yaw, tilt, arm, transition); break; }
+                if (yaw is { } y) Camera.Yaw = y;
+                if (tilt is { } p) Camera.Pitch = p;
+                if (arm is { } a) Camera.Distance = a;
+                Camera.Snap();
                 break;
             }
             case "mode":
@@ -347,7 +352,7 @@ public partial class PlayerFx : CanvasLayer
                 Camera.Mode = Gameplay.CameraModes.FromInt(d.GetProperty("mode").GetInt32());
                 break;
             case "restore":
-                if (_stored is { } s) { Camera.Yaw = s.Yaw; Camera.Pitch = s.Pitch; Camera.Distance = s.Distance; }
+                if (_stored is { } s) { Camera.Yaw = s.Yaw; Camera.Pitch = s.Pitch; Camera.Distance = s.Distance; Camera.Snap(); }
                 break;
             case "height":
             {
@@ -361,6 +366,21 @@ public partial class PlayerFx : CanvasLayer
                 Camera.MinDistance = minD >= 0 ? minD : 2.5f;
                 Camera.MaxDistance = maxD >= 0 ? maxD : 30f;
                 Camera.Distance = Math.Clamp(Camera.Distance, Camera.MinDistance, Camera.MaxDistance);
+                Camera.SetPitchLimits(d.TryGetProperty("minPitch", out var minP) ? minP.GetSingle() : -1, d.TryGetProperty("maxPitch", out var maxP) ? maxP.GetSingle() : -1);
+                break;
+            }
+            case "flags":
+                Camera.Flags = d.GetProperty("flags").GetInt32();
+                break;
+            case "attach":
+            {
+                // AttachCamera: the camera follows another creature or placeable the player sees; the player's
+                // own character (or none) hands it back.
+                uint target = d.GetProperty("target").GetUInt32();
+                bool other = target != Session.ControlledId && Session.Objects.ContainsKey(target);
+                Camera.Target = other ? Session.Objects[target] : Session.Controlled;
+                if (other && d.TryGetProperty("findClearView", out var clear) && clear.GetBoolean()) Camera.LookAlong(Camera.Target!);
+                Camera.Snap();
                 break;
             }
         }

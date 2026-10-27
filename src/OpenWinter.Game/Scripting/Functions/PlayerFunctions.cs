@@ -91,6 +91,13 @@ static class PlayerFunctions
     {
         if (c.Obj<Creature>(0) is not { } cr) return null;
         bool on = c.I(1, 1) != 0;
+        // Entering cutscene mode keeps the player's camera and leaving it puts the camera back, as StoreCameraFacing
+        // and RestoreCameraFacing do (camanim scene: the original server sends both with the cutscene status).
+        if (cr.IsPC && on != cr.InCutscene)
+        {
+            if (on) c.World.Output?.Notify("camera-store", cr, new { }, cr);
+            else Tell(c, cr, "camera", new { op = "restore" });
+        }
         if (on)
         {
             if (!cr.InCutscene) cr.PlotBeforeCutscene = cr.Plot;
