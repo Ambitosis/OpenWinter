@@ -345,4 +345,118 @@ public class ModuleShaderTests
         Assert.Equal("vec4", json[2].GetProperty("type").GetString());
         Assert.Equal([1f, 2f, 3f, 4f], json[2].GetProperty("value").EnumerateArray().Select(v => v.GetSingle()));
     }
+
+    const string PostVs = "#define SHADER_TYPE 1\nattribute vec4 vPos;\nattribute vec2 vTcIn;\nvarying vec2 vVertexTexCoords;\nvoid main() { gl_Position = vPos; vVertexTexCoords = vTcIn; }";
+
+    const string PostFs = """
+        #define SHADER_TYPE 2
+        uniform sampler2D texFBColor;
+        uniform sampler2D texFBDepth;
+        uniform mat4 m_view_inv;
+        varying vec2 vVertexTexCoords;
+        void main()
+        {
+            vec4 c = texture2D(texFBColor, vVertexTexCoords);
+            float d = texture2D(texFBDepth, vVertexTexCoords).x;
+            vec3 eye = m_view_inv[3].xyz;
+            gl_FragColor = vec4(c.rgb * d + eye * 0.0, 1.0);
+        }
+        """;
+
+    [Fact]
+    public void ThePostProcessPassIsACanvasItemReadingTheViewAtGlCoordinates()
+    {
+        var t = With(("vsfbpostpr", PostVs), ("fsfbpostpr", PostFs)).Translate("vsfbpostpr", "fsfbpostpr", new ShaderOptions { PostProcess = true });
+        Assert.True(t.Ok, t.Reason);
+        Assert.Contains("shader_type canvas_item;", t.Code);
+        Assert.Contains("render_mode unshaded, blend_disabled;", t.Code);
+        Assert.DoesNotContain("ALBEDO", t.Code);
+        Assert.Contains("COLOR = vec4(clamp(ow.gl_FragColor.rgb", t.Code);
+        Assert.True(t.ReadsColor && t.ReadsDepth);
+        // Reads of the framebuffers go through helpers that flip to GL's origin and turn depth into GL's.
+        Assert.Contains("ow_fb_color(ow.vVertexTexCoords)", t.Code);
+        Assert.Contains("ow_fb_depth(ow.vVertexTexCoords).x", t.Code);
+        Assert.Contains("hint_screen_texture", t.Code);
+        Assert.Contains("1.0 - textureLod(ow_fb_depth_tex, vec2(uv.x, 1.0 - uv.y), 0.0).r", t.Code);
+        // The quad covers the screen with GL texture coordinates; the camera comes from the pass's globals.
+        Assert.Contains("ow.vTcIn = vec2(UV.x, 1.0 - UV.y);", t.Code);
+        Assert.Contains("ow.m_view_inv = ow_pp_view_inv;", t.Code);
+        Assert.Contains("global uniform mat4 ow_pp_view_inv;", t.Code);
+        Assert.DoesNotContain("VERTEX =", t.Code);
+    }
+
+    [Fact]
+    public void ProjectionsAreGlsAndAModulesOwnPlacementIsUsed()
+    {
+        const string vs = "#define SHADER_TYPE 1\nuniform mat4 m_mvp;\nattribute vec4 vPos;\nvoid main() { gl_Position = m_mvp * vPos; gl_Position.y += 0.1; }";
+        var t = With(("ow_place", vs)).Translate("ow_place", "fslit");
+        Assert.True(t.Ok, t.Reason);
+        Assert.Contains("ow.m_mvp = " + EngineNames.GlFromGodotClip + " * PROJECTION_MATRIX", t.Code);
+        Assert.Contains("POSITION = " + EngineNames.GodotFromGlClip + " * ow.gl_Position;", t.Code);
+        // The installed standard programs keep the renderer's own placement.
+        var plain = With().Translate("vslit", "fslit");
+        Assert.DoesNotContain("POSITION =", plain.Code);
+    }
+
+    [Fact]
+    public void GlslOnlyFormsAreRewrittenForGodot()
+    {
+        const string fs = """
+            #define SHADER_TYPE 2
+            mat4 Turn(float a)
+            {
+                return mat4(cos(a), sin(a), 0.0, 0.0, -sin(a), cos(a), 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+            }
+            void main()
+            {
+                int n;
+                float f = 0.0;
+                vec4 v4 = vec4(1.0);
+                vec3 v3 = vec3(v4);
+                const vec3 k = vec3(vec4(2.0));
+                for (n = 1; n < 4; n++) f += float(n);
+                gl_FragColor = Turn(f) * vec4(1.0);
+            }
+            """;
+        var t = With(("ow_forms", fs)).Translate("vslit", "ow_forms");
+        Assert.True(t.Ok, t.Reason);
+        Assert.Contains("mat4(vec4(cos(a), sin(a), 0.0, 0.0), vec4(", t.Code);
+        Assert.Contains("vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))", t.Code);
+        Assert.Contains("n = 1;", t.Code);
+        // GLSL's vec3 of a vec4 keeps its first components; a constant's initializer is left as written.
+        Assert.Contains("vec3 v3 = ow_vec3(v4);", t.Code);
+        Assert.Contains("vec3 ow_vec3(vec4 v) { return v.xyz; }", t.Code);
+        Assert.Contains("const vec3 k = vec3(vec4(2.0));", t.Code);
+        Assert.Contains("for(int ow_for0 = 0; n < 4; n++)", t.Code.Replace("for (", "for("));
+    }
+
+    [Fact]
+    public void SingleChannelDdsTexturesDecodeAsGrey()
+    {
+        // A 4x4 BC4 ("ATI1") texture: endpoints 255 and 0, the first pixel index 0 (255), the second index 1 (0),
+        // the third index 2 (between, 6/7 of the way to the first endpoint).
+        var dds = new byte[128 + 8];
+        "DDS "u8.CopyTo(dds);
+        BitConverter.GetBytes(124).CopyTo(dds, 4);
+        BitConverter.GetBytes(4).CopyTo(dds, 12);
+        BitConverter.GetBytes(4).CopyTo(dds, 16);
+        BitConverter.GetBytes(1).CopyTo(dds, 28);
+        BitConverter.GetBytes(4).CopyTo(dds, 80);
+        "ATI1"u8.CopyTo(dds.AsSpan(84));
+        dds[128] = 255;
+        dds[129] = 0;
+        dds[130] = 0b10_001_000;
+        var t = OpenWinter.Aurora.Textures.TextureDecoder.DecodeDds(dds);
+        Assert.NotNull(t);
+        Assert.Equal((4, 4), (t!.Width, t.Height));
+        Assert.Equal(new byte[] { 255, 255, 255, 255, 0, 0, 0, 255 }, t.Data.Take(8));
+        Assert.Equal(255 * 6 / 7, t.Data[8]);
+        // The same block behind the extended (DX10) header, as DXGI_FORMAT_BC4_UNORM.
+        var dx10 = new byte[148 + 8];
+        dds.AsSpan(0, 128).CopyTo(dx10);
+        "DX10"u8.CopyTo(dx10.AsSpan(84));
+        BitConverter.GetBytes(80).CopyTo(dx10, 128);
+        dds.AsSpan(128, 8).CopyTo(dx10.AsSpan(148));
+        Assert.Equal(t.Data, OpenWinter.Aurora.Textures.TextureDecoder.DecodeDds(dx10)!.Data);
+    }
 }

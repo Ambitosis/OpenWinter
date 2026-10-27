@@ -32,6 +32,8 @@ public sealed class MaterialFactory
             if (moduleShaders && Shaders.For(mesh, mtr, texName, kind) is { } custom) return custom;
             if (mtr.Textures[0].Length > 0) texName = mtr.Textures[0];
         }
+        // The original's water, when the module replaces the water program.
+        if (moduleShaders && Shaders is { ModuleWater: true } && Shaders.Water(mesh, texName, kind) is { } water) return water;
         bool translucent = mesh.Alpha < 0.99f;
         // Surfaces get only the highlights their model asks for (its specular colour), as in the original: the
         // renderer's default dielectric specular brightened sunlit ground by about a seventh (parity/visual, scene
@@ -89,6 +91,11 @@ public sealed class MaterialFactory
             // compositor. A late alpha-pass depth write alone lets heard-only halos cross walls.
             m.Transparency = BaseMaterial3D.TransparencyEnum.AlphaDepthPrePass;
             m.DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Always;
+            // A module's post-process pass that reads depth sees what is behind a translucent surface's clear parts
+            // (tree leaves), as in the original (scene postfx): only the solid texels' prepass depth is kept. Water
+            // keeps writing its surface's depth (scene waterfx).
+            if (Shaders is { PostProcessReadsDepth: true } && tex?.Info.Procedure != "arturo")
+                m.DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.OpaqueOnly;
         }
         _cache[key] = m;
         return m;

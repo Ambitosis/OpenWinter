@@ -70,6 +70,69 @@ public sealed class ModuleShaders
         }
     }
 
+    (ShaderMaterial? Material, bool Done) _post;
+
+    /// <summary>
+    /// The module's replacement for the post-process pass (fsfbpostpr, with vsfbpostpr from the module or the
+    /// installed game), drawn over the finished 3D view; null when the module has none (the view is shown as it is)
+    /// or it can't be used.
+    /// </summary>
+    public ShaderMaterial? PostProcess()
+    {
+        if (!Enabled) return null;
+        if (_post.Done) return _post.Material;
+        _post.Done = true;
+        if (_translator.ModuleSource("fsfbpostpr") == null && _translator.ModuleSource("vsfbpostpr") == null) return null;
+        try
+        {
+            var (shader, translation) = Compile("vsfbpostpr", "fsfbpostpr", new ShaderOptions { PostProcess = true }, "the post-process pass");
+            if (shader == null) return null;
+            var m = new ShaderMaterial { Shader = shader };
+            m.SetMeta("ow_reads_depth", translation.ReadsDepth);
+            _post.Material = m;
+        }
+        catch (Exception e)
+        {
+            Log("fsfbpostpr", $"the post-process pass: not used ({e.GetType().Name}: {e.Message})");
+        }
+        return _post.Material;
+    }
+
+    bool? _water, _postDepth;
+
+    /// <summary>
+    /// Whether the module's post-process pass reads depth: translucent world surfaces then write depth only where
+    /// they are solid, as in the original (scene postfx: depth over a tree's clear leaf areas is what is behind).
+    /// </summary>
+    public bool PostProcessReadsDepth => _postDepth ??= Enabled && (_translator.ModuleSource("fsfbpostpr") != null || _translator.ModuleSource("vsfbpostpr") != null)
+        && _translator.Translate("vsfbpostpr", "fsfbpostpr", new ShaderOptions { PostProcess = true }) is { Ok: true, ReadsDepth: true };
+
+    /// <summary>Whether the module replaces the water program (fswater or vswater).</summary>
+    public bool ModuleWater => _water ??= _translator.ModuleSource("fswater") != null || _translator.ModuleSource("vswater") != null;
+
+    /// <summary>
+    /// The water material for a mesh whose texture is the original's water (TXI proceduretype arturo), when the
+    /// module replaces the water program: vswater and fswater, the module's or the installed game's. Null keeps the
+    /// mesh's normal material (no replacement, or it can't be used).
+    /// </summary>
+    public ShaderMaterial? Water(MeshData mesh, string texture, MaterialKind kind)
+    {
+        if (!Enabled || !ModuleWater || texture.Length == 0) return null;
+        var tex = _textures.Get(texture);
+        if (tex == null || tex.Info.Procedure != "arturo") return null;
+        var mtr = new MaterialData { Name = "water:" + texture, VertexShader = "vswater", FragmentShader = "fswater" };
+        mtr.Textures[0] = texture;
+        try
+        {
+            return Build(mesh, mtr, texture, kind, null);
+        }
+        catch (Exception e)
+        {
+            Log("water", $"water ({texture}): not used ({e.GetType().Name}: {e.Message}); the mesh keeps its normal material");
+            return null;
+        }
+    }
+
     /// <summary>The sky's version of a module shader material: unfogged, behind everything, both sides.</summary>
     public ShaderMaterial? Sky(ShaderMaterial material)
     {
@@ -93,6 +156,9 @@ public sealed class ModuleShaders
         var tex = _textures.Get(main);
         var options = overrides ?? Options(mesh, mtr, tex, kind, out _);
         Options(mesh, mtr, tex, kind, out float discard);
+        // Water builds its colour from the view behind it (refraction, reflection): that colour is already lit.
+        // The original's water writes its surface's depth (scene waterfx: a post-process pass reads the surface).
+        if (mtr.FragmentShader == "fswater") options = options with { Emissive = true, Transparent = true, DepthDrawAlways = true };
         string vs = mtr.VertexShader.Length > 0 ? mtr.VertexShader : mtr.RenderHint.Contains("Normal", StringComparison.OrdinalIgnoreCase) ? "vslit_nm" : "vslit";
         string fs = mtr.FragmentShader.Length > 0 ? mtr.FragmentShader : mtr.RenderHint.Contains("Normal", StringComparison.OrdinalIgnoreCase) ? "fslit_nm" : "fslit";
         string key = $"{mtr.Name}|{texture}|{kind}|{mesh.Alpha}|{mesh.SelfIllumination}|{options}";
@@ -122,10 +188,19 @@ public sealed class ModuleShaders
             Set("m_texture", new Projection(new Vector4(1, 0, 0, 0), new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 1)));
             m.SetMeta("ow_uv_flip", true);
         }
-        if (tex != null && tex.Info.EnvironmentMap.Length > 0 && _textures.Get(tex.Info.EnvironmentMap) is { } env)
+        // Water's environment map is its texture's bumpyshinytexture; other materials keep only envmaptexture.
+        string bumpyShiny = mtr.FragmentShader == "fswater" ? tex?.Info.BumpyShiny ?? "" : "";
+        if (tex != null && (tex.Info.EnvironmentMap.Length > 0 ? tex.Info.EnvironmentMap : bumpyShiny) is { Length: > 0 } envName
+            && _textures.Get(envName) is { } env)
         {
             Set("texUnitEnv", env.Texture);
             Set("texEnvBound", 1);
+        }
+        // The noise texture the engine gives shaders (water waves): the game's own solid_noise.
+        if (parameters.ContainsKey("texUnitNoise") && _textures.Get(NoiseTexture) is { } noise)
+        {
+            Set("texUnitNoise", noise.Texture);
+            Set("texNoiseBound", 1);
         }
         Set("materialFrontDiffuse", new Vector4(1, 1, 1, Math.Clamp(mesh.Alpha, 0f, 1f)));
         Set("fAlphaDiscardValue", discard);
@@ -197,9 +272,12 @@ public sealed class ModuleShaders
 	}
 """;
 
+    /// <summary>The game texture bound as texUnitNoise.</summary>
+    public const string NoiseTexture = "solid_noise";
+
     (Shader?, ShaderTranslation) Compile(string vs, string fs, ShaderOptions options, string material)
     {
-        string key = $"{vs}|{fs}|{options.Transparent}|{options.Additive}|{options.CullDisabled}|{options.DepthDrawAlways}|{options.DepthDrawNever}|{options.FogDisabled}";
+        string key = $"{vs}|{fs}|{options.Transparent}|{options.Additive}|{options.CullDisabled}|{options.DepthDrawAlways}|{options.DepthDrawNever}|{options.FogDisabled}|{options.PostProcess}|{options.Emissive}";
         if (_shaders.TryGetValue(key, out var done)) return done;
         string program = $"{vs} + {fs}";
         var translation = new ShaderTranslation { VertexShader = vs, FragmentShader = fs };

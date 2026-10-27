@@ -35,7 +35,7 @@ public sealed class AreaStateSync : IWorldSystem
             output.Notify("weather", area, WeatherSystem.Data(area, env), pc);
             output.Notify("area-fog", area, new { sun = env.SunFog, moon = env.MoonFog }, pc);
             output.Notify("area-skybox", area, new { skybox = env.SkyBox }, pc);
-            output.Notify("area-wind", area, new { direction = SoundService.Vec(env.WindDirection), magnitude = env.WindMagnitude, yaw = env.WindYaw, pitch = env.WindPitch }, pc);
+            output.Notify("area-wind", area, new { direction = SoundService.Vec(env.WindDirection), magnitude = env.WindMagnitude, yaw = env.WindYaw, pitch = env.WindPitch, scripted = env.WindScripted }, pc);
             if (env.SunDirectionSet) output.Notify("area-light-direction", area, new { type = 1, direction = SoundService.Vec(env.SunDirection), fade = 0f }, pc);
             if (env.MoonDirectionSet) output.Notify("area-light-direction", area, new { type = 0, direction = SoundService.Vec(env.MoonDirection), fade = 0f }, pc);
             if (env.DefaultGrassDisabled) output.Notify("area-grass", area, new { defaultDisabled = true }, pc);

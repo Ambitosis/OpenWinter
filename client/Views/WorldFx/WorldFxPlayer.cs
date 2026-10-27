@@ -53,6 +53,7 @@ public partial class WorldFxPlayer : Node
         Beams = new BeamFx { Name = "Beams", Session = Session };
         Traps = new TrapFx { Name = "Traps", Session = Session };
         foreach (var n in new Node[] { Weather, Grass, Objects, Beams, Traps }) AddChild(n);
+        Rendering.Shaders.ShaderGlobals.Weather = () => (Weather.Current, Weather.Density);
         Session.AreaLoaded += OnAreaLoaded;
         Session.AreaLoading += OnLoading;
     }
@@ -146,6 +147,7 @@ public partial class WorldFxPlayer : Node
                 break;
             case "area-wind":
                 Grass.SetWind(J.V(d, "direction") ?? new Vector3(1, 1, 0), J.F(d, "magnitude"), J.F(d, "yaw"), J.F(d, "pitch"));
+                Rendering.Shaders.ShaderGlobals.SetWind(J.V(d, "direction") ?? new Vector3(1, 1, 0), J.F(d, "magnitude"), J.B(d, "scripted"));
                 break;
             case "area-recompute-lighting":
                 if (d.TryGetProperty("placeables", out var list) && list.ValueKind == JsonValueKind.Array)

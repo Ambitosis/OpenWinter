@@ -10,6 +10,7 @@ const TYPES = {
 	"vec3": RenderingServer.GLOBAL_VAR_TYPE_VEC3,
 	"vec4": RenderingServer.GLOBAL_VAR_TYPE_VEC4,
 	"ivec2": RenderingServer.GLOBAL_VAR_TYPE_IVEC2,
+	"mat4": RenderingServer.GLOBAL_VAR_TYPE_MAT4,
 }
 
 const DEFAULTS = {
@@ -19,6 +20,7 @@ const DEFAULTS = {
 	"vec3": Vector3.ZERO,
 	"vec4": Vector4.ZERO,
 	"ivec2": Vector2i.ZERO,
+	"mat4": Projection.IDENTITY,
 }
 
 func _initialize():

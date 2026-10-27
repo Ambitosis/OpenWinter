@@ -17,6 +17,16 @@ public sealed record ShaderOptions
     public string Declarations { get; init; } = "";
     /// <summary>Code run at the end of the fragment stage, after ALBEDO (and ALPHA) are set.</summary>
     public string FragmentEnd { get; init; } = "";
+    /// <summary>
+    /// The full-screen post-process pass (fsfbpostpr): a canvas item drawn over the finished 3D view, whose colour
+    /// is the picture shown (no lighting or fog), reading the view's colour and depth.
+    /// </summary>
+    public bool PostProcess { get; init; }
+    /// <summary>
+    /// The surface's colour is already lit (it is built from the view behind it, as water's refraction and
+    /// reflection are): it is emitted rather than lit again, and the renderer adds only highlights and fog.
+    /// </summary>
+    public bool Emissive { get; init; }
 }
 
 /// <summary>A material parameter of a translated shader (set by the client from the mesh, its texture and its MTR).</summary>
@@ -39,6 +49,8 @@ public sealed class ShaderTranslation
     public bool Lit;
     public bool Fog;
     public bool Keyholing;
+    /// <summary>Reads the colour or depth of what was drawn before it (texFBColor, texFBDepth).</summary>
+    public bool ReadsColor, ReadsDepth;
     public string Reason => string.Join("; ", Problems);
 }
 
@@ -277,6 +289,9 @@ public sealed class ShaderTranslator
                 unit.AddOverrides(pp);
                 unit.SetsMaterial = tokens.Any(x => x.Text is "fSpecularity" or "fRoughness" or "fMetallicness" or "SpecularColor"
                     && x.File.Length > 0 && !t.IsInstalled(x.File));
+                // The installed library's own placement is the standard transform; a module's is used as written.
+                unit.WritesPosition = stage == 1 && tokens.Any(x => x.Text == "gl_Position" && x.File.Length > 0 && !t.IsInstalled(x.File));
+                unit.WritesDepth = stage == 2 && tokens.Any(x => x.Text == "gl_FragDepth" && x.File.Length > 0 && !t.IsInstalled(x.File));
                 if (unit.Functions.Count > MaxFunctions) throw new TranslationException($"more than {MaxFunctions} functions");
             }
             catch (TranslationException e)
@@ -456,6 +471,8 @@ public sealed class ShaderTranslator
 
         /// <summary>Whether code outside the installed game sets the surface's material values (so it wants highlights).</summary>
         public bool SetsMaterial;
+        /// <summary>Whether code outside the installed game sets gl_Position (vertex) or gl_FragDepth (fragment).</summary>
+        public bool WritesPosition, WritesDepth;
 
         public static List<List<Tok>> Split(List<Tok> tokens, string separator)
         {
@@ -536,6 +553,7 @@ public sealed class ShaderTranslator
             result.Lit = fs.Switch("LIGHTING") == 1;
             result.Fog = fs.Switch("FOG") == 1 && !options.FogDisabled;
             result.Keyholing = fs.Switch("KEYHOLING") == 1;
+            if (options.PostProcess) result.Lit = result.Fog = result.Keyholing = false;
             foreach (var u in vs.Uniforms.Concat(fs.Uniforms)) AddUniform(u);
             foreach (var unit in new[] { vs, fs })
                 foreach (var v in unit.State.Where(s => s.Storage == "varying"))
@@ -557,7 +575,12 @@ public sealed class ShaderTranslator
 
             var b = new StringBuilder();
             b.Append("// Translated by OpenWinter from ").Append(vs.Name).Append(" and ").Append(fs.Name).Append(".\n");
-            b.Append("shader_type spatial;\n");
+            if (options.PostProcess)
+            {
+                b.Append("shader_type canvas_item;\n");
+                b.Append("render_mode unshaded, blend_disabled;\n\n");
+            }
+            else b.Append("shader_type spatial;\n");
             var modes = new List<string> { "skip_vertex_transform" };
             modes.Add(options.Additive ? "blend_add" : "blend_mix");
             modes.Add(options.DepthDrawNever ? "depth_draw_never" : options.DepthDrawAlways ? "depth_draw_always" : "depth_draw_opaque");
@@ -567,7 +590,7 @@ public sealed class ShaderTranslator
             if (result.Lit) { modes.Add("diffuse_lambert"); modes.Add(fs.SetsMaterial ? "specular_schlick_ggx" : "specular_disabled"); }
             else modes.Add("unshaded");
             if (!result.Fog) modes.Add("fog_disabled");
-            b.Append("render_mode ").Append(string.Join(", ", modes)).Append(";\n\n");
+            if (!options.PostProcess) b.Append("render_mode ").Append(string.Join(", ", modes)).Append(";\n\n");
             b.Append("uniform float ow_ok;\n");
             b.Append("uniform vec3 ow_self_illumination = vec3(0.0);\n");
             var structs = new HashSet<string>(StringComparer.Ordinal);
@@ -598,8 +621,50 @@ public sealed class ShaderTranslator
             }
             foreach (var (name, (type, array, interpolation)) in _varyings.Where(v => _used.Contains(v.Key)))
                 b.Append("varying ").Append(interpolation.Length > 0 ? interpolation + " " : "").Append(type).Append(" ow_v_").Append(name).Append(array).Append(";\n");
+            if (options.PostProcess)
+                foreach (var g in new[] { EngineNames.PostView, EngineNames.PostViewInv, EngineNames.PostProj, EngineNames.PostProjInv, EngineNames.PostSize })
+                {
+                    b.Append("global uniform ").Append(EngineNames.Find(g)!.Type).Append(' ').Append(g).Append(";\n");
+                    result.Globals.Add(g);
+                }
+            if (result.ReadsColor || result.ReadsDepth) b.Append('\n').Append(FramebufferCode(options.PostProcess, result.ReadsColor, result.ReadsDepth));
             if (options.Declarations.Length > 0) b.Append('\n').Append(options.Declarations).Append('\n');
+            if (VectorCasts) b.Append('\n').Append(VectorCastCode);
             b.Append('\n').Append(vsCode).Append('\n').Append(fsCode);
+            return b.ToString();
+        }
+
+        /// <summary>
+        /// texFBColor and texFBDepth: what was drawn before (the opaque scene for a surface, the finished view for
+        /// the post-process pass), read at GL screen coordinates (origin at the bottom left). Colour is
+        /// gamma-encoded as the original's framebuffer holds it; depth is GL's (0 at the near plane, 1 at the far
+        /// one), which for the same planes is one minus Godot's reversed depth.
+        /// </summary>
+        static string FramebufferCode(bool post, bool color, bool depth)
+        {
+            var b = new StringBuilder();
+            if (color)
+            {
+                b.Append("uniform sampler2D ow_fb_color_tex : hint_screen_texture, filter_linear, repeat_disable;\n");
+                b.Append("vec4 ow_fb_color(vec2 uv) {\n");
+                b.Append("\tvec4 c = textureLod(ow_fb_color_tex, vec2(uv.x, 1.0 - uv.y), 0.0);\n");
+                if (post) b.Append("\treturn vec4(c.rgb, 1.0);\n");
+                else
+                {
+                    // The 3D view holds linear colour: encode it as the shader's own colours are (sRGB, undone on output).
+                    b.Append("\tvec3 l = clamp(c.rgb, vec3(0.0), vec3(1.0));\n");
+                    b.Append("\treturn vec4(mix(1.055 * pow(l, vec3(1.0 / 2.4)) - 0.055, l * 12.92, lessThan(l, vec3(0.0031308))), 1.0);\n");
+                }
+                b.Append("}\n");
+                b.Append("vec4 ow_fb_color(vec2 uv, float bias) { return ow_fb_color(uv); }\n");
+            }
+            if (depth)
+            {
+                b.Append(post ? "uniform sampler2D ow_fb_depth_tex : filter_nearest, repeat_disable;\n"
+                    : "uniform sampler2D ow_fb_depth_tex : hint_depth_texture, filter_nearest, repeat_disable;\n");
+                b.Append("vec4 ow_fb_depth(vec2 uv) { return vec4(1.0 - textureLod(ow_fb_depth_tex, vec2(uv.x, 1.0 - uv.y), 0.0).r); }\n");
+                b.Append("vec4 ow_fb_depth(vec2 uv, float bias) { return ow_fb_depth(uv); }\n");
+            }
             return b.ToString();
         }
 
@@ -622,6 +687,36 @@ public sealed class ShaderTranslator
             return true;
         }
         public bool IsTopLevel(string name) => _topLevel.Contains(name);
+        /// <summary>The code uses ow_vec2 / ow_vec3 (GLSL's one-argument vector constructors).</summary>
+        public bool VectorCasts;
+
+        const string VectorCastCode = """
+            vec2 ow_vec2(float v) { return vec2(v); }
+            vec2 ow_vec2(int v) { return vec2(float(v)); }
+            vec2 ow_vec2(bool v) { return vec2(v ? 1.0 : 0.0); }
+            vec2 ow_vec2(vec2 v) { return v; }
+            vec2 ow_vec2(vec3 v) { return v.xy; }
+            vec2 ow_vec2(vec4 v) { return v.xy; }
+            vec2 ow_vec2(ivec2 v) { return vec2(v); }
+            vec2 ow_vec2(ivec3 v) { return vec2(v.xy); }
+            vec2 ow_vec2(ivec4 v) { return vec2(v.xy); }
+            vec2 ow_vec2(uint v) { return vec2(float(v)); }
+            vec2 ow_vec2(uvec2 v) { return vec2(v); }
+            vec2 ow_vec2(bvec2 v) { return vec2(v); }
+            vec3 ow_vec3(float v) { return vec3(v); }
+            vec3 ow_vec3(int v) { return vec3(float(v)); }
+            vec3 ow_vec3(bool v) { return vec3(v ? 1.0 : 0.0); }
+            vec3 ow_vec3(vec3 v) { return v; }
+            vec3 ow_vec3(vec4 v) { return v.xyz; }
+            vec3 ow_vec3(ivec3 v) { return vec3(v); }
+            vec3 ow_vec3(ivec4 v) { return vec3(v.xyz); }
+            vec3 ow_vec3(uint v) { return vec3(float(v)); }
+            vec3 ow_vec3(uvec3 v) { return vec3(v); }
+            vec3 ow_vec3(uvec4 v) { return vec3(v.xyz); }
+            vec3 ow_vec3(bvec3 v) { return vec3(v); }
+            vec3 ow_vec3(bvec4 v) { return vec3(v.xyz); }
+
+            """;
         public IReadOnlyDictionary<string, (string Type, string Array, string Interpolation)> Varyings => _varyings;
         /// <summary>The varyings passed from the vertex to the fragment stage.</summary>
         public IEnumerable<KeyValuePair<string, (string Type, string Array, string Interpolation)>> Passed => _varyings.Where(v => _used.Contains(v.Key));
@@ -683,12 +778,13 @@ public sealed class ShaderTranslator
             {
                 if (EngineNames.Find(name) is { Source: EngineSource.Builtin } e)
                 {
-                    string? expr = unit.Stage == 1 ? e.Vertex : e.Fragment;
+                    string? expr = options.PostProcess ? EngineNames.PostProcessBuiltin(name, unit.Stage) : unit.Stage == 1 ? e.Vertex : e.Fragment;
                     if (expr != null) stage.Append("\tow.").Append(name).Append(" = ").Append(expr).Append(";\n");
                     else result.Notes.Add($"{unit.Name}: {name} is not available in this stage");
                 }
             }
-            if (unit.Stage == 1)
+            if (unit.Stage == 1 && options.PostProcess) { }
+            else if (unit.Stage == 1)
             {
                 // What the standard transform would give, for shaders that set only some of it.
                 if (_fields.ContainsKey("vPosView")) stage.Append("\tow.vPosView = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;\n");
@@ -700,18 +796,31 @@ public sealed class ShaderTranslator
                 foreach (var (name, _) in emitter.Varyings)
                     if (_fields.ContainsKey(name)) stage.Append("\tow.").Append(name).Append(" = ow_v_").Append(name).Append(";\n");
                 if (_fields.ContainsKey("gl_FragColor")) stage.Append("\tow.gl_FragColor = vec4(1.0);\n");
+                if (_fields.ContainsKey("gl_FragDepth")) stage.Append(options.PostProcess ? "\tow.gl_FragDepth = 0.0;\n" : "\tow.gl_FragDepth = 1.0 - FRAGCOORD.z;\n");
             }
             stage.Append(inits);
             stage.Append('\t').Append(unit.Prefix).Append("main(ow);\n");
             if (unit.Stage == 1)
             {
-                stage.Append(_fields.ContainsKey("vPosView") ? "\tVERTEX = ow.vPosView;\n" : "\tVERTEX = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;\n");
-                stage.Append(_fields.ContainsKey("vVertexNormal") ? "\tNORMAL = normalize(ow.vVertexNormal);\n" : "\tNORMAL = normalize(MODELVIEW_NORMAL_MATRIX * NORMAL);\n");
+                // The post-process quad covers the screen whatever the shader places it at.
+                if (!options.PostProcess)
+                {
+                    stage.Append(_fields.ContainsKey("vPosView") ? "\tVERTEX = ow.vPosView;\n" : "\tVERTEX = (MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;\n");
+                    stage.Append(_fields.ContainsKey("vVertexNormal") ? "\tNORMAL = normalize(ow.vVertexNormal);\n" : "\tNORMAL = normalize(MODELVIEW_NORMAL_MATRIX * NORMAL);\n");
+                    // A module's own placement (gl_Position, in GL's clip space) is used as written.
+                    if (unit.WritesPosition && _fields.ContainsKey("gl_Position"))
+                        stage.Append("\tPOSITION = ").Append(EngineNames.GodotFromGlClip).Append(" * ow.gl_Position;\n");
+                }
                 foreach (var (name, (type, array, _)) in emitter.Passed)
                 {
                     if (_fields.ContainsKey(name)) stage.Append("\tow_v_").Append(name).Append(" = ow.").Append(name).Append(";\n");
                     else if (array.Length == 0 && Zero(type) is { } zero) stage.Append("\tow_v_").Append(name).Append(" = ").Append(zero).Append(";\n");
                 }
+            }
+            else if (options.PostProcess)
+            {
+                // The colour is the picture shown, gamma-encoded like the view it was read from.
+                stage.Append(_fields.ContainsKey("gl_FragColor") ? "\tCOLOR = vec4(clamp(ow.gl_FragColor.rgb, vec3(0.0), vec3(1.0)), 1.0);\n" : "\tCOLOR = vec4(1.0);\n");
             }
             else
             {
@@ -726,9 +835,11 @@ public sealed class ShaderTranslator
                     // The surface's reflectance at normal incidence: Godot's SPECULAR 0.5 is 4%.
                     if (unit.SetsMaterial && _fields.ContainsKey("fSpecularity")) stage.Append("\tSPECULAR = sqrt(clamp(ow.fSpecularity / 0.16, 0.0, 1.0));\n");
                     if (_fields.ContainsKey("fMetallicness")) stage.Append("\tMETALLIC = clamp(ow.fMetallicness, 0.0, 1.0);\n");
-                    stage.Append("\tEMISSION = ALBEDO * ow_self_illumination;\n");
+                    if (options.Emissive) stage.Append("\tEMISSION = ALBEDO;\n\tALBEDO = vec3(0.0);\n");
+                    else stage.Append("\tEMISSION = ALBEDO * ow_self_illumination;\n");
                 }
                 if (options.Transparent || options.Additive) stage.Append("\tALPHA = clamp(ow_color.a, 0.0, 1.0);\n");
+                if (unit.WritesDepth && _fields.ContainsKey("gl_FragDepth")) stage.Append("\tDEPTH = 1.0 - clamp(ow.gl_FragDepth, 0.0, 1.0);\n");
                 if (options.FragmentEnd.Length > 0) stage.Append(options.FragmentEnd).Append('\n');
             }
             stage.Append("}\n");
@@ -880,6 +991,15 @@ public sealed class ShaderTranslator
                     i = close;
                     continue;
                 }
+                // texture2D(texFBColor, uv) and the like read what was drawn before (see FramebufferCode).
+                if (next == "(" && i + 3 < body.Count && body[i + 3].Text == "," && FramebufferRead(t.Text, body[i + 2].Text) is { } read)
+                {
+                    output.Add(t with { Text = read });
+                    output.Add(new Tok("(", Kind.Punct));
+                    paren++;
+                    i += 3;
+                    continue;
+                }
                 if (_consts.Contains(t.Text)) { output.Add(t with { Text = unit.Prefix + t.Text }); continue; }
                 if (emitter.UseUniform(t.Text)) { output.Add(t with { Text = Emitter.UniformName(t.Text) }); continue; }
                 if (BuiltinRenames.TryGetValue(t.Text, out var renamed)) { output.Add(t with { Text = renamed }); continue; }
@@ -887,7 +1007,153 @@ public sealed class ShaderTranslator
                     throw new TranslationException($"{unit.Name}: {t.Text} is not supported");
                 output.Add(t);
             }
-            return output;
+            return ForInitializers(VectorCasts(MatrixColumns(output)));
+        }
+
+        /// <summary>
+        /// A for loop whose first clause isn't a declaration (for (n = 1; ...), for (; ...)) runs that clause before
+        /// the loop and declares a counter it doesn't use instead: Godot's for loops start with a declaration.
+        /// </summary>
+        List<Tok> ForInitializers(List<Tok> tokens)
+        {
+            for (int i = 0; i + 1 < tokens.Count; i++)
+            {
+                if (tokens[i].Text != "for" || tokens[i + 1].Text != "(") continue;
+                int semi = -1, depth = 0;
+                for (int j = i + 2; j < tokens.Count; j++)
+                {
+                    if (tokens[j].Text is "(" or "[") depth++;
+                    else if (tokens[j].Text is ")" or "]") depth--;
+                    else if (depth == 0 && tokens[j].Text == ";") { semi = j; break; }
+                }
+                if (semi < 0 || (semi > i + 2 && IsType(tokens[i + 2].Text)) || (semi > i + 3 && tokens[i + 2].Text == "const")) continue;
+                int headerClose = Close(tokens, i + 1);
+                if (headerClose < 0) continue;
+                int end = headerClose + 1 < tokens.Count && tokens[headerClose + 1].Text == "{" ? Close(tokens, headerClose + 1) : StatementEnd(tokens, headerClose + 1);
+                if (end < 0) continue;
+                var init = tokens.GetRange(i + 2, semi - i - 2);
+                string counter = "ow_for" + _forCounters++;
+                var replaced = new List<Tok> { new("{", Kind.Punct) };
+                if (init.Count > 0) { replaced.AddRange(init); replaced.Add(new Tok(";", Kind.Punct)); }
+                replaced.Add(tokens[i]);
+                replaced.Add(tokens[i + 1]);
+                replaced.AddRange([new Tok("int", Kind.Ident), new Tok(counter, Kind.Ident), new Tok("=", Kind.Punct), new Tok("0", Kind.Number)]);
+                replaced.AddRange(tokens.GetRange(semi, end - semi + 1));
+                replaced.Add(new Tok("}", Kind.Punct));
+                tokens.RemoveRange(i, end - i + 1);
+                tokens.InsertRange(i, replaced);
+                i += init.Count + 2;
+            }
+            return tokens;
+        }
+
+        int _forCounters;
+
+        /// <summary>Whether the token at <paramref name="at"/> is in a statement declaring a constant.</summary>
+        static bool InConstStatement(List<Tok> tokens, int at)
+        {
+            for (int i = at - 1; i >= 0; i--)
+            {
+                if (tokens[i].Text is ";" or "{" or "}") return false;
+                if (tokens[i].Text == "const") return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// vec2(x) and vec3(x) of one value become ow_vec2 / ow_vec3, which also take a longer vector and keep its
+        /// first components, as GLSL's constructors do (Godot's don't).
+        /// </summary>
+        List<Tok> VectorCasts(List<Tok> tokens)
+        {
+            for (int i = 0; i + 1 < tokens.Count; i++)
+            {
+                if (tokens[i].Text is not ("vec2" or "vec3") || tokens[i + 1].Text != "(" || (i > 0 && tokens[i - 1].Text == ".")) continue;
+                int close = Close(tokens, i + 1);
+                if (close < 0) break;
+                var inner = tokens.GetRange(i + 2, close - i - 2);
+                // A number (vec3(0.5)) needs no help.
+                if (Unit.Split(inner, ",").Count != 1 || inner.All(x => x.Kind == Kind.Number || x.Text is "-" or "+" or "*" or "/" or "(" or ")")) continue;
+                // A constant's initializer can't call a function: it is left as written.
+                if (InConstStatement(tokens, i)) continue;
+                tokens[i] = tokens[i] with { Text = "ow_" + tokens[i].Text };
+                emitter.VectorCasts = true;
+            }
+            return tokens;
+        }
+
+        static int Close(List<Tok> tokens, int open)
+        {
+            string o = tokens[open].Text, c = o switch { "(" => ")", "[" => "]", _ => "}" };
+            int depth = 0;
+            for (int i = open; i < tokens.Count; i++)
+            {
+                if (tokens[i].Text == o) depth++;
+                else if (tokens[i].Text == c && --depth == 0) return i;
+            }
+            return -1;
+        }
+
+        /// <summary>The index of the ';' ending the single statement starting at <paramref name="start"/>.</summary>
+        static int StatementEnd(List<Tok> tokens, int start)
+        {
+            int depth = 0;
+            for (int i = start; i < tokens.Count; i++)
+            {
+                if (tokens[i].Text is "(" or "[" or "{") depth++;
+                else if (tokens[i].Text is ")" or "]" or "}") { if (--depth < 0) return -1; if (depth == 0 && tokens[i].Text == "}") return i; }
+                else if (depth == 0 && tokens[i].Text == ";") return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// A matrix built from all its scalars (GLSL's mat4 of sixteen floats) is built from its columns: Godot's
+        /// constructors take columns or one scalar.
+        /// </summary>
+        static List<Tok> MatrixColumns(List<Tok> tokens)
+        {
+            for (int i = 0; i + 1 < tokens.Count; i++)
+            {
+                int n = tokens[i].Text switch { "mat2" => 2, "mat3" => 3, "mat4" => 4, _ => 0 };
+                if (n == 0 || tokens[i + 1].Text != "(") continue;
+                int depth = 0, close = -1;
+                for (int j = i + 1; j < tokens.Count; j++)
+                {
+                    if (tokens[j].Text is "(" or "[" or "{") depth++;
+                    else if (tokens[j].Text is ")" or "]" or "}" && --depth == 0) { close = j; break; }
+                }
+                if (close < 0) break;
+                var args = Unit.Split(tokens.GetRange(i + 2, close - i - 2), ",");
+                if (args.Count != n * n) continue;
+                var columns = new List<Tok> { tokens[i], new Tok("(", Kind.Punct) };
+                for (int c = 0; c < n; c++)
+                {
+                    if (c > 0) columns.Add(new Tok(",", Kind.Punct));
+                    columns.Add(new Tok("vec" + n, Kind.Ident));
+                    columns.Add(new Tok("(", Kind.Punct));
+                    for (int r = 0; r < n; r++)
+                    {
+                        if (r > 0) columns.Add(new Tok(",", Kind.Punct));
+                        columns.AddRange(args[c * n + r]);
+                    }
+                    columns.Add(new Tok(")", Kind.Punct));
+                }
+                columns.Add(new Tok(")", Kind.Punct));
+                tokens.RemoveRange(i, close - i + 1);
+                tokens.InsertRange(i, columns);
+            }
+            return tokens;
+        }
+
+        /// <summary>The helper a texture read of the colour or depth framebuffer becomes, or null.</summary>
+        string? FramebufferRead(string function, string sampler)
+        {
+            if (function is not ("texture2D" or "texture" or "texture2DLod" or "textureLod" or "texture2DLodEXT")) return null;
+            if (sampler is not ("texFBColor" or "texFBDepth") || !unit.Uniforms.Any(u => u.Name == sampler)) return null;
+            if (sampler == "texFBColor") { result.ReadsColor = true; return "ow_fb_color"; }
+            result.ReadsDepth = true;
+            return "ow_fb_depth";
         }
 
         /// <summary>The state field a global name lives in, or null when it isn't one (adding the field on first use).</summary>
