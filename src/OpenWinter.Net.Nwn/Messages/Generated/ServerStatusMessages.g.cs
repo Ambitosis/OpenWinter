@@ -72,40 +72,40 @@ public static partial class ServerStatusMessages
         public void Read(NwnReader r)
         {
             PrimaryManifest = r.ReadString();
-            var n1703 = (int)r.ReadInteger(NwnWireType.Byte);
-            var count1707 = n1703;
-            var list1704 = new List<string>(Math.Max(0, count1707));
-            for (int i1705 = 0; i1705 < count1707; i1705++)
+            var n1709 = (int)r.ReadInteger(NwnWireType.Byte);
+            var count1713 = n1709;
+            var list1710 = new List<string>(Math.Max(0, count1713));
+            for (int i1711 = 0; i1711 < count1713; i1711++)
             {
-                string e1706;
-                e1706 = r.ReadString();
-                list1704.Add(e1706);
+                string e1712;
+                e1712 = r.ReadString();
+                list1710.Add(e1712);
             }
-            Urls = list1704;
-            var n1708 = (int)r.ReadInteger(NwnWireType.Byte);
-            var count1712 = n1708;
-            var list1709 = new List<ServerStatusMessages.NWSync.Manifest>(Math.Max(0, count1712));
-            for (int i1710 = 0; i1710 < count1712; i1710++)
+            Urls = list1710;
+            var n1714 = (int)r.ReadInteger(NwnWireType.Byte);
+            var count1718 = n1714;
+            var list1715 = new List<ServerStatusMessages.NWSync.Manifest>(Math.Max(0, count1718));
+            for (int i1716 = 0; i1716 < count1718; i1716++)
             {
-                ServerStatusMessages.NWSync.Manifest e1711;
-                e1711 = r.ReadStruct<ServerStatusMessages.NWSync.Manifest>();
-                list1709.Add(e1711);
+                ServerStatusMessages.NWSync.Manifest e1717;
+                e1717 = r.ReadStruct<ServerStatusMessages.NWSync.Manifest>();
+                list1715.Add(e1717);
             }
-            Manifests = list1709;
+            Manifests = list1715;
         }
 
         public void Write(NwnWriter w)
         {
             w.WriteString(PrimaryManifest);
             w.WriteInteger(NwnWireType.Byte, Urls.Count);
-            foreach (var e1713 in Urls)
+            foreach (var e1719 in Urls)
             {
-                w.WriteString(e1713);
+                w.WriteString(e1719);
             }
             w.WriteInteger(NwnWireType.Byte, Manifests.Count);
-            foreach (var e1714 in Manifests)
+            foreach (var e1720 in Manifests)
             {
-                w.WriteStruct(e1714);
+                w.WriteStruct(e1720);
             }
         }
 
@@ -163,33 +163,33 @@ public static partial class ServerStatusMessages
             else Nwsync = null;
             AltTlk = r.ReadString();
             ResourceName = r.ReadString();
-            var n1715 = (int)r.ReadInteger(NwnWireType.Byte);
-            var count1719 = n1715;
-            var list1716 = new List<string>(Math.Max(0, count1719));
-            for (int i1717 = 0; i1717 < count1719; i1717++)
+            var n1721 = (int)r.ReadInteger(NwnWireType.Byte);
+            var count1725 = n1721;
+            var list1722 = new List<string>(Math.Max(0, count1725));
+            for (int i1723 = 0; i1723 < count1725; i1723++)
             {
-                string e1718;
-                e1718 = r.ReadResRef();
-                list1716.Add(e1718);
+                string e1724;
+                e1724 = r.ReadResRef();
+                list1722.Add(e1724);
             }
-            Haks = list1716;
+            Haks = list1722;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteString(ModuleId);
-            var has1720 = NwnCond.Truthy(Nwsync);
-            w.WriteBool(has1720);
-            if (has1720)
+            var has1726 = NwnCond.Truthy(Nwsync);
+            w.WriteBool(has1726);
+            if (has1726)
             {
                 w.WriteStruct(Nwsync!);
             }
             w.WriteString(AltTlk);
             w.WriteString(ResourceName);
             w.WriteInteger(NwnWireType.Byte, Haks.Count);
-            foreach (var e1721 in Haks)
+            foreach (var e1727 in Haks)
             {
-                w.WriteResRef(e1721);
+                w.WriteResRef(e1727);
             }
         }
     }

@@ -47,7 +47,7 @@ public static class NwnNui
         string Str(string key) => d[key] is JsonValue v && v.TryGetValue<string>(out var s) ? s : "";
         string Json(string key) => d[key]?.ToJsonString() ?? "null";
         if (kind == "nui-bind")
-            return new NuiBinds { Binds = [new NuiBindEntry { Token = Int("token"), Bind = Str("bind"), Value = Json("value") }] };
+            return new NuiClientBinds { Binds = [new NuiClientBindEntry { Token = Int("token"), Bind = Str("bind"), Value = Json("value"), ArrayIndex = Int("index", -1) }] };
         return new NuiEvents
         {
             Events = [new NuiEventEntry { Token = Int("token"), Event = Str("type"), Element = Str("element"), ArrayIndex = Int("index", -1), Payload = Json("payload") }],

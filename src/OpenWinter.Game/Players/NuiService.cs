@@ -128,14 +128,17 @@ public sealed class NuiService : IWorldSystem
         if (w.Watched.Contains(bind)) RunEvent(w, "watch", bind, -1, null);
     }
 
-    /// <summary>A bind value changed on the client (user input). Fires "watch" if watched.</summary>
-    public void ClientSetBind(Creature player, int token, string bind, JsonNode? value)
+    /// <summary>
+    /// A bind value changed on the client (user input): the whole value, and the row whose element changed (-1 for
+    /// none), which a "watch" event, fired if watched, reports as its array index (visual scene nuibindindex).
+    /// </summary>
+    public void ClientSetBind(Creature player, int token, string bind, JsonNode? value, int arrayIndex = -1)
     {
         if (Get(player, token) is not { } w) return;
         w.Know(bind);
         bool changed = !Scripting.Functions.JsonExtraFunctions.Equal(w.Binds[bind], value);
         w.Binds[bind] = value?.DeepClone();
-        if (changed && w.Watched.Contains(bind)) RunEvent(w, "watch", bind, -1, null);
+        if (changed && w.Watched.Contains(bind)) RunEvent(w, "watch", bind, arrayIndex, null);
     }
 
     public bool SetWatch(Creature player, int token, string bind, bool watch)

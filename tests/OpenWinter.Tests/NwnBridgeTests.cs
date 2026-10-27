@@ -372,7 +372,31 @@ public class NwnBridgeTests
         Assert.Equal("0801000000" + "0803000000" + "0e05000000636c69636b" + "0e020000006f6b" + "08ffffffff" + "10040000006e756c6c",
             Convert.ToHexString(w.ToArray()).ToLowerInvariant());
         var edit = NwnNui.FromClient("nui-bind", """{"token":3,"bind":"name","value":"Ann"}""");
-        Assert.Equal("\"Ann\"", Assert.Single(Assert.IsType<NuiMessages.NuiBinds>(edit).Binds).Value);
+        Assert.Equal("\"Ann\"", Assert.Single(Assert.IsType<NuiMessages.NuiClientBinds>(edit).Binds).Value);
         Assert.Null(NwnNui.FromClient("area-ready", "{}"));
+    }
+
+    [Fact]
+    public void NuiBindEditsGoBackWithTheArrayIndexTheServerReads()
+    {
+        // Recorded edits the server took whole, with no desync, its watch event reporting the index sent
+        // (parity/suites/bridge_nui): a single value with -1, then an array with row 0.
+        string Encode(string json)
+        {
+            var w = new NwnWsWriter(new NwnSessionContext(_ => 0, (_, _, _) => ""));
+            NwnNui.FromClient("nui-bind", json)!.Write(w);
+            return Convert.ToHexString(w.ToArray());
+        }
+        Assert.Equal("0801000000" + "0801000000" + "0E040000006E616D65" + "1005000000226F6E6522" + "08FFFFFFFF",
+            Encode("""{"token":1,"bind":"name","value":"one"}"""));
+        Assert.Equal("0801000000" + "0801000000" + "0E04000000726F7773" + "100F0000005B22723261222C2262222C2263225D" + "0800000000",
+            Encode("""{"token":1,"bind":"rows","value":["r2a","b","c"],"index":0}"""));
+
+        // A recorded client frame decodes with its index; the server's own bind entries still end at the value.
+        var read = Decode("0801000000" + "0801000000" + "0E04000000726F7773" + "100600000022656C656D22" + "0801000000",
+            Assert.IsType<NuiMessages.NuiClientBinds>(NwnMessageRegistry.Create(0x37, 0x04, NwnDirection.ClientToServer)));
+        var entry = Assert.Single(((NuiMessages.NuiClientBinds)read).Binds);
+        Assert.Equal(("rows", "\"elem\"", 1), (entry.Bind, entry.Value, entry.ArrayIndex));
+        Assert.IsType<NuiMessages.NuiBinds>(NwnMessageRegistry.Create(0x37, 0x04, NwnDirection.ServerToClient));
     }
 }

@@ -95,30 +95,30 @@ public static partial class ResmanMessages
 
         public override void Read(NwnReader r)
         {
-            var n1643 = (int)r.ReadInteger(NwnWireType.Dword);
-            var count1647 = n1643;
-            var list1644 = new List<(uint, string)>(Math.Max(0, count1647));
-            for (int i1645 = 0; i1645 < count1647; i1645++)
+            var n1649 = (int)r.ReadInteger(NwnWireType.Dword);
+            var count1653 = n1649;
+            var list1650 = new List<(uint, string)>(Math.Max(0, count1653));
+            for (int i1651 = 0; i1651 < count1653; i1651++)
             {
-                (uint, string) e1646;
-                uint e1648;
-                e1648 = r.ReadDword();
-                string e1649;
-                e1649 = r.ReadString();
-                e1646 = (e1648, e1649);
-                list1644.Add(e1646);
+                (uint, string) e1652;
+                uint e1654;
+                e1654 = r.ReadDword();
+                string e1655;
+                e1655 = r.ReadString();
+                e1652 = (e1654, e1655);
+                list1650.Add(e1652);
             }
-            Overrides = list1644;
+            Overrides = list1650;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteInteger(NwnWireType.Dword, Overrides.Count);
-            foreach (var e1650 in Overrides)
+            foreach (var e1656 in Overrides)
             {
-                var tuple1651 = e1650;
-                w.WriteDword(tuple1651.Item1);
-                w.WriteString(tuple1651.Item2);
+                var tuple1657 = e1656;
+                w.WriteDword(tuple1657.Item1);
+                w.WriteString(tuple1657.Item2);
             }
         }
     }
@@ -186,24 +186,24 @@ public static partial class ResmanMessages
 
         public override void Read(NwnReader r)
         {
-            var n1652 = (int)r.ReadInteger(NwnWireType.Dword);
-            var count1656 = n1652;
-            var list1653 = new List<ResmanMessages.ResmanSaveResources.Resource>(Math.Max(0, count1656));
-            for (int i1654 = 0; i1654 < count1656; i1654++)
+            var n1658 = (int)r.ReadInteger(NwnWireType.Dword);
+            var count1662 = n1658;
+            var list1659 = new List<ResmanMessages.ResmanSaveResources.Resource>(Math.Max(0, count1662));
+            for (int i1660 = 0; i1660 < count1662; i1660++)
             {
-                ResmanMessages.ResmanSaveResources.Resource e1655;
-                e1655 = r.ReadStruct<ResmanMessages.ResmanSaveResources.Resource>();
-                list1653.Add(e1655);
+                ResmanMessages.ResmanSaveResources.Resource e1661;
+                e1661 = r.ReadStruct<ResmanMessages.ResmanSaveResources.Resource>();
+                list1659.Add(e1661);
             }
-            Resources = list1653;
+            Resources = list1659;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteInteger(NwnWireType.Dword, Resources.Count);
-            foreach (var e1657 in Resources)
+            foreach (var e1663 in Resources)
             {
-                w.WriteStruct(e1657);
+                w.WriteStruct(e1663);
             }
         }
 
@@ -253,7 +253,7 @@ public static partial class ResmanMessages
                 public void Read(NwnReader r)
                 {
                     Flags = r.ReadDword();
-                    var n1658 = (int)r.ReadInteger(NwnWireType.Dword);
+                    var n1664 = (int)r.ReadInteger(NwnWireType.Dword);
                     Data = r.ReadVoid();
                     if (NwnCond.Flag(Flags, 1L))
                     {
@@ -292,25 +292,25 @@ public static partial class ResmanMessages
         public override void Read(NwnReader r)
         {
             Opaque = r.ReadDword();
-            var n1659 = (int)r.ReadInteger(NwnWireType.Word);
-            var count1663 = n1659;
-            var list1660 = new List<byte>(Math.Max(0, count1663));
-            for (int i1661 = 0; i1661 < count1663; i1661++)
+            var n1665 = (int)r.ReadInteger(NwnWireType.Word);
+            var count1669 = n1665;
+            var list1666 = new List<byte>(Math.Max(0, count1669));
+            for (int i1667 = 0; i1667 < count1669; i1667++)
             {
-                byte e1662;
-                e1662 = r.ReadByte();
-                list1660.Add(e1662);
+                byte e1668;
+                e1668 = r.ReadByte();
+                list1666.Add(e1668);
             }
-            Resources = list1660;
+            Resources = list1666;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteDword(Opaque);
             w.WriteInteger(NwnWireType.Word, Resources.Count);
-            foreach (var e1664 in Resources)
+            foreach (var e1670 in Resources)
             {
-                w.WriteByte(e1664);
+                w.WriteByte(e1670);
             }
         }
     }

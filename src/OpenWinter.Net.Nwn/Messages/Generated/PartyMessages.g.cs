@@ -22,41 +22,6 @@ public static partial class PartyMessages
 
         public override void Read(NwnReader r)
         {
-            var n1610 = (int)r.ReadInteger(NwnWireType.Int);
-            var count1614 = n1610;
-            var list1611 = new List<uint>(Math.Max(0, count1614));
-            for (int i1612 = 0; i1612 < count1614; i1612++)
-            {
-                uint e1613;
-                e1613 = r.ReadObjectId();
-                list1611.Add(e1613);
-            }
-            Members = list1611;
-        }
-
-        public override void Write(NwnWriter w)
-        {
-            w.WriteInteger(NwnWireType.Int, Members.Count);
-            foreach (var e1615 in Members)
-            {
-                w.WriteObjectId(e1615);
-            }
-        }
-    }
-
-    public sealed partial class PartyListAdd : NwnMessage
-    {
-        public const byte MajorId = 0x0E;
-        public const byte MinorId = 0x03;
-        public override byte Major => MajorId;
-        public override byte Minor => MinorId;
-        public override NwnDirection Direction => NwnDirection.ServerToClient;
-
-        [NwnField("members")]
-        public List<uint> Members { get; set; } = new();
-
-        public override void Read(NwnReader r)
-        {
             var n1616 = (int)r.ReadInteger(NwnWireType.Int);
             var count1620 = n1616;
             var list1617 = new List<uint>(Math.Max(0, count1620));
@@ -79,10 +44,10 @@ public static partial class PartyMessages
         }
     }
 
-    public sealed partial class PartyListRemove : NwnMessage
+    public sealed partial class PartyListAdd : NwnMessage
     {
         public const byte MajorId = 0x0E;
-        public const byte MinorId = 0x04;
+        public const byte MinorId = 0x03;
         public override byte Major => MajorId;
         public override byte Minor => MinorId;
         public override NwnDirection Direction => NwnDirection.ServerToClient;
@@ -110,6 +75,41 @@ public static partial class PartyMessages
             foreach (var e1627 in Members)
             {
                 w.WriteObjectId(e1627);
+            }
+        }
+    }
+
+    public sealed partial class PartyListRemove : NwnMessage
+    {
+        public const byte MajorId = 0x0E;
+        public const byte MinorId = 0x04;
+        public override byte Major => MajorId;
+        public override byte Minor => MinorId;
+        public override NwnDirection Direction => NwnDirection.ServerToClient;
+
+        [NwnField("members")]
+        public List<uint> Members { get; set; } = new();
+
+        public override void Read(NwnReader r)
+        {
+            var n1628 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1632 = n1628;
+            var list1629 = new List<uint>(Math.Max(0, count1632));
+            for (int i1630 = 0; i1630 < count1632; i1630++)
+            {
+                uint e1631;
+                e1631 = r.ReadObjectId();
+                list1629.Add(e1631);
+            }
+            Members = list1629;
+        }
+
+        public override void Write(NwnWriter w)
+        {
+            w.WriteInteger(NwnWireType.Int, Members.Count);
+            foreach (var e1633 in Members)
+            {
+                w.WriteObjectId(e1633);
             }
         }
     }

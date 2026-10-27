@@ -158,10 +158,10 @@ static class BuiltinRequests
         r.World.System<NuiService>().HandleEvent(r.Player, r.Int("token"), r.Str("type"), r.Str("element"), r.Int("index", -1), payload);
     }
 
-    /// <summary>A NUI bind the player changed (text field, slider, check box): {token, bind, value}.</summary>
+    /// <summary>A NUI bind the player changed (text field, slider, check box): {token, bind, value, index}.</summary>
     [ClientRequest("nui-bind")]
     static void NuiBind(Request r) =>
-        r.World.System<NuiService>().ClientSetBind(r.Player, r.Int("token"), r.Str("bind"), r.Element("value") is { } v ? JsonNode.Parse(v.GetRawText()) : null);
+        r.World.System<NuiService>().ClientSetBind(r.Player, r.Int("token"), r.Str("bind"), r.Element("value") is { } v ? JsonNode.Parse(v.GetRawText()) : null, r.Int("index", -1));
 
     /// <summary>A built-in GUI event (GUIEVENT_*): {type, integer, object, vector}.</summary>
     [ClientRequest("gui-event")]

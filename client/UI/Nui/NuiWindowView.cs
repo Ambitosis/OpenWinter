@@ -61,7 +61,7 @@ public partial class NuiWindowView : Control
             Skin = manager.Skin,
             Window = this,
             Event = (type, element, index, payload) => manager.SendEvent(token, type, element, index, payload),
-            BindToServer = (bind, value) => manager.SendBind(token, bind, value),
+            BindToServer = (bind, value, index) => manager.SendBind(token, bind, value, index),
         };
         _windowBinds = NuiBinds.BindNames(Json, "root").ToHashSet(StringComparer.Ordinal);
         Binds.Changed += OnBindChanged;
