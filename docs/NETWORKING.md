@@ -180,7 +180,16 @@ Supported so far:
   ANIMATION_* constant (script animations, emotes, sitting, talking, conjuring and casting); a looping one plays
   until the server sends the next code, as it does when the script's time is up. A knockdown lays the creature
   down; placeables switch on and off, open and close, and doors and placeables show their destroyed state. The
-  client's emotes go to the server as the animation input, which plays them for everyone.
+  client's emotes go to the server as the animation input, which plays them for everyone. The looping custom
+  animations (ANIMATION_LOOPING_CUSTOM1-57) play the model's customN clips, a module's hak ones included
+  (customNstart, customNlp for the time asked, customNend); a model without CUSTOM3-11 clips plays the engine's own
+  casting, knockdown or sitting animation of that number. ReplaceObjectAnimation and ReplaceObjectTexture: an object
+  update carries the object's whole list of replacements, and the bridge passes on each change.
+- the camera (`NwnCamera`): SetCameraFacing (the direction comes in radians, the pitch in degrees from straight down,
+  the distance in metres, each only when the script gave it; the transition is the script's CAMERA_TRANSITION_TYPE_*,
+  and the camera turns at that many degrees a second), StoreCameraFacing and RestoreCameraFacing (the server also
+  sends these when cutscene mode begins and ends), SetCameraMode, SetCameraHeight, LockCameraPitch, LockCameraDistance
+  and LockCameraDirection, SetCameraLimits (pitch and distance), SetCameraFlags and AttachCamera.
 - spell projectiles fly when the server sends them, for the flight time it gives (spells.2da model, path and sound)
 - visual effects at a place, beams (lasting or instant), projectile-style effects, lasting effects on placeables
   and doors (with removal), areas of effect (vfx_persistent.2da), visual transforms and highlight colours

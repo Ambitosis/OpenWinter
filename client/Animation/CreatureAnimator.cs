@@ -373,10 +373,20 @@ public partial class CreatureAnimator : AnimationTree
     public void PlayAction(string clip, float duration = 0)
     {
         if (_dead) return;
-        clip = Resolve(clip);
+        string customEnd = _customEnd;
+        _customEnd = "";
+        if (TryCustomSequence(clip, duration)) return;
+        clip = Resolve(CustomFallback(clip));
         if (!HasClip(clip)) return;
         ResetCastSequence();
-        if (clip == Pick(_profile.Idle) || clip == _profile.CombatIdle) { StopAction(recoverSitting: true); StopGesture(); return; }
+        if (clip == Pick(_profile.Idle) || clip == _profile.CombatIdle)
+        {
+            // The idle ends a custom animation with its closing clip.
+            _customEnd = customEnd;
+            if (!EndCustomSequence()) StopAction(recoverSitting: true);
+            StopGesture();
+            return;
+        }
         if (TryCastSequence(clip, duration)) return;
         // A duration means a looping animation (the ANIMATION_LOOPING_* ones): it repeats until its time is up.
         if (duration > 0) _library.GetAnimation(clip).LoopMode = Godot.Animation.LoopModeEnum.Linear;
@@ -401,6 +411,7 @@ public partial class CreatureAnimator : AnimationTree
         if (recoverSitting && !_dead && _actionEnd > _clock && _actionClip.Animation == "sitcross"
             && _actionClip.PlayMode == AnimationNodeAnimation.PlayModeEnum.Backward) return;
         if (recoverSitting && TryStandFromSitting()) return;
+        _customEnd = "";
         ActionVersion++;
         ResetCastSequence();
         _actionEnd = 0;
@@ -432,7 +443,8 @@ public partial class CreatureAnimator : AnimationTree
         UpdateCastSequence();
         UpdateDrive((float)delta);
         _actionMoveGrace -= (float)delta;
-        if (_actionEnd > 0 && (_clock >= _actionEnd || GroundSpeed > 0.3f && _actionMoveGrace <= 0))
+        if (_actionEnd > 0 && (_clock >= _actionEnd || GroundSpeed > 0.3f && _actionMoveGrace <= 0)
+            && !(GroundSpeed <= 0.3f && EndCustomSequence()))
             StopAction(recoverSitting: GroundSpeed <= 0.3f);
         // StopAction fades out only a one-shot the graph is already playing. One fired in the same frame (a model
         // rebuilt as worn armour comes off at the end of the drop bend restores getlowlp with milliseconds left)

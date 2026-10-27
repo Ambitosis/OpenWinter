@@ -430,7 +430,8 @@ public class PlayerTests
         Call("PopUpGUIPanel", pc.Id, 3); // compass: not allowed
         Call("StartAudioStream", pc.Id, 1, "mus_test", 1, 0f, -1f, 1f);
         Assert.All(output.Notifies, n => Assert.Equal(pc.Id, n.Player));
-        Assert.Equal(new[] { "fade", "cutscene", "cutscene", "camera", "gui-panel", "audio-stream" }, output.Notifies.Select(n => n.Kind));
+        // Cutscene mode keeps the camera on the way in and puts it back on the way out (camanim scene).
+        Assert.Equal(new[] { "fade", "camera-store", "cutscene", "camera", "cutscene", "camera", "gui-panel", "audio-stream" }, output.Notifies.Select(n => n.Kind));
 
         Assert.Equal(8193, Call("GetPlayerBuildVersionMajor", pc.Id));
         Assert.Equal(-1, Call("GetPlayerDeviceProperty", pc.Id, "gui_scale"));

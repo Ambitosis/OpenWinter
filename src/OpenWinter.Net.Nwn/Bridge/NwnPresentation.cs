@@ -19,7 +19,8 @@ namespace OpenWinter.Net.Nwn.Bridge;
 /// projectiles "spell-projectile", knockdowns a condition flag; visual effects at places and on objects "vfx", beams "beam", areas of
 /// effect "aoe-created" and "aoe-moved"; visual transforms and highlights "visual-transform" and "hilite-color";
 /// PlaySound, voice chat, sound objects, music and ambience "play-sound", "voice-chat", "sound-object" and
-/// "area-audio"; script shader uniforms "shader-uniform". The client's emotes go back as the animation input nwmain sends.
+/// "area-audio"; script shader uniforms "shader-uniform"; animation and texture replacements "object-animation" and
+/// "object-texture" (<see cref="NwnObjectSwaps"/>). The client's emotes go back as the animation input nwmain sends.
 /// </summary>
 public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, Action<byte[]> emit)
 {
@@ -58,6 +59,7 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
     readonly Dictionary<uint, (int Row, uint Host, Vector3? At)> _aoes = [];
     readonly HashSet<uint> _sounds = [];
     readonly Dictionary<string, SoundSet?> _soundSets = [];
+    readonly NwnObjectSwaps _swaps = new(emit);
     long _nextEffect;
 
     // -- client to server ---------------------------------------------------
@@ -167,6 +169,7 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
         _shown.Clear();
         _aoes.Clear();
         _sounds.Clear();
+        _swaps.Area(world.Controlled);
         foreach (var s in area.Sounds)
             SpawnSound(s.ObjectId, s.Position, s.IsActive, s.Positional, s.Looping, s.Continuous, s.Random, s.RandomPosition,
                 s.RandomXRange, s.RandomYRange, s.Interval, s.IntervalVariance, s.PitchVariation, s.Volume, s.VolumeVariation,
@@ -201,6 +204,7 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
                 {
                     var c = Of(add.ObjectId);
                     (c.Anim, c.Holding, c.Pending) = (NwnAnimations.Ready, false, null);
+                    _swaps.Added(add.ObjectId);
                     // A creature that arrives sitting, kneeling or lying plays that once it is shown.
                     if (add.Anim is not (NwnAnimations.Pause or NwnAnimations.Ready))
                         Animate(add.ObjectId, new AnimTypeData { AnimType = add.Anim }, 1);
@@ -214,6 +218,9 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
                     break;
                 }
                 case GameObjUpdateObjListUpdateCreature u:
+                    // Replacements first: an animation in the same update plays the replaced clip.
+                    _swaps.Update(u.ObjectId, NwnObjectSwaps.Animation, u.AnimReplacements);
+                    _swaps.Update(u.ObjectId, NwnObjectSwaps.Texture, u.Textures);
                     if (u.AnimTypeData is { } anim) Animate(u.ObjectId, anim, u.AnimSpeed ?? 1);
                     if (u.Effects is { } effects) Effects(u.ObjectId, effects, creature: true);
                     if (u.VisualTransform is { } vt) Transform(u.ObjectId, vt);
@@ -226,6 +233,8 @@ public sealed class NwnPresentation(INwnBridgeData data, NwnWorldMirror world, A
                     AreaOfEffect(aoe.ObjectId, V(at), aoe.Orientation);
                     break;
                 case GameObjUpdateObjListUpdateGeneric g:
+                    _swaps.Update(g.ObjectId, NwnObjectSwaps.Animation, g.AnimReplacements);
+                    _swaps.Update(g.ObjectId, NwnObjectSwaps.Texture, g.Textures);
                     if (g.Effects is { } placed) Effects(g.ObjectId, placed, creature: false);
                     if (g.VisualTransform is { } gvt) Transform(g.ObjectId, gvt);
                     if (g.HiliteR is { } gr) Hilite(g.ObjectId, gr, g.HiliteG ?? -1, g.HiliteB ?? -1);

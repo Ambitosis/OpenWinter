@@ -27,6 +27,16 @@ public partial class OrbitCamera : Camera3D
     public Node3D? Target;
     /// <summary>LockCameraPitch / LockCameraDistance / LockCameraDirection: the player can't change these.</summary>
     public bool LockPitch, LockDistance, LockYaw;
+    /// <summary>
+    /// SetCameraFlags (CAMERA_FLAG_*): collision forced on (1) or off (2), and the player kept from turning (16),
+    /// tilting (32) or zooming (64) the camera.
+    /// </summary>
+    public int Flags;
+    bool NoTurn => LockYaw || (Flags & 16) != 0;
+    bool NoTilt => LockPitch || (Flags & 32) != 0;
+    bool NoZoom => LockDistance || (Flags & 64) != 0;
+    /// <summary>The pitch range the player can tilt through (SetCameraLimits narrows it), radians below the horizon.</summary>
+    public float TopPitch = HighestPitch, BottomPitch = LowestPitch;
     /// <summary>The camera mode: the player's setting, or a script's (SetCameraMode) until the setting next changes.</summary>
     public CameraMode Mode = CameraMode.TopDown;
     /// <summary>Pitch limits (radians below the horizon): highest overhead and lowest.</summary>
@@ -55,7 +65,7 @@ public partial class OrbitCamera : Camera3D
         {
             // Middle-button drag orbits; right-button drag selects a radial command.
             if (mb.ButtonIndex == MouseButton.Middle) _dragging = mb.Pressed;
-            else if (LockDistance || Mode == CameraMode.Driving) { }
+            else if (NoZoom || Mode == CameraMode.Driving) { }
             else if (mb.ButtonIndex == MouseButton.WheelUp && mb.Pressed) Distance = Math.Max(MinDistance, Distance * 0.9f);
             else if (mb.ButtonIndex == MouseButton.WheelDown && mb.Pressed) Distance = Math.Min(MaxDistance, Distance * 1.1f);
         }
@@ -64,16 +74,16 @@ public partial class OrbitCamera : Camera3D
             // The release can land on a window and never reach here: stop once neither button is down.
             if (!Input.IsMouseButtonPressed(MouseButton.Middle)) { _dragging = false; return; }
             var g = Settings.Current.Gameplay;
-            if (!LockYaw && mm.Relative.X != 0) { Yaw -= mm.Relative.X * 0.006f * g.CameraSensitivity; _sinceManualTurn = 0; }
-            if (!LockPitch) Pitch = Math.Clamp(Pitch - mm.Relative.Y * 0.004f * g.CameraSensitivity * (g.InvertY ? -1 : 1), HighestPitch, LowestPitch);
+            if (!NoTurn && mm.Relative.X != 0) { Yaw -= mm.Relative.X * 0.006f * g.CameraSensitivity; _sinceManualTurn = 0; }
+            if (!NoTilt) Pitch = Math.Clamp(Pitch - mm.Relative.Y * 0.004f * g.CameraSensitivity * (g.InvertY ? -1 : 1), TopPitch, BottomPitch);
         }
         else if (e is InputEventKey { Pressed: true, Echo: false } && !UI.DM.ChatInput.Typing && !PlayerInput.Blocked)
         {
             bool P(string action) => InputBindings.Pressed(e, action);
-            if (P(ActionCatalog.ZoomInFull)) { if (!LockDistance) Distance = MinDistance; }
-            else if (P(ActionCatalog.ZoomOutFull)) { if (!LockDistance) Distance = MaxDistance; }
-            else if (P(ActionCatalog.CameraUpFull)) { if (!LockPitch) Pitch = HighestPitch; }
-            else if (P(ActionCatalog.CameraDownFull)) { if (!LockPitch) Pitch = LowestPitch; }
+            if (P(ActionCatalog.ZoomInFull)) { if (!NoZoom) Distance = MinDistance; }
+            else if (P(ActionCatalog.ZoomOutFull)) { if (!NoZoom) Distance = MaxDistance; }
+            else if (P(ActionCatalog.CameraUpFull)) { if (!NoTilt) Pitch = TopPitch; }
+            else if (P(ActionCatalog.CameraDownFull)) { if (!NoTilt) Pitch = BottomPitch; }
             else return;
             GetViewport().SetInputAsHandled();
         }
@@ -87,19 +97,20 @@ public partial class OrbitCamera : Camera3D
             float speed = Settings.Current.Gameplay.CameraKeySpeed * (float)delta;
             float turn = (Input.IsActionPressed(ActionCatalog.CameraLeft) ? 1 : 0)
                 - (Input.IsActionPressed(ActionCatalog.CameraRight) ? 1 : 0);
-            if (!LockYaw && turn != 0) { Yaw += 1.8f * speed * turn; _sinceManualTurn = 0; }
-            if (!LockPitch && Input.IsActionPressed(ActionCatalog.CameraUp)) Pitch = Math.Max(HighestPitch, Pitch - 1.0f * speed);
-            if (!LockPitch && Input.IsActionPressed(ActionCatalog.CameraDown)) Pitch = Math.Min(LowestPitch, Pitch + 1.0f * speed);
-            if (!LockDistance && Input.IsActionPressed(ActionCatalog.ZoomIn)) Distance = Math.Max(MinDistance, Distance * (1 - 1.5f * speed));
-            if (!LockDistance && Input.IsActionPressed(ActionCatalog.ZoomOut)) Distance = Math.Min(MaxDistance, Distance * (1 + 1.5f * speed));
+            if (!NoTurn && turn != 0) { Yaw += 1.8f * speed * turn; _sinceManualTurn = 0; }
+            if (!NoTilt && Input.IsActionPressed(ActionCatalog.CameraUp)) Pitch = Math.Max(TopPitch, Pitch - 1.0f * speed);
+            if (!NoTilt && Input.IsActionPressed(ActionCatalog.CameraDown)) Pitch = Math.Min(BottomPitch, Pitch + 1.0f * speed);
+            if (!NoZoom && Input.IsActionPressed(ActionCatalog.ZoomIn)) Distance = Math.Max(MinDistance, Distance * (1 - 1.5f * speed));
+            if (!NoZoom && Input.IsActionPressed(ActionCatalog.ZoomOut)) Distance = Math.Min(MaxDistance, Distance * (1 + 1.5f * speed));
         }
+        Glide((float)delta);
         if (Target == null || !IsInstanceValid(Target)) { Rendering.Keyhole.Update(this, default, default, false); return; }
         Follow((float)delta);
         var focus = Target.GlobalPosition + Vector3.Up * HeightOffset;
         var wanted = focus + Offset();
         // Keyholing turns camera collision off, as the original's graphics.keyholing.disables-camera-collisions
         // (on by default) does: the camera passes into walls and the keyhole shows the player.
-        bool collide = Settings.Current.Gameplay.CameraCollision && !Settings.Current.Graphics.Keyholing;
+        bool collide = (Flags & 2) != 0 ? false : (Flags & 1) != 0 || (Settings.Current.Gameplay.CameraCollision && !Settings.Current.Graphics.Keyholing);
         var desired = collide ? Unblocked(focus, wanted) : wanted;
         // Ease only the arm length. Interpolating world positions also eased the orbit and cut
         // across its circle, so turning lagged behind input and kept drifting after release.
@@ -131,7 +142,8 @@ public partial class OrbitCamera : Camera3D
         var pos = Target!.GlobalPosition;
         bool moving = delta > 0 && pos.DistanceTo(_lastTargetPos) / delta > 0.5f;
         _lastTargetPos = pos;
-        if (Mode == CameraMode.TopDown || LockYaw || !moving || _sinceManualTurn < 0.35) return;
+        // A script's camera move goes on to where it was sent.
+        if (Mode == CameraMode.TopDown || LockYaw || !moving || _sinceManualTurn < 0.35 || _glide != null) return;
         var keys = PlayerInput.KeyInput;
         if (keys.X != 0 || keys.Y < 0) return;
         // Models face their local +Y.
@@ -162,8 +174,69 @@ public partial class OrbitCamera : Camera3D
         return focus + dir * Math.Max(0.6f, focus.DistanceTo(at) - 0.35f);
     }
 
+    /// <summary>A script's camera move under way: where it goes and how fast each part gets there (per second).</summary>
+    (float Yaw, float Pitch, float Distance, float YawRate, float PitchRate, float DistanceRate)? _glide;
+
+    /// <summary>
+    /// SetCameraFacing with a transition (CAMERA_TRANSITION_TYPE_* is the speed): the direction turns the short way
+    /// at that many degrees a second (visual scene camglide: 90 degrees at SLOW in 4.5 s, at VERY_FAST in 0.9 s,
+    /// 20 at VERY_SLOW in 4.0 s, steadily); pitch and distance change steadily over about 110 / speed seconds
+    /// (camglide2: 1.4-2.1 s at FAST, 4.6 s at SLOW, a little longer for longer moves). Null leaves a part as it is.
+    /// The player's camera keys and mouse don't stop it: it ends where it was sent (camglide3: the left arrow held
+    /// during a slow half turn, which still ended facing the script's direction).
+    /// </summary>
+    public void GlideTo(float? yaw, float? pitch, float? distance, int speed)
+    {
+        if (speed <= 0) { _glide = null; return; }
+        float y = yaw ?? Yaw, p = pitch ?? Pitch, d = distance ?? Distance;
+        float seconds = 110f / speed;
+        _glide = (y, p, d, Mathf.DegToRad(speed), Math.Abs(p - Pitch) / seconds, Math.Abs(d - Distance) / seconds);
+    }
+
+    /// <summary>
+    /// Turns the camera round behind <paramref name="target"/>, looking the way it faces: AttachCamera's clear view
+    /// (visual scene camanim: attached to a creature facing west, the original's camera looked west).
+    /// </summary>
+    public void LookAlong(Node3D target)
+    {
+        // Models face their local +Y.
+        var forward = target.GlobalBasis * Vector3.Up;
+        forward.Y = 0;
+        if (forward.LengthSquared() < 1e-4f) return;
+        forward = forward.Normalized();
+        Yaw = MathF.Atan2(-forward.X, -forward.Z);
+    }
+
+    /// <summary>Whether a script's camera move is still under way.</summary>
+    public bool Gliding => _glide != null;
+
+    void Glide(float delta)
+    {
+        if (_glide is not { } g) return;
+        float turn = CameraModes.Wrap(g.Yaw - Yaw);
+        Yaw = Math.Abs(turn) <= g.YawRate * delta ? g.Yaw : Yaw + Math.Sign(turn) * g.YawRate * delta;
+        Pitch = Step(Pitch, g.Pitch, g.PitchRate * delta);
+        Distance = Step(Distance, g.Distance, g.DistanceRate * delta);
+        if (Math.Abs(CameraModes.Wrap(g.Yaw - Yaw)) < 1e-4f && Pitch == g.Pitch && Distance == g.Distance) _glide = null;
+
+        static float Step(float from, float to, float by) => Math.Abs(to - from) <= by ? to : from + Math.Sign(to - from) * by;
+    }
+
+    /// <summary>
+    /// SetCameraLimits' pitch range, in the script's degrees from straight down (-1 for the default); the camera is
+    /// brought inside it.
+    /// </summary>
+    public void SetPitchLimits(float minDegrees, float maxDegrees)
+    {
+        TopPitch = minDegrees >= 0 ? -Mathf.DegToRad(Math.Clamp(90 - minDegrees, 0, 90)) : HighestPitch;
+        BottomPitch = maxDegrees >= 0 ? -Mathf.DegToRad(Math.Clamp(90 - maxDegrees, 0, 90)) : LowestPitch;
+        if (TopPitch > BottomPitch) (TopPitch, BottomPitch) = (BottomPitch, TopPitch);
+        Pitch = Math.Clamp(Pitch, TopPitch, BottomPitch);
+    }
+
     public void Snap()
     {
+        _glide = null;
         if (Target == null) return;
         var focus = Target.GlobalPosition + Vector3.Up * HeightOffset;
         var offset = Offset();

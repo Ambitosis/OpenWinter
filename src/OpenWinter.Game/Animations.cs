@@ -10,9 +10,7 @@ public static class Animations
         [8] = ("tlknorm", true), [9] = ("tlkplead", true), [10] = ("tlkforce", true), [11] = ("tlklaugh", true),
         [12] = ("getlowlp", false), [13] = ("getmidlp", false), [14] = ("pausetrd", false), [15] = ("pausedrnk", false),
         [16] = ("deadfnt", false), [17] = ("deadbck", false), [18] = ("conjure1", false), [19] = ("conjure2", false),
-        [20] = ("spasm", false), [21] = ("custom1", false), [22] = ("custom2", false), [23] = ("castout", false),
-        [24] = ("castpoint", false), [25] = ("castup", false), [26] = ("castself", false), [27] = ("castarea", false),
-        [28] = ("closeh", false), [29] = ("kdbck", false), [30] = ("kdfnt", false), [31] = ("sitdown", false),
+        [20] = ("spasm", false), [21] = ("custom1", false), [22] = ("custom2", false),
         [41] = ("mount1", false), [42] = ("dismount1", false),
         [100] = ("hturnl", true), [101] = ("hturnr", true), [102] = ("pausesh", false), [103] = ("pausebrd", false),
         [104] = ("salute", true), [105] = ("bow", false), [106] = ("steal", false), [107] = ("greeting", true),
@@ -25,13 +23,31 @@ public static class Animations
 
     static Animations()
     {
-        // ANIMATION_LOOPING_CUSTOM12-20 are 32-40, CUSTOM21-57 are 43-79. (23-31, CUSTOM3-11, double as
-        // the engine's own casting and knockdown animations.)
-        for (int i = 32; i <= 40; i++) Map[i] = ("custom" + (i - 20), false);
+        // ANIMATION_LOOPING_CUSTOM3-20 are 23-40, CUSTOM21-57 are 43-79.
+        for (int i = 23; i <= 40; i++) Map[i] = ("custom" + (i - 20), false);
         for (int i = 43; i <= 79; i++) Map[i] = ("custom" + (i - 22), false);
     }
 
     public static (string Name, bool Gesture) Name(int animation) => Map.TryGetValue(animation, out var v) ? v : ("", false);
+
+    /// <summary>
+    /// What a creature plays for ANIMATION_LOOPING_CUSTOM3-11 when its model has no clips of that name: the engine's
+    /// own casting, knockdown and sitting animations (visual scene camanim: CUSTOM6 on a model without custom6 clips).
+    /// Null for any other name.
+    /// </summary>
+    public static string? CustomFallback(string clip) => clip.ToLowerInvariant() switch
+    {
+        "custom3" => "castout",
+        "custom4" => "castpoint",
+        "custom5" => "castup",
+        "custom6" => "castself",
+        "custom7" => "castarea",
+        "custom8" => "closeh",
+        "custom9" => "kdbck",
+        "custom10" => "kdfnt",
+        "custom11" => "sitdown",
+        _ => null,
+    };
 
     /// <summary>
     /// A conversation node's Animation field (.dlg) as the ANIMATION_* constant the original plays for it, and
