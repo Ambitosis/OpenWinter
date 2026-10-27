@@ -31,8 +31,7 @@ parameter float tint 1.0 0.5 0.25 1.0
   tinted texture, which keeps the palette's alpha (`texture0.a`, the environment-map mask), so a shader can
   recognise texels by the palette row a colour index picked.
 - The game's own MTRs (the stock ice of `tti01`, the old man's and old woman's heads) are used as well, as in the
-  original (its ice walls are smooth grey, without the streaks the plain material shows; their shading still
-  differs with the sun's direction). A module's MTR of the same name comes first.
+  original (its ice walls are smooth grey, without the streaks the plain material shows). A module's MTR of the same name comes first.
 - Shaders are sent to players with the module's other presentation resources (`.shd` and `.mtr` in the module,
   or in haks).
 
@@ -106,7 +105,7 @@ fogged colour back (to mix in fog by hand, say) works on the unlit colour instea
 | `worldtimerTimeOfDay`, `sceneCurrentFrame`, `moduleHour`, `moduleMinutesPerHour`, `moduleDawnHour`, `moduleDuskHour` | Milliseconds of real time (not the game clock: SetTime doesn't change it), frame count, game hour, the module's minutes per hour, dawn and dusk hours |
 | `playerPosition`, `cameraPosition`, `cameraFocus`, `cameraPitch`, `cameraYaw`, `cameraViewAngle`, `playerCameraDist` | Kept up to date every frame; `cameraPitch` in degrees from straight down, as SetCameraFacing's |
 | `areaFlags`, `fogColor`, `fogParams` | The area's flags and fog |
-| `lightAreaAmbient`, `lightAreaDiffuse`, `lightAreaDiffuseDirection` | The area's ambient and sun or moon colours, linear as in the original, and the direction towards OpenWinter's sun or moon in view space (the original's sun stands elsewhere in the sky: not matched yet) |
+| `lightAreaAmbient`, `lightAreaDiffuse`, `lightAreaDiffuseDirection` | The area's ambient and sun or moon colours, linear as in the original, and the direction towards the sun or moon in view space. As in the original, the sun and the moon shine from one fixed direction up in the north-east (world (0.433, 0.487, 0.758), about 49 degrees up), at every hour and in every kind of area, until SetAreaLightDirection sets another (scene `sundir`) |
 | `areaGlobalWind` | SetAreaWind's direction times its magnitude, as given; the area's own wind blows diagonally at its strength (medium (0.707, 0.707, 0)) |
 | `areaWeatherType`, `areaWeatherDensity` | WEATHER_* shown, and how far it has faded in, from 0 to 100; after SetWeather clear the type stays while it fades out (the original was still at full density three seconds after clearing, OpenWinter fades over the weather's fade time) |
 | `targetShape...`, `targetWorldCoords` | While a script's targeting mode with SetEnterTargetingModeData lasts: its shape, sizes, flags, range, spell and feat, and the ground under the mouse |
@@ -175,9 +174,6 @@ the original, except where the water itself differs, below.)
 - Water past the area's edge: the original continues the water of the edge tiles beyond the area (with its own
   water as with a module's, scenes watershadow and waterfx); OpenWinter draws water only on the area's tiles.
 - Geometry shaders (`customshaderGS`).
-- The sun's direction: `lightAreaDiffuseDirection` follows OpenWinter's sun, which stands elsewhere in the sky than
-  the original's (scene `shaderplt`: the original's sun about 43 degrees up in the north-east, OpenWinter's
-  about 64 degrees up in the south), so lighting and highlights fall differently.
 - The highlights the original adds to every lit surface from the library's material values (a small specular
   term whose colour comes from the texture: the faint texture detail it keeps under a flat tint). OpenWinter lights
   such surfaces without highlights, and gives a shader that sets the values itself the renderer's own highlights.

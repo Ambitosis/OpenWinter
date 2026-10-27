@@ -27,8 +27,9 @@ public partial class AreaView : Node3D
 
         // The original lights in linear space with no tone mapping: the area's ambient colour everywhere plus its
         // sun or moon diffuse colour times N.L, measured with parity/visual (scene lightcal). Its output curve is a
-        // plain 2.2 power where ours is sRGB's, which makes strong light come out brighter here: the sun at 0.8
-        // matches the original's ground within a few percent from moonlight to full sun.
+        // plain 2.2 power where ours is sRGB's, which makes strong light come out brighter here: with the sun or moon
+        // in the original's fixed direction (49 degrees up, scene sundir), SunEnergy matches the original's ground
+        // within a few percent from moonlight to full sun.
         Color ambient = Rendering.Convert.Bgr(msg.IsNight ? msg.MoonAmbient : msg.SunAmbient);
         Color diffuse = Rendering.Convert.Bgr(msg.IsNight ? msg.MoonDiffuse : msg.SunDiffuse);
         Color fog = Rendering.Convert.Bgr(msg.IsNight ? msg.MoonFogColor : msg.SunFogColor);
@@ -49,8 +50,8 @@ public partial class AreaView : Node3D
             LightEnergy = SunEnergy,
             ShadowOpacity = msg.ShadowOpacity / 100f,
             DirectionalShadowMaxDistance = 80f,
-            RotationDegrees = new Vector3(-55, 35, 0),
         };
+        AimLight(sun, Area(WorldFx.Logic.AreaLightDirection.Default));
         sun.SetMeta(Preferences.GraphicsApply.AreaShadowsMeta, msg.IsNight ? msg.MoonShadows : msg.SunShadows);
         // Options, Graphics (SSAO, glow, brightness, gamma, shadows) now and whenever they change.
         Preferences.GraphicsApply.RegisterEnvironment(env, sun);
@@ -58,7 +59,7 @@ public partial class AreaView : Node3D
     }
 
     /// <summary>Energy of the sun and moon light (see <see cref="Build"/>).</summary>
-    const float SunEnergy = 0.72f, AmbientEnergy = 0.85f;
+    const float SunEnergy = 0.915f, AmbientEnergy = 0.85f;
 
     Godot.Environment? _env;
     DirectionalLight3D? _sun;
@@ -130,10 +131,7 @@ public partial class AreaView : Node3D
             _sun.SetMeta(Preferences.GraphicsApply.AreaShadowsMeta, shadows);
             _sun.ShadowEnabled = shadows && Preferences.GraphicsApply.ShadowsOn;
         }
-        // The sun arcs east to west through the day; the moon light stays high.
-        double h = _minuteClock / 60.0 % 24;
-        float arc = f > 0 ? (float)((h - _time.DawnHour) / Math.Max(1, _time.DuskHour + 1 - _time.DawnHour)) : 0.5f;
-        if (!ScriptLightDirection(f, delta)) _sun.RotationDegrees = new Vector3(-25 - 50 * MathF.Sin(arc * MathF.PI), 90 - 180 * arc, 0);
+        AimLight(f, delta);
         UpdateSky(f);
     }
 

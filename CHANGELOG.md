@@ -10,6 +10,9 @@ save formats and the network protocol; clients and servers must run the same bui
 - An installed client or server with a `config/local.json` keeps its user data in `userdata` beside it.
 - A server given game data older than it needs says so at startup instead of crashing on its first tick.
 - NuGet updates, including LiteNetLib 2.1.
+- The sun and moon light areas from the original's fixed direction, up in the north-east, at every hour (they
+  used to arc across the sky), so shading, shadows and `lightAreaDiffuseDirection` match; SetTime's new hour reaches
+  players at once.
 
 ## 0.1.1 (2026-10-20)
 

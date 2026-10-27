@@ -319,31 +319,43 @@ public partial class AreaView
     /// <summary>Direction (area space) the current light comes from.</summary>
     Vector3 CurrentLightOrigin()
     {
-        if (_sun == null) return new Vector3(-1, -1, 1).Normalized();
-        // The light shines along its -Z; Godot (x, y, z) is area (x, -z, y).
+        if (_sun == null) return Area(WorldFx.Logic.AreaLightDirection.Default);
+        // The light shines along its -Z.
         var g = _sun.GlobalTransform.Basis.Z;
-        return new Vector3(g.X, -g.Z, g.Y).Normalized();
+        return Area(WorldFx.Logic.AreaLightDirection.FromRenderer(new System.Numerics.Vector3(g.X, g.Y, g.Z))).Normalized();
     }
 
-    /// <summary>Points the sun light from a script-set direction; false when the clock should place it.</summary>
-    bool ScriptLightDirection(float daylight, double delta)
+    static Vector3 Area(System.Numerics.Vector3 v) => new(v.X, v.Y, v.Z);
+
+    /// <summary>
+    /// Points the sun or moon light: from a script-set direction (fading to it when asked), else from the original's
+    /// fixed direction, which the hour doesn't move (scenes sundir and sunshadow).
+    /// </summary>
+    void AimLight(float daylight, double delta)
     {
-        if (_sun == null) return false;
+        if (_sun == null) return;
         int type = daylight > 0.5f ? 1 : 0;
-        Vector3? dir = type == 1 ? _sunDirection : _moonDirection;
-        if (dir == null) return false;
-        var d = dir.Value;
-        if (_dirFading == type)
+        Vector3? set = type == 1 ? _sunDirection : _moonDirection;
+        var d = Area(WorldFx.Logic.AreaLightDirection.Current(type == 1, ToNumerics(_sunDirection), ToNumerics(_moonDirection)));
+        if (set != null && _dirFading == type)
         {
             _dirElapsed += (float)delta;
             float t = Math.Clamp(_dirElapsed / Math.Max(0.001f, _dirFade), 0f, 1f);
             d = _dirFrom.Slerp(_dirTo, t);
             if (t >= 1) _dirFading = -1;
         }
-        // Area (x, y, z) is Godot (x, z, -y); the light travels opposite to where the sun is.
-        var origin = new Vector3(d.X, d.Z, -d.Y).Normalized();
+        AimLight(_sun, d);
+    }
+
+    static System.Numerics.Vector3? ToNumerics(Vector3? v) => v is { } x ? new System.Numerics.Vector3(x.X, x.Y, x.Z) : null;
+
+    /// <summary>Points <paramref name="light"/> so it shines from <paramref name="towardsLight"/> (area space).</summary>
+    static void AimLight(DirectionalLight3D light, Vector3 towardsLight)
+    {
+        var r = WorldFx.Logic.AreaLightDirection.ToRenderer(new System.Numerics.Vector3(towardsLight.X, towardsLight.Y, towardsLight.Z));
+        var origin = new Vector3(r.X, r.Y, r.Z).Normalized();
         var up = Math.Abs(origin.Dot(Vector3.Up)) > 0.99f ? Vector3.Forward : Vector3.Up;
-        _sun.Basis = Basis.LookingAt(-origin, up);
-        return true;
+        // The light travels opposite to where the sun is.
+        light.Basis = Basis.LookingAt(-origin, up);
     }
 }

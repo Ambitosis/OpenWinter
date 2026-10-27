@@ -1,0 +1,4 @@
+// Visual scene "sundir": the ground texture drawn with the scene's light readout shader.
+customshaderVS vslit
+customshaderFS ow_sundir
+texture0 ttr01_grass02
