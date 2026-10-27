@@ -460,6 +460,7 @@ public partial class Main : Node3D
         else if (_args.TryGetValue("capture-nwn-fx", out var nwnFxDir)) _ = CaptureNwnFx(nwnFxDir);
         else if (_args.TryGetValue("capture-nwn-play", out var nwnPlayDir)) _ = CaptureNwnPlay(nwnPlayDir);
         else if (_args.TryGetValue("capture-nwn-combat", out var nwnCombatDir)) _ = CaptureNwnCombat(nwnCombatDir);
+        else if (_args.TryGetValue("capture-nwn-party", out var nwnPartyDir)) _ = CaptureNwnParty(nwnPartyDir);
         else if (_args.TryGetValue("capture-nwn-levelup", out var nwnLevelUpDir)) _ = CaptureNwnLevelUp(nwnLevelUpDir);
         else if (_args.TryGetValue("capture-nwn-gui", out var nwnGuiDir)) _ = CaptureNwnGui(nwnGuiDir);
         else if (_args.TryGetValue("capture-cutscene", out var cutDir)) _ = CaptureCutscene(cutDir);

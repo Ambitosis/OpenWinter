@@ -206,7 +206,7 @@ static class NwnRecordingDump
 ///   nwn-bridge ws://host:port CHARACTER [--seconds N] [--walk DX,DY] [--say TEXT] [--use NAME|#ID,...] [--talk NAME|#ID,...] [--drive SECONDS [--run] [--axes RIGHT,FORWARD,TURN]]
 ///              [--nui-click WINDOW:ELEMENT,...] [--replies N|esc,...] [--journal SECONDS] [--attack NAME,... [--attack-at SECONDS]] [--respawn-at SECONDS]
 ///              [--emote KEY,... [--emote-gap SECONDS]] [--do STEP;...] [--request KIND=JSON|KIND=JSON...] [--player NAME]
-///              [--levelup CLASS,... [--levelup-at SECONDS]] [--new-character FIRST[,CLASS]] [--record FILE] [--trace FILE]
+///              [--levelup CLASS,... [--levelup-at SECONDS]] [--new-character FIRST[,CLASS]] [--record FILE] [--trace FILE] [--request-file FILE]
 /// (CHARACTER "-" with --new-character creates one; --trace writes every message for the client in full, one a line,
 /// all but creature movement updates)
 /// (four seconds in: say, walk; drive forward from five seconds in; then use the nearest object whose name contains each NAME, five seconds apart,
@@ -214,7 +214,8 @@ static class NwnRecordingDump
 /// conversation line, two seconds after it shows, with the next reply (the answer's number as shown, from 1, or esc), the first answer
 /// once the list is used up; open the journal; play each emote, five seconds (--emote-gap) apart from six seconds in;
 /// send each client request four seconds apart from six seconds in (a "+SECONDS:" prefix
-/// sends one that long after the one before; "say=TEXT" talks), where "@self" is the player's creature and "@NAME" the nearest object whose name contains NAME)
+/// sends one that long after the one before; "say=TEXT" talks), where "@self" is the player's creature and "@NAME" the nearest object whose name contains NAME;
+/// --request-file: each line added to FILE while it runs is sent the same way as soon as it appears)
 /// </summary>
 static class NwnBridgeProbe
 {
@@ -246,6 +247,9 @@ static class NwnBridgeProbe
         var windows = new Dictionary<string, int>();
         var nextClick = 0.0;
         var requests = new Queue<string>(Opt("--request", "").Split('|', StringSplitOptions.RemoveEmptyEntries));
+        var requestFile = Opt("--request-file", "");
+        long requestFileAt = 0;
+        if (requestFile.Length > 0) File.WriteAllText(requestFile, "");
         var nextRequest = 6.0;
         var steps = new NwnBridgeSteps(Opt("--do", ""));
         var replies = new Queue<string>(Opt("--replies", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
@@ -371,6 +375,20 @@ static class NwnBridgeProbe
                     bridge.Send((talk
                         ? new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Talk, Target = target, Argument = OpenWinter.Net.ActionRequestMessage.TalkCommand }
                         : new OpenWinter.Net.ActionRequestMessage { Action = OpenWinter.Net.ActionKind.Use, Target = target }).Write());
+            }
+            if (walked && requestFile.Length > 0 && new FileInfo(requestFile).Length > requestFileAt)
+            {
+                // Lines added to the request file go out at once, ahead of the timed ones.
+                using var f = new FileStream(requestFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                f.Seek(requestFileAt, SeekOrigin.Begin);
+                var added = new StreamReader(f).ReadToEnd();
+                int end = added.LastIndexOf('\n') + 1;
+                requestFileAt += System.Text.Encoding.UTF8.GetByteCount(added[..end]);
+                var queued = requests.ToList();
+                requests.Clear();
+                foreach (var line in added[..end].Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) requests.Enqueue(line);
+                foreach (var line in queued) requests.Enqueue(line);
+                nextRequest = 0;
             }
             if (walked && requests.Count > 0 && clock.Elapsed.TotalSeconds > nextRequest && requests.Dequeue().Split('=', 2) is [var kind, var body])
             {

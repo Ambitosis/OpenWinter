@@ -130,6 +130,7 @@ public sealed partial class NwnAbilities
                 ["self"] = target == _player,
                 ["injured"] = target == _player && _hp < _maxHp,
                 ["canCancelPolymorph"] = target == _player && (_polymorphed || _formSpells.Length > 0),
+                ["party"] = PartyFacts?.Invoke(target),
             },
         });
     }

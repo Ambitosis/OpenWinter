@@ -40,6 +40,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
     readonly NwnRules _rules;
     readonly NwnProgression _progression;
     readonly NwnCharacterCreation _creation;
+    readonly NwnParty _party;
     readonly NwnSessionContext _context;
     readonly Stopwatch _clock = Stopwatch.StartNew();
     readonly List<NwnMessage> _received = [];
@@ -73,6 +74,8 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         // knows every item the player has and the HUD is the combat bridge's, fed with the action queue.
         _abilities.Carried = _inventory.Items;
         _abilities.QueueChanged = _combat.ActionQueue;
+        _party = new NwnParty(data, _world, ToServer, m => _toClient.Enqueue(m), () => _session?.Settings) { PartyChanged = _combat.PartyPlayers };
+        _abilities.PartyFacts = _party.Facts;
     }
 
     public int Id { get; } = Interlocked.Increment(ref _nextId);
@@ -293,6 +296,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
         if (_inventory.FromClient(request.Kind, request.Json)) return;
         if (NwnExamine.FromClient(request.Kind, request.Json) is { } examine) { ToServer(examine); return; }
         if (_progression.FromClient(request.Kind, request.Json) || _creation.FromClient(request.Kind, request.Json)) return;
+        if (_party.FromClient(request.Kind, request.Json)) return;
         switch (request.Kind)
         {
             case "area-ready":
@@ -382,12 +386,14 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 _presentation.Area(area);
                 _inventory.AreaChanged();
                 _abilities.AreaChanged();
+                _party.Area(area);
                 return true;
             case GameObjUpdateMessages.GameObjUpdateObjList list:
                 _combat.ObjectList(list, l => _presentation.ObjectList(l, _world.ObjectList));
                 _inventory.ObjectList(list);
                 _abilities.ObjectList(list);
                 _progression.ObjectList(list);
+                _party.ObjectList(list);
                 return true;
             case GameObjUpdateMessages.GameObjUpdateObjControl control:
                 _world.Control(control.ObjectId);
@@ -401,7 +407,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 _abilities.QuickbarButton(button);
                 return true;
             case ClientSideMessageFeedbackMessages.ClientSideMessageFeedback feedback:
-                if (!_combat.Feedback(feedback)) NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
+                if (!_combat.Feedback(feedback) && !_party.Feedback(feedback)) NwnFeedback.ToClient(feedback, _data, m => _toClient.Enqueue(m));
                 _inventory.Feedback(feedback);
                 _abilities.Feedback(feedback);
                 return true;
@@ -416,7 +422,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 return NwnNui.ToClient(message, m => _toClient.Enqueue(m)) || NwnGuiEvents.ToClient(message, m => _toClient.Enqueue(m))
                     || NwnExamine.ToClient(message, _world, _data, m => _toClient.Enqueue(m)) || NwnCamera.ToClient(message, _world.Controlled, m => _toClient.Enqueue(m))
                     || NwnResourceOverrides.ToClient(message, _world.Controlled, _data, m => _toClient.Enqueue(m))
-                    || _presentation.ToClient(message) || _combat.ToClient(message)
+                    || _presentation.ToClient(message) || _combat.ToClient(message) || _party.ToClient(message)
                     || NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m)) || watched;
             }
         }

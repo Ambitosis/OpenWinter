@@ -75,6 +75,9 @@ public sealed partial class NwnAbilities(INwnBridgeData data, Action<byte[]> emi
 
     /// <summary>The action queue as the HUD shows it ({id, action, spell, icon, name}), whenever it changes.</summary>
     public Action<JsonArray>? QueueChanged { get; set; }
+
+    /// <summary>What the radial needs to know about another player (NwnParty.Facts): its party ring.</summary>
+    public Func<uint, JsonObject?>? PartyFacts { get; set; }
     /// <summary>The player's items the server has described (on the quickbar or in an open inventory), by object id.</summary>
     readonly Dictionary<uint, ItemAppearanceAndProps> _items = [];
     /// <summary>Equipped items and their INVENTORY_SLOT_*.</summary>

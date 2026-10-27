@@ -122,7 +122,7 @@ no scripts, settings or other plugins.
   (`apply_corrections`): NUI windows, binds, events and layouts carry JSON fields (type byte, length, text) rather
   than length-prefixed blobs, and a NUI bind entry from the server ends after its value, while one from the client
   carries an array index after it (the client's NuiBinds is its own message, `NuiClientBinds`). A body bag's creature is an object id,
-  not a dword. The player's level-up information has one starting package (a dword) before its
+  not a dword, and so is the inviter in a player's party status. The player's level-up information has one starting package (a dword) before its
   multiclass level, not two.
 - **Session.** It handles login, keep-alives and echoes.
 - **Bridge.** `NwnBridgeConnection` is an `IConnection` that turns NWN messages into the OpenWinter messages the client
@@ -231,6 +231,19 @@ Supported so far:
   wizard's spellbook does not, and the window says so. The server's copy has every field again (body parts and all)
   and passes enforce legal characters. The server says nothing about whether it takes new characters, so the
   character list always offers one.
+- the player list and parties (`NwnParty`): the server's player list becomes the client's, with the other players
+  by character name and Dungeon Masters left out. The original prints the join and leave lines itself from it
+  ("probe has joined as a player..", the talk table's line and a full stop; a login brings two adds, and the line is
+  printed once). The party (the other members), each player's party status in object updates (alone, leading,
+  invited by whom) and like / dislike changes fill in the list, the party bar (the other players first, then the
+  associates), the leader and the radial's party ring. Invitations open the invitation window with the server's
+  popup, which closes when the invitation is answered or runs out (about 30 s). Inviting, accepting, rejecting,
+  ignoring, leaving (naming the player's own creature), removing a member, passing the leadership and liking or
+  disliking go to the server as nwmain's party and PvP attitude messages. The server's party feedback becomes the
+  lines nwmain shows ("You have sent a Party Invitation to Amber Rose.", "Ada Covington is now the Party Leader.",
+  "Amber Rose now dislikes you!" and the rest); a dislike is mutual and both players are told, a like changes only
+  the liker's side. The list's PvP zone is the area's setting, never more than the server's. The server tells a
+  player nothing about other parties, so another party's size shows as two.
 - walking: with WSNetLayer, the server crashes inside NWNX_Events on the first click-to-move walk from a websocket
   client while the module subscribes `NWNX_ON_INPUT_WALK_TO_WAYPOINT_*`, and on the first keyboard drive while it
   subscribes `NWNX_ON_INPUT_KEYBOARD_*` or `NWNX_ON_INPUT_TOGGLE_PAUSE_*` (measured with NWNX:EE master and with a
