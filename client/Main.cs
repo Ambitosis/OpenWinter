@@ -338,6 +338,7 @@ public partial class Main : Node3D
         AddChild(spellFx);
         _session.NotifyReceived += spellFx.Handle;
         AddChild(new PlayerFx { Session = _session, Camera = _camera, Hud = hud, Dialog = dialog, Chat = chat, Input_ = _input, Interaction = _interaction, EffectsHost = hud.Player.Effects });
+        AddChild(new GuiPanels { Session = _session, Input_ = _input }); // SetGuiPanelDisabled, PopUpGUIPanel, GUI events
         var saves = SaveLoadPanel.Create(_session);
         saves.Input_ = _input;
         saves.Feedback = text => chat.Feedback(text);
@@ -460,6 +461,7 @@ public partial class Main : Node3D
         else if (_args.TryGetValue("capture-nwn-play", out var nwnPlayDir)) _ = CaptureNwnPlay(nwnPlayDir);
         else if (_args.TryGetValue("capture-nwn-combat", out var nwnCombatDir)) _ = CaptureNwnCombat(nwnCombatDir);
         else if (_args.TryGetValue("capture-nwn-levelup", out var nwnLevelUpDir)) _ = CaptureNwnLevelUp(nwnLevelUpDir);
+        else if (_args.TryGetValue("capture-nwn-gui", out var nwnGuiDir)) _ = CaptureNwnGui(nwnGuiDir);
         else if (_args.TryGetValue("capture-cutscene", out var cutDir)) _ = CaptureCutscene(cutDir);
         else if (_args.TryGetValue("capture-world", out var worldDir)) _ = CaptureWorld(worldDir);
         else if (_args.TryGetValue("capture-items", out var itemsDir)) _ = CaptureItems(itemsDir);

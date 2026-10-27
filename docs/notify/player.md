@@ -10,10 +10,10 @@ area; "all" means every connected player (`World.NotifyAll`).
 | `camera` | player | the PC | `op` = `facing` (`direction`, `distance`, `pitch`, `transition`; -1 = keep current), `restore`, `mode` (`mode` CAMERA_MODE_*), `height` (`height`, 0 = racial default), `limits` (`minPitch`, `maxPitch`, `minDistance`, `maxDistance`; -1 = client config), `flags` (`flags` CAMERA_FLAG_*), `attach` (`target` object id or OBJECT_INVALID, `findClearView`), `move-rate` (`rate`) | Camera control (SetCameraFacing, RestoreCameraFacing, SetCameraMode, SetCameraHeight, SetCameraLimits, SetCameraFlags, AttachCamera, SetCutsceneCameraMoveRate) |
 | `cutscene` | player | the PC | `enabled`, `leftClick` | SetCutsceneMode: hide GUI / block input (left-click world interaction if `leftClick`) |
 | `fade` | player | the PC | `op` = `from-black` / `to-black` (with `speed`, FADE_SPEED_* per frame), `stop`, `black` | Screen fades |
-| `gui-panel` | player | the PC | `panel` (GUI_PANEL_*) | PopUpGUIPanel |
+| `gui-panel` | player | the PC | `panel` (GUI_PANEL_*) | PopUpGUIPanel: the client opens the panel even when it is disabled |
 | `gui-death` | player | the PC | `respawn`, `waitForHelp`, `help` (text) | PopUpDeathGUIPanel |
 | `panel-flash` | player | the PC | `button` (PANEL_BUTTON_*), `flash` | SetPanelButtonFlash |
-| `gui-disable` | player | the PC | `panel`, `disabled`, `target` | SetGuiPanelDisabled (client should send GUIEVENT_DISABLED_PANEL_ATTEMPT_OPEN when the player tries to open it) |
+| `gui-disable` | player | the PC | `panel`, `disabled`, `target` | SetGuiPanelDisabled: the client closes the panel if open and keeps it shut, answering the player's attempts with a `gui-event` request (GUIEVENT_DISABLED_PANEL_ATTEMPT_OPEN); see docs/UI.md "Panels scripts control" |
 | `post-string` | player | the PC | `text`, `x`, `y`, `anchor` (SCREEN_ANCHOR_*), `life` (s), `rgba`, `rgba2` (0xRRGGBBAA), `id`, `font` | PostString overlay text |
 | `targeting-mode` | player | the PC | `types` (OBJECT_TYPE_* mask, 0 = cancel), `cursor`, `badCursor`, `shape`, `sizeX`, `sizeY`, `flags`, `range`, `spell`, `feat` | EnterTargetingMode (+ SetEnterTargetingModeData); reply with `PlayerEvents.TargetSelected` |
 | `audio-stream` | player | the PC | `op` = `start` (`stream`, `resref`, `looping`, `fade`, `seek`, `volume`), `stop` (`stream`, `fade`), `pause` (`stream`, `paused`, `fade`), `volume` (`stream`, `volume`, `fade`), `seek` (`stream`, `seconds`) | Audio streams |

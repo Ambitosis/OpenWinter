@@ -228,6 +228,7 @@ public partial class RadialMenu : Control
         _controlledAtOpen = Session.ControlledId;
         _stack.Clear();
         _stack.Add(new Ring { Title = "Ground", Build = GroundRoot });
+        GuiPanels.Current?.GroundRadialOpened(point);
         _tileActions = [];
         Session.Request("tile-actions", new { query = ++_tileQuery, area = Session.Area?.Info.AreaId, position = new[] { point.X, point.Y, point.Z } });
         var view = GetViewportRect().Size;
