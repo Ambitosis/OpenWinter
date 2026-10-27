@@ -78,6 +78,11 @@ public sealed class MeshData
     /// <summary>Surface (material) id per triangle; meaningful for walkmeshes.</summary>
     public int[] FaceSurfaces = Array.Empty<int>();
     public string Texture = "";
+    /// <summary>
+    /// The model's own bitmap when <see cref="Texture"/> replaced one that names no texture (a body part drawn with its
+    /// PLT): materials (MTR) are still found by it, as in the original (scene handbitmapmtr).
+    /// </summary>
+    public string Bitmap = "";
     public bool Render = true;
     public int TransparencyHint;
     public Vector3 Diffuse = Vector3.One;

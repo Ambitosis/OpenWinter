@@ -1,0 +1,2 @@
+{ "tileset": "ttr01", "tile": 109, "size": 4, "pc": [20, 15, 0], "facing": 90, "seconds": 40,
+  "are": { "IsNight": 0, "SunShadows": 0, "SunFogAmount": 0 } }

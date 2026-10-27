@@ -8,7 +8,8 @@ namespace OpenWinter.Client;
 /// above, the player up close) and shaders.txt, the module shader programs this run translated or left (with the
 /// reason). Combine with --shader-uniforms to preset the script uniforms a module's shaders read (docs/SHADERS.md),
 /// --shader-script name to run a script on the player first (with --script-dir, to set material uniforms) and
-/// --shader-wait / --shader-after seconds to start later (8 s in) and to wait longer after the script (4 s).
+/// --shader-wait / --shader-after seconds to start later (8 s in) and to wait longer after the script (4 s);
+/// --shader-focus tag frames the creature with that tag instead of the player (and adds two views from close by).
 /// </summary>
 public partial class Main
 {
@@ -22,7 +23,11 @@ public partial class Main
             GD.Print($"[capture] ran {script}");
             await Wait(_args.TryGetValue("shader-after", out var after) && double.TryParse(after, System.Globalization.CultureInfo.InvariantCulture, out var later) ? later : 4.0);
         }
-        var views = new (string Name, float Pitch, float Distance)[]
+        if (_args.TryGetValue("shader-focus", out var focus) && _session.Objects.Values.OfType<Views.CreatureView>()
+                .FirstOrDefault(c => IsInstanceValid(c) && c.Tag.Equals(focus, StringComparison.OrdinalIgnoreCase)) is { } npc)
+            _camera.Target = npc;
+        else if (focus != null) GD.Print($"[capture] no creature tagged {focus}: " + string.Join(", ", _session.Objects.Values.OfType<Views.CreatureView>().Select(c => c.Tag)));
+        var views = new List<(string Name, float Pitch, float Distance)>
         {
             ("s1_ground", -40f, 10f),
             ("s2_horizon", -6f, 12f),
@@ -30,11 +35,13 @@ public partial class Main
             ("s4_close", -35f, 3.5f),
             ("s5_back", -35f, 3.5f),
         };
+        // A focused creature also from close by, front and back.
+        if (_camera.Target != _session.Controlled) views.AddRange([("s6_near", -15f, 1.8f), ("s7_near_back", -15f, 1.8f)]);
         foreach (var (name, pitch, distance) in views)
         {
             _camera.Pitch = Mathf.DegToRad(pitch);
             _camera.Distance = distance;
-            if (name == "s5_back") _camera.Yaw += Mathf.Pi;
+            if (name is "s5_back" or "s7_near_back") _camera.Yaw += Mathf.Pi;
             await Wait(1.5);
             await Shot(dir, name);
         }

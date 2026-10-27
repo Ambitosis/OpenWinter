@@ -93,8 +93,17 @@ public static class FxMath
     public static float BeamWidth(float sizeStart, float sizeEnd)
     {
         float size = Math.Max(sizeStart, sizeEnd);
-        return size > 0 ? Math.Min(size * 2.2f, 0.6f) : Math.Clamp(size * 2.2f, 0.06f, 0.6f);
+        return size > 0 ? Math.Min(size * LinkedWidthPerSize, 0.6f) : Math.Clamp(size * LinkedWidthPerSize, 0.06f, 0.6f);
     }
+
+    /// <summary>
+    /// A linked emitter's strip is 2.2 times its particle size wide, as the original draws beams (scene beamwidth) and
+    /// ribbons (scene linkedarea: size 0.5 draws 1.1 m).
+    /// </summary>
+    public const float LinkedWidthPerSize = 2.2f;
+
+    /// <summary>The width of a linked emitter's ribbon at a particle size.</summary>
+    public static float LinkedWidth(float size) => Math.Max(0, size) * LinkedWidthPerSize;
 
     /// <summary>The weather a WEATHER_* value shows: 0 clear, 1 rain, 2 snow (anything else is clear).</summary>
     public static int NormalizeWeather(int weather) => weather is 1 or 2 ? weather : 0;

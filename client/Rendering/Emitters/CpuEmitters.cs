@@ -38,7 +38,7 @@ static class StripMaterials
 
 /// <summary>
 /// A "Linked" emitter: its particles, in the order they were born, joined into one camera-facing ribbon (sword
-/// trails, streams). Simulated on the CPU: the ribbon has to know each particle's neighbours.
+/// trails, streams), a texture's length per link. Simulated on the CPU: the ribbon has to know each particle's neighbours.
 /// </summary>
 public partial class LinkedRibbon : MeshInstance3D
 {
@@ -114,22 +114,37 @@ public partial class LinkedRibbon : MeshInstance3D
         var cam = GetViewport().GetCamera3D();
         if (cam == null) return;
         var eye = cam.GlobalPosition;
-        _mesh.SurfaceBegin(Mesh.PrimitiveType.TriangleStrip);
-        for (int i = 0; i < _live.Count; i++)
+        int count = _live.Count;
+        var left = new Vector3[count];
+        var right = new Vector3[count];
+        var colors = new Color[count];
+        for (int i = 0; i < count; i++)
         {
             var p = _live[i];
             float t = Math.Clamp(p.Age / p.Life, 0, 1);
-            var tangent = (_live[Math.Min(i + 1, _live.Count - 1)].Pos - _live[Math.Max(i - 1, 0)].Pos).Normalized();
-            var side = tangent.Cross(eye - p.Pos).Normalized();
-            float width = Math.Max(0, Mathf.Lerp(e.SizeStart, e.SizeEnd, t));
-            var color = AuroraEmitter.Linear(System.Numerics.Vector3.Lerp(e.ColorStart, e.ColorEnd, t), Math.Clamp(Mathf.Lerp(e.AlphaStart, e.AlphaEnd, t), 0, 1), AuroraEmitter.Gamma(e));
-            float v = (float)i / (_live.Count - 1);
+            var tangent = (_live[Math.Min(i + 1, count - 1)].Pos - _live[Math.Max(i - 1, 0)].Pos).Normalized();
+            var side = tangent.Cross(eye - p.Pos).Normalized() * (FxMath.LinkedWidth(Mathf.Lerp(e.SizeStart, e.SizeEnd, t)) * 0.5f);
+            left[i] = p.Pos - side;
+            right[i] = p.Pos + side;
+            colors[i] = AuroraEmitter.Linear(System.Numerics.Vector3.Lerp(e.ColorStart, e.ColorEnd, t), Math.Clamp(Mathf.Lerp(e.AlphaStart, e.AlphaEnd, t), 0, 1), AuroraEmitter.Gamma(e));
+        }
+        // Each link between two particles shows the whole texture, flipbook sheets too, as the original draws them
+        // (scene linkedarea: a ring texture is a ring per link, not one ring stretched along the ribbon).
+        _mesh.SurfaceBegin(Mesh.PrimitiveType.Triangles);
+        void Vertex(Vector3 at, Color color, float u, float v)
+        {
             _mesh.SurfaceSetColor(color);
-            _mesh.SurfaceSetUV(new Vector2(0, v));
-            _mesh.SurfaceAddVertex(p.Pos - side * width * 0.5f);
-            _mesh.SurfaceSetColor(color);
-            _mesh.SurfaceSetUV(new Vector2(1, v));
-            _mesh.SurfaceAddVertex(p.Pos + side * width * 0.5f);
+            _mesh.SurfaceSetUV(new Vector2(u, v));
+            _mesh.SurfaceAddVertex(at);
+        }
+        for (int i = 0; i + 1 < count; i++)
+        {
+            Vertex(left[i], colors[i], 0, 0);
+            Vertex(right[i], colors[i], 1, 0);
+            Vertex(right[i + 1], colors[i + 1], 1, 1);
+            Vertex(left[i], colors[i], 0, 0);
+            Vertex(right[i + 1], colors[i + 1], 1, 1);
+            Vertex(left[i + 1], colors[i + 1], 0, 1);
         }
         _mesh.SurfaceEnd();
     }

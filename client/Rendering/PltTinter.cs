@@ -26,6 +26,9 @@ public sealed class PltTinter
 
     public bool IsPalette(string resref) => resref.Length > 0 && _textures.Source.KindOf(resref) == TextureCache.Kind.Palette;
 
+    /// <summary>Whether no texture (image or palette) has this name.</summary>
+    public bool IsMissing(string resref) => resref.Length == 0 || _textures.Source.KindOf(resref) == TextureCache.Kind.Missing;
+
     /// <summary>The PLT resref of a tinted texture key (<see cref="Tint"/>), or null for any other name.</summary>
     public static string? Resref(string key)
     {

@@ -30,6 +30,9 @@ parameter float tint 1.0 0.5 0.25 1.0
 - A body or armour part with a palette texture (PLT) uses the MTR named after its PLT. Its `texture0` is the part's
   tinted texture, which keeps the palette's alpha (`texture0.a`, the environment-map mask), so a shader can
   recognise texels by the palette row a colour index picked.
+- A body part whose mesh bitmap names no texture (a hand whose bitmap is `hand` or `3`) is drawn with its part's
+  PLT, as in the original, and still uses the MTR named after its bitmap; that MTR's `texture0` is the tinted PLT
+  (scene handbitmapmtr).
 - The game's own MTRs (the stock ice of `tti01`, the old man's and old woman's heads) are used as well, as in the
   original (its ice walls are smooth grey, without the streaks the plain material shows). A module's MTR of the same name comes first.
 - Shaders are sent to players with the module's other presentation resources (`.shd` and `.mtr` in the module,
