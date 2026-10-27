@@ -287,6 +287,7 @@ engine version and an automatically generated runtime-source fingerprint before 
 | [docs/SAVEGAME.md](docs/SAVEGAME.md) | Save games |
 | [docs/CONTENT_DELIVERY.md](docs/CONTENT_DELIVERY.md) | Content delivery |
 | [docs/EMITTERS.md](docs/EMITTERS.md) | Particle emitters |
+| [docs/SHADERS.md](docs/SHADERS.md) | Module shaders (MTR custom shaders, script shader uniforms) |
 
 The other files in [docs/](docs) describe individual game systems (combat, stealth, traps, parties, doors,
 encounters, voices and more) and how OpenWinter matches the original's behaviour in each.

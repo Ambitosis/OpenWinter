@@ -242,6 +242,14 @@ public static class Hilite
         if (material is BaseMaterial3D b)
             return new(b.AlbedoTexture, b.Transparency == BaseMaterial3D.TransparencyEnum.AlphaScissor ? b.AlphaScissorThreshold
                 : b.Transparency != BaseMaterial3D.TransparencyEnum.Disabled ? 0.3f : 0, b.Uv1Scale, b.Uv1Offset, b.AlbedoColor, false);
+        if (material is ShaderMaterial { } custom && custom.HasMeta("ow_custom"))
+        {
+            // A module shader: its main texture, alpha test and texture flip.
+            var cut = custom.GetShaderParameter("fAlphaDiscardValue");
+            bool flip = custom.HasMeta("ow_uv_flip");
+            return new(custom.GetShaderParameter("texUnit0").As<Texture2D>(), cut.VariantType == Variant.Type.Float ? Math.Max(0f, cut.AsSingle()) : 0,
+                flip ? new Vector3(1, -1, 1) : Vector3.One, flip ? new Vector3(0, 1, 0) : Vector3.Zero, Colors.White, custom.HasMeta("ow_keyhole"));
+        }
         if (material is ShaderMaterial sm)
         {
             var threshold = sm.HasMeta("keyhole_alpha_cut") ? sm.GetMeta("keyhole_alpha_cut") : sm.GetShaderParameter("alpha_scissor_threshold");

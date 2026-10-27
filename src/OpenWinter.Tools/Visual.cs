@@ -30,6 +30,7 @@ using OpenWinter.Content;
 /// A scene's &lt;resref&gt;.utc.json can specify an installed "template" and exact "hitPoints" for measurements
 /// (Visual.Creatures.cs lists the other fields, such as "challengeRating" or a "challengeRatings" series).
 /// A scene's &lt;resref&gt;.dlg.json files become conversations in the module (see <see cref="Dialog"/>).
+/// Its .mdl, .tga, .txi, .2da, .shd and .mtr files go into the scene's hak (or the module with "moduleResources").
 /// </summary>
 static partial class Visual
 {
@@ -75,7 +76,8 @@ static partial class Visual
         }
         // Authored models/textures/tables normally go into a hak. An explicit moduleResources
         // control embeds them instead, exercising the single-player presentation distribution path.
-        var resourcesForHak = Directory.GetFiles(dir, "*.mdl").Concat(Directory.GetFiles(dir, "*.tga")).Concat(Directory.GetFiles(dir, "*.2da")).Concat(Directory.GetFiles(dir, "*.txi")).ToArray();
+        // Shaders and materials too (scene "shaders": a module's own GLSL through an MTR).
+        var resourcesForHak = new[] { "*.mdl", "*.tga", "*.2da", "*.txi", "*.shd", "*.mtr" }.SelectMany(p => Directory.GetFiles(dir, p)).ToArray();
         bool embedded = json.TryGetProperty("moduleResources", out var embed) && embed.GetBoolean();
         var presentation = resourcesForHak.Select(m => new ErfEntry(Path.GetFileNameWithoutExtension(m),
             ResType.FromExtension(Path.GetExtension(m).TrimStart('.')), File.ReadAllBytes(m))).ToList();

@@ -52,7 +52,7 @@ public partial class StaticObjectView
             var data = mesh.Clone();
             data.Alpha = model.Animations["trans"].Tracks[part.Name].Alphas[0];
             // The native transition overlay is unlit and uses the mesh's authored blue self illumination.
-            var material = (StandardMaterial3D)content.Materials.Get(data, MaterialKind.World)!.Duplicate();
+            var material = (StandardMaterial3D)content.Materials.Get(data, MaterialKind.World, moduleShaders: false)!.Duplicate();
             var color = data.SelfIllumination == System.Numerics.Vector3.Zero ? data.Diffuse : data.SelfIllumination;
             material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
             material.EmissionEnabled = false;

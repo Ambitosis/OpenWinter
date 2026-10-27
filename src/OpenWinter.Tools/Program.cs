@@ -329,6 +329,8 @@ switch (cmd)
     case "nwn-probe":
         Environment.ExitCode = NwnProbe.Run(paths, args);
         break;
+    case "shader-check":
+        return ShaderCheck.Run(cfg, rm, args);
     case "visual-build":
         foreach (var mod in Visual.Build(cfg, args[1])) Console.WriteLine(mod);
         break;

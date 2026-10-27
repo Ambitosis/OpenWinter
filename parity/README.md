@@ -212,7 +212,9 @@ How it works:
   can check both engines put the player in the same place). Pairs: `out/visual/compare/<module>__<shot>.png`
   with mean luma and RGB on each side, and `out/visual/compare/index.html` with all of them.
 
-Scenes: `calib` (camera calibration), `lightcal` (ground under known ambient and diffuse colours), `tilelight`
+Scenes: `calib` (camera calibration), `lightcal` (ground under known ambient and diffuse colours), `shaders` (the
+ground drawn with the scene's own shader through an MTR, changed by the SetShaderUniform* banks; docs/SHADERS.md;
+a scene's `.shd` and `.mtr` files go into its hak), `tilelight`
 (a castle floor lit only by tile main lights of known lightcolor.2da rows), `placelight` / `placelight3` (a dark
 floor lit by script-made braziers and a lamp post; `python tools/visual/lightprofile.py nwn|openwinter` prints the
 falloff), `throne` (the HotU throne room, lit only by static braziers), `fogcalnight` (moon fog), `lightcalnight` (moonlight,

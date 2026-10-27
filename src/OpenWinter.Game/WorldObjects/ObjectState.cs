@@ -69,6 +69,8 @@ public abstract partial class GameObject
     public Dictionary<string, string>? TextureReplacements;
     /// <summary>ReplaceObjectAnimation overrides (old to new).</summary>
     public Dictionary<string, string>? AnimationReplacements;
+    /// <summary>SetMaterialShaderUniformInt / Vec4 overrides by material (case-insensitive) and parameter.</summary>
+    public Dictionary<(string Material, string Param), WorldObjects.MaterialUniform>? MaterialUniforms;
 }
 
 public sealed partial class Creature

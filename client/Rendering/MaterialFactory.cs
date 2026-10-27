@@ -19,9 +19,19 @@ public sealed class MaterialFactory
     /// <summary>Model lookup for emitters that draw another model's mesh as their particles (chunks).</summary>
     public Func<string, ModelData?>? Models { get; set; }
 
-    public Material? Get(MeshData mesh, MaterialKind kind, string? textureOverride = null)
+    /// <summary>Materials (MTR) and module shaders, for bitmaps that name a material.</summary>
+    public Shaders.ModuleShaders? Shaders { get; set; }
+
+    /// <param name="moduleShaders">False for overlays that restyle the plain material (they need a StandardMaterial3D).</param>
+    public Material? Get(MeshData mesh, MaterialKind kind, string? textureOverride = null, bool moduleShaders = true)
     {
         string texName = textureOverride ?? mesh.Texture;
+        // A bitmap that names an MTR: its custom shaders, or else the texture it names.
+        if (Shaders != null && texName.Length is > 0 and <= 16 && !texName.Contains(':') && Shaders.Material(texName) is { } mtr)
+        {
+            if (moduleShaders && Shaders.For(mesh, mtr, texName, kind) is { } custom) return custom;
+            if (mtr.Textures[0].Length > 0) texName = mtr.Textures[0];
+        }
         bool translucent = mesh.Alpha < 0.99f;
         // Surfaces get only the highlights their model asks for (its specular colour), as in the original: the
         // renderer's default dielectric specular brightened sunlit ground by about a seventh (parity/visual, scene

@@ -489,6 +489,7 @@ public partial class Main : Node3D
         else if (_args.TryGetValue("capture-modern-map-flow", out var modernMapDir)) _ = Map.CapturePins(modernMapDir, Shot, Wait, () => GetTree().Quit());
         else if (_args.TryGetValue("capture-classic-map-flow", out var mapFlowDir)) _ = UI.Classic.Sheets.ClassicMapFlowCapture.Run(mapFlowDir, Shot, Wait, () => GetTree().Quit());
         else if (_args.TryGetValue("capture-visual", out var visualDir)) _ = CaptureVisual(visualDir);
+        else if (_args.TryGetValue("capture-shaders", out var shadersDir)) _ = CaptureShaders(shadersDir);
         else if (_args.TryGetValue("capture-classic-sheets", out var sheetsDir)) _ = UI.Classic.Sheets.SheetsCapture.Run(sheetsDir, Shot, Wait, () => GetTree().Quit());
         else if (_args.TryGetValue("capture-dm", out var dmDir)) _ = _dm.Capture(dmDir, Shot, Wait, () => GetTree().Quit());
         else if (_args.TryGetValue("capture-style-switch", out var switchDir)) _ = UI.Classic.StyleSwitchCapture.Run(switchDir, new UI.Classic.StyleSwitchCapture.PlayerInputHandle(_input), Shot, Wait, () => GetTree().Quit());
