@@ -74,8 +74,8 @@ public partial class OrbitCamera : Camera3D
             // The release can land on a window and never reach here: stop once neither button is down.
             if (!Input.IsMouseButtonPressed(MouseButton.Middle)) { _dragging = false; return; }
             var g = Settings.Current.Gameplay;
-            if (!NoTurn && mm.Relative.X != 0) { Yaw -= mm.Relative.X * 0.006f * g.CameraSensitivity; _sinceManualTurn = 0; _glide = null; }
-            if (!NoTilt) { Pitch = Math.Clamp(Pitch - mm.Relative.Y * 0.004f * g.CameraSensitivity * (g.InvertY ? -1 : 1), TopPitch, BottomPitch); _glide = null; }
+            if (!NoTurn && mm.Relative.X != 0) { Yaw -= mm.Relative.X * 0.006f * g.CameraSensitivity; _sinceManualTurn = 0; }
+            if (!NoTilt) Pitch = Math.Clamp(Pitch - mm.Relative.Y * 0.004f * g.CameraSensitivity * (g.InvertY ? -1 : 1), TopPitch, BottomPitch);
         }
         else if (e is InputEventKey { Pressed: true, Echo: false } && !UI.DM.ChatInput.Typing && !PlayerInput.Blocked)
         {
@@ -142,7 +142,8 @@ public partial class OrbitCamera : Camera3D
         var pos = Target!.GlobalPosition;
         bool moving = delta > 0 && pos.DistanceTo(_lastTargetPos) / delta > 0.5f;
         _lastTargetPos = pos;
-        if (Mode == CameraMode.TopDown || LockYaw || !moving || _sinceManualTurn < 0.35) return;
+        // A script's camera move goes on to where it was sent.
+        if (Mode == CameraMode.TopDown || LockYaw || !moving || _sinceManualTurn < 0.35 || _glide != null) return;
         var keys = PlayerInput.KeyInput;
         if (keys.X != 0 || keys.Y < 0) return;
         // Models face their local +Y.
@@ -181,6 +182,8 @@ public partial class OrbitCamera : Camera3D
     /// at that many degrees a second (visual scene camglide: 90 degrees at SLOW in 4.5 s, at VERY_FAST in 0.9 s,
     /// 20 at VERY_SLOW in 4.0 s, steadily); pitch and distance change steadily over about 110 / speed seconds
     /// (camglide2: 1.4-2.1 s at FAST, 4.6 s at SLOW, a little longer for longer moves). Null leaves a part as it is.
+    /// The player's camera keys and mouse don't stop it: it ends where it was sent (camglide3: the left arrow held
+    /// during a slow half turn, which still ended facing the script's direction).
     /// </summary>
     public void GlideTo(float? yaw, float? pitch, float? distance, int speed)
     {

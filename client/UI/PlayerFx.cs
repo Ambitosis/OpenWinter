@@ -79,6 +79,7 @@ public partial class PlayerFx : CanvasLayer
 
         Session.NotifyReceived += OnNotify;
         Session.ModuleCleared += ClearModule;
+        Session.AreaLoading += OnAreaLoading;
         AddChild(new CutsceneAbortInput
         {
             Session = Session,
@@ -92,10 +93,15 @@ public partial class PlayerFx : CanvasLayer
     {
         Session.NotifyReceived -= OnNotify;
         Session.ModuleCleared -= ClearModule;
+        Session.AreaLoading -= OnAreaLoading;
     }
+
+    /// <summary>An area transition hands the camera back to the player.</summary>
+    void OnAreaLoading(LoadAreaMessage _) => _attach.Reset();
 
     void ClearModule()
     {
+        _attach.Reset();
         // Welcome can discard held old-module notices, including cutscene-off and
         // pause/rest completion. Reset local presentation at the replacement boundary.
         // Preserve a manually hidden HUD when cutscene mode did not hide it.
@@ -226,6 +232,7 @@ public partial class PlayerFx : CanvasLayer
 
     public override void _Process(double delta)
     {
+        if (_attach.Target != 0) FollowAttached();
         if (RestActive && !_paused) RestElapsed = Math.Min(RestDuration, RestElapsed + (float)delta);
         if (_fadeAlpha != _fadeTarget)
         {
@@ -336,8 +343,9 @@ public partial class PlayerFx : CanvasLayer
             {
                 // NWN: direction the camera looks (0 = east, counter-clockwise), pitch 0 = straight down; -1 keeps one.
                 float dir = d.GetProperty("direction").GetSingle(), dist = d.GetProperty("distance").GetSingle(), pitch = d.GetProperty("pitch").GetSingle();
-                float? yaw = dir >= 0 ? Mathf.DegToRad(dir - 90) : null;
-                float? tilt = pitch >= 0 ? -Mathf.DegToRad(Math.Clamp(90 - pitch, 5, 90)) : null;
+                float? yaw = Gameplay.CameraScript.Direction(dir) is { } facing ? Mathf.DegToRad(facing - 90) : null;
+                // Within SetCameraLimits (visual scene camglide3: pitch 85 with a 60 limit frames as 60).
+                float? tilt = pitch >= 0 ? Math.Clamp(-Mathf.DegToRad(Math.Clamp(90 - pitch, 5, 90)), Camera.TopPitch, Camera.BottomPitch) : null;
                 float? arm = dist >= 0 ? Math.Clamp(dist, Camera.MinDistance, Camera.MaxDistance) : null;
                 int transition = d.TryGetProperty("transition", out var t) ? t.GetInt32() : 0;
                 if (transition > 0) { Camera.GlideTo(yaw, tilt, arm, transition); break; }
@@ -362,9 +370,8 @@ public partial class PlayerFx : CanvasLayer
             }
             case "limits":
             {
-                float minD = d.GetProperty("minDistance").GetSingle(), maxD = d.GetProperty("maxDistance").GetSingle();
-                Camera.MinDistance = minD >= 0 ? minD : 2.5f;
-                Camera.MaxDistance = maxD >= 0 ? maxD : 30f;
+                (Camera.MinDistance, Camera.MaxDistance) = Gameplay.CameraScript.DistanceLimits(
+                    d.GetProperty("minDistance").GetSingle(), d.GetProperty("maxDistance").GetSingle(), 2.5f, 30f);
                 Camera.Distance = Math.Clamp(Camera.Distance, Camera.MinDistance, Camera.MaxDistance);
                 Camera.SetPitchLimits(d.TryGetProperty("minPitch", out var minP) ? minP.GetSingle() : -1, d.TryGetProperty("maxPitch", out var maxP) ? maxP.GetSingle() : -1);
                 break;
@@ -374,16 +381,28 @@ public partial class PlayerFx : CanvasLayer
                 break;
             case "attach":
             {
-                // AttachCamera: the camera follows another creature or placeable the player sees; the player's
-                // own character (or none) hands it back.
-                uint target = d.GetProperty("target").GetUInt32();
-                bool other = target != Session.ControlledId && Session.Objects.ContainsKey(target);
-                Camera.Target = other ? Session.Objects[target] : Session.Controlled;
-                if (other && d.TryGetProperty("findClearView", out var clear) && clear.GetBoolean()) Camera.LookAlong(Camera.Target!);
-                Camera.Snap();
+                // AttachCamera: the camera follows another creature or placeable, once the player sees it; the
+                // player's own character (or none) hands it back.
+                _attach.Request(d.GetProperty("target").GetUInt32(), Session.ControlledId, InvalidObject,
+                    d.TryGetProperty("findClearView", out var clear) && clear.GetBoolean());
+                if (_attach.Target == 0 && Session.Controlled is { } me) { Camera.Target = me; Camera.Snap(); }
+                else FollowAttached();
                 break;
             }
         }
+    }
+
+    readonly Gameplay.CameraAttachment _attach = new();
+    const uint InvalidObject = 0x7F000000;
+
+    /// <summary>The camera goes to the object it is attached to whenever that object is shown and it isn't there.</summary>
+    void FollowAttached()
+    {
+        uint following = (Camera.Target as Views.ObjectView) is { } v && IsInstanceValid(v) ? v.ObjectId : 0;
+        if (_attach.Due(id => Session.Objects.TryGetValue(id, out var view) && IsInstanceValid(view), following) is not var (target, clear)) return;
+        Camera.Target = Session.Objects[target];
+        if (clear) Camera.LookAlong(Camera.Target);
+        Camera.Snap();
     }
 
     // ----- PostString -----

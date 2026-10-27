@@ -60,6 +60,8 @@ public class NwnBridgeCameraTests
             _world = new NwnWorldMirror(_data, _output.Add);
             _presentation = new NwnPresentation(_data, _world, _output.Add);
             foreach (var ms in new long[] { 2247, 2431, 2617 }) Feed(ms);
+            // The server's control message, as the connection hands it on.
+            _world.Control(Player);
             _output.Clear();
         }
 
@@ -80,7 +82,7 @@ public class NwnBridgeCameraTests
                         _presentation.ObjectList(list, _world.ObjectList);
                         break;
                     default:
-                        if (!NwnCamera.ToClient(m, _output.Add)) _presentation.ToClient(m);
+                        if (!NwnCamera.ToClient(m, _world.Controlled, _output.Add)) _presentation.ToClient(m);
                         break;
                 }
             }

@@ -387,7 +387,7 @@ public sealed class NwnBridgeConnection : IConnection, IConnectionStatus
                 // The abilities only watch these (the rest bar, item uses), so the others still see them.
                 _abilities.ToClient(message);
                 if (_inventory.ToClient(message)) break;
-                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !NwnCamera.ToClient(message, m => _toClient.Enqueue(m))
+                if (!NwnNui.ToClient(message, m => _toClient.Enqueue(m)) && !NwnCamera.ToClient(message, _world.Controlled, m => _toClient.Enqueue(m))
                     && !_presentation.ToClient(message) && !_combat.ToClient(message))
                     NwnChat.ToClient(message, _data, m => _toClient.Enqueue(m));
                 break;
