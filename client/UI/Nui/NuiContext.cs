@@ -16,8 +16,8 @@ public sealed class NuiContext
     public required NuiWindowView Window;
     /// <summary>(type, element id, array index, payload) to the server.</summary>
     public required Action<string, string, int, JsonNode?> Event;
-    /// <summary>(bind, full value) to the server.</summary>
-    public required Action<string, JsonNode?> BindToServer;
+    /// <summary>(bind, full value, array index) to the server.</summary>
+    public required Action<string, JsonNode?, int> BindToServer;
 
     readonly Dictionary<string, HashSet<NuiElement>> _watchers = new(StringComparer.Ordinal);
 
@@ -45,14 +45,17 @@ public sealed class NuiContext
     /// <summary>
     /// The user changed a bound value: store it, re-render everything reading the
     /// bind, and tell the server (which fires "watch" for watched binds). Static
-    /// (unbound) properties don't change.
+    /// (unbound) properties don't change. The whole value goes back, with the row
+    /// when one element of an array bind changed and -1 otherwise, as the original
+    /// client reports it (visual scene nuibindindex).
     /// </summary>
     public void Write(JsonNode? prop, int row, JsonNode? value)
     {
         if (!NuiBinds.IsBind(prop, out var name)) return;
+        int index = row >= 0 && Binds.Get(name) is JsonArray ? row : -1;
         var full = Binds.WithValue(name, row, value);
         Binds.Set(name, full);
-        BindToServer(name, full?.DeepClone());
+        BindToServer(name, full?.DeepClone(), index);
     }
 
     /// <summary>Sends an event for an element; untagged elements send nothing.</summary>

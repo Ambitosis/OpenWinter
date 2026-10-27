@@ -180,7 +180,7 @@ public static partial class NuiMessages
         public const byte MinorId = 0x04;
         public override byte Major => MajorId;
         public override byte Minor => MinorId;
-        public override NwnDirection Direction => NwnDirection.Both;
+        public override NwnDirection Direction => NwnDirection.ServerToClient;
 
         [NwnField("binds")]
         public List<NuiMessages.NuiBindEntry> Binds { get; set; } = new();
@@ -236,6 +236,69 @@ public static partial class NuiMessages
             w.WriteInt(Token);
             w.WriteString(Element);
             w.WriteJson(Data);
+        }
+    }
+
+    public sealed partial class NuiClientBindEntry : INwnStruct
+    {
+        [NwnField("token")]
+        public int Token { get; set; }
+        [NwnField("bind")]
+        public string Bind { get; set; } = "";
+        [NwnField("value")]
+        public string Value { get; set; } = "";
+        [NwnField("array_index")]
+        public int ArrayIndex { get; set; }
+
+        public void Read(NwnReader r)
+        {
+            Token = r.ReadInt();
+            Bind = r.ReadString();
+            Value = r.ReadJson();
+            ArrayIndex = r.ReadInt();
+        }
+
+        public void Write(NwnWriter w)
+        {
+            w.WriteInt(Token);
+            w.WriteString(Bind);
+            w.WriteJson(Value);
+            w.WriteInt(ArrayIndex);
+        }
+    }
+
+    public sealed partial class NuiClientBinds : NwnMessage
+    {
+        public const byte MajorId = 0x37;
+        public const byte MinorId = 0x04;
+        public override byte Major => MajorId;
+        public override byte Minor => MinorId;
+        public override NwnDirection Direction => NwnDirection.ClientToServer;
+
+        [NwnField("binds")]
+        public List<NuiMessages.NuiClientBindEntry> Binds { get; set; } = new();
+
+        public override void Read(NwnReader r)
+        {
+            var n1610 = (int)r.ReadInteger(NwnWireType.Int);
+            var count1614 = n1610;
+            var list1611 = new List<NuiMessages.NuiClientBindEntry>(Math.Max(0, count1614));
+            for (int i1612 = 0; i1612 < count1614; i1612++)
+            {
+                NuiMessages.NuiClientBindEntry e1613;
+                e1613 = r.ReadStruct<NuiMessages.NuiClientBindEntry>();
+                list1611.Add(e1613);
+            }
+            Binds = list1611;
+        }
+
+        public override void Write(NwnWriter w)
+        {
+            w.WriteInteger(NwnWireType.Int, Binds.Count);
+            foreach (var e1615 in Binds)
+            {
+                w.WriteStruct(e1615);
+            }
         }
     }
 }

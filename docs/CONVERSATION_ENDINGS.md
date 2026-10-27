@@ -2,7 +2,7 @@
 
 Measured on the original client with the visual harness, which logs each dialog's end and
 abort scripts, the store events and the chat window. The scenes are `convoend`, `convoend2`, `convoend3`,
-`convoend4` and `loginconvo`. `python tools/visual/check_convoend.py` compares the two engines case by case.
+`convoend4`, `loginconvo` and `cutsceneconvo`. `python tools/visual/check_convoend.py` compares the two engines case by case.
 The rules are implemented in `src/OpenWinter.Game/Conversations/ConversationService.cs`.
 
 ## The last line
@@ -32,6 +32,25 @@ this:
   being cleared (`convobusy2`).
 - While the end or abort script runs, IsInConversation still returns TRUE for both the player and the talker (every
   end and abort reading of `convoend` and `convobusy`).
+
+## Cutscene mode
+
+Measured with the visual scene `cutsceneconvo`: a conversation started by the talker (ActionStartConversation, or
+BeginConversation run on it) while the player is in cutscene mode (SetCutsceneMode), with a module
+OnPlayerCancelCutscene script that only logs.
+
+- The conversation opens as usual and the player can answer it (number keys).
+- Esc doesn't end it, at the first line or at the last: the window stays open, neither the end nor the abort script
+  runs, and the single answer of a last line isn't chosen. Each press runs the module's OnPlayerCancelCutscene
+  instead, exactly as Esc in cutscene mode with no conversation does (`cutsceneabort`), and cutscene mode stays on.
+  With no OnPlayerCancelCutscene script, Esc does nothing at all. Left clicks enabled or not makes no difference.
+- Once a script has turned cutscene mode off, Esc at a line runs the abort script as above.
+- The other ways a conversation stops are unchanged: moving the player 33 m off ran the abort script at the first
+  line and the end script at the last.
+
+So the client sends the cutscene's cancel request for Esc in cutscene mode, not the conversation's escape (a server
+does close the conversation and run its abort script if sent the escape, leaving a module that keeps cutscene mode on
+with no way on).
 
 ## Busy: when a request to talk is refused
 
@@ -99,8 +118,8 @@ For the classic window's look (portraits, colours, the right-click menu and the 
 
 - The text of the end choice on a line with no answers.
 - Conversations between two creatures beyond the request above (`convo_busy` saw them play on their own), and
-  `BeginConversation` from a placeable, private conversations and cutscene mode. The ending rules come from an NPC
-  talking to the player.
+  `BeginConversation` from a placeable and private conversations. The ending rules come from an NPC talking to the
+  player.
 - The busy rule from the real mouse: the clicks were driven by the player's scripted ActionStartConversation, the same
   dialog action a click queues. A dead player asked by a creature. Whether a potion or other item use ends an open
   conversation (OpenWinter only stops it for spells cast).

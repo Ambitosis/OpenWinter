@@ -82,9 +82,9 @@ public partial class PlayerFx : CanvasLayer
         AddChild(new CutsceneAbortInput
         {
             Session = Session,
-            // Conversation abort policy is deliberately unchanged; its Escape
-            // handler retains control while a dialogue window is showing.
-            CanRequest = () => _cutscene && Dialog?.Visible != true,
+            // Esc in cutscene mode cancels the cutscene, a conversation shown or
+            // not; the conversation stays open (visual scene cutsceneconvo).
+            CanRequest = () => _cutscene,
         });
     }
 

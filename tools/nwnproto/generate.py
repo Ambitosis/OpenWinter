@@ -140,6 +140,7 @@ def apply_corrections():
     bag.type = typing.Annotated[_message.ObjectId, *(a for a in typing.get_args(bag.type)[1:] if not isinstance(a, MessageType))]
     del game_obj_update_playerinfo.LevelUpInfo.__dataclass_fields__["starting_package_old"]
     add_chat_play_sound()
+    add_nui_client_binds(json_field)
 
 
 def add_chat_play_sound():
@@ -153,6 +154,25 @@ def add_chat_play_sound():
     ns = {"MAJOR": 0x09, "MINOR": 0x07, "DIRECTION": m.Direction.S2C, "__module__": chat.__name__,
           "__annotations__": {"speaker_id": m.ObjectId, "sound": m.String}}
     chat.ChatPlaySound = dataclasses.dataclass(kw_only=True)(type("ChatPlaySound", (m.Message,), ns))
+
+
+def add_nui_client_binds(json_field):
+    """The client's NuiBinds (0x37 0x04, client to server) differ from the server's: each entry carries its array
+    index (an int) after the value (measured: without it the server reads past the end of every entry). The
+    definitions' NuiBinds, declared for both directions, keeps the server's form only."""
+    from nwn_message import message as m
+    from nwn_message.messages import nui
+
+    if hasattr(nui, "NuiClientBinds"):
+        return
+    nui.NuiBinds.DIRECTION = m.Direction.S2C
+    del REGISTRY[(nui.NuiBinds.MAJOR, nui.NuiBinds.MINOR, m.Direction.C2S)]
+    entry_ns = {"__module__": nui.__name__, "__qualname__": "NuiClientBindEntry",
+                "__annotations__": {"token": m.Int, "bind": m.String, "value": json_field, "array_index": m.Int}}
+    nui.NuiClientBindEntry = dataclasses.dataclass(kw_only=True)(type("NuiClientBindEntry", (), entry_ns))
+    ns = {"MAJOR": nui.NuiBinds.MAJOR, "MINOR": nui.NuiBinds.MINOR, "DIRECTION": m.Direction.C2S, "__module__": nui.__name__,
+          "__annotations__": {"binds": typing.Annotated[list[nui.NuiClientBindEntry], m.SizePrefix.INT]}}
+    nui.NuiClientBinds = dataclasses.dataclass(kw_only=True)(type("NuiClientBinds", (m.Message,), ns))
 
 
 def git_commit() -> str:

@@ -14,9 +14,9 @@ invalid and remains the player outside the callback and after mode exit.
 The client sends a payload-free request from its unhandled Escape path; the server
 uses the session-bound player and rejects NPCs and players outside cutscene mode.
 The module decides what cancellation means. Its last cancelling player is retained
-on the module, independently of a transient script context. Existing conversation
-Escape/abort conditions are unchanged: this input path defers while DialogPanel
-is visible. Dialogue-visible cutscenes and left-click cancellation are not claimed.
+on the module, independently of a transient script context. Escape while a
+conversation is shown in cutscene mode takes the same path and leaves the
+conversation open (scene `cutsceneconvo`). Left-click cancellation is not claimed.
 
 Verification:
 
@@ -27,7 +27,7 @@ Verification:
   native and focused tests verify its initial invalid getter state.
 - `dotnet test tests/OpenWinter.Tests --filter 'FullyQualifiedName~CutsceneAbortTests|FullyQualifiedName~ScriptEventContextTests'`.
 - `tools/godot.sh --headless --audio-driver Dummy res://Diagnostics/CutsceneAbortProbe.tscn`:
-  10 checks, including real Godot input dispatch and loopback request serialization.
+  9 checks, including real Godot input dispatch and loopback request serialization.
 
 Native notes: `out/visual/shots/vis_cutsceneabort_reference/nwn/notes.txt`.
 Client notes/log: `out/visual/shots/vis_cutsceneabort_fixed/openwinter/`.

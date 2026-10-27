@@ -123,8 +123,8 @@ public partial class NuiManager : Control
             ["token"] = token, ["type"] = type, ["element"] = element, ["index"] = index, ["payload"] = payload?.DeepClone(),
         });
 
-    public void SendBind(int token, string bind, JsonNode? value) =>
-        Session.Request("nui-bind", new JsonObject { ["token"] = token, ["bind"] = bind, ["value"] = value?.DeepClone() });
+    public void SendBind(int token, string bind, JsonNode? value, int index = -1) =>
+        Session.Request("nui-bind", new JsonObject { ["token"] = token, ["bind"] = bind, ["value"] = value?.DeepClone(), ["index"] = index });
 
     /// <summary>Topmost window under a screen point.</summary>
     NuiWindowView? WindowAt(Vector2 p)

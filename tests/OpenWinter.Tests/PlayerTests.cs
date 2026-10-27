@@ -266,8 +266,11 @@ public class PlayerTests
         Assert.Equal("watch:text:-1:1:1:null:typed", v.Strings["event3"]);
         nui.ClientSetBind(pc, token, "text", System.Text.Json.Nodes.JsonValue.Create("typed"));
         Assert.Equal(3, v.Ints["events"]); // unchanged value: no watch event
+        // The client names the row whose element it changed; the watch reports it as the array index.
+        nui.ClientSetBind(pc, token, "text", System.Text.Json.Nodes.JsonValue.Create("row"), 2);
+        Assert.Equal("watch:text:2:1:1:null:row", v.Strings["event4"]);
         nui.HandleEvent(pc, token, "close", "_window_", -1, null);
-        Assert.Equal(4, v.Ints["events"]);
+        Assert.Equal(5, v.Ints["events"]);
         Assert.Null(nui.Get(pc, token));
 
         // Re-creating a window with the same id replaces it.

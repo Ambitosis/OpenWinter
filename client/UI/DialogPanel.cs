@@ -276,7 +276,9 @@ public partial class DialogPanel : Control
             else if (_indexes.Count == 1) Choose(0);
             GetViewport().SetInputAsHandled();
         }
-        else if (key == Key.Escape) { Reply?.Invoke(-1); GetViewport().SetInputAsHandled(); }
+        // In cutscene mode Esc doesn't end the conversation: it is the cutscene's (CutsceneAbortInput), as on the
+        // original (visual scene cutsceneconvo).
+        else if (key == Key.Escape && !_cutscene) { Reply?.Invoke(-1); GetViewport().SetInputAsHandled(); }
     }
 
     /// <summary>The middle of reply <paramref name="i"/> on screen, if shown (scripted captures).</summary>

@@ -10,7 +10,7 @@ namespace OpenWinter.Net.Nwn.Messages;
 /// <summary>Creates the message type for a major, minor and direction.</summary>
 public static class NwnMessageRegistry
 {
-    public const int Count = 464;
+    public const int Count = 465;
 
     public static NwnMessage? Create(byte major, byte minor, NwnDirection direction) =>
         (major, minor, direction) switch
@@ -478,7 +478,7 @@ public static class NwnMessageRegistry
             (0x37, 0x01, NwnDirection.ServerToClient) => new NuiMessages.NuiCreateWindow(),
             (0x37, 0x02, NwnDirection.ServerToClient) => new NuiMessages.NuiDestroyWindow(),
             (0x37, 0x03, NwnDirection.ClientToServer) => new NuiMessages.NuiEvents(),
-            (0x37, 0x04, NwnDirection.ClientToServer) => new NuiMessages.NuiBinds(),
+            (0x37, 0x04, NwnDirection.ClientToServer) => new NuiMessages.NuiClientBinds(),
             (0x37, 0x04, NwnDirection.ServerToClient) => new NuiMessages.NuiBinds(),
             (0x37, 0x05, NwnDirection.ServerToClient) => new NuiMessages.NuiSetLayout(),
             (0x38, 0x01, NwnDirection.ServerToClient) => new SetShaderUniformMessages.SetShaderUniformFloat(),

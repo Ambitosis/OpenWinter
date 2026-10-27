@@ -139,7 +139,7 @@ public class NwnBridgeConnectionTests
         var value = new string('x', 5000);
         bridge.Send(new ClientRequestMessage { Kind = "nui-bind", Json = $$"""{"token":1,"bind":"text","value":"{{value}}"}""" }.Write());
         Assert.Empty(t.FromClient);
-        Assert.Contains("NuiBinds", Assert.Single(bridge.Session!.Unsent));
+        Assert.Contains("NuiClientBinds", Assert.Single(bridge.Session!.Unsent));
         bridge.Send(new ClientRequestMessage { Kind = "nui-bind", Json = """{"token":1,"bind":"text","value":"short"}""" }.Write());
         Assert.Single(t.FromClient);
     }

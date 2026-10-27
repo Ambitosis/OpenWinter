@@ -21,8 +21,8 @@ public partial class CutsceneAbortProbe : Node
         {
             var (client, server) = LoopbackConnection.CreatePair();
             var session = new ClientSession { Connection = client };
-            bool cutscene = false, dialog = false;
-            var input = new CutsceneAbortInput { Session = session, CanRequest = () => cutscene && !dialog };
+            bool cutscene = false;
+            var input = new CutsceneAbortInput { Session = session, CanRequest = () => cutscene };
             AddChild(input);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             KeyEvent(Key.Escape);
@@ -37,8 +37,7 @@ public partial class CutsceneAbortProbe : Node
             KeyEvent(Key.Escape, true, true); Check(!server.TryReceive(out _), "repeat ignored");
             KeyEvent(Key.Space); Check(!server.TryReceive(out _), "other keys preserved");
             KeyEvent(Key.Escape); Check(server.TryReceive(out _), "separate Escape can signal again");
-            dialog = true; KeyEvent(Key.Escape); Check(!server.TryReceive(out _), "visible dialog retains existing Escape behavior");
-            dialog = false; cutscene = false; KeyEvent(Key.Escape); Check(!server.TryReceive(out _), "mode exit stops requests");
+            cutscene = false; KeyEvent(Key.Escape); Check(!server.TryReceive(out _), "mode exit stops requests");
             session.Free();
             GD.Print($"[cutscene-abort] {_checks} checks passed"); GetTree().Quit();
         }

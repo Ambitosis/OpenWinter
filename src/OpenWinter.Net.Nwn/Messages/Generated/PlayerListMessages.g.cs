@@ -115,25 +115,25 @@ public static partial class PlayerListMessages
         public override void Read(NwnReader r)
         {
             DisplayDmMsg = r.ReadBool();
-            var n1637 = (int)r.ReadInteger(NwnWireType.Byte);
-            var count1641 = n1637;
-            var list1638 = new List<PlayerListMessages.Player>(Math.Max(0, count1641));
-            for (int i1639 = 0; i1639 < count1641; i1639++)
+            var n1643 = (int)r.ReadInteger(NwnWireType.Byte);
+            var count1647 = n1643;
+            var list1644 = new List<PlayerListMessages.Player>(Math.Max(0, count1647));
+            for (int i1645 = 0; i1645 < count1647; i1645++)
             {
-                PlayerListMessages.Player e1640;
-                e1640 = r.ReadStruct<PlayerListMessages.Player>();
-                list1638.Add(e1640);
+                PlayerListMessages.Player e1646;
+                e1646 = r.ReadStruct<PlayerListMessages.Player>();
+                list1644.Add(e1646);
             }
-            Players = list1638;
+            Players = list1644;
         }
 
         public override void Write(NwnWriter w)
         {
             w.WriteBool(DisplayDmMsg);
             w.WriteInteger(NwnWireType.Byte, Players.Count);
-            foreach (var e1642 in Players)
+            foreach (var e1648 in Players)
             {
-                w.WriteStruct(e1642);
+                w.WriteStruct(e1648);
             }
         }
     }
