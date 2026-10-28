@@ -255,7 +255,8 @@ static partial class Visual
 
     /// <summary>
     /// Triggers, area transitions among them: "triggers": [{ "tag", "position": [x,y,z], "points": [[dx,dy], ...],
-    /// "linkedTo": "DOOR_OR_WAYPOINT_TAG", "linkedToFlags": 1 (door) or 2 (waypoint) }]; no scripts.
+    /// "linkedTo": "DOOR_OR_WAYPOINT_TAG", "linkedToFlags": 1 (door) or 2 (waypoint), "type": 0-2, "cursor": n,
+    /// "highlightHeight": metres }]; type and cursor default to 1 for a transition and 0 otherwise; no scripts.
     /// </summary>
     static void AddTriggers(GffStruct git, JsonElement json)
     {
@@ -269,8 +270,9 @@ static partial class Visual
                 .SetResRef("TemplateResRef", transition ? "newtransition" : "newgeneric")
                 .SetString("LinkedTo", linkedTo)
                 .SetByte("LinkedToFlags", spec.TryGetProperty("linkedToFlags", out var lf) ? lf.GetInt32() : transition ? 1 : 0)
-                .SetInt("Type", transition ? 1 : 0).SetByte("Cursor", transition ? 1 : 0)
-                .SetDWord("Faction", 1).SetFloat("HighlightHeight", 0.1f)
+                .SetInt("Type", spec.TryGetProperty("type", out var ty) ? ty.GetInt32() : transition ? 1 : 0)
+                .SetByte("Cursor", (byte)(spec.TryGetProperty("cursor", out var cu) ? cu.GetInt32() : transition ? 1 : 0))
+                .SetDWord("Faction", 1).SetFloat("HighlightHeight", spec.TryGetProperty("highlightHeight", out var hh) ? hh.GetSingle() : 0.1f)
                 .SetFloat("XPosition", xyz[0]).SetFloat("YPosition", xyz[1]).SetFloat("ZPosition", xyz[2])
                 .SetList("Geometry", spec.GetProperty("points").EnumerateArray().Select(p =>
                 {

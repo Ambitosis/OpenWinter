@@ -397,6 +397,7 @@ public partial class ClientSession : Node3D
             ObjectKind.Creature => CreatureView.Create(s, Content),
             ObjectKind.Placeable or ObjectKind.Door or ObjectKind.Item => StaticObjectView.Create(s, Content),
             ObjectKind.Sound => SoundView.Create(s, Content.Audio),
+            ObjectKind.Trigger => TriggerView.Create(s, Area?.WalkTriangles),
             _ => null,
         };
         if (view == null) return;

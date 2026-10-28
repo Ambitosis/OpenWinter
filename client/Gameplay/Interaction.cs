@@ -147,12 +147,14 @@ public partial class Interaction : Node
         var oldHover = Hovered;
         Hovered = Suspended ? null : Pick(mouse, hover: true);
         if (oldHover != Hovered && oldHover is StaticObjectView oldDoor && IsInstanceValid(oldDoor)) oldDoor.SetDoorHovered(false);
+        if (oldHover != Hovered && oldHover is TriggerView oldTrigger && IsInstanceValid(oldTrigger)) oldTrigger.SetHovered(false);
+        if (Hovered is TriggerView trigger) trigger.SetHovered(true);
         if (Hovered is StaticObjectView { Kind: ObjectKind.Door } door)
             door.SetDoorHovered(HoveredDoorTransition);
         UpdateGround(mouse);
         UpdateMouseDriving();
         bool highlightAll = UpdateHighlightAll();
-        if (Settings.Current.Interface.TextBubbleMode != 0 && Hovered != null && Hovered.Kind != ObjectKind.Door
+        if (Settings.Current.Interface.TextBubbleMode != 0 && Hovered != null && Hovered.Kind is not (ObjectKind.Door or ObjectKind.Trigger)
             && (!highlightAll || Hovered.Kind == ObjectKind.Creature) && Hovered.DisplayName.Length > 0 && RadialOpen?.Invoke() != true)
         {
             HoverLabel.Visible = true;
@@ -212,7 +214,8 @@ public partial class Interaction : Node
             var centre = Session.Objects.GetValueOrDefault(Session.ControlledId) is { } me ? me.GlobalPosition : Camera.GlobalPosition;
             foreach (var v in Session.Objects.Values)
             {
-                if (!Highlightable(v)) continue;
+                // Transitions light up only under the pointer (visual scene triggerhover).
+                if (!Highlightable(v) || v.Kind == ObjectKind.Trigger) continue;
                 if (v.GlobalPosition.DistanceTo(centre) > 40 || Camera.IsPositionBehind(v.GlobalPosition)) continue;
                 if (!rect.HasPoint(Camera.UnprojectPosition(v.GlobalPosition))) continue;
                 _all.Add(v);
@@ -336,11 +339,17 @@ public partial class Interaction : Node
         var dir = Camera.ProjectRayNormal(mouse);
         var hits = new List<(ObjectView View, float T, float Volume)>();
         ObjectView? self = null, near = null;
+        List<TriggerView>? triggers = null;
         float nearDist = 28f;
         foreach (var v in Session.Objects.Values)
         {
             bool isSelf = v.ObjectId == Session.ControlledId;
             if (isSelf ? !IsInstanceValid(v) || !v.Visible : hover ? !Highlightable(v) : !Pickable(v)) continue;
+            if (v is TriggerView trigger)
+            {
+                (triggers ??= new()).Add(trigger);
+                continue;
+            }
             if (camPos.DistanceTo(v.GlobalPosition) > 70) continue;
             if (v is StaticObjectView { Kind: ObjectKind.Door } door)
             {
@@ -367,7 +376,11 @@ public partial class Interaction : Node
             float first = hits.Min(h => h.T);
             return hits.Where(h => h.T <= first + 1.5f).MinBy(h => h.Volume).View;
         }
-        return near ?? self;
+        if (near != null) return near;
+        // A transition trigger is picked by the ground under the pointer.
+        if (triggers != null && GroundPoint(mouse, out _) is { } ground && triggers.FirstOrDefault(t => t.Contains(ground)) is { } under)
+            return under;
+        return self;
     }
 
     /// <summary>

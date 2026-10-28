@@ -442,7 +442,9 @@ public partial class ObjectFx : Node
         // The mouse picking node is a sibling of the WorldFxPlayer this node belongs to.
         _interaction ??= GetParent()?.GetParent()?.GetChildren().OfType<Interaction>().FirstOrDefault();
         var want = new HashSet<ObjectView>();
-        if ((ForcedHilite ?? (_interaction?.HoveredDoorTransition == true ? null : _interaction?.Hovered)) is { } hovered) want.Add(hovered);
+        // Transitions light their own outline instead (door planes, trigger fills).
+        if ((ForcedHilite ?? (_interaction?.HoveredDoorTransition == true || _interaction?.Hovered is TriggerView ? null : _interaction?.Hovered)) is { } hovered)
+            want.Add(hovered);
         // Holding the highlight key (Tab) lights up everything usable.
         if (_interaction != null) want.UnionWith(_interaction.HighlightedAll);
         want.RemoveWhere(v => !IsInstanceValid(v));
