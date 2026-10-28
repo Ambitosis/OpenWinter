@@ -39,7 +39,7 @@ from its code, disassembly or decompiled output.
 
 ### Install and play
 
-1. Download `OpenWinter-0.1.1-windows-x64.zip` from the [latest release](https://github.com/Ambitosis/openwinter/releases/latest).
+1. Download `OpenWinter-0.2.0-windows-x64.zip` from the [latest release](https://github.com/Ambitosis/openwinter/releases/latest).
 2. Unzip it anywhere, for example `C:\Games\OpenWinter`.
 3. Run `OpenWinter.exe`. It finds your NWN:EE installation by itself.
 4. Choose **New Game**, pick a module, then pick or create a character.
@@ -66,7 +66,7 @@ than releases.
 
 ### Host a server
 
-1. Download `OpenWinter-Server-0.1.1-windows-x64.zip` from the same release and unzip it.
+1. Download `OpenWinter-Server-0.2.0-windows-x64.zip` from the same release and unzip it.
    On Linux, use `OpenWinter-Server-<version>-linux-x64.tar.gz` (`tar xzf` it) and see its README.txt for
    pointing it at the game data.
 2. Run `openwinter-server.exe --module "<path to a .mod file or module folder>"` (`./openwinter-server` on Linux).
@@ -92,7 +92,7 @@ problems privately, as described in [SECURITY.md](SECURITY.md).
 
 ## Status and roadmap
 
-The current release is **0.1.1**, an early pre-release ([CHANGELOG.md](CHANGELOG.md)). OpenWinter plays the official
+The current release is **0.2.0**, an early pre-release ([CHANGELOG.md](CHANGELOG.md)). OpenWinter plays the official
 campaign and community modules today, but it is not yet a drop-in replacement for every player or every server.
 [ROADMAP.md](ROADMAP.md) has the full checklist.
 
@@ -113,8 +113,10 @@ campaign and community modules today, but it is not yet a drop-in replacement fo
   the original game.
 - **Interface:** two UI modes. The **classic** UI, the default, rebuilds the original's interface from the game's
   own data. The **modern** UI is OpenWinter's redesign (Options → Interface, or `--ui modern`).
-- **NWNX:** scripts that call NWNX run without NWNX installed. 15 plugins (about 230 functions) are implemented in
-  the engine.
+- **NWNX:** scripts that call NWNX run without NWNX installed. All 633 functions of NWNX:EE's script includes are
+  implemented in the engine.
+- **NWN:EE servers:** the client also joins NWN:EE servers that run the NWNX_WSNetLayer plugin
+  ([docs/NETWORKING.md](docs/NETWORKING.md#joining-nwnee-servers-wsnetlayer)).
 
 ### In progress
 

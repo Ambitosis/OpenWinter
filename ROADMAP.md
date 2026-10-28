@@ -121,7 +121,7 @@ frozen adapters over those features, so an existing PW runs on day one. Its deve
 call to the native API at their own pace and drop the adapters when done. The adapters are never removed.
 - [ ] Native API: NWScript extension functions (shipped as an OpenWinter include) and a server-side C# API,
       designed as engine features rather than copies of NWNX's argument stack and string-keyed events
-- [ ] Move the logic of the existing plugins (`src/OpenWinter.Game/Nwnx/Plugins`, 15 plugins, ~230 functions)
+- [ ] Move the logic of the existing plugins (`src/OpenWinter.Game/Nwnx/Plugins`)
       into engine systems, leaving adapters; do this before adding more plugins
 - [ ] NWNX completeness: every plugin and function in the `nwnx_*.nss` includes, with a coverage test against
       those declarations; adapters reproduce NWNX behaviour exactly, quirks included
