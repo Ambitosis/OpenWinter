@@ -1181,7 +1181,9 @@ public sealed partial class GameServer : IWorldOutput
                 break;
             case Trigger tr:
                 msg.Kind = ObjectKind.Trigger;
-                msg.Flags = ObjectFlags.Selectable | ObjectFlags.Transition;
+                // Only a transition that leads somewhere lights up, takes the transition cursor and can be clicked
+                // (visual scene triggerhover: one linked to a missing tag does nothing in the original).
+                msg.Flags = WorldObjects.TransitionService.ResolveTarget(World, tr) != null ? ObjectFlags.Selectable | ObjectFlags.Transition : 0;
                 // The polygon, relative to the trigger's position.
                 msg.Extra = System.Text.Json.JsonSerializer.Serialize(new
                 {

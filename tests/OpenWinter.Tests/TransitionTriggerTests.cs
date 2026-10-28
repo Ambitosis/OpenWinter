@@ -11,7 +11,7 @@ namespace OpenWinter.Tests;
 public sealed class TransitionTriggerTests
 {
     [DataFact]
-    public void TransitionTriggersAreSentWithTheirPolygonAndGenericOnesAreNot()
+    public void LinkedTransitionTriggersAreSentWithTheirPolygonAndGenericOnesAreNot()
     {
         using var f = new ModuleTransitionTests.Fixture();
         var (session, client) = f.Join("Trigger tester");
@@ -26,7 +26,13 @@ public sealed class TransitionTriggerTests
             world.AddToArea(t, area, at, 0);
             return t;
         }
+        world.AddToArea(new Waypoint { Tag = "TT_DEST" }, area, pc.Position + new V3(0, 8, 0), 0);
         var transition = Add(Trigger.TypeTransition, new V3(5, 0, 0));
+        transition.LinkedTo = "TT_DEST";
+        transition.LinkedToFlags = 2;
+        var unlinked = Add(Trigger.TypeTransition, new V3(0, -5, 0));
+        unlinked.LinkedTo = "TT_MISSING";
+        unlinked.LinkedToFlags = 2;
         var generic = Add(Trigger.TypeGeneric, new V3(-5, 0, 0));
         f.Server.Tick(1f / 30);
         var spawns = ModuleTransitionTests.Fixture.Drain(client).Where(p => (MessageType)p[0] == MessageType.Spawn)
@@ -35,6 +41,8 @@ public sealed class TransitionTriggerTests
         var spawn = Assert.Single(spawns, s => s.ObjectId == transition.Id);
         Assert.Equal(ObjectKind.Trigger, spawn.Kind);
         Assert.Equal(ObjectFlags.Selectable | ObjectFlags.Transition, spawn.Flags);
+        // One that leads nowhere can't be hovered or clicked.
+        Assert.Equal((ObjectFlags)0, Assert.Single(spawns, s => s.ObjectId == unlinked.Id).Flags);
         var points = JsonDocument.Parse(spawn.Extra).RootElement.GetProperty("points").EnumerateArray()
             .Select(p => p.EnumerateArray().Select(n => n.GetSingle()).ToArray()).ToList();
         Assert.Equal(new V3(2, 1, 0.5f), new V3(points[2][0], points[2][1], points[2][2]), (a, b) => V3.Distance(a, b) < 1e-4f);

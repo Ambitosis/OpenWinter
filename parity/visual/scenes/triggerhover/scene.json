@@ -1,7 +1,9 @@
 {"tileset": "tde01", "tile": 4, "size": 4, "pc": [20, 20, 0], "facing": 90, "seconds": 60, "gui": true, "softwareCursor": true,
+ "doors": [{ "template": "nw_door_metal", "tag": "TH_DEST", "position": [ 32, 32, 0 ], "facing": 0 }],
  "triggers": [
-  { "tag": "TH_TRANS", "position": [ 26, 20, 0 ], "points": [ [ -3, -3 ], [ 3, -3 ], [ 3, 3 ], [ -3, 3 ] ], "linkedTo": "TH_NOWHERE", "linkedToFlags": 2 },
+  { "tag": "TH_TRANS", "position": [ 26, 20, 0 ], "points": [ [ -3, -3 ], [ 3, -3 ], [ 3, 3 ], [ -3, 3 ] ], "linkedTo": "TH_DEST", "linkedToFlags": 1 },
   { "tag": "TH_GENERIC", "position": [ 14, 20, 0 ], "points": [ [ -3, -3 ], [ 3, -3 ], [ 3, 3 ], [ -3, 3 ] ] },
   { "tag": "TH_CURSOR1", "position": [ 20, 27, 0 ], "points": [ [ -3, -2 ], [ 3, -2 ], [ 3, 2 ], [ -3, 2 ] ], "cursor": 1 },
-  { "tag": "TH_TALL", "position": [ 20, 13, 0 ], "points": [ [ -3, -2 ], [ 3, -2 ], [ 3, 2 ], [ -3, 2 ] ], "linkedTo": "TH_NOWHERE", "linkedToFlags": 2, "highlightHeight": 2.0 }
+  { "tag": "TH_TALL", "position": [ 20, 13, 0 ], "points": [ [ -3, -2 ], [ 3, -2 ], [ 3, 2 ], [ -3, 2 ] ], "linkedTo": "TH_DEST", "linkedToFlags": 1, "highlightHeight": 2.0 },
+  { "tag": "TH_UNLINKED", "position": [ 32, 20, 0 ], "points": [ [ -2, -2 ], [ 2, -2 ], [ 2, 2 ], [ -2, 2 ] ], "linkedTo": "TH_NOWHERE", "linkedToFlags": 2 }
  ]}
