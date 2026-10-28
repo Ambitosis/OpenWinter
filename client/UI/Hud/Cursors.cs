@@ -133,6 +133,7 @@ public partial class Cursors : Node
                 ObjectKind.Creature when Interaction.Reaction(h) == Interaction.Hostile => Original.Attack,
                 ObjectKind.Creature => Original.Talk,
                 ObjectKind.Door => DoorCursor(h.Flags),
+                ObjectKind.Trigger => Original.Transition,
                 ObjectKind.Item => Original.Pickup,
                 ObjectKind.Placeable => Original.Use,
                 _ => Original.Default,

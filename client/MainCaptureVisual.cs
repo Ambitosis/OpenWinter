@@ -23,6 +23,13 @@ public partial class Main
         if (at < 0) return;
         RecordVisualAudioNote(line);
         var parts = line[(at + 7)..].Trim().Split('|');
+        // VISUAL|wall|<seconds>|<command ...>: the command after that many wall-clock seconds, as the original's harness runs it.
+        if (parts.Length > 2 && parts[0] == "wall" && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var wait))
+        {
+            var later = "VISUAL|" + string.Join('|', parts[2..]);
+            _ = Task.Delay(TimeSpan.FromSeconds(wait)).ContinueWith(_ => VisualLog(later));
+            return;
+        }
         if (parts.Length >= 2 && parts[0] == "shot") _visualShots.Enqueue((parts[1], line[at..].Trim()));
         else if (parts[0] == "done") _visualDone = true;
         // VISUAL|note|...: a reading the scene logged (facings, states), kept beside the shots for comparison.

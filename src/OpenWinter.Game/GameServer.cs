@@ -974,7 +974,10 @@ public sealed partial class GameServer : IWorldOutput
         s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "[Server] " + World.Resources.TlkString(strref) }.Write());
     }
 
-    static bool IsVisibleKind(GameObject o) => o is Creature or Placeable or Door or Item or Sound;
+    /// <summary>What clients are told about: area transition triggers among triggers (the pointer lights them up and
+    /// a click takes them).</summary>
+    static bool IsVisibleKind(GameObject o) => o is Creature or Placeable or Door or Item or Sound
+        or Trigger { TriggerType: Trigger.TypeTransition };
 
     /// <summary>
     /// What a player's client isn't told about: hidden DM avatars (except to DMs and their owner), and creatures in
@@ -1175,6 +1178,15 @@ public sealed partial class GameServer : IWorldOutput
                 // The ground model is the item's own, built from its parts and colours (docs/GROUND_ITEMS.md).
                 msg.Appearance = new Appearance { Type = i.BaseItem, Equipment = { ItemFactory.Visual(0, i) } };
                 msg.Flags = ObjectFlags.Selectable;
+                break;
+            case Trigger tr:
+                msg.Kind = ObjectKind.Trigger;
+                msg.Flags = ObjectFlags.Selectable | ObjectFlags.Transition;
+                // The polygon, relative to the trigger's position.
+                msg.Extra = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    points = tr.Geometry.Select(v => new[] { v.X - o.Position.X, v.Y - o.Position.Y, v.Z - o.Position.Z }),
+                });
                 break;
             case Sound snd:
                 msg.Kind = ObjectKind.Sound;
