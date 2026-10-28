@@ -3,21 +3,20 @@ using System.Text.Json.Nodes;
 namespace OpenWinter.Client.UI.Nui.Model;
 
 /// <summary>
-/// NUI default metrics, chosen to match EE's skin at UI scale 1 (nw_inc_nui.nss
-/// documents the style sizes; spacing and chrome are observed). Values err on the
-/// small side so layouts sized for the original client never overflow here.
+/// NUI default metrics at UI scale 1, measured on the original (visual scene nuifont).
 /// </summary>
 public static class NuiStyle
 {
-    public const float TitleHeight = 30;
+    public const float TitleHeight = 33;
     public const float WindowPadding = 4;
-    /// <summary>Margin around widgets that don't set NuiMargin (rows and columns get none).</summary>
+    /// <summary>Margin around elements that don't set NuiMargin: rows, columns and widgets alike, but not spacers or
+    /// the window's root.</summary>
     public const float WidgetMargin = 2;
     /// <summary>Padding inside groups (and the group implied by NuiText / NuiList).</summary>
     public const float GroupPadding = 4;
     public const float ScrollbarSize = 12;
     public const float RowHeight = 25;
-    public const int FontSize = 15;
+    public const int FontSize = 17;
     /// <summary>Scrollbar modes (NUI_SCROLLBARS_*).</summary>
     public const int ScrollNone = 0, ScrollX = 1, ScrollY = 2, ScrollBoth = 3, ScrollAuto = 4;
 }
@@ -54,7 +53,14 @@ public sealed class NuiNode
     /// <summary>Group-like elements that scroll their content (group, and the group NuiText/NuiList imply).</summary>
     public bool IsGroup => Type == "group";
 
-    public float Margin => MarginOverride ?? (IsLine ? 0 : NuiStyle.WidgetMargin);
+    /// <summary>The window's root element, which has no default margin.</summary>
+    public bool IsRoot;
+
+    public float Margin => MarginOverride ?? (IsRoot || Type == "spacer" ? 0 : NuiStyle.WidgetMargin);
+
+    /// <summary>Whether padding insets the content (groups, lists, rows, columns); on other widgets it moves the whole
+    /// widget right and down without resizing it or its neighbours.</summary>
+    public bool PadsInside => IsLine || Type is "group" or "list";
 
     public float Padding => PaddingOverride ?? (Type is "group" or "list" ? NuiStyle.GroupPadding : 0);
 
@@ -135,7 +141,10 @@ public static class NuiLayout
             bool horizontal = n.Type == "row";
             var prefs = n.Children.Select(Preferred).ToList();
             var main = prefs.Select(p => horizontal ? p.W : p.H).ToList();
-            var cross = prefs.Select(p => horizontal ? p.H : p.W).Where(x => x != null).Select(x => x!.Value).ToList();
+            // A nested row or column's own margin counts along the line but not across it (a column in a row adds
+            // its margins to the row's length, not to its height).
+            var cross = prefs.Select((p, i) => (horizontal ? p.H : p.W) - (n.Children[i].IsLine ? 2 * n.Children[i].Margin : 0))
+                .Where(x => x != null).Select(x => x!.Value).ToList();
             float pad = 2 * n.Padding;
             float? mainSize = main.All(x => x != null) ? main.Sum(x => x!.Value) + pad : null;
             float? crossSize = cross.Count > 0 ? cross.Max() + pad : null;
@@ -150,7 +159,9 @@ public static class NuiLayout
     public static void Arrange(NuiNode n, NuiRect outer)
     {
         n.Frame = outer.Deflate(n.Margin);
-        var content = new NuiRect(0, 0, n.Frame.W, n.Frame.H).Deflate(n.Padding);
+        if (!n.PadsInside && n.Padding > 0)
+            n.Frame = new NuiRect(n.Frame.X + n.Padding, n.Frame.Y + n.Padding, n.Frame.W, n.Frame.H);
+        var content = new NuiRect(0, 0, n.Frame.W, n.Frame.H).Deflate(n.PadsInside ? n.Padding : 0);
         switch (n.Type)
         {
             case "row": ArrangeLine(n, content, true); break;

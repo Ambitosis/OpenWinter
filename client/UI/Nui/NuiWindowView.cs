@@ -75,6 +75,7 @@ public partial class NuiWindowView : Control
         MouseFilter = AcceptsInput ? MouseFilterEnum.Stop : MouseFilterEnum.Ignore;
         AddChild(_content);
         _root = NuiNode.Parse(Json["root"]);
+        _root.IsRoot = true;
         BuildRoot();
         _collapsed = Binds.Bool(Json["collapsed"], -1, false);
         Place();
@@ -164,6 +165,7 @@ public partial class NuiWindowView : Control
         if (element == "_window_")
         {
             _root = node;
+            _root.IsRoot = true;
             BuildRoot();
         }
         else if (FindElement(element) is NuiGroupView group)

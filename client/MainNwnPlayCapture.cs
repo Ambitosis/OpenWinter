@@ -19,6 +19,7 @@ public partial class Main
         for (int i = 0; i < 600 && (_session.Area == null || _session.Controlled == null); i++) await Wait(0.1);
         DialogMessage? step = null;
         int steps = 0, answered = 0, shot = 0;
+        double answeredAt = 0;
         _session.DialogReceived += m => { step = m; steps++; };
         var clicks = new Queue<string>(_args.GetValueOrDefault("nui-click", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
         var picks = new Queue<string>(_args.GetValueOrDefault("nwn-replies", "").Split(',', StringSplitOptions.RemoveEmptyEntries));
@@ -42,9 +43,11 @@ public partial class Main
                 clicks.Dequeue();
                 await Wait(1.5);
             }
-            if (steps > answered && step is { Ended: false } m)
+            // A reply the line doesn't offer leaves it on screen: answer it again with the next reply.
+            if (step is { Ended: false } m && (steps > answered || Now() - answeredAt > 4))
             {
                 answered = steps;
+                answeredAt = Now();
                 GD.Print($"[nwn-play] {m.SpeakerName}: {m.Text} | {string.Join(" | ", m.Replies.Select(r => r.Text))}");
                 await Wait(1.5);
                 await Shot(dir, $"{++shot:00}_line");

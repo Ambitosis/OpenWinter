@@ -39,8 +39,8 @@ public sealed class NuiSkin
 
     Font? LoadFont()
     {
-        // The game's default UI font; fall back to Godot's when the data isn't there.
-        if (Content?.Resources.Read("fnt_default", ResType.Ttf) is not { Length: > 0 } ttf) return null;
+        // The face the original draws NUI text in (its log names it; visual scene nuifont); Godot's when it's missing.
+        if (Content?.Resources.Read("fnt_maintext", ResType.Ttf) is not { Length: > 0 } ttf) return null;
         try
         {
             var f = new FontFile { Data = ttf, Antialiasing = TextServer.FontAntialiasing.Gray, Hinting = TextServer.Hinting.Light };
