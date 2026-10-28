@@ -21,10 +21,18 @@ public class NuiModelTests
 
     const float M = NuiStyle.WidgetMargin;
 
+    /// <summary>An element as a window's root (no default margin of its own).</summary>
+    static NuiNode Root(JsonObject json)
+    {
+        var n = NuiNode.Parse(json);
+        n.IsRoot = true;
+        return n;
+    }
+
     [Fact]
     public void SpacersCentreAFixedButtonInARow()
     {
-        var row = NuiNode.Parse(El("row", null, null, El("spacer"), El("button", 100, 30), El("spacer")));
+        var row = Root(El("row", null, null, El("spacer"), El("button", 100, 30), El("spacer")));
         NuiLayout.Arrange(row, new NuiRect(0, 0, 400, 50));
         var button = row.Children[1];
         Assert.Equal(new NuiRect((400 - 100) / 2f, M, 100, 30), button.Frame);
@@ -43,17 +51,18 @@ public class NuiModelTests
     [Fact]
     public void RowsAdviseTheirHeightAndFlexibleSiblingsShareTheRest()
     {
-        var col = NuiNode.Parse(El("col", null, null,
+        var col = Root(El("col", null, null,
             El("row", null, null, El("spacer"), El("button", 80, 35)),
             El("label"),
             El("text")));
+        // The button's margins and the row's own.
         var (_, h) = NuiLayout.Preferred(col.Children[0]);
-        Assert.Equal(35 + 2 * M, h);
+        Assert.Equal(35 + 4 * M, h);
         NuiLayout.Arrange(col, new NuiRect(0, 0, 300, 300));
         Assert.Equal(35 + 2 * M, col.Children[0].Frame.H);
-        float rest = (300 - (35 + 2 * M)) / 2;
+        float rest = (300 - (35 + 4 * M)) / 2;
         Assert.Equal(rest - 2 * M, col.Children[1].Frame.H);
-        Assert.Equal(col.Children[0].Frame.Bottom + M, col.Children[1].Frame.Y);
+        Assert.Equal(col.Children[0].Frame.Bottom + 2 * M, col.Children[1].Frame.Y);
         // Flexible widgets span the column's width.
         Assert.Equal(300 - 2 * M, col.Children[1].Frame.W);
     }
@@ -61,14 +70,43 @@ public class NuiModelTests
     [Fact]
     public void ColumnsAdviseWidthToTheirRow()
     {
-        var row = NuiNode.Parse(El("row", null, null,
+        var row = Root(El("row", null, null,
             El("col", null, null, El("button", 120, 30), El("label", null, 20)),
             El("group")));
         NuiLayout.Arrange(row, new NuiRect(0, 0, 500, 200));
         Assert.Equal(124, row.Children[0].Frame.W);
-        Assert.Equal(500 - 124 - 2 * M, row.Children[1].Frame.W);
+        Assert.Equal(500 - 128 - 2 * M, row.Children[1].Frame.W);
         // The label in the column takes the column's width.
         Assert.Equal(120, row.Children[0].Children[1].Frame.W);
+    }
+
+    [Fact]
+    public void SpacersHaveNoMarginAndPaddingMovesAWidgetWithoutResizingIt()
+    {
+        // As measured on the original (visual scene nuifont): boxes in a row abut, a padded label shifts by its
+        // padding and keeps its width, and the next cell stays where it was.
+        static JsonObject Zero(JsonObject o)
+        {
+            o["margin"] = 0.0;
+            return o;
+        }
+        var padded = Zero(El("label", 75, 26));
+        padded["padding"] = 5.0;
+        var row = Root(El("row", null, null, El("spacer", 60, 20), padded, Zero(El("label", 115, 26))));
+        NuiLayout.Arrange(row, new NuiRect(0, 0, 400, 40));
+        Assert.Equal(new NuiRect(0, 0, 60, 20), row.Children[0].Frame);
+        Assert.Equal(new NuiRect(65, 5, 75, 26), row.Children[1].Frame);
+        Assert.Equal(135, row.Children[2].Frame.X);
+    }
+
+    [Fact]
+    public void AColumnInARowAddsItsMarginsToTheRowsLengthButNotItsHeight()
+    {
+        static JsonObject Box() => new() { ["type"] = "spacer", ["width"] = 60.0, ["height"] = 20.0 };
+        var col = Root(El("col", null, null, El("row", null, null, El("col", null, null, Box(), Box()), Box())));
+        var (w, h) = NuiLayout.Preferred(col.Children[0]);
+        Assert.Equal(60 + 2 * M + 60 + 2 * M, w);
+        Assert.Equal(40 + 2 * M, h);
     }
 
     [Fact]
@@ -105,9 +143,10 @@ public class NuiModelTests
         float inner = 200 - 2 * M - 2 * NuiStyle.GroupPadding;
         Assert.True(n.ShowScrollY);
         Assert.False(n.ShowScrollX);
-        Assert.Equal(5 * (30 + 2 * M), n.ContentSize.Y);
+        // The buttons and the column each add their margins.
+        Assert.Equal(5 * (30 + 2 * M) + 2 * M, n.ContentSize.Y);
         Assert.Equal(inner - NuiStyle.ScrollbarSize, n.Viewport.X);
-        Assert.Equal(inner - NuiStyle.ScrollbarSize - 2 * M, n.Children[0].Children[0].Frame.W);
+        Assert.Equal(inner - NuiStyle.ScrollbarSize - 4 * M, n.Children[0].Children[0].Frame.W);
     }
 
     [Fact]

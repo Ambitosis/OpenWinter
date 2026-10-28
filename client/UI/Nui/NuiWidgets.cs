@@ -9,7 +9,7 @@ public partial class NuiLabelView : NuiElement
 {
     public override void _Draw()
     {
-        var r = new Rect2(Vector2.Zero, Size).Grow(-Node.Padding);
+        var r = new Rect2(Vector2.Zero, Size);
         Ctx.Skin.DrawText(this, r, Text("value"), Int("text_halign"), Int("text_valign"), Foreground(NuiSkin.Text));
         DrawEncouraged();
     }
