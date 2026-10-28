@@ -34,7 +34,18 @@ public sealed class AttackAction : GameAction
             _knock ??= new WorldObjects.KnockOpenAction { Target = Target };
             return _knock.Step(world, c, dt);
         }
-        if (Rules.HitPoints.IsDead(t)) return ActionStatus.Done;
+        // A dead target ends the attack, except that a player turns to the nearest enemy within her reach: her target
+        // clears at once and she takes that enemy up at her next swing (nwmain playerkill: with a hostile 1.4 m away
+        // she switched to it, also with a second one 6 m away; alone, with only the one 6 m away, or with a neutral
+        // 1.4 m away her attack ended). An NPC's attack ends even with an enemy beside it (playerkill npc, npcp).
+        if (Rules.HitPoints.IsDead(t))
+        {
+            if (!c.IsPC || NearestEnemyInReach(world, c, t) is not { } next) return ActionStatus.Done;
+            Target = next.Id;
+            Passive = true;
+            world.System<CombatSystem>().Stop(c, leaveCombat: false);
+            return ActionStatus.InProgress;
+        }
         // A player's attack the PvP setting forbids (her own summon in a party-PvP area) is refused with feedback.
         if (!_pvpChecked)
         {

@@ -11,7 +11,7 @@ using Xunit;
 namespace OpenWinter.Tests;
 
 /// <summary>
-/// AI levels and attacks with a player present (nwmain visual scene playerai).
+/// AI levels and attacks with a player present (nwmain visual scenes playerai and playerkill).
 /// </summary>
 public class PlayerAiLevelTests
 {
@@ -114,5 +114,51 @@ public class PlayerAiLevelTests
         Assert.Equal(t2.Id, attack.Target);
         s.Step(6.5f);
         Assert.Equal(t2.Id, w.System<CombatSystem>().State(s.Pc).Target);
+    }
+
+    [DataFact]
+    public void APlayersAttackTurnsToTheNearestEnemyInReachWhenItsTargetDies()
+    {
+        var s = Make();
+        var w = s.World;
+        var t = Npc(s, s.A, new Vector3(20, 21.8f, 0), 1, "t");
+        t.IsImmortal = false;
+        var near = Npc(s, s.A, new Vector3(21.4f, 20, 0), 1, "near");
+        Npc(s, s.A, new Vector3(14, 20, 0), 1, "far");
+        s.Step(0.5f);
+        s.Pc.Actions.Add(new AttackAction { Target = t.Id });
+        s.Step(1.5f);
+        OpenWinter.Game.Rules.HitPoints.Kill(w, t, s.Pc.Id);
+        s.Step(0.1f);
+        // The nearer enemy, not the one 6 m away, taken up at her next swing (playerkill both).
+        var attack = Assert.IsType<AttackAction>(Assert.Single(s.Pc.Actions));
+        Assert.Equal(near.Id, attack.Target);
+        s.Step(6.5f);
+        Assert.Equal(near.Id, w.System<CombatSystem>().State(s.Pc).Target);
+    }
+
+    [DataFact]
+    public void AttacksEndWhenTheTargetDiesWithNoEnemyInReachOrForAnNpc()
+    {
+        var s = Make();
+        var w = s.World;
+        // Her attack, with only an enemy 6 m away (playerkill far).
+        var t = Npc(s, s.A, new Vector3(20, 21.8f, 0), 1, "t");
+        t.IsImmortal = false;
+        Npc(s, s.A, new Vector3(14, 20, 0), 1, "far");
+        // An NPC's attack, with an enemy of it 1.4 m away (playerkill npc).
+        var a = Npc(s, s.A, new Vector3(30, 20, 0), 1, "a");
+        var m = Npc(s, s.A, new Vector3(30, 21.8f, 0), FactionTable.Merchant, "m");
+        m.IsImmortal = false;
+        Npc(s, s.A, new Vector3(31.4f, 20, 0), FactionTable.Merchant, "n");
+        s.Step(0.5f);
+        s.Pc.Actions.Add(new AttackAction { Target = t.Id });
+        a.Actions.Add(new AttackAction { Target = m.Id });
+        s.Step(1.5f);
+        OpenWinter.Game.Rules.HitPoints.Kill(w, t, s.Pc.Id);
+        OpenWinter.Game.Rules.HitPoints.Kill(w, m, a.Id);
+        s.Step(0.1f);
+        Assert.DoesNotContain(s.Pc.Actions, x => x is AttackAction);
+        Assert.DoesNotContain(a.Actions, x => x is AttackAction);
     }
 }
