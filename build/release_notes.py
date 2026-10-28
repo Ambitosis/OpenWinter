@@ -1,6 +1,6 @@
 """Print a release's notes: its CHANGELOG entry followed by the install section.
 
-    python build/release_notes.py 0.1.1 > notes.md
+    python build/release_notes.py 0.2.0 > notes.md
 """
 import re
 import sys

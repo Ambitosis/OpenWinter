@@ -51,9 +51,12 @@ public class PrestigeCastingTests
         Assert.True(CreatureRules.SpellSlots(w, c, Sorcerer, 3) > slots3);
         Assert.Equal(known, sorc.KnownSpells.Sum(l => l.Count));
 
-        // The next sorcerer level learns cls_spkn_sorc row 6 to 7, not the caster level's rows.
-        var next = ProgressionRules.Plan(w, c, PackageBuilder.Complete(w, c, new LevelChoice { Class = Sorcerer }, player: false), player: false);
-        Assert.True(next.Ok, string.Join("; ", next.Errors));
-        Assert.Equal(KnownGain(w, Sorcerer, 6, 7), next.Spells.Single().PerLevel.Values.Sum());
+        // The next sorcerer level reads cls_spkn_sorc at class level 7, not the caster level's rows: a player learns
+        // row 6 to 7, a creature levelled by its package fills up to row 7's totals.
+        var player = ProgressionRules.Plan(w, c, new LevelChoice { Class = Sorcerer }, player: true);
+        Assert.Equal(KnownGain(w, Sorcerer, 6, 7), player.Spells.Single().PerLevel.Values.Sum());
+        var npc = ProgressionRules.Plan(w, c, new LevelChoice { Class = Sorcerer }, player: false);
+        foreach (var (lvl, n) in npc.Spells.Single().PerLevel)
+            Assert.Equal(ProgressionRules.KnownCount(w, Sorcerer, 7, lvl) - sorc.KnownSpells[lvl].Count, n);
     }
 }
