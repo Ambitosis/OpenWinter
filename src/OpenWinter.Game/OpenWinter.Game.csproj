@@ -11,7 +11,7 @@
     <InternalsVisibleTo Include="OpenWinter.Game.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
   </ItemGroup>

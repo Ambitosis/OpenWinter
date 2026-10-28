@@ -2,6 +2,8 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    # Updates go to the development branch; main only moves at releases.
+    target-branch: dev
     schedule:
       interval: weekly
     groups:
@@ -10,6 +12,7 @@ updates:
 
   - package-ecosystem: nuget
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
     groups:
