@@ -28,6 +28,65 @@ public sealed partial class GameServer
         return null;
     }
 
+    /// <summary>
+    /// A new world for <paramref name="resources"/>' module, loaded, with the server's settings carried over from
+    /// <paramref name="old"/> before its OnModuleLoad runs.
+    /// </summary>
+    static World NextWorld(World old, ResMan resources)
+    {
+        var next = new World(resources)
+        {
+            GameDifficulty = old.GameDifficulty, Pvp = old.Pvp, OneParty = old.OneParty,
+            PlayerPartyControl = old.PlayerPartyControl, ItemLevelRestrictions = old.ItemLevelRestrictions,
+        };
+        var (from, to) = (old.Limits, next.Limits);
+        (to.AbilityBonus, to.AbilityPenalty, to.AttackBonus, to.DamageBonus, to.SavingThrowBonus, to.SkillBonus) =
+            (from.AbilityBonus, from.AbilityPenalty, from.AttackBonus, from.DamageBonus, from.SavingThrowBonus, from.SkillBonus);
+        next.System<PersistenceSystem>().RootOverride = old.System<PersistenceSystem>().RootOverride;
+        next.System<ServerAdministration>().TakeOver(old.System<ServerAdministration>());
+        if (old.Scripts != null)
+        {
+            next.EnableScripts();
+            next.Scripts!.Log = old.Scripts.Log;
+        }
+        next.LoadModule();
+        return next;
+    }
+
+    bool _reloadWhenEmpty;
+
+    /// <summary>
+    /// The last player left a server with reload-when-empty on: the module starts again from its file, as nwserver
+    /// does (the server log shows the module loading again as the last player leaves).
+    /// </summary>
+    void ReloadModule()
+    {
+        if (_options.ModulePath is not { } path || _sessions.Any(s => s.Creature != null)) return;
+        var old = World;
+        World? next = null;
+        ResMan? resources = null;
+        try
+        {
+            resources = ResMan.ForModule(old.Resources.Paths, path);
+            next = NextWorld(old, resources);
+            var content = _options.ServeContent ? new Distribution.ContentServer(next) : null;
+            var previousResources = _ownedModuleResources;
+            ResetWorld(next);
+            _ownedModuleResources = resources;
+            Content = content;
+            _exportTimer = 0;
+            old.System<PersistenceSystem>().Dispose();
+            previousResources?.Dispose();
+            Console.WriteLine($"[server] module reloaded: no players left");
+        }
+        catch (Exception e) when (World != next)
+        {
+            if (next != null && World != next) next.System<PersistenceSystem>().Dispose();
+            resources?.Dispose();
+            Console.WriteLine($"[server] reloading the module failed: {e.Message}");
+        }
+    }
+
     /// <summary>Apply StartNewModule between ticks, after preparing a complete replacement.</summary>
     void StartModule(string name)
     {
@@ -48,14 +107,7 @@ public sealed partial class GameServer
             }).ToList();
             if (transfers.Count == 0) throw new InvalidOperationException("No player characters to transfer.");
             resources = ResMan.ForModule(old.Resources.Paths, path);
-            next = new World(resources) { GameDifficulty = old.GameDifficulty };
-            next.System<PersistenceSystem>().RootOverride = old.System<PersistenceSystem>().RootOverride;
-            if (old.Scripts != null)
-            {
-                next.EnableScripts();
-                next.Scripts!.Log = old.Scripts.Log;
-            }
-            next.LoadModule();
+            next = NextWorld(old, resources);
             if (next.FindArea(next.Module.EntryArea) == null)
                 throw new InvalidDataException("Module has no valid entry area.");
             var characters = transfers.Select(t => (t.Session,
