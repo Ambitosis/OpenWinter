@@ -45,6 +45,8 @@ dotnet run --project src/OpenWinter.Tools -c Release -- parity-run basics --only
   NWNX:EE), and compiles against that fork's `nwnx_risenholm.nss`. `"nwnxEnv": { "NWNX_TWEAKS_...": "true" }` sets
   environment variables for NWNX on both engines, after the lab's defaults (`NWNX_SQL_TYPE=SQLITE`,
   `NWNX_SQL_DATABASE=nwnx_sql`). `nwnx_pilot` is the smallest example.
+  `"dedicatedServer": true` makes the OpenWinter side read its settings as `openwinter-server` does, with the flags
+  the original side gets (`server_settings`).
   It never touches the real user folder. `"exports": ["name.are", ...]` compares files the scripts wrote to the user
   directory's nwnx folder (NWNX_Area_ExportARE/ExportGIT): their fields, values, tiles, variables and object lists
   become readings `file.<name>.*` (`nwnx_area_objects`).

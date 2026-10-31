@@ -107,7 +107,7 @@ def run_openwinter(cfg, scene, mod, sj, size, seconds, client_args, silent=False
         (vault / p["name"]).mkdir(parents=True, exist_ok=True)
         shutil.copy(visual.find_character(p["character"], cfg), vault / p["name"] / (p["character"] + ".bic"))
     settings = {"Name": "openwinter-mp", "Module": str(mod), "Port": port, "MaxPlayers": len(players) + 2, "Pvp": sj.get("multiplayer", {}).get("pvp", "party"),
-                "Vault": "server", "ServeContent": True, "AutoSaveMinutes": 0,
+                "Vault": "server", "VaultByPlayerName": True, "ServeContent": True, "AutoSaveMinutes": 0,
                 # One Party Only: nwserver's default is on; a scene can turn it off ("oneParty": false) for both engines.
                 "OneParty": bool(sj.get("multiplayer", {}).get("oneParty", True))}
     (home / "server.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")

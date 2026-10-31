@@ -60,6 +60,14 @@ public sealed class ServerOptions
     public bool CharacterSelection;
     /// <summary>Server vault: characters live on the server (servervault/&lt;player&gt;/) and are saved on logout. Local vault: clients bring their own.</summary>
     public VaultMode Vault = VaultMode.Server;
+    /// <summary>Server-vault folders by player name; otherwise by the player's public key (nwserver's default, server.vault.by-player-name).</summary>
+    public bool VaultByPlayerName = true;
+    /// <summary>A player name stays with the first key that used it (server.vault.sticky-player-names; override/knownservernames.2da).</summary>
+    public bool StickyPlayerNames;
+    /// <summary>Saves the game to the autosave slot this often while players are on (seconds, 0 = never; server.autosave).</summary>
+    public float AutoSaveInterval;
+    /// <summary>Loads the module afresh when the last player leaves (server.reload-when-empty).</summary>
+    public bool ReloadWhenEmpty;
     /// <summary>Offer the module's haks and custom TLK for download (dedicated servers).</summary>
     public bool ServeContent;
     /// <summary>Most players connected at once (0 = unlimited).</summary>
@@ -129,6 +137,7 @@ public sealed partial class GameServer : IWorldOutput
         progression.AllowCharacterCreation = _options.AllowCharacterCreation;
         progression.EnforceLegalCharacters = _options.EnforceLegalCharacters;
         progression.AlwaysMaxHitPoints = _options.MaxHitPointsPerLevel;
+        world.System<Persistence.PersistenceSystem>().VaultByPlayerName = _options.VaultByPlayerName;
         world.ObjectChanged += o => _dirty.Add(o);
         world.ObjectRemoved += OnRemoved;
         world.Output = this;
@@ -262,6 +271,19 @@ public sealed partial class GameServer : IWorldOutput
                 try { Persistence.ServerVault.Export(World, pc); }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Console.WriteLine($"[server] periodic save of {pc.Name.FirstString} failed: {e.Message}"); }
         }
+        // nwserver's autosave: the game goes to the autosave slot on a timer while players are on.
+        if (_options.AutoSaveInterval > 0 && _sessions.Any(x => x.Creature != null) && (_autoSaveTimer += dt) >= _options.AutoSaveInterval)
+        {
+            _autoSaveTimer = 0;
+            var world = World;
+            Defer(() =>
+            {
+                if (World != world) return;
+                try { SaveGames.SaveGameService.Save(world, "", SaveGames.SaveSlotKind.Auto); }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or NotSupportedException)
+                { Console.WriteLine($"[server] autosave failed: {e.Message}"); }
+            });
+        }
         Content?.Pump();
         // A paused game (SetPause / timestop) keeps talking to clients but stops simulating.
         if (!World.IsPaused) World.Step(dt);
@@ -275,6 +297,11 @@ public sealed partial class GameServer : IWorldOutput
             foreach (var action in run) action();
         }
         if (World.PendingModule is { } next) { World.PendingModule = null; StartModule(next); }
+        if (_reloadWhenEmpty)
+        {
+            _reloadWhenEmpty = false;
+            ReloadModule();
+        }
     }
 
     void Handle(PlayerSession s, MessageReader r, byte[] raw)
@@ -639,7 +666,7 @@ public sealed partial class GameServer : IWorldOutput
         pc.Actions.Add(new Conversations.InteractAction { Target = target.Id, Talk = talk, Type = talk || target is Creature ? 7 : 15, Clicked = true });
     }
 
-    float _exportTimer;
+    float _exportTimer, _autoSaveTimer;
 
     /// <summary>
     /// What a portal prompt shows of this server before the player joins (the original lists the server name, module,
@@ -677,6 +704,16 @@ public sealed partial class GameServer : IWorldOutput
         s.PortalWaypoint = hello.PortalWaypoint;
         if (s.Address.Length == 0) s.Address = s.Connection.Address;
         if (!AdmitLogin(s, hello)) return;
+        // Sticky names are checked only when they are on, before the connect event (NWNX_ON_CHECK_STICKY_PLAYER_NAME_RESERVED
+        // on nwserver); a name is refused under another key whatever its case.
+        if (!hello.DM && _options.StickyPlayerNames
+            && !Nwnx.NwnxSession.StickyName(Nwnx.NwnxSession.StickyNameBefore(World, hello.PlayerName, hello.PlayerKey, hello.DM),
+                World, hello.PlayerName, hello.PlayerKey))
+        {
+            s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That player name is in use with a different key." }.Write());
+            s.Connection.Disconnect();
+            return;
+        }
         if (Nwnx.NwnxSession.Connect(World, hello.PlayerName, hello.PlayerKey, hello.DM, s.Address) is { } refused)
         {
             Refuse(s, refused);
@@ -685,14 +722,6 @@ public sealed partial class GameServer : IWorldOutput
         if (hello.DM && !DungeonMaster.DungeonMasterSystem.PasswordAccepted(_options.DMPassword, hello.DMPassword))
         {
             s.Send(new NotifyMessage { Kind = "login-refused", Json = "{\"reason\":\"Invalid DM password.\"}" }.Write());
-            s.Connection.Disconnect();
-            return;
-        }
-        if (!hello.DM && _options.Vault == VaultMode.Server && _options.CharacterSelection
-            && !Nwnx.NwnxSession.StickyName(Nwnx.NwnxSession.StickyNameBefore(World, hello.PlayerName, hello.PlayerKey, hello.DM),
-                World, hello.PlayerName, hello.PlayerKey))
-        {
-            s.Send(new ChatMessage { Channel = ChatChannel.Server, Text = "That player name is in use with a different key." }.Write());
             s.Connection.Disconnect();
             return;
         }
@@ -731,7 +760,7 @@ public sealed partial class GameServer : IWorldOutput
             {
                 Mode = _options.Vault,
                 AllowNew = _options.AllowCharacterCreation,
-                Characters = _options.Vault == VaultMode.Server ? Persistence.ServerVault.List(World, s.PlayerName) : new(),
+                Characters = _options.Vault == VaultMode.Server ? Persistence.ServerVault.List(World, Persistence.ServerVault.Folder(World, s)) : new(),
             }.Write());
             return;
         }
@@ -752,7 +781,7 @@ public sealed partial class GameServer : IWorldOutput
         {
             if (_options.Vault == VaultMode.Server && choice.File.Length > 0)
             {
-                if (Persistence.ServerVault.Load(World, s.PlayerName, choice.File) is { } bic)
+                if (Persistence.ServerVault.Load(World, Persistence.ServerVault.Folder(World, s), choice.File) is { } bic)
                 {
                     // Server-vault characters are trusted unless the ELC options ask for them to be checked too.
                     if (Nwnx.Plugins.ElcPlugin.OptionsOf(World).ServerVault) { if (!Legal(s, bic, out c)) return; }
@@ -1329,6 +1358,7 @@ public sealed partial class GameServer : IWorldOutput
                 try { Persistence.ServerVault.Export(World, s.Creature); }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Console.WriteLine($"[server] saving {s.PlayerName}'s character failed: {e.Message}"); }
             World.Destroy(s.Creature);
+            if (_options.ReloadWhenEmpty && !_sessions.Any(x => x.Creature != null)) _reloadWhenEmpty = true;
         }
     }
 
