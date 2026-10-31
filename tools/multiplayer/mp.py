@@ -99,10 +99,11 @@ def run_openwinter(cfg, scene, mod, sj, size, seconds, client_args, silent=False
     # A scene can fix the port ("multiplayer": {"port": n}) when its scripts must name the server (mp_portal).
     port = sj.get("multiplayer", {}).get("port") or 5400 + sum(map(ord, str(REPO))) % 400
 
-    # The server: its own sandbox, the players' characters in its server vault (servervault/<player name>/).
+    # The server: its own user folder (-userdirectory, as nwserver), the players' characters in its server vault
+    # (servervault/<player name>/).
     home = root / "server"
     server_cfg = write_config(home, cfg, home / "user", mod)
-    vault = home / "out" / "sandbox-userdata" / "servervault"
+    vault = home / "user" / "servervault"
     for p in players:
         (vault / p["name"]).mkdir(parents=True, exist_ok=True)
         shutil.copy(visual.find_character(p["character"], cfg), vault / p["name"] / (p["character"] + ".bic"))
@@ -115,7 +116,7 @@ def run_openwinter(cfg, scene, mod, sj, size, seconds, client_args, silent=False
     log = home / "server.log"
     procs = []
     with open(log, "w", encoding="utf-8") as server_log:
-        server = subprocess.Popen([str(server_exe), "--config", str(home / "server.json"), "--harness", str(home)], cwd=home, env=env,
+        server = subprocess.Popen([str(server_exe), "-userdirectory", str(home / "user"), "--config", str(home / "server.json"), "--harness", str(home)], cwd=home, env=env,
                                   stdout=server_log, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW)
         procs.append(server)
         try:
