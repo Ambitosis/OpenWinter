@@ -15,13 +15,19 @@ public partial class OrbitCamera : Camera3D
     public float Distance = 9f, MinDistance = 2.5f, MaxDistance = 30f;
     public float Pitch = Mathf.DegToRad(-50f);
     public float Yaw;
+    /// <summary>How high above a target that isn't a creature (a capture's anchor) the camera aims.</summary>
     public float HeightOffset = DefaultHeight;
+    /// <summary>SetCameraHeight's height above the target; null aims at the creature's own height.</summary>
+    public float? ScriptHeight;
     /// <summary>
     /// Measured against the original client (parity/visual, scene calib): a 45 degree vertical field of view
-    /// (wider screens see more to the sides, not less above and below), looking at a point about a metre
-    /// above the player's feet.
+    /// (wider screens see more to the sides, not less above and below), looking at a point above the creature's
+    /// feet (<see cref="Views.CreatureView.CameraHeight"/>; a metre for a halfling, scene camheight).
     /// </summary>
     public const float DefaultFov = 45f, DefaultHeight = 1.0f;
+
+    /// <summary>The point the camera looks at, above the target's feet: a script's height, else the creature's own.</summary>
+    public float AimHeight => ScriptHeight ?? (Target is Views.CreatureView c ? c.CameraHeight : HeightOffset);
 
     public OrbitCamera() { Fov = DefaultFov; }
     public Node3D? Target;
@@ -106,7 +112,7 @@ public partial class OrbitCamera : Camera3D
         Glide((float)delta);
         if (Target == null || !IsInstanceValid(Target)) { Rendering.Keyhole.Update(this, default, default, false); return; }
         Follow((float)delta);
-        var focus = Target.GlobalPosition + Vector3.Up * HeightOffset;
+        var focus = Target.GlobalPosition + Vector3.Up * AimHeight;
         var wanted = focus + Offset();
         // Keyholing turns camera collision off, as the original's graphics.keyholing.disables-camera-collisions
         // (on by default) does: the camera passes into walls and the keyhole shows the player.
@@ -238,7 +244,7 @@ public partial class OrbitCamera : Camera3D
     {
         _glide = null;
         if (Target == null) return;
-        var focus = Target.GlobalPosition + Vector3.Up * HeightOffset;
+        var focus = Target.GlobalPosition + Vector3.Up * AimHeight;
         var offset = Offset();
         _armDistance = offset.Length();
         GlobalPosition = focus + offset;

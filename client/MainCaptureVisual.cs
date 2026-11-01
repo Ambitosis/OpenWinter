@@ -502,7 +502,7 @@ public partial class Main
         {
             await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
             if (_camera.Target == null) continue;
-            var offset = _camera.GlobalPosition - _camera.Target.GlobalPosition - Vector3.Up * _camera.HeightOffset;
+            var offset = _camera.GlobalPosition - _camera.Target.GlobalPosition - Vector3.Up * _camera.AimHeight;
             trace.WriteLine(FormattableString.Invariant($"{(Time.GetTicksMsec() - start) / 1000.0:F3},{_camera.Yaw:F6},{_camera.Pitch:F6},{Mathf.Atan2(offset.X, offset.Z):F6},{-Mathf.Atan2(offset.Y, new Vector2(offset.X, offset.Z).Length()):F6},{offset.Length():F6}"));
         }
     }

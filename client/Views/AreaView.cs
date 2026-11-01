@@ -121,7 +121,7 @@ public partial class AreaView : Node3D
         _env.BackgroundColor = fog;
         var camera = GetViewport()?.GetCamera3D();
         float cameraDistance = camera is Gameplay.OrbitCamera { Target: { } t } cam && IsInstanceValid(t)
-            ? cam.GlobalPosition.DistanceTo(t.GlobalPosition + Vector3.Up * cam.HeightOffset)
+            ? cam.GlobalPosition.DistanceTo(t.GlobalPosition + Vector3.Up * cam.AimHeight)
             : camera != null && FogCentre is { } centre ? camera.GlobalPosition.DistanceTo(centre) : 0f;
         ApplyFog(_env, f > 0.5f ? Info.SunFogAmount : Info.MoonFogAmount, fog, Info.FogClipDistance, cameraDistance);
         _sun.LightColor = Mix(Info.MoonDiffuse, Info.SunDiffuse);

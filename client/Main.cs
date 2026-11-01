@@ -985,20 +985,20 @@ public partial class Main : Node3D
         System.IO.Directory.CreateDirectory(dir);
         _camera.Distance = 5.5f;
         _camera.Pitch = Mathf.DegToRad(-12);
-        _camera.HeightOffset = 1.0f;
+        _camera.ScriptHeight = 1.0f;
         _camera.Snap();
         await Wait(1.0);
         await Shot(dir, "01_idle");
         // Close-up from the front.
-        float yaw = _camera.Yaw, dist = _camera.Distance, height = _camera.HeightOffset, pitch = _camera.Pitch;
+        float yaw = _camera.Yaw, dist = _camera.Distance, pitch = _camera.Pitch;
         _camera.Yaw = (_session.Controlled?.Rotation.Z ?? 0) + Mathf.Pi;
         _camera.Distance = 2.6f;
-        _camera.HeightOffset = 1.45f;
+        _camera.ScriptHeight = 1.45f;
         _camera.Pitch = Mathf.DegToRad(-6);
         _camera.Snap();
         await Wait(0.4);
         await Shot(dir, "00_portrait");
-        _camera.Yaw = yaw; _camera.Distance = dist; _camera.HeightOffset = height; _camera.Pitch = pitch;
+        _camera.Yaw = yaw; _camera.Distance = dist; _camera.ScriptHeight = 1.0f; _camera.Pitch = pitch;
         _camera.Snap();
         _input.Scripted = (new Vector2(1, 0), true);
         await Wait(1.6);

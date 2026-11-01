@@ -36,7 +36,7 @@ public static class FxCapture
             camera.Target = target;
             camera.Distance = distance;
             camera.Pitch = Mathf.DegToRad(pitchDeg);
-            camera.HeightOffset = height;
+            camera.ScriptHeight = height;
             if (yaw != null) camera.Yaw = yaw.Value;
             camera.Snap();
         }

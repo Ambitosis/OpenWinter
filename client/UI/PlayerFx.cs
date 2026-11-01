@@ -365,7 +365,7 @@ public partial class PlayerFx : CanvasLayer
             case "height":
             {
                 float h = d.GetProperty("height").GetSingle();
-                Camera.HeightOffset = h > 0 ? h : OrbitCamera.DefaultHeight;
+                Camera.ScriptHeight = h > 0 ? h : null;
                 break;
             }
             case "limits":

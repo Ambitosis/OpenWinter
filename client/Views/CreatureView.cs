@@ -11,6 +11,11 @@ public partial class CreatureView : ObjectView
     public Skeleton3D? Skeleton { get; private set; }
     /// <summary>S, M, L or H (visualeffects.2da root node columns), from appearance.2da SIZECATEGORY.</summary>
     public string SizeLetter { get; private set; } = "M";
+    /// <summary>
+    /// Where the camera aims on this creature, above its feet: its appearance.2da HEIGHT less half a metre, as the
+    /// original (visual scene camheight: halfling 1.0, elf 1.25, half-elf 1.5, half-orc 1.75 m).
+    /// </summary>
+    public float CameraHeight { get; private set; } = Gameplay.OrbitCamera.DefaultHeight;
 
     SpawnMessage? _spawn;
 
@@ -66,6 +71,7 @@ public partial class CreatureView : ObjectView
         _presentationContent = content;
         var appearance = content.Resources.TwoDA("appearance");
         int row = spawn.Appearance.Type;
+        CameraHeight = Math.Max(0f, appearance.GetFloat(row, "HEIGHT", 1.5f) - 0.5f);
         SizeLetter = appearance.GetInt(row, "SIZECATEGORY", 3) switch { <= 2 => "S", 3 => "M", 4 => "L", _ => "H" };
         string modelType = appearance.Get(row, "MODELTYPE").ToUpperInvariant();
         var built = modelType.StartsWith("P")
