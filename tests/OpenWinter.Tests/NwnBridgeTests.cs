@@ -100,6 +100,32 @@ public class NwnBridgeTests
     }
 
     [Fact]
+    public void ArmourColoursComeLeatherFirst()
+    {
+        // As recorded: an armour whose UTI has cloth 125 and 20, leather 119 and 119, metal 7 and 2 is sent with the
+        // palette 119, 119, 125, 20, 7, 2 (ITEM_APPR_ARMOR_COLOR_* order); OpenWinter's colours go cloth first.
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        output.Clear();
+        var armour = new ArmorModel { Parts = Enumerable.Repeat((ushort)1, 19).ToList(), Palette = [119, 119, 125, 20, 7, 2] };
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListAddCreature { ObjectId = 7, Position = (3, 4, 0), Orientation = (1, 0, 0) },
+                new GameObjUpdateObjListAppearanceCreature
+                {
+                    ObjectId = 7, Flags = UpdateCreatureAppearanceFlags.All, Race = 6,
+                    PartInfo = new CreaturePartInfo { Parts = Enumerable.Repeat((ushort)1, 19).ToList() },
+                    EquippedItems = [new NwnTagged('A', new EquippedItemAdd { Slot = 2, Item = new ItemAppearanceAndProps { BaseItemId = 16, ModelData = new NwnTagged(3, armour) } })],
+                },
+            },
+        });
+        var spawn = SpawnMessage.Read(Assert.Single(output, m => m.Type == MessageType.Spawn));
+        Assert.Equal(new byte[] { 125, 20, 119, 119, 7, 2 }, Assert.Single(spawn.Appearance.Equipment).Colors);
+    }
+
+    [Fact]
     public void WalkedPathsBecomeMovementTheClientCanFollow()
     {
         var (mirror, output) = Mirror();

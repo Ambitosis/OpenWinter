@@ -640,13 +640,13 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
                 break;
             case LayeredModel l:
                 v.ModelParts[0] = l.Part1;
-                v.Colors = l.Palette.Take(6).ToArray();
+                v.Colors = Colours(l.Palette);
                 break;
             case CompositeModel c:
                 v.ModelParts = [c.Part1, c.Part2, c.Part3];
                 break;
             case ArmorModel a:
-                v.Colors = a.Palette.Take(6).ToArray();
+                v.Colors = Colours(a.Palette);
                 for (int i = 0; i < BodyPartFromNwn.Length; i++) v.ArmorParts[i + 1] = a.Parts[BodyPartFromNwn[i]];
                 v.ArmorParts[19] = a.Parts[NwnRobe];
                 break;
@@ -658,5 +658,15 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
             v.LightLevel = (byte)Math.Clamp((int)light.CostTableValue, 0, 254);
         }
         return v;
+    }
+
+    /// <summary>
+    /// An item palette as OpenWinter orders it (cloth 1 and 2, leather 1 and 2, metal 1 and 2): the server sends it in
+    /// ITEM_APPR_ARMOR_COLOR_* order, leather first.
+    /// </summary>
+    static byte[] Colours(IReadOnlyList<byte> palette)
+    {
+        byte At(int i) => i < palette.Count ? palette[i] : (byte)0;
+        return [At(2), At(3), At(0), At(1), At(4), At(5)];
     }
 }
