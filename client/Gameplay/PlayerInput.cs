@@ -61,6 +61,7 @@ public partial class PlayerInput : Node
             if (!UI.WindowStack.CloseTop()) OpenGameMenu?.Invoke();
         }
         else if (Blocked) return;
+        else if (UI.TextFocus.Active(GetViewport())) return;
         else if (P(ActionCatalog.TurnLeft) || P(ActionCatalog.TurnRight)
             || P(ActionCatalog.MoveForward) || P(ActionCatalog.MoveBack) || P(ActionCatalog.MoveLeft) || P(ActionCatalog.MoveRight))
         {
@@ -163,7 +164,7 @@ public partial class PlayerInput : Node
         float turn = 0;
         bool walk;
         if (Scripted is { } s) { input = s.Dir; walk = s.Walk; }
-        else if (UI.DM.ChatInput.Typing || Blocked || KeyboardMenuOpen?.Invoke() == true) { input = Vector2.Zero; walk = false; }
+        else if (UI.TextFocus.Active(GetViewport()) || Blocked || KeyboardMenuOpen?.Invoke() == true) { input = Vector2.Zero; walk = false; }
         else
         {
             input = new Vector2(
@@ -179,7 +180,7 @@ public partial class PlayerInput : Node
             Session.Send(new MoveInputMessage { Direction = Rendering.Convert.N(scriptedDir), Walk = walk }.Write(), reliable: false);
             return;
         }
-        bool mouse = input == Vector2.Zero && turn == 0 && Interaction?.MouseDriveTarget != null && !Blocked && !UI.DM.ChatInput.Typing && KeyboardMenuOpen?.Invoke() != true;
+        bool mouse = input == Vector2.Zero && turn == 0 && Interaction?.MouseDriveTarget != null && !Blocked && !UI.TextFocus.Active(GetViewport()) && KeyboardMenuOpen?.Invoke() != true;
         var dir = mouse ? Interaction!.MouseDriveTarget!.Value : new Vector3(input.X, input.Y, 0);
         if (mouse) walk = Interaction!.MouseDriveWalk;
         bool active = mouse || input != Vector2.Zero || turn != 0;
