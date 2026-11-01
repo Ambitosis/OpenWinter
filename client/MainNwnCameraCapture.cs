@@ -30,7 +30,7 @@ public partial class Main
             await Wait(after);
             float yaw = Mathf.RadToDeg(_camera.Yaw) + 90, pitch = 90 + Mathf.RadToDeg(_camera.Pitch);
             GD.Print($"[nwn-camera] {name}: direction {(yaw % 360 + 360) % 360:0.0} pitch {pitch:0.0} distance {_camera.Distance:0.00} "
-                + $"height {_camera.HeightOffset:0.00} target {(_camera.Target as Views.ObjectView)?.ObjectId}");
+                + $"height {_camera.AimHeight:0.00} target {(_camera.Target as Views.ObjectView)?.ObjectId}");
             await Shot(dir, name);
             if (name == "p_custom1_3") done = true;
         }
@@ -72,7 +72,7 @@ public partial class Main
         {
             float yaw = Mathf.RadToDeg(_camera.Yaw) + 90, pitch = 90 + Mathf.RadToDeg(_camera.Pitch);
             GD.Print($"[camera-timeline] t{n * every:000.0}: direction {(yaw % 360 + 360) % 360:0.0} pitch {pitch:0.0} distance {_camera.Distance:0.00} "
-                + $"height {_camera.HeightOffset:0.00} target {(_camera.Target as Views.ObjectView)?.ObjectId} area {_session.Area?.Name}");
+                + $"height {_camera.AimHeight:0.00} target {(_camera.Target as Views.ObjectView)?.ObjectId} area {_session.Area?.Name}");
             await Shot(dir, $"t{n * every:000.0}".Replace('.', '_'));
             await Wait(every);
         }

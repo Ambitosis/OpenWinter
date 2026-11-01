@@ -33,7 +33,7 @@ public partial class Main
         GD.Print($"[nwn-fx] in {_session.Area?.Info.ResRef} with {_session.Objects.Count} objects");
         _camera.Distance = 15;
         _camera.Pitch = Mathf.DegToRad(-48);
-        _camera.HeightOffset = 0;
+        _camera.ScriptHeight = 0;
         _camera.Snap();
         const string Default = "01_knockdown@8.0,02_pause2_chest_open@9.6,03_worship_lever_on@16.6,04_sit_brazier_off@22.0,"
             + "05_talk_door_open@26.8,06_fireball_at_place@62.6,07_glow_red@67.0,08_protection@73.0,09_beam@80.0,"

@@ -212,7 +212,8 @@ How it works:
   can check both engines put the player in the same place). Pairs: `out/visual/compare/<module>__<shot>.png`
   with mean luma and RGB on each side, and `out/visual/compare/index.html` with all of them.
 
-Scenes: `calib` (camera calibration), `lightcal` (ground under known ambient and diffuse colours), `shaders` (the
+Scenes: `calib` (camera calibration), `camheight` (where the camera aims on the player: dogs mark the floor
+around it; run it with each `--character`, or a `characterFixture` for one that sorts after the pregenerated ones), `lightcal` (ground under known ambient and diffuse colours), `shaders` (the
 ground drawn with the scene's own shader through an MTR, changed by the SetShaderUniform* banks; docs/SHADERS.md;
 a scene's `.shd` and `.mtr` files go into its hak), `shaderplt` (a palette-textured head and torso through a test
 shader: the tinted texture, its alpha, mesh-space `vPos`, the bounding box, the area light values), `shaderlit` and
