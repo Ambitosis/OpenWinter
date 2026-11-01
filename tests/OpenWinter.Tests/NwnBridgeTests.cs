@@ -46,13 +46,14 @@ public class NwnBridgeTests
     {
         var (mirror, output) = Mirror();
         var area = Area();
+        // A placeable placed at bearing 0 comes with the orientation (0, 1, 0) (Risenholm's pw_ar_cutscene).
         area.StaticPlaceables.Add(new AreaMessages.Placeable { ObjectId = 9, Appearance = 65, Position = (1, 2, 0), Orientation = (0, 1, 0) });
         mirror.Area(area);
         var load = LoadAreaMessage.Read(output.First(m => m.Type == MessageType.LoadArea));
         Assert.Equal(("test", "Test", 4, 2, 8, 1u), (load.ResRef, load.Name, load.Width, load.Height, load.Tiles.Length, load.LoadToken));
         var statue = SpawnMessage.Read(output.First(m => m.Type == MessageType.Spawn));
         Assert.Equal((65, ObjectFlags.Static), (statue.Appearance.Type, statue.Flags));
-        Assert.Equal(MathF.PI / 2, statue.Facing, 4);
+        Assert.Equal(0f, statue.Facing, 4);
         Assert.Equal(MessageType.Notify, output[^1].Type);
     }
 
@@ -96,6 +97,32 @@ public class NwnBridgeTests
         var sword = Assert.Single(spawn.Appearance.Equipment);
         Assert.Equal((16, 1, 2, 3), (sword.Slot, sword.BaseItem, (int)sword.LightColor, (int)sword.LightLevel));
         Assert.Equal(new ushort[] { 61, 11, 21 }, sword.ModelParts);
+    }
+
+    [Fact]
+    public void ArmourColoursComeLeatherFirst()
+    {
+        // As recorded: an armour whose UTI has cloth 125 and 20, leather 119 and 119, metal 7 and 2 is sent with the
+        // palette 119, 119, 125, 20, 7, 2 (ITEM_APPR_ARMOR_COLOR_* order); OpenWinter's colours go cloth first.
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        output.Clear();
+        var armour = new ArmorModel { Parts = Enumerable.Repeat((ushort)1, 19).ToList(), Palette = [119, 119, 125, 20, 7, 2] };
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListAddCreature { ObjectId = 7, Position = (3, 4, 0), Orientation = (1, 0, 0) },
+                new GameObjUpdateObjListAppearanceCreature
+                {
+                    ObjectId = 7, Flags = UpdateCreatureAppearanceFlags.All, Race = 6,
+                    PartInfo = new CreaturePartInfo { Parts = Enumerable.Repeat((ushort)1, 19).ToList() },
+                    EquippedItems = [new NwnTagged('A', new EquippedItemAdd { Slot = 2, Item = new ItemAppearanceAndProps { BaseItemId = 16, ModelData = new NwnTagged(3, armour) } })],
+                },
+            },
+        });
+        var spawn = SpawnMessage.Read(Assert.Single(output, m => m.Type == MessageType.Spawn));
+        Assert.Equal(new byte[] { 125, 20, 119, 119, 7, 2 }, Assert.Single(spawn.Appearance.Equipment).Colors);
     }
 
     [Fact]
@@ -179,6 +206,41 @@ public class NwnBridgeTests
         });
         var update = UpdateMessage.Read(Assert.Single(output));
         Assert.Equal((4u, (ObjectFlags)0), (update.ObjectId, update.Flags & ObjectFlags.Open));
+    }
+
+    [Fact]
+    public void PlaceablesAndDoorsFaceTheirPlacedBearing()
+    {
+        // As recorded (Risenholm's pw_ar_cutscene against its GIT): an object update's bearing for a placeable is the
+        // bearing it was placed at, in degrees, while a creature's is a quarter turn short of its facing.
+        var (mirror, output) = Mirror();
+        mirror.Area(Area());
+        output.Clear();
+        mirror.ObjectList(new GameObjUpdateMessages.GameObjUpdateObjList
+        {
+            Entries =
+            {
+                new GameObjUpdateObjListAddPlaceable { ObjectId = 8, Appearance = 734, OriginalName = false, StrName = "Bench" },
+                new ObjListUpdatePlaceable
+                {
+                    ObjectType = NwnExternalTypes.ObjectType.Placeable, ObjectId = 8, Position = (3, 4, 0),
+                    Orientation = new OrientationUpdate { Bearing = 90 },
+                },
+                Door(7, 22),
+                new ObjListUpdateDoor
+                {
+                    ObjectType = NwnExternalTypes.ObjectType.Door, ObjectId = 7, Position = (6, 4, 0),
+                    Orientation = new OrientationUpdate { Bearing = 0 },
+                },
+                new GameObjUpdateObjListAddItem { ObjectId = 36, Item = new ItemAppearanceAndProps { BaseItemId = 1 } },
+                new ObjListUpdateItem { ObjectId = 36, Position = (20, 22, 0), Orientation = new OrientationUpdate { Bearing = 0 } },
+            },
+        });
+        var spawns = output.Where(m => m.Type == MessageType.Spawn).Select(m => SpawnMessage.Read(m)).ToDictionary(s => s.ObjectId);
+        Assert.Equal(MathF.PI / 2, spawns[8].Facing, 4);
+        Assert.Equal(0f, spawns[7].Facing, 4);
+        // Items keep the creature rule: a bearing of 0 faces +Y.
+        Assert.Equal(MathF.PI / 2, spawns[36].Facing, 4);
     }
 
     [Fact]

@@ -183,7 +183,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
             var m = Get(p.ObjectId, ObjectKind.Placeable);
             m.Appearance = new Appearance { Type = p.Appearance };
             m.Position = V(p.Position);
-            m.Facing = Facing(p.Orientation);
+            m.Facing = ModelFacing(ObjectKind.Placeable, Facing(p.Orientation));
             m.Flags = ObjectFlags.Static;
             m.HasAppearance = true;
         }
@@ -368,7 +368,7 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
             _ => ObjectKind.AreaOfEffect,
         });
         if (g.Position is { } pos) m.Position = V(pos);
-        if (g.Orientation is { } o) m.Facing = Facing(o);
+        if (g.Orientation is { } o) m.Facing = ModelFacing(m.Kind, Facing(o));
         if (g.Name is NwnLocString loc) m.Name = Text(loc);
         else if (g.Name is string s) m.Name = s;
         if (g.Locked is { } locked) m.Flags = locked ? m.Flags | ObjectFlags.Locked : m.Flags & ~ObjectFlags.Locked;
@@ -606,6 +606,14 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
 
     static float Wrap(float radians) => MathF.IEEERemainder(radians, 2 * MathF.PI);
 
+    /// <summary>
+    /// A server facing as OpenWinter gives it for this kind of object. A placeable or door faces its placed bearing,
+    /// which the server's orientation puts a quarter turn further (it reads GetFacing as the bearing + 90 degrees,
+    /// and its orientations and object-update bearings follow).
+    /// </summary>
+    static float ModelFacing(ObjectKind kind, float facing) =>
+        kind is ObjectKind.Placeable or ObjectKind.Door ? Wrap(facing - MathF.PI / 2) : facing;
+
     /// <summary>An update's facing: a bearing in degrees counter-clockwise from +Y (measured against the legs of
     /// walked paths), or a direction vector.</summary>
     static float Facing(OrientationUpdate o) => o.Full
@@ -632,13 +640,13 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
                 break;
             case LayeredModel l:
                 v.ModelParts[0] = l.Part1;
-                v.Colors = l.Palette.Take(6).ToArray();
+                v.Colors = Colours(l.Palette);
                 break;
             case CompositeModel c:
                 v.ModelParts = [c.Part1, c.Part2, c.Part3];
                 break;
             case ArmorModel a:
-                v.Colors = a.Palette.Take(6).ToArray();
+                v.Colors = Colours(a.Palette);
                 for (int i = 0; i < BodyPartFromNwn.Length; i++) v.ArmorParts[i + 1] = a.Parts[BodyPartFromNwn[i]];
                 v.ArmorParts[19] = a.Parts[NwnRobe];
                 break;
@@ -650,5 +658,15 @@ public sealed class NwnWorldMirror(INwnBridgeData data, Action<byte[]> emit)
             v.LightLevel = (byte)Math.Clamp((int)light.CostTableValue, 0, 254);
         }
         return v;
+    }
+
+    /// <summary>
+    /// An item palette as OpenWinter orders it (cloth 1 and 2, leather 1 and 2, metal 1 and 2): the server sends it in
+    /// ITEM_APPR_ARMOR_COLOR_* order, leather first.
+    /// </summary>
+    static byte[] Colours(IReadOnlyList<byte> palette)
+    {
+        byte At(int i) => i < palette.Count ? palette[i] : (byte)0;
+        return [At(2), At(3), At(0), At(1), At(4), At(5)];
     }
 }
