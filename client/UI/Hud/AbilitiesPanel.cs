@@ -62,7 +62,9 @@ public partial class AbilitiesPanel : UiTheme.Window
 
     public override void _UnhandledInput(InputEvent e)
     {
-        if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.K, CtrlPressed: false, AltPressed: false } && !UI.DM.ChatInput.Typing)
+        // The modern interface's own window: the classic interface (the original's) has no key for it.
+        if (e is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.K, CtrlPressed: false, AltPressed: false } && !UI.DM.ChatInput.Typing
+            && UI.Classic.ClassicGame.Current == null)
         {
             Toggle();
             GetViewport().SetInputAsHandled();

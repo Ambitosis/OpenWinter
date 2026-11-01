@@ -77,7 +77,7 @@ public partial class OrbitCamera : Camera3D
             if (!NoTurn && mm.Relative.X != 0) { Yaw -= mm.Relative.X * 0.006f * g.CameraSensitivity; _sinceManualTurn = 0; }
             if (!NoTilt) Pitch = Math.Clamp(Pitch - mm.Relative.Y * 0.004f * g.CameraSensitivity * (g.InvertY ? -1 : 1), TopPitch, BottomPitch);
         }
-        else if (e is InputEventKey { Pressed: true, Echo: false } && !UI.DM.ChatInput.Typing && !PlayerInput.Blocked)
+        else if (e is InputEventKey { Pressed: true, Echo: false } && !UI.TextFocus.Active(GetViewport()) && !PlayerInput.Blocked)
         {
             bool P(string action) => InputBindings.Pressed(e, action);
             if (P(ActionCatalog.ZoomInFull)) { if (!NoZoom) Distance = MinDistance; }
@@ -92,7 +92,7 @@ public partial class OrbitCamera : Camera3D
     public override void _Process(double delta)
     {
         _sinceManualTurn += delta;
-        if (!UI.DM.ChatInput.Typing && !PlayerInput.Blocked)
+        if (!UI.TextFocus.Active(GetViewport()) && !PlayerInput.Blocked)
         {
             float speed = Settings.Current.Gameplay.CameraKeySpeed * (float)delta;
             float turn = (Input.IsActionPressed(ActionCatalog.CameraLeft) ? 1 : 0)

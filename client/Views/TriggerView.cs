@@ -27,7 +27,6 @@ public partial class TriggerView : ObjectView
     {
         var view = new TriggerView();
         view.Init(spawn);
-        view.Rotation = Vector3.Zero;
         if (spawn.Extra.Length > 0)
         {
             using var doc = JsonDocument.Parse(spawn.Extra);
@@ -50,6 +49,9 @@ public partial class TriggerView : ObjectView
     }
 
     public bool Hovered => _hovered;
+
+    /// <summary>The polygon is laid out in area axes: a trigger never turns to a facing.</summary>
+    protected override float FacingToModel(float facing) => 0;
 
     /// <summary>Whether a point in area space lies inside the polygon (seen from above).</summary>
     public bool Contains(Vector3 areaPoint) => _points.Length >= 3
