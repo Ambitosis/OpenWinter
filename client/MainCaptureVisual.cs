@@ -40,6 +40,7 @@ public partial class Main
         else if (parts.Length >= 2 && parts[0] == "hover") _visualKeys.Enqueue(parts);
         else if (parts.Length >= 2 && parts[0] is "click" or "rightclick") _visualKeys.Enqueue(parts);
         else if (parts.Length >= 3 && parts[0] == "mouse") _visualKeys.Enqueue(parts);
+        else if (parts.Length >= 3 && parts[0] == "wheel") _visualKeys.Enqueue(parts);
         else if (parts.Length >= 4 && parts[0] == "burst") _visualKeys.Enqueue(parts);
     }
 
@@ -222,6 +223,23 @@ public partial class Main
                     }
                     visualMouseDown = down;
                     visualMouseButton = button;
+                    continue;
+                }
+                if (key[0] == "wheel")
+                {
+                    // VISUAL|wheel|fx,fy|<clicks>: wheel notches over that point, positive away from the user.
+                    var xy = key[1].Split(',').Select(s => float.Parse(s, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+                    var at = new Vector2(xy[0], xy[1]) * GetViewport().GetVisibleRect().Size;
+                    int clicks = int.Parse(key[2]);
+                    var wheel = clicks > 0 ? MouseButton.WheelUp : MouseButton.WheelDown;
+                    _interaction.PointerOverride = at;
+                    Input.ParseInputEvent(new InputEventMouseMotion { Position = at, GlobalPosition = at });
+                    for (int i = 0; i < Math.Abs(clicks); i++)
+                    {
+                        Input.ParseInputEvent(new InputEventMouseButton { ButtonIndex = wheel, Position = at, GlobalPosition = at, Pressed = true, Factor = 1 });
+                        Input.ParseInputEvent(new InputEventMouseButton { ButtonIndex = wheel, Position = at, GlobalPosition = at, Pressed = false, Factor = 1 });
+                        await Wait(0.03);
+                    }
                     continue;
                 }
                 if (key[0] is "click" or "rightclick")

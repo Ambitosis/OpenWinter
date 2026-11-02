@@ -12,7 +12,12 @@ namespace OpenWinter.Client.Gameplay;
 /// </summary>
 public partial class OrbitCamera : Camera3D
 {
-    public float Distance = 9f, MinDistance = 2.5f, MaxDistance = 30f;
+    /// <summary>
+    /// The original client's own camera limits (its settings' camera.limits: 1 to 25 m, and 1 to 89 degrees from
+    /// straight down), which hold for the player's zoom and for scripts' SetCameraFacing alike (visual scene camlimits).
+    /// </summary>
+    public const float DefaultMinDistance = 1f, DefaultMaxDistance = 25f;
+    public float Distance = 9f, MinDistance = DefaultMinDistance, MaxDistance = DefaultMaxDistance;
     public float Pitch = Mathf.DegToRad(-50f);
     public float Yaw;
     /// <summary>How high above a target that isn't a creature (a capture's anchor) the camera aims.</summary>
@@ -45,8 +50,8 @@ public partial class OrbitCamera : Camera3D
     public float TopPitch = HighestPitch, BottomPitch = LowestPitch;
     /// <summary>The camera mode: the player's setting, or a script's (SetCameraMode) until the setting next changes.</summary>
     public CameraMode Mode = CameraMode.TopDown;
-    /// <summary>Pitch limits (radians below the horizon): highest overhead and lowest.</summary>
-    public static readonly float HighestPitch = -Mathf.Pi / 2, LowestPitch = Mathf.DegToRad(-5);
+    /// <summary>Pitch limits (radians below the horizon): highest overhead and lowest (<see cref="DefaultMinDistance"/>).</summary>
+    public static readonly float HighestPitch = Mathf.DegToRad(-89), LowestPitch = Mathf.DegToRad(-1);
     /// <summary>The driving camera stays above this pitch (the original allows 62° from straight down).</summary>
     static readonly float DrivingLowestPitch = Mathf.DegToRad(-28);
     bool _dragging;
