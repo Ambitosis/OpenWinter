@@ -21,9 +21,9 @@ public class CameraScriptTests
     [Fact]
     public void DistanceLimitsFallBackToTheClientsAndNeverCross()
     {
-        Assert.Equal((2.5f, 30f), CameraScript.DistanceLimits(-1, -1, 2.5f, 30f));
-        Assert.Equal((4f, 15f), CameraScript.DistanceLimits(4, 15, 2.5f, 30f));
-        Assert.Equal((10f, 20f), CameraScript.DistanceLimits(20, 10, 2.5f, 30f));
+        Assert.Equal((1f, 25f), CameraScript.DistanceLimits(-1, -1, 1f, 25f));
+        Assert.Equal((4f, 15f), CameraScript.DistanceLimits(4, 15, 1f, 25f));
+        Assert.Equal((10f, 20f), CameraScript.DistanceLimits(20, 10, 1f, 25f));
     }
 
     [Fact]

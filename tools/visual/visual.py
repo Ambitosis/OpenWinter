@@ -459,6 +459,20 @@ def run_nwn(cfg, mod, user, shots, seconds, real_mouse=False, native_framebuffer
                     wincap.user32.PostMessageW(hwnd, 0x0204 if right else 0x0201, (2 if right else 1) | pointer_modifiers(), point)
                     time.sleep(max(0.05, min(1.0, float(parts[2]))) if len(parts) > 2 else 0.05)
                     wincap.user32.PostMessageW(hwnd, 0x0205 if right else 0x0202, pointer_modifiers(), point)
+                elif parts[0] == "wheel" and len(parts) > 2:
+                    # VISUAL|wheel|fx,fy|<clicks>: mouse wheel notches over that point, positive away from the user.
+                    fx, fy = (float(v) for v in parts[1].split(","))
+                    r = wincap.wt.RECT()
+                    wincap.user32.GetClientRect(hwnd, wincap.ctypes.byref(r))
+                    x, y = int(r.right * fx), int(r.bottom * fy)
+                    wincap.user32.PostMessageW(hwnd, 0x0200, 0, (y << 16) | (x & 0xFFFF))
+                    screen = wincap.wt.POINT(x, y)
+                    wincap.user32.ClientToScreen(hwnd, wincap.ctypes.byref(screen))
+                    clicks = int(parts[2])
+                    for _ in range(abs(clicks)):
+                        delta = 120 if clicks > 0 else -120
+                        wincap.user32.PostMessageW(hwnd, 0x020A, (delta & 0xFFFF) << 16, ((screen.y & 0xFFFF) << 16) | (screen.x & 0xFFFF))
+                        time.sleep(0.03)
                 elif parts[0] == "text" and len(parts) > 1:
                     # Text-input delivery control for an already-open sandbox editor. Unlike a
                     # key tap, WM_CHAR does not depend on the foreground keyboard translation.

@@ -344,8 +344,9 @@ public partial class PlayerFx : CanvasLayer
                 // NWN: direction the camera looks (0 = east, counter-clockwise), pitch 0 = straight down; -1 keeps one.
                 float dir = d.GetProperty("direction").GetSingle(), dist = d.GetProperty("distance").GetSingle(), pitch = d.GetProperty("pitch").GetSingle();
                 float? yaw = Gameplay.CameraScript.Direction(dir) is { } facing ? Mathf.DegToRad(facing - 90) : null;
-                // Within SetCameraLimits (visual scene camglide3: pitch 85 with a 60 limit frames as 60).
-                float? tilt = pitch >= 0 ? Math.Clamp(-Mathf.DegToRad(Math.Clamp(90 - pitch, 5, 90)), Camera.TopPitch, Camera.BottomPitch) : null;
+                // Within the camera's limits, a script's or the client's own (visual scenes camglide3: pitch 85 with a
+                // 60 limit frames as 60; camlimits: 0.5 m frames as 1 m and 40 m as 25 m).
+                float? tilt = pitch >= 0 ? Math.Clamp(-Mathf.DegToRad(Math.Clamp(90 - pitch, 0, 90)), Camera.TopPitch, Camera.BottomPitch) : null;
                 float? arm = dist >= 0 ? Math.Clamp(dist, Camera.MinDistance, Camera.MaxDistance) : null;
                 int transition = d.TryGetProperty("transition", out var t) ? t.GetInt32() : 0;
                 if (transition > 0) { Camera.GlideTo(yaw, tilt, arm, transition); break; }
@@ -371,7 +372,8 @@ public partial class PlayerFx : CanvasLayer
             case "limits":
             {
                 (Camera.MinDistance, Camera.MaxDistance) = Gameplay.CameraScript.DistanceLimits(
-                    d.GetProperty("minDistance").GetSingle(), d.GetProperty("maxDistance").GetSingle(), 2.5f, 30f);
+                    d.GetProperty("minDistance").GetSingle(), d.GetProperty("maxDistance").GetSingle(),
+                    Gameplay.OrbitCamera.DefaultMinDistance, Gameplay.OrbitCamera.DefaultMaxDistance);
                 Camera.Distance = Math.Clamp(Camera.Distance, Camera.MinDistance, Camera.MaxDistance);
                 Camera.SetPitchLimits(d.TryGetProperty("minPitch", out var minP) ? minP.GetSingle() : -1, d.TryGetProperty("maxPitch", out var maxP) ? maxP.GetSingle() : -1);
                 break;
