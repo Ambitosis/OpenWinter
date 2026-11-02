@@ -215,7 +215,10 @@ How it works:
 Scenes: `calib` (camera calibration), `camheight` (where the camera aims on the player: dogs mark the floor
 around it; run it with each `--character`, or a `characterFixture` for one that sorts after the pregenerated ones),
 `camlimits` (the client's own camera limits: SetCameraFacing distances and pitches under them and under script
-limits, and the mouse wheel zoomed fully in and out; the scene's `VISUAL|wheel|fx,fy|clicks` posts wheel notches), `lightcal` (ground under known ambient and diffuse colours), `shaders` (the
+limits, and the mouse wheel zoomed fully in and out; the scene's `VISUAL|wheel|fx,fy|clicks` posts wheel notches), `lightcal` (ground under known ambient and diffuse colours),
+`lightfalloff` (the floor under one authored effect light at a time, against a uniform grey ambient: radius,
+multiplier, height and two lights; run the original with `--profile plain`, and `--native-framebuffer` when the
+displays may be asleep), `shaders` (the
 ground drawn with the scene's own shader through an MTR, changed by the SetShaderUniform* banks; docs/SHADERS.md;
 a scene's `.shd` and `.mtr` files go into its hak), `shaderplt` (a palette-textured head and torso through a test
 shader: the tinted texture, its alpha, mesh-space `vPos`, the bounding box, the area light values), `shaderlit` and
