@@ -101,10 +101,10 @@ public sealed partial class CombatSystem : IWorldSystem
         /// <summary>Where it was when it last stood still with <see cref="StandFacing"/> (combat steps move it from there).</summary>
         public Vector3 StandPos, StandOrigin;
         public MoveAction? Approach;
-        // Sideways steps between rounds of melee (CombatSystem.Steps).
+        // Combat steps within a round (CombatSystem.Steps).
         public bool StepsPlanned;
         public readonly List<double> StepTimes = new();
-        public int StepSign = 1, StepsTaken;
+        public int StepsTaken;
         /// <summary>This round's step is an archer's step back (<see cref="RangedBackStepRange"/>).</summary>
         public bool BackStep;
     }
@@ -475,6 +475,7 @@ public sealed partial class CombatSystem : IWorldSystem
                 continue;
             }
             if (s.Approach != null) { s.Approach.Cancel(_world, c); s.Approach = null; }
+            if (!s.StepsPlanned && !ranged && target is Creature && s.RoundStart >= 0 && s.Plan.Count > 0) PlanMeleeSteps(c, s, target);
             var times = AttackTimes(s.Plan.Count);
             // Hasted, every swing comes 0.2 s earlier in the round: the first 0.13 s after the round's start, not 0.3
             // (nwserver round_clear re.2.haste, a one-attack bandit hasted: swings 0.0-0.2 s and 2.2-2.3 s into each
