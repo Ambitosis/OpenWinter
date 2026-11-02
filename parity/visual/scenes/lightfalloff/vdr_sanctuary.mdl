@@ -1,0 +1,23 @@
+# Wholly authored light fixture (no game assets): white point lights over the floor.
+newmodel vdr_sanctuary
+setsupermodel vdr_sanctuary NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vdr_sanctuary
+node dummy vdr_sanctuary
+ parent NULL
+endnode
+node light testlight0
+ parent vdr_sanctuary
+ position 0 0 1.0
+ radius 4
+ multiplier 2
+ color 1 1 1
+ isdynamic 1
+ affectdynamic 1
+ ambientonly 0
+ lightpriority 5
+ shadow 0
+endnode
+endmodelgeom vdr_sanctuary
+donemodel vdr_sanctuary

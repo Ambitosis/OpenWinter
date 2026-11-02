@@ -1,6 +1,7 @@
 using OpenWinter.Client.Rendering.Emitters;
 using OpenWinter.Content;
 using Godot;
+using OpenWinter.Client.Views.WorldFx.Logic;
 using N = System.Numerics;
 
 namespace OpenWinter.Client.Rendering;
@@ -117,6 +118,7 @@ public static class ModelBuilder
             if (lights && part.Light is { } l)
             {
                 var light = MakeLight(part.Name, l);
+                if (effect) SetEffectLight(light, l.Radius, l.Multiplier);
                 light.Transform = xf;
                 root.AddChild(light);
                 result.Lights.Add((part.Name, light));
@@ -271,9 +273,8 @@ public static class ModelBuilder
             for (int i = 0; i < model.Parts.Count; i++)
                 if (model.Parts[i].Light is { } l)
                 {
-                    // Effect lights reach their whole radius (Hellball's flash floods the area).
                     var light = MakeLight(LightName, l);
-                    light.OmniAttenuation = EffectLightAttenuation;
+                    SetEffectLight(light, l.Radius, l.Multiplier);
                     Attachment(i).AddChild(light);
                 }
         for (int i = 0; i < model.Parts.Count; i++)
@@ -300,7 +301,17 @@ public static class ModelBuilder
     };
 
     public const string LightName = "light";
-    public static float EffectLightAttenuation = 0.5f;
+
+    const string RadiusMeta = "light_radius", MultiplierMeta = "light_multiplier";
+
+    /// <summary>Sets an effect light's range, strength and falloff from its radius and multiplier (<see cref="EffectLight"/>).</summary>
+    public static void SetEffectLight(OmniLight3D light, float radius, float multiplier)
+    {
+        (light.OmniRange, light.LightEnergy) = EffectLight.For(radius, multiplier);
+        light.OmniAttenuation = EffectLight.Decay;
+        light.SetMeta(RadiusMeta, radius);
+        light.SetMeta(MultiplierMeta, multiplier);
+    }
 
     /// <summary>The node animations address a part's emitter, light and fading mesh through: "{bone}_fx".</summary>
     public static string AttachmentName(Skeleton3D skeleton, int bone) => skeleton.GetBoneName(bone) + "_fx";
@@ -469,6 +480,29 @@ public static class ModelBuilder
         return mesh;
     }
 
+    /// <summary>
+    /// Keyed radius and multiplier of an effect light as its range and strength: both follow their product
+    /// (<see cref="EffectLight"/>), so they are keyed together at every key of either.
+    /// </summary>
+    static void AddEffectLightTracks(Animation a, string lightPath, OmniLight3D light, AnimationTrack track)
+    {
+        float baseRadius = light.HasMeta(RadiusMeta) ? light.GetMeta(RadiusMeta).AsSingle() : light.OmniRange;
+        float baseMultiplier = light.HasMeta(MultiplierMeta) ? light.GetMeta(MultiplierMeta).AsSingle() : 1f;
+        var times = track.LightRadiusTimes.Concat(track.LightTimes).Distinct().OrderBy(t => t).ToArray();
+        int range = a.AddTrack(Animation.TrackType.Value), energy = a.AddTrack(Animation.TrackType.Value);
+        a.TrackSetPath(range, new NodePath(lightPath + ":omni_range"));
+        a.TrackSetPath(energy, new NodePath(lightPath + ":light_energy"));
+        a.ValueTrackSetUpdateMode(range, Animation.UpdateMode.Continuous);
+        a.ValueTrackSetUpdateMode(energy, Animation.UpdateMode.Continuous);
+        foreach (float time in times)
+        {
+            var (r, e) = EffectLight.For(EffectLight.Keyed(track.LightRadiusTimes, track.LightRadii, time, baseRadius),
+                EffectLight.Keyed(track.LightTimes, track.LightMultipliers, time, baseMultiplier));
+            a.TrackInsertKey(range, time, r);
+            a.TrackInsertKey(energy, time, e);
+        }
+    }
+
     /// <summary>Animation targeting skeleton bones by name. Position keys may be rescaled (supermodel animations).</summary>
     public static Animation BuildAnimation(ModelAnimation anim, Skeleton3D skeleton, string skeletonPath, float positionScale)
     {
@@ -516,16 +550,10 @@ public static class ModelBuilder
                         a.TrackInsertKey(t, keys.Times[k], v);
                     }
                 }
-            if (skeleton.GetNodeOrNull($"{attach}/{LightName}") != null)
+            if (skeleton.GetNodeOrNull<OmniLight3D>($"{attach}/{LightName}") is { } keyedLight)
             {
-                if (track.LightRadiusTimes.Length > 0)
-                {
-                    int t = a.AddTrack(Animation.TrackType.Value);
-                    a.TrackSetPath(t, new NodePath($"{skeletonPath}/{attach}/{LightName}:omni_range"));
-                    a.ValueTrackSetUpdateMode(t, Animation.UpdateMode.Continuous);
-                    for (int k = 0; k < track.LightRadiusTimes.Length; k++)
-                        a.TrackInsertKey(t, track.LightRadiusTimes[k], Math.Max(0.5f, track.LightRadii[k]));
-                }
+                if (track.LightRadiusTimes.Length > 0 || track.LightTimes.Length > 0)
+                    AddEffectLightTracks(a, $"{skeletonPath}/{attach}/{LightName}", keyedLight, track);
                 if (track.LightColorTimes.Length > 0)
                 {
                     int t = a.AddTrack(Animation.TrackType.Value);
@@ -533,14 +561,6 @@ public static class ModelBuilder
                     a.ValueTrackSetUpdateMode(t, Animation.UpdateMode.Continuous);
                     for (int k = 0; k < track.LightColorTimes.Length; k++)
                         a.TrackInsertKey(t, track.LightColorTimes[k], new Color(track.LightColors[k].X, track.LightColors[k].Y, track.LightColors[k].Z));
-                }
-                if (track.LightTimes.Length > 0)
-                {
-                    int t = a.AddTrack(Animation.TrackType.Value);
-                    a.TrackSetPath(t, new NodePath($"{skeletonPath}/{attach}/{LightName}:light_energy"));
-                    a.ValueTrackSetUpdateMode(t, Animation.UpdateMode.Continuous);
-                    for (int k = 0; k < track.LightTimes.Length; k++)
-                        a.TrackInsertKey(t, track.LightTimes[k], Math.Clamp(track.LightMultipliers[k], 0f, 3f));
                 }
             }
             if (track.AlphaTimes.Length > 0 && skeleton.GetNodeOrNull($"{attach}/{FadeMeshName}") != null)

@@ -1,0 +1,23 @@
+# Wholly authored light fixture (no game assets): white point lights over the floor.
+newmodel vdr_spellturn
+setsupermodel vdr_spellturn NULL
+classification Effects
+setanimationscale 1
+beginmodelgeom vdr_spellturn
+node dummy vdr_spellturn
+ parent NULL
+endnode
+node light testlight0
+ parent vdr_spellturn
+ position 0 0 1.0
+ radius 4
+ multiplier 1
+ color 1 1 1
+ isdynamic 1
+ affectdynamic 1
+ ambientonly 0
+ lightpriority 5
+ shadow 0
+endnode
+endmodelgeom vdr_spellturn
+donemodel vdr_spellturn
