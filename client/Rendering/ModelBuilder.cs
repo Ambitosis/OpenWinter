@@ -480,7 +480,6 @@ public static class ModelBuilder
         return mesh;
     }
 
-    /// <summary>Animation targeting skeleton bones by name. Position keys may be rescaled (supermodel animations).</summary>
     /// <summary>
     /// Keyed radius and multiplier of an effect light as its range and strength: both follow their product
     /// (<see cref="EffectLight"/>), so they are keyed together at every key of either.
@@ -504,6 +503,7 @@ public static class ModelBuilder
         }
     }
 
+    /// <summary>Animation targeting skeleton bones by name. Position keys may be rescaled (supermodel animations).</summary>
     public static Animation BuildAnimation(ModelAnimation anim, Skeleton3D skeleton, string skeletonPath, float positionScale)
     {
         var a = new Animation { Length = Math.Max(anim.Length, 0.01f) };
