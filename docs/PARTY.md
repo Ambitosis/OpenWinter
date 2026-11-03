@@ -54,8 +54,8 @@ which name each case:
 | Dislike (8000) | both players dislike each other (as SetPCDislike: nwscript.nss "Sets oPlayer and oTarget to dislike each other") | the other: 7992 "X now dislikes you!" |
 
 **One Party Only is nwserver's default** (`one-party-only = true` in the settings.tml it writes, schema default true,
-strref 66769 "Only One Party"). OpenWinter's dedicated server mirrors that default (`"OneParty"` in server.json,
-`--oneparty 0|1`); single player and tests have it off. The multiplayer scenes say `"oneParty": false` so both
+strref 66769 "Only One Party"). OpenWinter's dedicated server mirrors that default (`server.one-party-only` in
+settings.tml, `-oneparty`, `"OneParty"` in server.json or `--oneparty 0|1`); single player and tests have it off. The multiplayer scenes say `"oneParty": false` so both
 harnesses (OpenWinter's server.json and nwserver's settings.tml) run the same way.
 
 ## The player list

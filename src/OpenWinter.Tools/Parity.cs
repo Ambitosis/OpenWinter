@@ -579,8 +579,17 @@ static partial class Parity
             if (line.Contains("[script error]") || line.Contains("not implemented")) Console.WriteLine("[openwinter] " + line);
             lines.AddRange(line.Split('\n')); // as the server log file has it
         };
+        // "dedicatedServer": true reads the settings as the dedicated server does, with the flags the original side gets.
+        var options = new OpenWinter.Game.ServerOptions();
+        if (s.Get("dedicatedServer") is { ValueKind: JsonValueKind.True })
+        {
+            var settings = new OpenWinter.Game.ServerSettings();
+            settings.ApplyFlags(["-servername", "openwinter-parity", "-maxclients", "1", .. s.Difficulty > 0 ? new[] { "-difficulty", s.Difficulty.ToString() } : []]);
+            settings.ApplyTo(world);
+            options = settings.ToOptions();
+        }
         world.LoadModule();
-        var server = new OpenWinter.Game.GameServer(world, new OpenWinter.Game.ServerOptions());
+        var server = new OpenWinter.Game.GameServer(world, options);
         int ticks = (int)((s.Seconds + 30) * OpenWinter.Game.GameServer.TickRate);
         bool reloaded = false;
         for (int i = 0; i < ticks && !lines.Any(ParityResultGuard.IsComplete); i++)

@@ -69,11 +69,11 @@ than releases.
 1. Download `OpenWinter-Server-0.2.0-windows-x64.zip` from the same release and unzip it.
    On Linux, use `OpenWinter-Server-<version>-linux-x64.tar.gz` (`tar xzf` it) and see its README.txt for
    pointing it at the game data.
-2. Run `openwinter-server.exe --module "<path to a .mod file or module folder>"` (`./openwinter-server` on Linux).
-   It listens on UDP port 5121 (`--port` changes it) and writes `server.json` with its settings on the first run;
-   edit that file for the server name, PvP, difficulty, DM password and more. The server vault and databases are
-   kept in `userdata` next to the server. Each player name's vault folder belongs to the first player key that logs
-   in with it (`playerkey.txt` in the folder); delete that file to let the player in from a new installation.
+2. Run it as you would `nwserver`: `openwinter-server.exe -module "<module name>" -userdirectory <folder>`
+   (`./openwinter-server` on Linux), with nwserver's other flags (`-port`, `-maxclients`, `-servervault 1`,
+   `-dmpassword` ...). It reads `settings.tml` and `nwnplayer.ini` from the user folder like nwserver, and keeps the
+   server vault, databases and saves there; an existing NWN:EE server folder works as it is. `--module` also takes a
+   path to a .mod file or module folder. See [docs/SERVER_CONFIG.md](docs/SERVER_CONFIG.md).
 3. Players choose **Multiplayer**, enter the server's address (`host:5121`) and press **Connect**. Haks and TLKs
    they're missing download automatically.
 
@@ -255,7 +255,7 @@ It checks tracked Markdown's relative file links and heading anchors offline; ex
 | `tools/godot.sh -- --module <.mod/.nwm> --character <vault resref>` | Start a module with a character |
 | `tools/godot.sh -- --area ss_town` | Start in a specific area |
 | `tools/godot.sh -- --ui modern` | Use the modern interface (command-line captures use it unless `--ui classic` is given) |
-| `dotnet run --project src/OpenWinter.Server -- --port 5121` | Dedicated server (writes `server.json` on first run; also `--module`, `--pvp`, `--oneparty 0|1`, `--dmpassword`, ...) |
+| `dotnet run --project src/OpenWinter.Server -- -module Prelude -port 5121` | Dedicated server: nwserver's flags, settings.tml and nwnplayer.ini (docs/SERVER_CONFIG.md) |
 | `tools/godot.sh -- --connect 127.0.0.1:5121` | Join a server |
 | `tools/godot.sh -- --capture out/demo` | Scripted demo; saves screenshots and quits (`--capture-hud` and the other `--capture-*` flags are in `client/Main.cs`) |
 | `tools/godot.sh -- --look "x,y,z,yaw,pitch,dist;..." --out dir` | Screenshots from fixed viewpoints |

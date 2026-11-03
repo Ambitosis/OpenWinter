@@ -10,6 +10,7 @@ using OpenWinter.Net.Nwn.Wire;
 /// nwn-probe: logs in to an NWN:EE server over WSNetLayer, enters the module with a server-vault character and records
 /// every frame, then reports the message types seen and any frame that didn't decode.
 ///   nwn-probe ws://host:5121 [--player NAME] [--character RESREF] [--seconds N] [--password PW] [--key-file INI]
+///             [--key-seed N]  (the same generated key on every run, for tests of what a server ties to a key)
 ///             [--say TEXT] [--walk DX,DY] [--run]   (three seconds in: talk, then walk or run to start + offset)
 /// Without --key-file a random key is generated: only a server that can't reach the master server accepts it.
 /// Recordings go to out/nwn/probe-*.jsonl.gz (direction, milliseconds, frame hex).
@@ -26,7 +27,10 @@ static class NwnProbe
             return 1;
         }
         string Opt(string name, string fallback) => Array.IndexOf(args, name) is var i and >= 0 && i + 1 < args.Length ? args[i + 1] : fallback;
-        var key = Array.IndexOf(args, "--key-file") >= 0 ? NwnCdKey.FromIni(Opt("--key-file", "")) : NwnCdKey.Generate();
+        var key = Array.IndexOf(args, "--key-file") >= 0 ? NwnCdKey.FromIni(Opt("--key-file", ""))
+            : Array.IndexOf(args, "--key-seed") >= 0 ? NwnCdKey.Generate(new Random(int.Parse(Opt("--key-seed", "0"))))
+            : NwnCdKey.Generate();
+        Console.WriteLine($"public key {key.PublicKey}");
         var login = new NwnLogin(Opt("--player", "probe"), key, Opt("--password", ""));
         var wanted = Opt("--character", "");
         var seconds = double.Parse(Opt("--seconds", "30"));
@@ -103,6 +107,7 @@ static class NwnProbe
         switch (m)
         {
             case CharListMessages.CharListListResponse list:
+                Console.WriteLine($"characters: {string.Join(", ", list.Characters.Select(c => c.Resref))}");
                 var pick = list.Characters.FirstOrDefault(c => wanted.Length == 0 || c.Resref.Equals(wanted, StringComparison.OrdinalIgnoreCase));
                 if (pick == null)
                 {

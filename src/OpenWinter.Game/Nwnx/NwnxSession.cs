@@ -36,10 +36,10 @@ public static class NwnxSession
         return ev;
     }
 
-    /// <summary>Whether a server-vault player name may be used: the vault's answer, or a subscriber's; ends the event.</summary>
+    /// <summary>Whether a sticky player name may be used: the server's answer, or a subscriber's; ends the event.</summary>
     public static bool StickyName(NwnxEvent? ev, World world, string playerName, string cdKey)
     {
-        bool ok = ev is { Skipped: true } ? ev.Result == "1" : Persistence.ServerVault.ClaimFolder(world, playerName, cdKey);
+        bool ok = ev is { Skipped: true } ? ev.Result == "1" : Persistence.StickyPlayerNames.Claim(world, playerName, cdKey);
         ev?.After();
         return ok;
     }

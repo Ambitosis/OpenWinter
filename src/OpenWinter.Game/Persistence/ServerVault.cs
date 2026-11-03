@@ -4,19 +4,29 @@ using OpenWinter.Game.Objects;
 namespace OpenWinter.Game.Persistence;
 
 /// <summary>
-/// Character export (ExportSingleCharacter / ExportAllCharacters): writes BIC files to
-/// &lt;user&gt;/servervault/&lt;player name&gt;/&lt;character&gt;.bic, including the character's
-/// SQLite database. Loading characters from the vault at login is a later milestone.
+/// The server vault: &lt;user&gt;/servervault/&lt;folder&gt;/&lt;character&gt;.bic, the folder named by the player's public
+/// key, or by player name when the server keeps vaults that way (see <see cref="Folder"/>). Characters are listed and
+/// loaded at login and written by ExportSingleCharacter / ExportAllCharacters and on logout, with their SQLite database.
 /// </summary>
 public static class ServerVault
 {
     /// <summary>Folder used when a character has no player (login) name.</summary>
     public const string LocalFolder = "local";
 
-    public static string VaultDir(World world, Creature c)
+    public static string VaultDir(World world, Creature c) =>
+        Path.Combine(world.System<PersistenceSystem>().UserRoot, "servervault", Folder(world, c.Player ?? c.FamiliarController));
+
+    /// <summary>
+    /// A player's vault folder: nwserver names it by the public key unless server.vault.by-player-name is on (measured
+    /// on nwserver: a character in servervault/&lt;key&gt;/ is listed, one in servervault/&lt;player name&gt;/ isn't). A
+    /// player without a key goes by name.
+    /// </summary>
+    public static string Folder(World world, PlayerSession? player)
     {
-        var player = Sanitize((c.Player ?? c.FamiliarController)?.PlayerName ?? "", keepCase: true);
-        return Path.Combine(world.System<PersistenceSystem>().UserRoot, "servervault", player.Length > 0 ? player : LocalFolder);
+        if (player == null) return LocalFolder;
+        bool byName = world.System<PersistenceSystem>().VaultByPlayerName || player.PublicKey.Length == 0;
+        var name = Sanitize(byName ? player.PlayerName : player.PublicKey, keepCase: true);
+        return name.Length > 0 ? name : LocalFolder;
     }
 
     /// <summary>Character file names: lower-case letters and digits from the name, at most 16 characters.</summary>
@@ -38,9 +48,9 @@ public static class ServerVault
     /// Vault folders to read a player's characters from: the folder exports go to, then (when
     /// development runs write to a sandbox) the real user folder, read-only.
     /// </summary>
-    static IEnumerable<string> ReadDirs(World world, string player)
+    static IEnumerable<string> ReadDirs(World world, string folder)
     {
-        var name = Sanitize(player, keepCase: true);
+        var name = Sanitize(folder, keepCase: true);
         if (name.Length == 0) name = LocalFolder;
         var write = Path.Combine(world.System<PersistenceSystem>().UserRoot, "servervault", name);
         yield return write;
@@ -48,34 +58,14 @@ public static class ServerVault
         if (!real.Equals(write, StringComparison.OrdinalIgnoreCase)) yield return real;
     }
 
-    /// <summary>File in a player's vault folder holding the public key that owns the folder.</summary>
-    public const string KeyFile = "playerkey.txt";
-
-    /// <summary>
-    /// Binds a player name's vault to the first public key that logs in with it, so another client cannot claim the
-    /// name and play its characters. False when a different (or missing) key already holds the folder.
-    /// </summary>
-    public static bool ClaimFolder(World world, string player, string key)
-    {
-        var name = Sanitize(player, keepCase: true);
-        if (name.Length == 0) name = LocalFolder;
-        var dir = Path.Combine(world.System<PersistenceSystem>().UserRoot, "servervault", name);
-        var path = Path.Combine(dir, KeyFile);
-        if (File.Exists(path)) return string.Equals(File.ReadAllText(path).Trim(), key.Trim(), StringComparison.Ordinal);
-        if (key.Trim().Length == 0) return true;
-        Directory.CreateDirectory(dir);
-        File.WriteAllText(path, key.Trim());
-        return true;
-    }
-
-    /// <summary>The characters a player can choose on a server-vault server.</summary>
-    public static List<Net.CharacterEntry> List(World world, string player)
+    /// <summary>The characters in a vault folder (<see cref="Folder"/>), to choose from on a server-vault server.</summary>
+    public static List<Net.CharacterEntry> List(World world, string folder)
     {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var list = new List<Net.CharacterEntry>();
         var talk = world.Resources.Talk;
         var classTable = world.Resources.TwoDA("classes");
-        foreach (var dir in ReadDirs(world, player))
+        foreach (var dir in ReadDirs(world, folder))
         {
             if (!Directory.Exists(dir)) continue;
             foreach (var path in Directory.EnumerateFiles(dir, "*.bic").OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
@@ -102,11 +92,11 @@ public static class ServerVault
         return list;
     }
 
-    /// <summary>A player's character file from their vault, or null (unknown file, bad name, unreadable).</summary>
-    public static GffStruct? Load(World world, string player, string file)
+    /// <summary>A character file from a vault folder, or null (unknown file, bad name, unreadable).</summary>
+    public static GffStruct? Load(World world, string folder, string file)
     {
         if (file.Length == 0 || file.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || file.Contains("..")) return null;
-        foreach (var dir in ReadDirs(world, player))
+        foreach (var dir in ReadDirs(world, folder))
         {
             var path = Path.Combine(dir, file + ".bic");
             if (File.Exists(path)) return Gff.Read(File.ReadAllBytes(path));

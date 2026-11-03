@@ -10,8 +10,8 @@ Difficult. 0 ("DM Easy") exists as a constant, but EE's settings offer 1-4 only.
   "Difficulty Level" under "Game Options", label strref 7212 ("Difficulty") and value names 66786/66788/66790/66792
   (Easy, Normal, D&D Hardcore Rules, Very Difficult). nwserver started without `-difficulty` reports 1 (parity suite
   `difficulty_default`, which omits the flag: `"difficulty": 0` in suite.json).
-- **OpenWinter**: `World.GameDifficulty` defaults to 1, as does `ServerConfig.Difficulty` (`--difficulty` and the
-  server file still set it). Single player takes it from Options → Gameplay → Game difficulty
+- **OpenWinter**: `World.GameDifficulty` defaults to 1, as does the dedicated server (`ruleset.difficulty` in settings.tml,
+  `-difficulty`, docs/SERVER_CONFIG.md). Single player takes it from Options → Gameplay → Game difficulty
   (`GameplaySettings.Difficulty`, default 1); a change applies at once to the running game. `--difficulty N` sets it
   for a capture or the visual harness (`visual.py --difficulty N`, or `"difficulty"` in scene.json, which also
   writes `[ruleset] difficulty` into the original's sandbox settings). A loaded game and a module transition keep

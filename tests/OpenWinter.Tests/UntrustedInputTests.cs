@@ -132,27 +132,64 @@ public class UntrustedInputTests
     }
 
     [DataFact]
-    public void AVaultBelongsToTheKeyThatClaimedIt()
+    public void StickyNamesStayWithTheFirstKey()
+    {
+        var (world, server) = Server(new ServerOptions { CharacterSelection = true, Vault = VaultMode.Server, StickyPlayerNames = true });
+        var name = "Owner" + Guid.NewGuid().ToString("N")[..8];
+        var known = Path.Combine(world.System<OpenWinter.Game.Persistence.PersistenceSystem>().UserRoot, "override",
+            OpenWinter.Game.Persistence.StickyPlayerNames.FileName);
+        LoopbackConnection Login(string player, string key)
+        {
+            var (c, end) = LoopbackConnection.CreatePair();
+            server.Accept(end);
+            c.Send(new HelloMessage { PlayerName = player, PlayerKey = key }.Write());
+            server.Tick(1f / 30);
+            return c;
+        }
+        try
+        {
+            var owner = Login(name, "OWNERKEY");
+            Assert.Contains(Drain(owner), m => m[0] == (byte)MessageType.CharacterList);
+            // nwserver refuses the name under another key, whatever its case, and lets one key hold several names.
+            Assert.False(Login(name, "OTHERKEY").IsConnected);
+            Assert.False(Login(name.ToUpperInvariant(), "OTHERKEY").IsConnected);
+            Assert.False(Login(name, "").IsConnected);
+            Assert.True(Login(name, "OWNERKEY").IsConnected);
+            Assert.True(Login(name + "b", "OWNERKEY").IsConnected);
+            Assert.Contains("\"OWNERKEY\"  016          \"" + name + "b\"", File.ReadAllText(known));
+        }
+        finally
+        {
+            DeleteVault(world, name);
+            DeleteVault(world, name + "b");
+            if (File.Exists(known)) File.Delete(known);
+        }
+    }
+
+    [DataFact]
+    public void WithoutStickyNamesAnyKeyUsesTheName()
     {
         var (world, server) = Server(new ServerOptions { CharacterSelection = true, Vault = VaultMode.Server });
-        var name = "Owner" + Guid.NewGuid().ToString("N")[..8];
-        LoopbackConnection Login(string key)
+        var name = "Shared" + Guid.NewGuid().ToString("N")[..8];
+        foreach (var key in new[] { "FIRSTKEY", "OTHERKEY" })
         {
             var (c, end) = LoopbackConnection.CreatePair();
             server.Accept(end);
             c.Send(new HelloMessage { PlayerName = name, PlayerKey = key }.Write());
             server.Tick(1f / 30);
-            return c;
+            Assert.Contains(Drain(c), m => m[0] == (byte)MessageType.CharacterList);
         }
-        var owner = Login("OWNERKEY");
-        Assert.Contains(Drain(owner), m => m[0] == (byte)MessageType.CharacterList);
-        var impostor = Login("OTHERKEY");
-        Assert.DoesNotContain(Drain(impostor), m => m[0] == (byte)MessageType.CharacterList);
-        Assert.False(impostor.IsConnected);
-        var keyless = Login("");
-        Assert.False(keyless.IsConnected);
-        var again = Login("OWNERKEY");
-        Assert.True(again.IsConnected);
         DeleteVault(world, name);
+    }
+
+    [DataFact]
+    public void VaultFoldersFollowTheKeyUnlessByPlayerName()
+    {
+        var (world, _) = Server(new ServerOptions { VaultByPlayerName = false });
+        var player = new PlayerSession { Connection = LoopbackConnection.CreatePair().Item2, PlayerName = "Alice", PublicKey = "FNVKYDQ6" };
+        Assert.Equal("FNVKYDQ6", OpenWinter.Game.Persistence.ServerVault.Folder(world, player));
+        Assert.Equal("Alice", OpenWinter.Game.Persistence.ServerVault.Folder(world, new PlayerSession { Connection = LoopbackConnection.CreatePair().Item2, PlayerName = "Alice" }));
+        world.System<OpenWinter.Game.Persistence.PersistenceSystem>().VaultByPlayerName = true;
+        Assert.Equal("Alice", OpenWinter.Game.Persistence.ServerVault.Folder(world, player));
     }
 }

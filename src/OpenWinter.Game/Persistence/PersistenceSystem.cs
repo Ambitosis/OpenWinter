@@ -28,6 +28,8 @@ public sealed class PersistenceSystem : IWorldSystem, IDisposable
     /// Hosts set this unless the user opted into live data (config "liveUserData": true).
     /// </summary>
     public static string? SandboxRoot;
+    /// <summary>Server-vault folders by player name rather than public key (the server's <see cref="ServerOptions.VaultByPlayerName"/>).</summary>
+    public bool VaultByPlayerName = true;
     public Action<string> Log = Console.WriteLine;
 
     public PersistenceSystem(World world) { _world = world; }

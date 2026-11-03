@@ -11,14 +11,16 @@ otherwise create config/local.json next to the server:
 userRoot is where it reads haks, TLKs and modules (hak/, tlk/, modules/), as
 in the game's own user folder. File names there may use any case.
 
-Run:
-  ./openwinter-server --module "<path to a .mod file or module folder>"
+Run it as you would nwserver:
+  ./openwinter-server -module "<module name>" -userdirectory <folder>
 
-Options: --port 5121, --pvp none|party|full, --dmpassword <pw>, --config <file>.
-The first run writes server.json with all settings; edit it for the server
-name, PvP, difficulty, vault mode and more. The server vault and databases are
-kept in the userdata folder next to the server. Open UDP port 5121 (or the one
-you chose) in your firewall.
+It takes nwserver's flags (-port, -maxclients, -servervault 1, -pvp,
+-dmpassword ...) and reads settings.tml and nwnplayer.ini from the user folder,
+where it also keeps the server vault and databases, so an NWN:EE server folder
+works as it is. --module also takes a path to a .mod file or module folder.
+Without -userdirectory it uses userRoot and writes into the userdata folder
+next to the server. Settings: docs/SERVER_CONFIG.md in the source repository.
+Open UDP port 5121 (or the one you chose) in your firewall.
 
 Players join from Multiplayer with your address (host:5121). Server and players
 must run the same OpenWinter version. Missing haks and TLKs download to players

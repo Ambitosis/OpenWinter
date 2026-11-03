@@ -80,6 +80,27 @@ public class ModuleTransitionTests
     }
 
     [DataFact]
+    public void TheModuleReloadsWhenTheLastPlayerLeaves()
+    {
+        using var f = new Fixture();
+        f.Server.Options.ReloadWhenEmpty = true;
+        var before = f.Server.World;
+        before.Pvp = PvpSetting.Full;
+        var (_, first) = f.Join("first");
+        var (_, second) = f.Join("second");
+        first.Disconnect();
+        f.Server.Tick(.01f);
+        Assert.Same(before, f.Server.World);
+        // nwserver loads the module again as the last player leaves; the server's settings stay.
+        second.Disconnect();
+        f.Server.Tick(.01f);
+        Assert.NotSame(before, f.Server.World);
+        Assert.Equal(PvpSetting.Full, f.Server.World.Pvp);
+        Assert.NotNull(f.Server.World.FindArea("old_area"));
+        f.Join("third");
+    }
+
+    [DataFact]
     public void ModuleTransferUsesOriginalCharacterDuringFamiliarPossession()
     {
         using var f = new Fixture();
