@@ -7,7 +7,7 @@
     <ProjectReference Include="..\OpenWinter.Content\OpenWinter.Content.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ZstdSharp.Port" Version="0.8.8" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.9.1" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="OpenWinter.Aurora.Tests" />
